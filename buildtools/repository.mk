@@ -23,6 +23,7 @@ include $(CPDE_BUILD_DETAIL_DIR)/product-def.mk
 include $(wildcard $(CPDE_BUILD_DETAIL_DIR)/product-def-*.mk)
 include $(CPDE_BUILD_DETAIL_DIR)/gtest-def.mk
 include $(CPDE_BUILD_DETAIL_DIR)/gtags.mk
+include $(wildcard $(CPDE_BUILD_DETAIL_DIR)/support-*.mk)
 
 endif
 
