@@ -3,6 +3,7 @@
 #include "cpe/pal/pal_queue.h"
 #include "cpe/utils/memory.h"
 #include "cpe/utils/error.h"
+#include "cpe/utils/hash.h"
 #include "cpe/utils/hash_string.h"
 #include "gd/app/app_types.h"
 
@@ -37,6 +38,12 @@ struct gd_app_tl {
 };
 typedef TAILQ_HEAD(gd_app_tl_list, gd_app_tl) gd_app_tl_list_t;
 
+struct gd_app_em {
+    const char * m_name;
+    error_monitor_t m_em;
+    struct cpe_hash_entry m_hh;
+};
+
 struct gd_app_context {
     gd_app_status_t m_state;
     int m_argc;
@@ -48,6 +55,7 @@ struct gd_app_context {
 
     error_monitor_t m_em;
     struct error_monitor m_em_print;
+    struct cpe_hash_table m_named_ems;
 
     gd_app_ticker_list_t m_tick_chain;
 

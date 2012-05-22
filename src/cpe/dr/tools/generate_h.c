@@ -4,6 +4,18 @@
 #include "cpe/dr/dr_metalib_manage.h"
 #include "generate_ops.h"
 
+static void cpe_dr_generate_h_includes(write_stream_t stream, dr_metalib_source_t source, cpe_dr_generate_ctx_t ctx) {
+    struct dr_metalib_source_it include_source_it;
+    dr_metalib_source_t include_source;
+
+    dr_metalib_source_includes(&include_source_it, source);
+    while((include_source = dr_metalib_source_next(&include_source_it))) {
+        stream_printf(stream, "#include \"%s.h\"\n", dr_metalib_source_name(include_source));
+    }
+
+    stream_printf(stream, "\n");
+}
+
 static void cpe_dr_generate_h_macros(write_stream_t stream, dr_metalib_source_t source, cpe_dr_generate_ctx_t ctx) {
     struct dr_metalib_source_element_it element_it;
     dr_metalib_source_element_t element;
@@ -20,6 +32,8 @@ static void cpe_dr_generate_h_macros(write_stream_t stream, dr_metalib_source_t 
                macro_value);
        }
     }
+
+    stream_printf(stream, "\n");
 }
 
 static void cpe_dr_generate_h_metas(write_stream_t stream, dr_metalib_source_t source, cpe_dr_generate_ctx_t ctx) {
@@ -104,6 +118,7 @@ int cpe_dr_generate_h(write_stream_t stream, dr_metalib_source_t source, cpe_dr_
         stream_printf(stream, "#define DR_GENERATED_H_%s_INCLEDED\n", dr_metalib_source_name(source));
     }
     stream_printf(stream, "#include \"cpe/pal/pal_types.h\"\n");
+    cpe_dr_generate_h_includes(stream, source, ctx);
 
     cpe_dr_generate_h_macros(stream, source, ctx);
 
