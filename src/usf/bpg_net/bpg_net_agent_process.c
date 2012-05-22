@@ -50,6 +50,8 @@ static void bpg_net_agent_on_read(bpg_net_agent_t agent, net_ep_t ep) {
         input_size = buf_size;
         output_size = bpg_pkg_pkg_capacity(req_buf);
 
+        bpg_pkg_init(req_buf);
+
         cvt_result =
             dr_cvt_decode(
                 bpg_pkg_base_cvt(req_buf),
