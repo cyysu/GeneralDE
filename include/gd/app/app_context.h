@@ -18,14 +18,19 @@ void gd_app_context_free(gd_app_context_t context);
 
 void gd_app_set_main(gd_app_context_t context, gd_app_fn_t fn_main, gd_app_fn_t fn_stop, void * fn_ctx);
 
+mem_allocrator_t gd_app_alloc(gd_app_context_t context);
+
 /*arg operations*/
 int gd_app_argc(gd_app_context_t context);
 char ** gd_app_argv(gd_app_context_t context);
 int gd_app_add_arg(gd_app_context_t context, char * arg);
 
 /*basic suupport operations*/
+error_monitor_t gd_app_print_em(gd_app_context_t context);
 void gd_app_set_em(gd_app_context_t context, error_monitor_t em);
-mem_allocrator_t gd_app_alloc(gd_app_context_t context);
+error_monitor_t gd_app_named_em(gd_app_context_t context, const char * name);
+int gd_app_set_named_em(gd_app_context_t context, const char * name, error_monitor_t em);
+void gd_app_remove_named_em(gd_app_context_t context, const char * name);
 
 /*config operations*/
 int gd_app_cfg_reload(gd_app_context_t context);
