@@ -15,6 +15,10 @@ void gd_app_set_em(gd_app_context_t context, error_monitor_t em) {
     context->m_em = em;
 }
 
+error_monitor_t gd_app_print_em(gd_app_context_t context) {
+    return &context->m_em_print;
+}
+
 error_monitor_t gd_app_em(gd_app_context_t context) {
     return context->m_em;
 }

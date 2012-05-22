@@ -6,7 +6,7 @@ class RspTest : public AppTest {
 public:
     virtual void SetUp() {
         AppTest::SetUp();
-        installTestModule("module1");
+        ASSERT_TRUE(installTestModule("module1"));
     }
 };
 
