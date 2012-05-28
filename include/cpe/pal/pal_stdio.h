@@ -27,8 +27,13 @@ extern "C" {
 # define FMT_SIZE_T "%zd"
 
 # if (__WORDSIZE == 64)
-#   define FMT_UINT64_T "%lu"
-#   define FMT_INT64_T "%ld"
+#   if defined __GNUC__
+#     define FMT_UINT64_T "%llu"
+#     define FMT_INT64_T "%lld"
+#   else
+#     define FMT_UINT64_T "%lu"
+#     define FMT_INT64_T "%ld"
+#   endif
 #   define FMT_UINT32_T "%u"
 #   define FMT_INT32_T "%d"
 # else

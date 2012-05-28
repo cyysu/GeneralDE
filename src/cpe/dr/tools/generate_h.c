@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <ctype.h>
 #include "cpe/dr/dr_ctypes_info.h"
 #include "cpe/dr/dr_metalib_builder.h"
 #include "cpe/dr/dr_metalib_manage.h"
@@ -48,6 +49,7 @@ static void cpe_dr_generate_h_metas(write_stream_t stream, dr_metalib_source_t s
     while((element = dr_metalib_source_element_next(&element_it))) {
         LPDRMETA meta;
         int entry_pos;
+        const char * meta_name;
 
         if (dr_metalib_source_element_type(element) != dr_metalib_source_element_type_meta) continue;
 
@@ -60,7 +62,8 @@ static void cpe_dr_generate_h_metas(write_stream_t stream, dr_metalib_source_t s
             packed = 1;
         }
 
-        stream_printf(stream, "\nstruct %s {", dr_meta_name(meta));
+        meta_name = dr_meta_name(meta);
+        stream_printf(stream, "\ntypedef %s _%s {", dr_type_name(dr_meta_type(meta)), meta_name);
 
         for(entry_pos = 0; entry_pos < dr_meta_entry_num(meta); ++entry_pos) {
             LPDRMETAENTRY entry = dr_meta_entry_at(meta, entry_pos);
@@ -75,11 +78,16 @@ static void cpe_dr_generate_h_metas(write_stream_t stream, dr_metalib_source_t s
                 ref_meta = dr_entry_ref_meta(entry);
                 if (ref_meta == NULL) continue;
 
-                stream_printf(stream, "%s %s %s", dr_type_name(dr_entry_type(entry)), dr_meta_name(ref_meta), dr_entry_name(entry));
+                stream_toupper(stream, dr_meta_name(ref_meta));
+                stream_printf(stream, " %s", dr_entry_name(entry));
                 break;
             }
             case CPE_DR_TYPE_STRING: {
                 stream_printf(stream, "char %s[%d]", dr_entry_name(entry), dr_entry_size(entry));
+                break;
+            }
+            case CPE_DR_TYPE_CHAR: {
+                stream_printf(stream, "char %s", dr_entry_name(entry));
                 break;
             }
             default: {
@@ -95,7 +103,9 @@ static void cpe_dr_generate_h_metas(write_stream_t stream, dr_metalib_source_t s
             stream_printf(stream, ";");
         }
 
-        stream_printf(stream, "\n};\n");
+        stream_printf(stream, "\n} ");
+        stream_toupper(stream, meta_name);
+        stream_printf(stream, ";\n");
     }
 
     if (packed) {
