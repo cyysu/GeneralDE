@@ -23,7 +23,7 @@ bpg_pkg_create(
     dp_req_t dp_req;
     bpg_pkg_t bpg_pkg;
 
-    if (pkg_capacity < sizeof (struct basepkg)) return NULL;
+    if (pkg_capacity < sizeof (BASEPKG)) return NULL;
 
     dp_req = dp_req_create(
         gd_app_dp_mgr(mgr->m_app),
@@ -102,25 +102,25 @@ int bpg_pkg_pkg_data_set_size(bpg_pkg_t req, size_t size) {
 }
 
 void bpg_pkg_init(bpg_pkg_t bpg_pkg) {
-    struct basepkg_head * head;
+    BASEPKG_HEAD * head;
 
-    bpg_pkg_pkg_data_set_size(bpg_pkg, sizeof(struct basepkg_head));
+    bpg_pkg_pkg_data_set_size(bpg_pkg, sizeof(BASEPKG_HEAD));
 
     bpg_pkg->m_connection_id = BPG_INVALID_CONNECTION_ID;
 
-    head = (struct basepkg_head *)bpg_pkg_pkg_data(bpg_pkg);
-    bzero(head, sizeof(struct basepkg_head));
+    head = (BASEPKG_HEAD *)bpg_pkg_pkg_data(bpg_pkg);
+    bzero(head, sizeof(BASEPKG_HEAD));
     head->magic = BASEPKG_HEAD_MAGIC;
     head->version = 1;
 }
 
 void bpg_pkg_clear_data(bpg_pkg_t bpg_pkg) {
-    struct basepkg_head * head;
+    BASEPKG_HEAD * head;
 
-    bpg_pkg_pkg_data_set_size(bpg_pkg, sizeof(struct basepkg_head));
+    bpg_pkg_pkg_data_set_size(bpg_pkg, sizeof(BASEPKG_HEAD));
 
-    head = (struct basepkg_head *)bpg_pkg_pkg_data(bpg_pkg);
-    head->headlen = sizeof(struct basepkg_head);
+    head = (BASEPKG_HEAD *)bpg_pkg_pkg_data(bpg_pkg);
+    head->headlen = sizeof(BASEPKG_HEAD);
     head->bodylen = 0;
     head->originBodyLen = 0;
     head->bodytotallen = 0;
@@ -128,43 +128,43 @@ void bpg_pkg_clear_data(bpg_pkg_t bpg_pkg) {
 }
 
 uint32_t bpg_pkg_cmd(bpg_pkg_t req) {
-    struct basepkg_head * head;
-    head = (struct basepkg_head *)bpg_pkg_pkg_data(req);
+    BASEPKG_HEAD * head;
+    head = (BASEPKG_HEAD *)bpg_pkg_pkg_data(req);
 
     return head->cmd;
 }
 
 void bpg_pkg_set_cmd(bpg_pkg_t req, uint32_t cmd) {
-    struct basepkg_head * head;
-    head = (struct basepkg_head *)bpg_pkg_pkg_data(req);
+    BASEPKG_HEAD * head;
+    head = (BASEPKG_HEAD *)bpg_pkg_pkg_data(req);
 
     head->cmd = cmd;
 }
 
 uint32_t bpg_pkg_sn(bpg_pkg_t req) {
-    struct basepkg_head * head;
-    head = (struct basepkg_head *)bpg_pkg_pkg_data(req);
+    BASEPKG_HEAD * head;
+    head = (BASEPKG_HEAD *)bpg_pkg_pkg_data(req);
 
     return head->sn;
 }
 
 void bpg_pkg_set_sn(bpg_pkg_t req, uint32_t sn) {
-    struct basepkg_head * head;
-    head = (struct basepkg_head *)bpg_pkg_pkg_data(req);
+    BASEPKG_HEAD * head;
+    head = (BASEPKG_HEAD *)bpg_pkg_pkg_data(req);
 
     head->sn = sn;
 }
 
 uint32_t bpg_pkg_errno(bpg_pkg_t req) {
-    struct basepkg_head * head;
-    head = (struct basepkg_head *)bpg_pkg_pkg_data(req);
+    BASEPKG_HEAD * head;
+    head = (BASEPKG_HEAD *)bpg_pkg_pkg_data(req);
 
     return head->errorNo;
 }
 
 void bpg_pkg_set_errno(bpg_pkg_t req, uint32_t errorNo) {
-    struct basepkg_head * head;
-    head = (struct basepkg_head *)bpg_pkg_pkg_data(req);
+    BASEPKG_HEAD * head;
+    head = (BASEPKG_HEAD *)bpg_pkg_pkg_data(req);
 
     head->errorNo = errorNo;
 }
@@ -174,15 +174,15 @@ dp_req_t bpg_pkg_to_dp_req(bpg_pkg_t req) {
 }
 
 uint64_t bpg_pkg_client_id(bpg_pkg_t req) {
-    struct basepkg_head * head;
-    head = (struct basepkg_head *)bpg_pkg_pkg_data(req);
+    BASEPKG_HEAD * head;
+    head = (BASEPKG_HEAD *)bpg_pkg_pkg_data(req);
 
     return head->clientId;
 }
 
 void bpg_pkg_set_client_id(bpg_pkg_t req, uint64_t client_id) {
-    struct basepkg_head * head;
-    head = (struct basepkg_head *)bpg_pkg_pkg_data(req);
+    BASEPKG_HEAD * head;
+    head = (BASEPKG_HEAD *)bpg_pkg_pkg_data(req);
 
     head->clientId = client_id;
 }
@@ -272,35 +272,35 @@ LPDRMETA bpg_pkg_append_data_meta(bpg_pkg_t pkg, bpg_pkg_append_info_t append_in
 }
 
 void * bpg_pkg_body_data(bpg_pkg_t pkg) {
-    struct basepkg * basepkg;
+    BASEPKG * basepkg;
 
-    basepkg = (struct basepkg *)bpg_pkg_pkg_data(pkg);
+    basepkg = (BASEPKG *)bpg_pkg_pkg_data(pkg);
 
     return basepkg->body;
 }
     
 uint32_t bpg_pkg_body_len(bpg_pkg_t pkg) {
-    struct basepkg_head * head;
-    head = (struct basepkg_head *)bpg_pkg_pkg_data(pkg);
+    BASEPKG_HEAD * head;
+    head = (BASEPKG_HEAD *)bpg_pkg_pkg_data(pkg);
 
     return head->bodylen;
 }
 
 uint32_t bpg_pkg_body_origin_len(bpg_pkg_t pkg) {
-    struct basepkg_head * head;
-    head = (struct basepkg_head *)bpg_pkg_pkg_data(pkg);
+    BASEPKG_HEAD * head;
+    head = (BASEPKG_HEAD *)bpg_pkg_pkg_data(pkg);
     return head->originBodyLen;
 }
 
 int32_t bpg_pkg_append_info_count(bpg_pkg_t pkg) {
-    struct basepkg_head * head;
-    head = (struct basepkg_head *)bpg_pkg_pkg_data(pkg);
+    BASEPKG_HEAD * head;
+    head = (BASEPKG_HEAD *)bpg_pkg_pkg_data(pkg);
     return head->appendInfoCount;
 }
 
 bpg_pkg_append_info_t bpg_pkg_append_info_at(bpg_pkg_t pkg, int32_t pos) {
-    struct basepkg_head * head;
-    head = (struct basepkg_head *)bpg_pkg_pkg_data(pkg);
+    BASEPKG_HEAD * head;
+    head = (BASEPKG_HEAD *)bpg_pkg_pkg_data(pkg);
 
     return (pos >= 0 && pos < head->appendInfoCount)
         ? (bpg_pkg_append_info_t)(&head->appendInfos[pos])
@@ -308,18 +308,18 @@ bpg_pkg_append_info_t bpg_pkg_append_info_at(bpg_pkg_t pkg, int32_t pos) {
 }
 
 uint32_t bpg_pkg_append_info_id(bpg_pkg_append_info_t append_info) {
-    return ((struct AppendInfo *)append_info)->id;
+    return ((APPENDINFO *)append_info)->id;
 }
 
 void * bpg_pkg_append_info_data(bpg_pkg_t pkg, bpg_pkg_append_info_t append_info) {
     int pos;
-    struct basepkg * basepkg;
+    BASEPKG * basepkg;
     char * buf;
     int i;
 
-    basepkg = (struct basepkg *)bpg_pkg_pkg_data(pkg);
+    basepkg = (BASEPKG *)bpg_pkg_pkg_data(pkg);
 
-    pos = (((struct AppendInfo *)append_info) - basepkg->head.appendInfos);
+    pos = (((APPENDINFO *)append_info) - basepkg->head.appendInfos);
 
     if (pos < 0 || pos > basepkg->head.appendInfoCount) return NULL;
 
@@ -334,11 +334,11 @@ void * bpg_pkg_append_info_data(bpg_pkg_t pkg, bpg_pkg_append_info_t append_info
 }
 
 uint32_t bpg_pkg_append_info_size(bpg_pkg_append_info_t append_info) {
-    return ((struct AppendInfo *)append_info)->size;
+    return ((APPENDINFO *)append_info)->size;
 }
 
 uint32_t bpg_pkg_append_info_origin_size(bpg_pkg_append_info_t append_info) {
-    return ((struct AppendInfo *)append_info)->originSize;
+    return ((APPENDINFO *)append_info)->originSize;
 }
 
 bpg_pkg_debug_level_t bpg_pkg_debug_level(bpg_pkg_t req) {
@@ -351,12 +351,12 @@ const char * bpg_pkg_dump(bpg_pkg_t req, mem_buffer_t buffer) {
     struct write_stream_buffer stream = CPE_WRITE_STREAM_BUFFER_INITIALIZER(buffer);
     LPDRMETALIB metalib;
     LPDRMETA meta;
-    struct basepkg * pkg;
+    BASEPKG * pkg;
     int i;
 
     mem_buffer_clear_data(buffer);
 
-    pkg = (struct basepkg *)bpg_pkg_pkg_data(req);
+    pkg = (BASEPKG *)bpg_pkg_pkg_data(req);
     
     stream_printf(((write_stream_t)&stream), "head: ");
 

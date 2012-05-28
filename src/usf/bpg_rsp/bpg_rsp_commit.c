@@ -22,7 +22,7 @@ void bpg_rsp_commit(logic_context_t op_context, void * user_data) {
     bpg_pkg_t response_buf;
     error_monitor_t em;
     logic_data_t bpg_private_data;
-    struct bpg_carry_info * bpg_private;
+    BPG_CARRY_INFO * bpg_private;
     logic_data_t bpg_carry_data;
 
     bpg_rsp = (bpg_rsp_t)user_data;
@@ -50,7 +50,7 @@ void bpg_rsp_commit(logic_context_t op_context, void * user_data) {
         return;
     }
 
-    bpg_private = (struct bpg_carry_info *)logic_data_data(bpg_private_data);
+    bpg_private = (BPG_CARRY_INFO *)logic_data_data(bpg_private_data);
     if (bpg_private->no_response) {
         if (bpg_rsp_pkg_need_debug_detail(bpg_rsp, NULL)) {
             CPE_INFO(

@@ -214,7 +214,7 @@ extern char g_metalib_carry_package[];
 int bpg_rsp_copy_bpg_carry_data_to_ctx(bpg_rsp_manage_t mgr, logic_context_t op_context, bpg_pkg_t bpg_req, error_monitor_t em) {
     LPDRMETA bpg_carry_data_meta;
     logic_data_t data;
-    struct bpg_carry_info * buf;
+    BPG_CARRY_INFO * buf;
 
     if (bpg_req == NULL) return 0;
 
@@ -236,7 +236,7 @@ int bpg_rsp_copy_bpg_carry_data_to_ctx(bpg_rsp_manage_t mgr, logic_context_t op_
         return -1;
     }
 
-    buf = (struct bpg_carry_info *)logic_data_data(data);
+    buf = (BPG_CARRY_INFO *)logic_data_data(data);
     buf->clientId = bpg_pkg_client_id(bpg_req);
     buf->connectionId = bpg_pkg_connection_id(bpg_req);
     buf->cmd = bpg_pkg_cmd(bpg_req);
