@@ -42,6 +42,7 @@ mac.check=$(call assert-not-null,MAC_PLATFORM_NAME) \
 # {{{ sdk MAC
 
 MAC_PLATFORM_NAME?=MacOSX
+MAC_PLATFORM_VERSION?=10.7
 
 MacOSX.compiler ?= $(MAC_XCODE_ROOT)/Toolchains/XcodeDefault.xctoolchain/usr/bin/$(if $(filter gcc,$1),clang,$(if $(filter g++,$1),clang++,$1))
 
