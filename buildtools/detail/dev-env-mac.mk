@@ -35,7 +35,6 @@ mac.check=$(call assert-not-null,MAC_PLATFORM_NAME) \
              $(call assert-not-null,$(MAC_PLATFORM_NAME).MFLAGS) \
              $(call assert-not-null,$(MAC_PLATFORM_NAME).MMFLAGS) \
              $(call assert-not-null,$(MAC_PLATFORM_NAME).LDFLAGS) \
-             $(call assert-not-null,$(MAC_PLATFORM_NAME).TARGET_ARCH) \
              $(call assert-file-exists,$(MAC_SDK_PREFIX))
 
 # }}}
@@ -44,9 +43,7 @@ mac.check=$(call assert-not-null,MAC_PLATFORM_NAME) \
 MAC_PLATFORM_NAME?=MacOSX
 MAC_PLATFORM_VERSION?=10.7
 
-MacOSX.compiler ?= $(MAC_XCODE_ROOT)/Toolchains/XcodeDefault.xctoolchain/usr/bin/$(if $(filter gcc,$1),clang,$(if $(filter g++,$1),clang++,$1))
-
-MacOSX.TARGET_ARCH ?= -arch i386
+MacOSX.compiler ?= $(if $(filter gcc,$1),clang,$(if $(filter g++,$1),clang++,$1))
 
 #MacOSX.CPPFLAGS ?= 
 
@@ -76,8 +73,7 @@ MacOSX.MMFLAGS ?= \
                    -fobjc-abi-version=2 \
                    -fobjc-legacy-dispatch \
 
-MacOSX.LDFLAGS ?=  -arch i386\
-                   -mmacosx-version-min=$(MAC_PLATFORM_VERSION) \
+MacOSX.LDFLAGS ?=  -mmacosx-version-min=$(MAC_PLATFORM_VERSION) \
                    -Xlinker \
                    -objc_abi_version \
                    -Xlinker 2 
@@ -87,11 +83,11 @@ MacOSX.LDFLAGS ?=  -arch i386\
 
 MAC_XCODE_ROOT:=$(if $(filter mac,$(OS_NAME)),$(shell xcode-select -print-path))
 MAC_PLATFORM_PREFIX:=$(MAC_XCODE_ROOT)/Platforms/$(MAC_PLATFORM_NAME).platform
-MAC_PLATFORM_BIN_PATH:=$(MAC_XCODE_ROOT)/usr/bin
+MAC_PLATFORM_BIN_PATH:=$(MAC_XCODE_ROOT)/Toolchains/XcodeDefault.xctoolchain/usr/bin
 MAC_SDK_PREFIX:=$(MAC_PLATFORM_PREFIX)/Developer/SDKs/$(MAC_PLATFORM_NAME)$(MAC_PLATFORM_VERSION).sdk
 
-mac.GCC = $(call $(MAC_PLATFORM_NAME).compiler,gcc)
-mac.CXX = $(call $(MAC_PLATFORM_NAME).compiler,g++)
+mac.GCC = $(MAC_PLATFORM_BIN_PATH)/$(call $(MAC_PLATFORM_NAME).compiler,gcc)
+mac.CXX = $(MAC_PLATFORM_BIN_PATH)/$(call $(MAC_PLATFORM_NAME).compiler,g++)
 mac.CC = $(mac.GCC)
 mac.LD = $(mac.CC)
 mac.AR = $(MAC_PLATFORM_BIN_PATH)/ar
@@ -115,8 +111,6 @@ mac.CFLAGS += $($(MAC_PLATFORM_NAME).CFLAGS)
 mac.CXXFLAGS += $($(MAC_PLATFORM_NAME).CXXFLAGS)
 mac.MFLAGS += $($(MAC_PLATFORM_NAME).MFLAGS)
 mac.MMFLAGS += $($(MAC_PLATFORM_NAME).MMFLAGS)
-
-mac.TARGET_ARCH += $($(MAC_PLATFORM_NAME).TARGET_ARCH)
 
 mac.LDFLAGS += \
            -isysroot $(MAC_SDK_PREFIX) \
