@@ -135,8 +135,8 @@ define product-def-rule-c-product-for-progn
 $(eval r.$1.$2.product:=$($2.output)/$(if $(r.$1.product),$(r.$1.product),$(r.$1.$2.output)/$(call $($2.env).make-executable-name,$1)))
 endef
 
-product-def-rule-c-link-cmd-progn=$$($($4.env).linker.$(r.$1.c.linker)) $2 -o $3 $$(call c-generate-depend-ld-flags,$1,$4) $$($($4.env).LDFLAGS)
-product-def-rule-c-link-cmd-lib-dynamic=$$($($4.env).linker.$(r.$1.c.linker)) $($($4.env).LDFLAGS.share) $2 -o $3 $$(call c-generate-depend-ld-flags,$1,$4)
+product-def-rule-c-link-cmd-progn=$$($($4.env).linker.$(r.$1.c.linker)) $2 -o $3 $$(call c-generate-depend-ld-flags,$1,$4) $$($($4.env).LDFLAGS) $$($($4.env).TARGET_ARCH)
+product-def-rule-c-link-cmd-lib-dynamic=$$($($4.env).linker.$(r.$1.c.linker)) $($($4.env).LDFLAGS.share) $2 -o $3 $$(call c-generate-depend-ld-flags,$1,$4) $$($($4.env).TARGET_ARCH)
 product-def-rule-c-link-cmd-lib-static=$$($($4.env).AR) $$(ARFLAGS) $3 $2
 
 # $(call product-def-rule-c-product,product-name,type,domain-name)
