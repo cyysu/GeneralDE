@@ -84,10 +84,6 @@ iPhoneSimulator.LDFLAGS ?=  -arch i386\
                             -Xlinker 2 
 
 iPhoneSimulator.install-dir?=$(HOME)/Library/Application Support/iPhone Simulator/$(IOS_PLATFORM_VERSION)/Applications
-iPhoneSimulator.run := 	echo ' \
-application "iPhone Simulator" quit\n \
-application "iPhone Simulator" activate\n \
-' | osascript
 
 # }}}
 # {{{ toolset def
