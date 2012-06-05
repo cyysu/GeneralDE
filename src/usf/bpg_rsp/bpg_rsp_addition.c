@@ -55,6 +55,7 @@ bpg_rsp_addition_data_create(logic_context_t ctx, size_t capacity) {
 int bpg_rsp_addition_data_add(logic_context_t ctx, uint32_t meta_id) {
     logic_data_t data;
     BPG_RSP_ADDITION_DATA * addition_data;
+    int i;
 
     data = logic_data_find(ctx, "bpg_rsp_addition_data");
 
