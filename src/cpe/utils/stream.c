@@ -1,3 +1,4 @@
+#include <ctype.h>
 #include <string.h>
 #include "cpe/utils/stream.h"
 #include "cpe/utils/stream_buffer.h"
