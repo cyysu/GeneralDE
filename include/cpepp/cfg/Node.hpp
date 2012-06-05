@@ -18,8 +18,8 @@ public:
     bool isValue(void) const { return cfg_is_value(*this) ? true : false; }
     int type(void) const { return cfg_type(*this); }
 
-    Node * parent(void) { return (Node *)cfg_parent(*this); }
-    Node const * parent(void) const { return (Node const *)cfg_parent(*this); }
+    Node & parent(void) { return *(Node *)cfg_parent(*this); }
+    Node const & parent(void) const { return *(Node const *)cfg_parent(*this); }
 
     NodePlacehold operator[](const char * path) { return NodePlacehold(*this, path, cfg_find_cfg(*this, path)); }
     Node const & operator[](const char * path) const { return *((Node*)cfg_find_cfg(*this, path)); }
