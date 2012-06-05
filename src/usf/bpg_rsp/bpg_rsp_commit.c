@@ -241,6 +241,8 @@ static void bpg_rsp_commit_build_pkg_append_info_for_copy_info(
             continue;
         }
 
+        if (bpg_rsp_addition_data_exist(op_context, dr_meta_id(data_meta))) continue;
+
         if (bpg_rsp_commit_build_pkg_append_info_from_ctx(rsp, op_context, pkg, data_meta, em) == 0) {
             continue;
         }
