@@ -37,7 +37,7 @@ logic_executor_type_t
 logic_executor_type_create(logic_executor_type_group_t group, const char * name);
 void logic_executor_type_free(logic_executor_type_t t);
 
-int logic_executor_type_bind_basic(logic_executor_type_t type, logic_op_fun_t fun, void * ctx);
+int logic_executor_type_bind(logic_executor_type_t type, logic_op_fun_t fun, void * ctx);
 
 const char * logic_executor_type_name(logic_executor_type_t type);
 void * logic_executor_type_ctx(logic_executor_type_t type);

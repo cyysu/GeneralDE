@@ -15,7 +15,7 @@ void LogicTest::TearDown() {
 
     while(logic_executor_type_t type = logic_executor_type_next(&it)) {
         delete (LogicTest::LogicOpMock*)logic_executor_type_ctx(type);
-        logic_executor_type_bind_basic(type, NULL, NULL);
+        logic_executor_type_bind(type, NULL, NULL);
     }
 
     testing::DefaultValue<logic_op_exec_result>::Clear();
@@ -44,7 +44,7 @@ LogicTest::installOp(const char * name) {
         throw ::std::runtime_error("logic op not exist!");
     }
 
-    EXPECT_EQ(0, logic_executor_type_bind_basic(type, execute_fun, new LogicOpMock));
+    EXPECT_EQ(0, logic_executor_type_bind(type, execute_fun, new LogicOpMock));
 
     return *(LogicTest::LogicOpMock*)logic_executor_type_ctx(type);
 }

@@ -7,7 +7,17 @@ namespace Usf { namespace Logic {
 
 class LogicOp : public Cpe::Nm::Object {
 public:
-    typedef void (LogicOp::*execute_fun)(LogicOpContext & context, Cpe::Cfg::Node const & cfg) const;
+    struct R {
+        R(bool v) : m_result(v ? logic_op_exec_result_true : logic_op_exec_result_true) {}
+        R(logic_op_exec_result_t v) : m_result(v) {}
+
+        operator logic_op_exec_result_t () const { return m_result; };
+
+    private:
+        logic_op_exec_result_t m_result;
+    };
+
+    typedef R (LogicOp::*execute_fun)(LogicOpContext & context, Cpe::Cfg::Node const & cfg) const;
 
     LogicOp(execute_fun fun);
 
@@ -25,7 +35,7 @@ public:
 private:
     execute_fun m_exec_fun;
 
-    static int32_t logic_op_adapter(logic_context_t ctx, logic_executor_t executor, void * user_data, cfg_t cfg);
+    static logic_op_exec_result_t logic_op_adapter(logic_context_t ctx, logic_executor_t executor, void * user_data, cfg_t cfg);
 };
 
 template<typename OutT, typename ContextT>
@@ -33,7 +43,7 @@ class LogicOpDef : public LogicOp {
 public:
     LogicOpDef() : LogicOp((execute_fun)&LogicOpDef::execute) {}
 
-    virtual void execute(
+    virtual R execute(
         ContextT & context,
         Cpe::Cfg::Node const & cfg) const = 0;
 };

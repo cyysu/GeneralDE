@@ -9,10 +9,7 @@
 #include "logic_internal_ops.h"
 
 logic_executor_type_t
-logic_executor_type_create(
-    logic_executor_type_group_t group,
-    const char * name)
-{
+logic_executor_type_create(logic_executor_type_group_t group, const char * name) {
     logic_executor_type_t type;
     size_t name_len;
     char * buf;
@@ -77,7 +74,7 @@ void * logic_executor_type_ctx(logic_executor_type_t type) {
     return type->m_ctx;
 }
 
-int logic_executor_type_bind_basic(logic_executor_type_t type, logic_op_fun_t fun, void * ctx) {
+int logic_executor_type_bind(logic_executor_type_t type, logic_op_fun_t fun, void * ctx) {
     assert(type);
 
     type->m_op = fun;
