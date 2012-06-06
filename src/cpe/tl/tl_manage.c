@@ -18,6 +18,8 @@ tl_manage_t tl_manage_create(mem_allocrator_t alloc) {
     tm->m_time_cvt = 0;
     tm->m_time_ctx = 0;
     tm->m_time_current = tm->m_time_get(tm->m_time_ctx);
+    tm->m_state = tl_manage_state_runing;
+    tm->m_time_pause_eat = 0;
 
     tm->m_action_begin_pos = tm->m_action_end_pos = 0;
 
@@ -92,8 +94,10 @@ int tl_manage_set_opt(tl_manage_t tm, tl_manage_option_t opt,...) {
             }
             else {
                 rv = 0;
+                tm->m_state = tl_manage_state_runing;
                 tm->m_time_get = ts;
                 tm->m_time_current = ts(tm->m_time_ctx);
+                tm->m_time_pause_eat = 0;
             }
             break;
         }
@@ -155,6 +159,32 @@ void tl_free(tl_t tl) {
 
 tl_time_t tl_manage_time(tl_manage_t tm) {
     return tm->m_time_current;
+}
+
+tl_manage_state_t tl_manage_state(tl_manage_t tm) {
+    return tm->m_state;
+}
+
+void tl_manage_pause(tl_manage_t tm) {
+    if (tm->m_state == tl_manage_state_pause) return;
+    tl_manage_update_time(tm);
+    tm->m_state = tl_manage_state_pause;
+}
+
+void tl_manage_resume(tl_manage_t tm) {
+    tl_time_t pause_time;
+    tl_time_span_t new_eat;
+
+    if (tm->m_state != tl_manage_state_pause) return;
+
+    pause_time = tm->m_time_current;
+
+    tm->m_state = tl_manage_state_runing;
+    tl_manage_update_time(tm);
+
+    new_eat = tm->m_time_current - pause_time;
+    tm->m_time_pause_eat += new_eat;
+    tm->m_time_current -= new_eat;
 }
 
 int tl_set_opt(tl_t tl, tl_option_t opt, ...) {
