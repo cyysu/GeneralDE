@@ -82,6 +82,9 @@ struct tl_manage {
     void * m_time_ctx;
     tl_time_t m_time_current;
 
+    tl_manage_state_t m_state;
+    tl_time_span_t m_time_pause_eat;
+
     /*tl*/
     //int m_tl_count;
     struct tl_queue m_tls;
