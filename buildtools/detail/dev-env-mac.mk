@@ -2,10 +2,10 @@
 
 dev-env-list+=mac
 
-mac.CFLAGS+=-Wall
-mac.CXXFLAGS+=-Wall
-mac.MFLAGS+=-Wall -pipe -x objective-c
-mac.MMFLAGS+=-Wall -pipe -x objective-c++
+mac.CFLAGS+=-pipe
+mac.CXXFLAGS+=-pipe
+mac.MFLAGS+=-pipe -x objective-c
+mac.MMFLAGS+=-pipe -x objective-c++
 
 ifneq ($(DEBUG),0)
 mac.CFLAGS+=-g
