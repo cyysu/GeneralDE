@@ -23,7 +23,7 @@ TEST_F(ContextRunTest, basic_fail) {
     execute("Op1");
 
     EXPECT_EQ(logic_context_state_error, state());
-    EXPECT_EQ((int32_t)0, rv());
+    EXPECT_EQ((int32_t)-1, rv());
 }
 
 TEST_F(ContextRunTest, group_basic) {
@@ -69,7 +69,7 @@ TEST_F(ContextRunTest, group_multi_error_break) {
         );
 
     EXPECT_EQ(logic_context_state_error, state());
-    EXPECT_EQ((int32_t)0, rv());
+    EXPECT_EQ((int32_t)-1, rv());
 }
 
 TEST_F(ContextRunTest, group_multi_level_error_break) {
@@ -91,7 +91,7 @@ TEST_F(ContextRunTest, group_multi_level_error_break) {
         );
 
     EXPECT_EQ(logic_context_state_error, state());
-    EXPECT_EQ((int32_t)0, rv());
+    EXPECT_EQ((int32_t)-1, rv());
 }
 
 TEST_F(ContextRunTest, protected_basic) {

@@ -134,7 +134,7 @@ const char * logic_executor_name(logic_executor_t executor) {
     case logic_executor_category_decorator:
         switch (((struct logic_executor_decorator *)executor)->m_decorator_type) {
         case logic_executor_decorator_protect:
-            return "protected";
+            return "protect";
         case logic_executor_decorator_not:
             return "not";
         default:

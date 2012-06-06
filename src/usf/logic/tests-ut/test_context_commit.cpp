@@ -43,7 +43,7 @@ TEST_F(ContextCommitTest, commit_on_error) {
     t_logic_execute(context, executor);
 
     EXPECT_EQ(logic_context_state_error, logic_context_state(context));
-    EXPECT_EQ((int32_t)123, logic_context_errno(context));
+    EXPECT_EQ((int32_t)-1, logic_context_errno(context));
 
     logic_executor_free(executor);
 }

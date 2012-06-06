@@ -32,7 +32,7 @@ TEST_F(ExecutorBuildTest, basic_with_args) {
     logic_executor_free(executor);
 }
 
-TEST_F(ExecutorBuildTest, group_basic) {
+TEST_F(ExecutorBuildTest, sequence_basic) {
     installOp("Op1");
     installOp("Op2");
 
@@ -44,7 +44,7 @@ TEST_F(ExecutorBuildTest, group_basic) {
     ASSERT_TRUE(executor);
 
     EXPECT_STREQ(
-        "group:\n"
+        "sequence:\n"
         "    Op1\n"
         "    Op2: { a1=1, a2=2 }"
         ,
@@ -53,7 +53,7 @@ TEST_F(ExecutorBuildTest, group_basic) {
     logic_executor_free(executor);
 }
 
-TEST_F(ExecutorBuildTest, group_group) {
+TEST_F(ExecutorBuildTest, sequence_sequence) {
     installOp("Op1");
     installOp("Op2");
 
@@ -66,9 +66,9 @@ TEST_F(ExecutorBuildTest, group_group) {
     ASSERT_TRUE(executor);
 
     EXPECT_STREQ(
-        "group:\n"
+        "sequence:\n"
         "    Op1\n"
-        "    group:\n"
+        "    sequence:\n"
         "        Op2: { a1=1, a2=2 }"
         ,
         t_logic_executor_dump(executor));
@@ -92,7 +92,7 @@ TEST_F(ExecutorBuildTest, protected_basic) {
     logic_executor_free(executor);
 }
 
-TEST_F(ExecutorBuildTest, protected_group) {
+TEST_F(ExecutorBuildTest, protected_sequence) {
     installOp("Op1");
 
     logic_executor_t executor =
@@ -103,7 +103,7 @@ TEST_F(ExecutorBuildTest, protected_group) {
 
     EXPECT_STREQ(
         "protect:\n"
-        "    group:\n"
+        "    sequence:\n"
         "        Op1"
         ,
         t_logic_executor_dump(executor));

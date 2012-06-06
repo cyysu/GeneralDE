@@ -6,6 +6,7 @@
 void LogicTest::SetUp() {
     Base::SetUp();
     t_em_set_print();
+    testing::DefaultValue<logic_op_exec_result>::Set(logic_op_exec_result_false);
 }
 
 void LogicTest::TearDown() {
@@ -16,6 +17,8 @@ void LogicTest::TearDown() {
         delete (LogicTest::LogicOpMock*)logic_executor_type_ctx(type);
         logic_executor_type_bind_basic(type, NULL, NULL);
     }
+
+    testing::DefaultValue<logic_op_exec_result>::Clear();
 
     Base::TearDown();
 }

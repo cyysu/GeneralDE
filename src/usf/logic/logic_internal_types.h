@@ -30,6 +30,7 @@ struct logic_manage {
 
 struct logic_stack_item {
     logic_executor_t m_executr;
+    logic_op_exec_result_t m_rv;
 };
 
 struct logic_stack {
