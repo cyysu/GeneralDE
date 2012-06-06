@@ -80,7 +80,10 @@ $(if $1\
      ,)
 endef
 
-compiler-category=$(if $(filter clang,$1),apple,\
-                  $(if $(filter gcc,$1),gcc,\
-                       $(warning unknown compiler $1)))
+compiler-category=$(strip \
+                      $(if $(filter %clang,$1),clang,\
+                      $(if $(filter %clang++,$1),clang,\
+                      $(if $(filter %gcc,$1),gcc,\
+                      $(if $(filter %g++,$1),gcc,\
+                      $(warning unknown compiler $1))))))
 
