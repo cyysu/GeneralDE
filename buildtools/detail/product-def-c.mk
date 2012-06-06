@@ -76,6 +76,7 @@ define c-make-depend
 endef
 
 product-def-rule-c-compile-cmd.c=$($($2.env).CC) \
+                                 $(compiler.$(call compiler-category,$($($2.env).CC)).flags.warning) \
                                  $($($2.env).CFLAGS) \
                                  $(r.$1.c.flags.lan.all) \
                                  $(r.$1.c.flags.lan.c) \
@@ -83,6 +84,7 @@ product-def-rule-c-compile-cmd.c=$($($2.env).CC) \
                                  $($($2.env).TARGET_ARCH) -c
 
 product-def-rule-c-compile-cmd.cc=$($($2.env).CXX) \
+                                  $(compiler.$(call compiler-category,$($($2.env).CXX)).flags.warning) \
                                   $($($2.env).CXXFLAGS) \
                                   $(r.$1.c.flags.lan.all) \
                                   $(r.$1.c.flags.lan.cc) \
@@ -90,12 +92,14 @@ product-def-rule-c-compile-cmd.cc=$($($2.env).CXX) \
                                   $($($2.env).TARGET_ARCH) -c 
 
 product-def-rule-c-compile-cmd.mm=$($($2.env).CXX) $($($2.env).MMFLAGS) \
+                                  $(compiler.$(call compiler-category,$($($2.env).CXX)).flags.warning) \
                                   $(r.$1.c.flags.lan.all) \
                                   $(r.$1.c.flags.lan.mm) \
                                   $($($2.env).CPPFLAGS) \
                                   $($($2.env).TARGET_ARCH) -c 
 
 product-def-rule-c-compile-cmd.m=$($($2.env).CC) $($($2.env).MFLAGS) \
+                                 $(compiler.$(call compiler-category,$($($2.env).CC)).flags.warning) \
                                  $(r.$1.c.flags.lan.all) \
                                  $(r.$1.c.flags.lan.m) \
                                  $($($2.env).CFLAGS) \
