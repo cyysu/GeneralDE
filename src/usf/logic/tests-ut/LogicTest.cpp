@@ -20,7 +20,7 @@ void LogicTest::TearDown() {
     Base::TearDown();
 }
 
-static int32_t execute_fun (logic_context_t ctx, logic_executor_t executor, void * user_data, cfg_t cfg) {
+static logic_op_exec_result_t execute_fun (logic_context_t ctx, logic_executor_t executor, void * user_data, cfg_t cfg) {
     LogicTest::LogicOpMock * op = (LogicTest::LogicOpMock *)user_data;
     return op->execute(ctx);
 }
@@ -35,7 +35,7 @@ LogicTest::installOp(const char * name) {
         return *(LogicTest::LogicOpMock*)logic_executor_type_ctx(type);
     }
 
-    type = logic_executor_type_create(group, name, logic_executor_category_basic);
+    type = logic_executor_type_create(group, name);
     EXPECT_TRUE(type != NULL) << "logic op " << name << " create fail";
     if (type == NULL) {
         throw ::std::runtime_error("logic op not exist!");

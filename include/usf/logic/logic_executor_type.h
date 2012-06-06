@@ -34,17 +34,13 @@ void logic_executor_type_group_types(logic_executor_type_it_t it, logic_executor
 
 /*logic_executor_type operations*/
 logic_executor_type_t
-logic_executor_type_create(logic_executor_type_group_t group, const char * name, logic_executor_category_t category);
+logic_executor_type_create(logic_executor_type_group_t group, const char * name);
 void logic_executor_type_free(logic_executor_type_t t);
 
 int logic_executor_type_bind_basic(logic_executor_type_t type, logic_op_fun_t fun, void * ctx);
-int logic_executor_type_bind_decorate(logic_executor_type_t type, logic_decorate_fun_t fun, void * ctx);
 
 const char * logic_executor_type_name(logic_executor_type_t type);
 void * logic_executor_type_ctx(logic_executor_type_t type);
-
-logic_executor_category_t
-logic_executor_type_category(logic_executor_type_t type);
 
 logic_executor_type_t
 logic_executor_type_find(logic_executor_type_group_t group, const char * name);

@@ -39,10 +39,22 @@ typedef enum logic_require_state {
 } logic_require_state_t;
 
 typedef enum logic_executor_category {
-    logic_executor_category_basic
-    , logic_executor_category_group
-    , logic_executor_category_decorate
+    logic_executor_category_action
+    , logic_executor_category_condition
+    , logic_executor_category_decorator
+    , logic_executor_category_composite
 } logic_executor_category_t;
+
+typedef enum logic_executor_composite_type {
+    logic_executor_composite_selector
+    , logic_executor_composite_sequence
+    , logic_executor_composite_parallel
+} logic_executor_composite_type_t;
+
+typedef enum logic_executor_decorator_type {
+    logic_executor_decorator_protect
+    , logic_executor_decorator_not
+} logic_executor_decorator_type_t;
 
 typedef struct logic_manage * logic_manage_t;
 typedef struct logic_context * logic_context_t;
@@ -54,13 +66,14 @@ typedef struct logic_executor * logic_executor_t;
 typedef struct logic_executor_type * logic_executor_type_t;
 typedef struct logic_executor_type_group * logic_executor_type_group_t;
 
-typedef int32_t (*logic_op_fun_t) (logic_context_t ctx, logic_executor_t executor, void * user_data, cfg_t cfg);
+typedef enum logic_op_exec_result {
+    logic_op_exec_result_true = 1,
+    logic_op_exec_result_false = 2,
+    logic_op_exec_result_null = 3,
+    logic_op_exec_result_redo = 4,
+} logic_op_exec_result_t;
 
-typedef enum logic_context_decorate_tag {
-    logic_context_decorate_begin,
-    logic_context_decorate_end
-} logic_context_decorate_tag_t;
-typedef int32_t (*logic_decorate_fun_t) (logic_context_t ctx, logic_context_decorate_tag_t tag, void * user_data);
+typedef logic_op_exec_result_t (*logic_op_fun_t) (logic_context_t ctx, logic_executor_t executor, void * user_data, cfg_t cfg);
 
 typedef logic_executor_t (*logic_executor_create_fun_t) (
     logic_manage_t mgr, const char * name, void * ctx,

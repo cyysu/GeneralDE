@@ -34,10 +34,10 @@ void RunTest::expect_create_require(LogicOpMock & op) {
         .WillOnce(
             ::testing::DoAll(
                 ::testing::Invoke(create_rquire),
-                ::testing::Return(0)));
+                ::testing::Return(logic_op_exec_result_true)));
 }
 
-void RunTest::expect_return(LogicOpMock & op, int32_t rv) {
+void RunTest::expect_return(LogicOpMock & op, logic_op_exec_result_t rv) {
     EXPECT_CALL(op, execute(::testing::_))
         .WillOnce(::testing::Return(rv));
 }

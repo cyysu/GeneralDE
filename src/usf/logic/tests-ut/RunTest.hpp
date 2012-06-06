@@ -10,7 +10,7 @@ public:
     virtual void TearDown();
 
     void expect_create_require(LogicOpMock & op);
-    void expect_return(LogicOpMock & op, int32_t rv);
+    void expect_return(LogicOpMock & op, logic_op_exec_result_t rv);
     void expect_commit(void);
 
     void execute(const char * data);

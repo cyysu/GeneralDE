@@ -19,7 +19,7 @@ class LogicTest : public testenv::fixture<LogicTestBase> {
 public:
     class LogicOpMock {
     public:
-        MOCK_METHOD1(execute, int32_t(logic_context_t ctx));
+        MOCK_METHOD1(execute, logic_op_exec_result_t(logic_context_t ctx));
     };
 
     class CommitMock {

@@ -11,8 +11,7 @@
 logic_executor_type_t
 logic_executor_type_create(
     logic_executor_type_group_t group,
-    const char * name,
-    logic_executor_category_t category)
+    const char * name)
 {
     logic_executor_type_t type;
     size_t name_len;
@@ -28,7 +27,6 @@ logic_executor_type_create(
     type = (logic_executor_type_t)(buf + name_len);
     type->m_group = group;
     type->m_name = (char *)buf;
-    type->m_category = category;
     type->m_op = NULL;
     type->m_ctx = NULL;
 
@@ -81,17 +79,6 @@ void * logic_executor_type_ctx(logic_executor_type_t type) {
 
 int logic_executor_type_bind_basic(logic_executor_type_t type, logic_op_fun_t fun, void * ctx) {
     assert(type);
-    if (type->m_category != logic_executor_category_basic) return -1;
-
-    type->m_op = fun;
-    type->m_ctx = ctx;
-
-    return 0;
-}
-
-int logic_executor_type_bind_decorate(logic_executor_type_t type, logic_decorate_fun_t fun, void * ctx) {
-    assert(type);
-    if (type->m_category != logic_executor_category_decorate) return -1;
 
     type->m_op = fun;
     type->m_ctx = ctx;
@@ -105,13 +92,4 @@ uint32_t logic_executor_type_hash(const struct logic_executor_type * type) {
 
 int logic_executor_type_cmp(const struct logic_executor_type * l, const struct logic_executor_type * r) {
     return strcmp(l->m_name, r->m_name) == 0;
-}
-
-void logic_executor_type_init_defaults(logic_executor_type_group_t group) {
-    logic_executor_type_create(group, "group", logic_executor_category_group);
-
-    logic_executor_type_bind_decorate(
-        logic_executor_type_create(group, "protect", logic_executor_category_decorate),
-        logic_executor_decorate_protect,
-        NULL);
 }

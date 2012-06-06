@@ -2,6 +2,7 @@
 #include "gd/app/app_context.h"
 #include "usf/logic/logic_context.h"
 #include "usf/logic/logic_manage.h"
+#include "usf/logic/logic_executor.h"
 #include "logic_internal_ops.h"
 
 #define LOGIC_STACK_INLINE_ITEM_COUNT \
@@ -58,10 +59,10 @@ REINTER:
     assert(stack_item);
     stack_item->m_executr = executor;
 
-    if (executor->m_type->m_category == logic_executor_category_group) {
-        struct logic_executor_group * group = (struct logic_executor_group *)executor;
-        if (!TAILQ_EMPTY(&group->m_members)) {
-            executor = TAILQ_FIRST(&group->m_members);
+    if (executor->m_category == logic_executor_category_composite) {
+        struct logic_executor_composite * composite = (struct logic_executor_composite *)executor;
+        if (!TAILQ_EMPTY(&composite->m_members)) {
+            executor = TAILQ_FIRST(&composite->m_members);
             goto REINTER;
         }
     }
@@ -77,48 +78,35 @@ void logic_stack_exec(struct logic_stack * stack, int32_t stop_stack_pos, logic_
           && stack->m_item_pos > stop_stack_pos
           && ctx->m_require_waiting_count == 0)
     {
-        int32_t rv;
+        logic_op_exec_result_t rv;
         struct logic_stack_item * stack_item = logic_stack_item_at(stack, stack->m_item_pos);
 
-        rv = 0;
+        rv = logic_op_exec_result_null;
 
         if (stack_item->m_executr) {
-            if (stack_item->m_executr->m_type->m_category == logic_executor_category_basic) {
-                struct logic_executor_basic * basic = (struct logic_executor_basic *)stack_item->m_executr;
-                if (basic->m_type->m_op) {
-                    rv = ((logic_op_fun_t)basic->m_type->m_op)(ctx, stack_item->m_executr, basic->m_type->m_ctx, basic->m_args);
+            if (stack_item->m_executr->m_category == logic_executor_category_action) {
+                struct logic_executor_action * action = (struct logic_executor_action *)stack_item->m_executr;
+                if (action->m_type->m_op) {
+                    rv = ((logic_op_fun_t)action->m_type->m_op)(ctx, stack_item->m_executr, action->m_type->m_ctx, action->m_args);
                 }
                 else {
-                    CPE_ERROR(gd_app_em(ctx->m_mgr->m_app), "logic_stack_exec: basic logic op %s have no op!", basic->m_type->m_name);
+                    CPE_ERROR(gd_app_em(ctx->m_mgr->m_app), "logic_stack_exec: action logic op %s have no op!", logic_executor_name(stack_item->m_executr));
                 }
             }
-            else if (stack_item->m_executr->m_type->m_category == logic_executor_category_decorate) {
-                struct logic_executor_decorate * decorator = (struct logic_executor_decorate *)stack_item->m_executr;
-                if (decorator->m_type->m_op) {
-                    if (((logic_decorate_fun_t)decorator->m_type->m_op)(ctx, logic_context_decorate_begin, decorator->m_type->m_ctx) == 0) {
-                        logic_stack_push(stack, ctx, decorator->m_inner);
-                        continue;
-                    }
-                }
-                else {
-                    CPE_ERROR(gd_app_em(ctx->m_mgr->m_app), "logic_stack_exec: decorator logic op %s have no op!", decorator->m_type->m_name);
-                }
+            else if (stack_item->m_executr->m_category == logic_executor_category_decorator) {
+                struct logic_executor_decorator * decorator = (struct logic_executor_decorator *)stack_item->m_executr;
+                logic_stack_push(stack, ctx, decorator->m_inner);
             }
         }
         else {
             CPE_ERROR(gd_app_em(ctx->m_mgr->m_app), "stack item have no executor!");
-            rv = -1;
-        }
-
-        if (rv != 0) {
-            logic_context_errno_set(ctx, rv);
         }
 
         --stack->m_item_pos;
 
         while(stack->m_item_pos > stop_stack_pos) {
             struct logic_stack_item * stack_item = logic_stack_item_at(stack, stack->m_item_pos);
-            if (stack_item->m_executr->m_type->m_category == logic_executor_category_group) {
+            if (stack_item->m_executr->m_category == logic_executor_category_composite) {
                 if (ctx->m_errno) {
                     --stack->m_item_pos;
                     continue;
@@ -132,11 +120,12 @@ void logic_stack_exec(struct logic_stack * stack, int32_t stop_stack_pos, logic_
                     }
                 }
             }
-            else if (stack_item->m_executr->m_type->m_category == logic_executor_category_decorate) {
-                struct logic_executor_decorate * decorator = (struct logic_executor_decorate *)stack_item->m_executr;
-                if (decorator->m_type->m_op) {
-                    ((logic_decorate_fun_t)decorator->m_type->m_op)(ctx, logic_context_decorate_end, decorator->m_type->m_ctx);
-                }
+            else if (stack_item->m_executr->m_category == logic_executor_category_decorator) {
+                struct logic_executor_decorator * decorator = (struct logic_executor_decorator *)stack_item->m_executr;
+                /* switch(decorator->m_decorator_type) { */
+                /* case  */
+                /* } */
+                //TODO
                 --stack->m_item_pos;
                 continue;
             }

@@ -95,31 +95,37 @@ struct logic_data {
 
 #define LOGIC_EXECUTOR_COMMON                   \
     logic_manage_t m_mgr;                       \
-    logic_executor_type_t m_type;               \
+    logic_executor_category_t m_category;       \
     TAILQ_ENTRY(logic_executor) m_next
 
 struct logic_executor {
     LOGIC_EXECUTOR_COMMON;
 };
 
-struct logic_executor_basic {
+struct logic_executor_action {
     LOGIC_EXECUTOR_COMMON;
+    logic_executor_type_t m_type;
     cfg_t m_args;
 };
 
-struct logic_executor_decorate {
+struct logic_executor_decorator {
     LOGIC_EXECUTOR_COMMON;
+    logic_executor_decorator_type_t m_decorator_type;
     logic_executor_t m_inner;
 };
 
-struct logic_executor_group {
+struct logic_executor_composite {
     LOGIC_EXECUTOR_COMMON;
+    logic_executor_composite_type_t m_composite_type;
     logic_executor_list_t m_members;
+};
+
+struct logic_executor_condition {
+    LOGIC_EXECUTOR_COMMON;
 };
 
 struct logic_executor_type {
     logic_executor_type_group_t m_group;
-    logic_executor_category_t m_category;
     char * m_name;
     void * m_op;
     void * m_ctx;

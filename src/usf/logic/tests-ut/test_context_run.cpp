@@ -6,7 +6,7 @@ class ContextRunTest : public RunTest {
 
 TEST_F(ContextRunTest, basic_success) {
     LogicOpMock & op1 = installOp("Op1");
-    expect_return(op1, 0);
+    expect_return(op1, logic_op_exec_result_true);
 
     expect_commit();
     execute("Op1");
@@ -17,18 +17,18 @@ TEST_F(ContextRunTest, basic_success) {
 
 TEST_F(ContextRunTest, basic_fail) {
     LogicOpMock & op1 = installOp("Op1");
-    expect_return(op1, 123);
+    expect_return(op1, logic_op_exec_result_false);
 
     expect_commit();
     execute("Op1");
 
     EXPECT_EQ(logic_context_state_error, state());
-    EXPECT_EQ((int32_t)123, rv());
+    EXPECT_EQ((int32_t)0, rv());
 }
 
 TEST_F(ContextRunTest, group_basic) {
     LogicOpMock & op1 = installOp("Op1");
-    expect_return(op1, 0);
+    expect_return(op1, logic_op_exec_result_true);
 
     expect_commit();
     execute("- Op1");
@@ -43,8 +43,8 @@ TEST_F(ContextRunTest, group_multi) {
 
     do {
         ::testing::InSequence s;
-        expect_return(op1, 0);
-        expect_return(op2, 0);
+        expect_return(op1, logic_op_exec_result_true);
+        expect_return(op2, logic_op_exec_result_true);
     } while(0);
 
     expect_commit();
@@ -59,7 +59,7 @@ TEST_F(ContextRunTest, group_multi) {
 
 TEST_F(ContextRunTest, group_multi_error_break) {
     LogicOpMock & op1 = installOp("Op1");
-    expect_return(op1, 123);
+    expect_return(op1, logic_op_exec_result_false);
     installOp("Op2");
 
     expect_commit();
@@ -69,7 +69,7 @@ TEST_F(ContextRunTest, group_multi_error_break) {
         );
 
     EXPECT_EQ(logic_context_state_error, state());
-    EXPECT_EQ((int32_t)123, rv());
+    EXPECT_EQ((int32_t)0, rv());
 }
 
 TEST_F(ContextRunTest, group_multi_level_error_break) {
@@ -78,7 +78,7 @@ TEST_F(ContextRunTest, group_multi_level_error_break) {
     installOp("Op3");
     installOp("Op4");
 
-    expect_return(op1, 123);
+    expect_return(op1, logic_op_exec_result_false);
 
     expect_commit();
     execute(
@@ -91,12 +91,12 @@ TEST_F(ContextRunTest, group_multi_level_error_break) {
         );
 
     EXPECT_EQ(logic_context_state_error, state());
-    EXPECT_EQ((int32_t)123, rv());
+    EXPECT_EQ((int32_t)0, rv());
 }
 
 TEST_F(ContextRunTest, protected_basic) {
     LogicOpMock & op1 = installOp("Op1");
-    expect_return(op1, 123);
+    expect_return(op1, logic_op_exec_result_false);
 
     expect_commit();
     execute("protect: Op1");
@@ -121,7 +121,7 @@ TEST_F(ContextRunTest, waiting_basic) {
 
     logic_require_free(logic_require_find(t_logic_manage(), 0));
 
-    expect_return(op2, 123);
+    expect_return(op2, logic_op_exec_result_false);
     expect_commit();
     execute_again();
 }
