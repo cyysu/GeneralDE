@@ -53,6 +53,6 @@ $(product).c.sources := $(addprefix $(product-base)/, \
 $(product).product.c.env-libraries:=math
 $(product).c.env-libraries:=dl
 $(product).c.env-includes:=3rdTools/libxml2/src
-$(product).c.flags.cpp:= -DHAVE_CONFIG_H -D_REENTRANT -Wno-format -Wno-unused
+$(product).c.flags.cpp:= -DHAVE_CONFIG_H -D_REENTRANT -Wno-format -Wno-unused -Wno-conversion -Wno-self-assign -Wno-parentheses-equality
 
 $(eval $(call product-def,$(product)))
