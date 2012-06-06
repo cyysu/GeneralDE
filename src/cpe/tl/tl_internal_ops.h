@@ -22,6 +22,15 @@ int tl_event_queue_clear(struct tl_event_node_queue * queue);
         &(i)->m_event.m_tl->m_manage->m_event_building_queue, \
         (i), m_next)
 
+#define tl_manage_update_time(tm)                                   \
+    if ((tm)->m_state != tl_manage_state_pause) {                   \
+        tl_time_t nextTime =                                        \
+            (tm)->m_time_get((tm)->m_time_ctx)                      \
+            - (tm)->m_time_pause_eat;                               \
+        if (nextTime > (tm)->m_time_current)                        \
+            (tm)->m_time_current = nextTime;                        \
+    }
+
 #ifdef __cplusplus
 }
 #endif
