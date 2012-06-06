@@ -19,11 +19,11 @@ include $(CPDE_BUILD_DETAIL_DIR)/change-root.mk
 include $(wildcard $(CPDE_BUILD_DETAIL_DIR)/dev-env-*.mk)
 
 include $(CPDE_BUILD_DETAIL_DIR)/defaults.mk
+include $(wildcard $(CPDE_BUILD_DETAIL_DIR)/support-*.mk)
 include $(CPDE_BUILD_DETAIL_DIR)/product-def.mk
 include $(wildcard $(CPDE_BUILD_DETAIL_DIR)/product-def-*.mk)
 include $(CPDE_BUILD_DETAIL_DIR)/gtest-def.mk
 include $(CPDE_BUILD_DETAIL_DIR)/gtags.mk
-include $(wildcard $(CPDE_BUILD_DETAIL_DIR)/support-*.mk)
 
 endif
 
