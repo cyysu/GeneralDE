@@ -468,8 +468,7 @@ static void cfg_read_i(cfg_t cfg, const char * name, read_stream_t stream, cfg_p
 
         if (ctx.m_input_event.type == YAML_STREAM_END_EVENT) done = 1;
 
-        if (ctx.m_input_event.type < 0
-            || ctx.m_input_event.type >= sizeof(g_yaml_read_event_processors)/sizeof(cfg_yaml_read_event_process_fun_t))
+        if (ctx.m_input_event.type >= sizeof(g_yaml_read_event_processors)/sizeof(cfg_yaml_read_event_process_fun_t))
         {
             CPE_ERROR(em, "unknown yaml event %d!", ctx.m_input_event.type);
             done = 1;
