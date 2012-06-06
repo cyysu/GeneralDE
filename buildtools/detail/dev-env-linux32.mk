@@ -5,8 +5,8 @@ linux32.CC=$(linux32.GCC)
 linux32.CXX?=$(shell which g++)
 linux32.AR?=$(shell which ar)
 
-linux32.CFLAGS+=-Wall -m32 -fPIC
-linux32.CXXFLAGS+=-Wall -m32 -fPIC
+linux32.CFLAGS+=-m32 -fPIC
+linux32.CXXFLAGS+=-m32 -fPIC
 
 linux32.linker.c:=$(linux32.GCC)
 linux32.linker.cpp:=$(linux32.CXX)

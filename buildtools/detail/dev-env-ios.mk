@@ -2,10 +2,10 @@
 
 dev-env-list+=ios
 
-ios.CFLAGS+=-Wall
-ios.CXXFLAGS+=-Wall
-ios.MFLAGS+=-Wall -pipe -x objective-c
-ios.MMFLAGS+=-Wall -pipe -x objective-c++
+ios.CFLAGS+=
+ios.CXXFLAGS+=
+ios.MFLAGS+=-pipe -x objective-c
+ios.MMFLAGS+=-pipe -x objective-c++
 
 ifneq ($(DEBUG),0)
 ios.CFLAGS+=-g
