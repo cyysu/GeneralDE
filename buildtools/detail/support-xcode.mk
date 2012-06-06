@@ -5,3 +5,6 @@ IBTOOL=/usr/bin/ibtool
 tools.cvt.xib-nib.cmd=$(IBTOOL) --compile $$@ $$<
 tools.cvt.xib-nib.dep=
 # }}}
+# {{{ clang编译器命令行参数设定
+compiler.clang.flags.warning=-Wall -Wno-parentheses-equality
+# }}}
