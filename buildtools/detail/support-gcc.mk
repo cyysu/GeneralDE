@@ -1,1 +1,1 @@
-compiler.clang.flags.warning=-Wall
+compiler.gcc.flags.warning=-Wall
