@@ -160,49 +160,50 @@ void logic_stack_exec(struct logic_stack * stack, int32_t stop_stack_pos, logic_
                 if (pre_stack_item->m_rv == logic_op_exec_result_null) {
                     stack_item->m_rv = logic_op_exec_result_null;
                 }
-
-                switch(composite->m_composite_type) {
-                case logic_executor_composite_selector:
-                    if (pre_stack_item->m_rv == logic_op_exec_result_false) {
-                        if (next) logic_stack_push(stack, ctx, next);
-                    }
-                    else {
-                        assert(pre_stack_item->m_rv == logic_op_exec_result_true);
-                        stack_item->m_rv = logic_op_exec_result_true;
-                    }
-                    break;
-                case logic_executor_composite_sequence: {
-                    if (pre_stack_item->m_rv == logic_op_exec_result_true) {
-                        if (next) logic_stack_push(stack, ctx, next);
-                    }
-                    else {
-                        assert(pre_stack_item->m_rv == logic_op_exec_result_false);
-                        stack_item->m_rv = logic_op_exec_result_false;
-                    }
-                    break;
-                }
-                case logic_executor_composite_parallel: {
-                    if (composite->m_args.m_parallel_policy == logic_executor_parallel_success_on_all) {
-                        if(pre_stack_item->m_rv == logic_op_exec_result_false) {
-                            if (pre_stack_item->m_rv != logic_op_exec_result_null) {
-                                stack_item->m_rv = logic_op_exec_result_false;
-                            }
+                else {
+                    switch(composite->m_composite_type) {
+                    case logic_executor_composite_selector:
+                        if (pre_stack_item->m_rv == logic_op_exec_result_false) {
+                            if (next) logic_stack_push(stack, ctx, next);
                         }
-                    }
-                    else {
-                        if(pre_stack_item->m_rv == logic_op_exec_result_true) {
+                        else {
+                            assert(pre_stack_item->m_rv == logic_op_exec_result_true);
                             stack_item->m_rv = logic_op_exec_result_true;
                         }
+                        break;
+                    case logic_executor_composite_sequence: {
+                        if (pre_stack_item->m_rv == logic_op_exec_result_true) {
+                            if (next) logic_stack_push(stack, ctx, next);
+                        }
+                        else {
+                            assert(pre_stack_item->m_rv == logic_op_exec_result_false);
+                            stack_item->m_rv = logic_op_exec_result_false;
+                        }
+                        break;
                     }
+                    case logic_executor_composite_parallel: {
+                        if (composite->m_args.m_parallel_policy == logic_executor_parallel_success_on_all) {
+                            if(pre_stack_item->m_rv == logic_op_exec_result_false) {
+                                if (pre_stack_item->m_rv != logic_op_exec_result_null) {
+                                    stack_item->m_rv = logic_op_exec_result_false;
+                                }
+                            }
+                        }
+                        else {
+                            if(pre_stack_item->m_rv == logic_op_exec_result_true) {
+                                stack_item->m_rv = logic_op_exec_result_true;
+                            }
+                        }
 
-                    if (next) {
-                        logic_stack_push(stack, ctx, next);
+                        if (next) {
+                            logic_stack_push(stack, ctx, next);
+                        }
+
+                        break;
                     }
-
-                    break;
-                }
-                default:
-                    break;
+                    default:
+                        break;
+                    }
                 }
             }
             else if (stack_item->m_executr->m_category == logic_executor_category_decorator) {

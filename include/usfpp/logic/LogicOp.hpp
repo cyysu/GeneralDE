@@ -14,6 +14,8 @@ public:
         operator logic_op_exec_result_t () const { return m_result; };
 
     private:
+        R();
+
         logic_op_exec_result_t m_result;
     };
 
