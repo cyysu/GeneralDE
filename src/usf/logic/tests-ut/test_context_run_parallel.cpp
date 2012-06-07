@@ -81,6 +81,25 @@ TEST_F(ContextRunParallelTest, success_on_all_f_f) {
     EXPECT_EQ(logic_context_state_error, state());
 }
 
+TEST_F(ContextRunParallelTest, success_on_all_t_null) {
+    LogicOpMock & op1 = installOp("Op1");
+    expect_return(op1, logic_op_exec_result_true);
+
+    LogicOpMock & op2 = installOp("Op2");
+    expect_return(op2, logic_op_exec_result_null);
+
+    expect_commit();
+    execute(
+        "parallel:\n"
+        "  policy: SUCCESS_ON_ALL\n"
+        "  childs:\n"
+        "    - Op1\n"
+        "    - Op2\n"
+        );
+
+    EXPECT_EQ(logic_context_state_error, state());
+}
+
 TEST_F(ContextRunParallelTest, success_on_all_empty) {
     expect_commit();
     execute(

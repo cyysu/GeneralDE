@@ -6,7 +6,7 @@
 void LogicTest::SetUp() {
     Base::SetUp();
     t_em_set_print();
-    testing::DefaultValue<logic_op_exec_result>::Set(logic_op_exec_result_false);
+    testing::DefaultValue<logic_op_exec_result>::Set(logic_op_exec_result_null);
 }
 
 void LogicTest::TearDown() {
