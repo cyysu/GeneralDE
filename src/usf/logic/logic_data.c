@@ -101,53 +101,7 @@ int logic_data_cmp(const struct logic_data * l, const struct logic_data * r) {
         && strcmp(l->m_name, r->m_name) == 0;
 }
 
-#define LOGIC_DATA_DEF_DATA_FUN(__to, __to_type)                        \
-    int logic_data_try_read_ ## __to(                                   \
-        __to_type * result,                                             \
-        logic_context_t context,                                        \
-        const char * path, error_monitor_t em)                          \
-    {                                                                   \
-        char name[128];                                                 \
-        const char * sep;                                               \
-        const char * sub_path;                                          \
-        size_t name_len;                                                \
-        logic_data_t data;                                              \
-        int r;                                                          \
-                                                                        \
-        if (path == NULL) {                                             \
-            CPE_ERROR(em, "logic_data_read_data: path is null!");       \
-            return -1;                                                  \
-        }                                                               \
-                                                                        \
-        sep = strchr(path, '.');                                        \
-        if (sep == NULL) {                                              \
-            CPE_ERROR(em, "logic_data_read_data: can`t find first name from path(%s)!", path); \
-            return -1;                                                  \
-        }                                                               \
-                                                                        \
-        name_len = sep - path;                                          \
-        if ((name_len + 1) > sizeof(name)) {                            \
-            CPE_ERROR(em, "logic_data_read_data: first name too long, path(%s)!", path); \
-            return -1;                                                  \
-        }                                                               \
-                                                                        \
-        memcpy(name, path, name_len);                                   \
-        name[name_len] = 0;                                             \
-                                                                        \
-        sub_path = sep + 1;                                             \
-                                                                        \
-        data = logic_data_find(context, name);                          \
-        if (data == NULL) {                                             \
-            CPE_ERROR(em, "logic_data_read_data: data %s not exist!", name); \
-            return -1;                                                  \
-        }                                                               \
-                                                                        \
-        r = dr_meta_try_read_ ## __to(result, logic_data_data(data), data->m_meta, sub_path, em); \
-        if (r != 0) {                                                   \
-            CPE_ERROR(em, "logic_data_read_data: read %s from %s fail!", sub_path, name); \
-        }                                                               \
-        return r;                                                       \
-    }                                                                   \
+#define LOGIC_DATA_DEF_DATA_NO_TRY_FUN(__to, __to_type)                 \
     __to_type logic_data_read_ ## __to(                                 \
         logic_context_t context,                                        \
         const char * path)                                              \
@@ -206,6 +160,54 @@ int logic_data_cmp(const struct logic_data * l, const struct logic_data * r) {
         return dr_meta_read_with_dft_ ## __to(logic_data_data(data), data->m_meta, sub_path, dft); \
     }
 
+#define LOGIC_DATA_DEF_DATA_FUN(__to, __to_type)                        \
+    int logic_data_try_read_ ## __to(                                   \
+        __to_type * result,                                             \
+        logic_context_t context,                                        \
+        const char * path, error_monitor_t em)                          \
+    {                                                                   \
+        char name[128];                                                 \
+        const char * sep;                                               \
+        const char * sub_path;                                          \
+        size_t name_len;                                                \
+        logic_data_t data;                                              \
+        int r;                                                          \
+                                                                        \
+        if (path == NULL) {                                             \
+            CPE_ERROR(em, "logic_data_read_data: path is null!");       \
+            return -1;                                                  \
+        }                                                               \
+                                                                        \
+        sep = strchr(path, '.');                                        \
+        if (sep == NULL) {                                              \
+            CPE_ERROR(em, "logic_data_read_data: can`t find first name from path(%s)!", path); \
+            return -1;                                                  \
+        }                                                               \
+                                                                        \
+        name_len = sep - path;                                          \
+        if ((name_len + 1) > sizeof(name)) {                            \
+            CPE_ERROR(em, "logic_data_read_data: first name too long, path(%s)!", path); \
+            return -1;                                                  \
+        }                                                               \
+                                                                        \
+        memcpy(name, path, name_len);                                   \
+        name[name_len] = 0;                                             \
+                                                                        \
+        sub_path = sep + 1;                                             \
+                                                                        \
+        data = logic_data_find(context, name);                          \
+        if (data == NULL) {                                             \
+            CPE_ERROR(em, "logic_data_read_data: data %s not exist!", name); \
+            return -1;                                                  \
+        }                                                               \
+                                                                        \
+        r = dr_meta_try_read_ ## __to(result, logic_data_data(data), data->m_meta, sub_path, em); \
+        if (r != 0) {                                                   \
+            CPE_ERROR(em, "logic_data_read_data: read %s from %s fail!", sub_path, name); \
+        }                                                               \
+        return r;                                                       \
+    }                                                                   \
+    LOGIC_DATA_DEF_DATA_NO_TRY_FUN(__to, __to_type)
 
 LOGIC_DATA_DEF_DATA_FUN(int8, int8_t);
 LOGIC_DATA_DEF_DATA_FUN(uint8, uint8_t);
@@ -217,3 +219,4 @@ LOGIC_DATA_DEF_DATA_FUN(int64, int64_t);
 LOGIC_DATA_DEF_DATA_FUN(uint64, uint64_t);
 LOGIC_DATA_DEF_DATA_FUN(float, float);
 LOGIC_DATA_DEF_DATA_FUN(double, double);
+LOGIC_DATA_DEF_DATA_NO_TRY_FUN(string, const char *);
