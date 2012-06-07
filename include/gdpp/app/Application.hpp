@@ -2,6 +2,7 @@
 #define GDPP_APP_APPLICATION_H
 #include "cpepp/utils/ClassCategory.hpp"
 #include "gd/app/app_context.h"
+#include "gd/app/app_tl.h"
 #include "System.hpp"
 
 namespace Gd { namespace App {
@@ -27,6 +28,10 @@ public:
 
     Cpe::Tl::Manager & tlManager(void) { return *(Cpe::Tl::Manager *)gd_app_tl_mgr(*this); }
     Cpe::Tl::Manager const & tlManager(void) const { return *(Cpe::Tl::Manager *)gd_app_tl_mgr(*this); }
+    Cpe::Tl::Manager * findTlManager(const char * name) { return (Cpe::Tl::Manager *)app_tl_manage_find(*this, name); }
+    Cpe::Tl::Manager const * findTlManager(const char * name) const { return (Cpe::Tl::Manager *)app_tl_manage_find(*this, name); }
+    Cpe::Tl::Manager & tlManager(const char * name);
+    Cpe::Tl::Manager const & tlManager(const char * name) const;
 
     void tick(void) { gd_app_tick(*this); }
 
