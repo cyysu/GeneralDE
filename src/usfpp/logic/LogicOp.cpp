@@ -65,7 +65,7 @@ logic_op_exec_result_t LogicOp::logic_op_adapter(logic_context_t ctx, logic_exec
         return rv;
     }
     APP_CTX_CATCH_EXCEPTION(logic_context_app(ctx), "%s: execute: ", logic_executor_name(executor));
-    return logic_op_exec_result_false;
+    return logic_op_exec_result_null;
 }
 
 void LogicOp::init(LogicOp * product, Gd::App::Application & app, Gd::App::Module & module, Cpe::Cfg::Node & moduleCfg) {

@@ -32,6 +32,9 @@ public:
         Gd::App::Module & module,
         Cpe::Cfg::Node & moduleCfg);
 
+    static R _null(void) { return logic_op_exec_result_null; }
+    static R _redo(void) { return logic_op_exec_result_redo; }
+
 private:
     execute_fun m_exec_fun;
 

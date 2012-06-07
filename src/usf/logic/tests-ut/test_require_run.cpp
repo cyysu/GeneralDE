@@ -14,7 +14,7 @@ public:
 
 TEST_F(RequireRunTest, auto_commit_require_done_release) {
     LogicOpMock & op1 = installOp("Op1");
-    expect_create_require(op1);
+    expect_create_require(op1, logic_op_exec_result_true);
 
     logic_context_flag_enable(m_context, logic_context_flag_execute_immediately);
 
@@ -29,7 +29,7 @@ TEST_F(RequireRunTest, auto_commit_require_done_release) {
 
 TEST_F(RequireRunTest, auto_commit_require_done_keep) {
     LogicOpMock & op1 = installOp("Op1");
-    expect_create_require(op1);
+    expect_create_require(op1, logic_op_exec_result_true);
 
     set_require_keep();
     set_execute_immediately();
@@ -47,7 +47,7 @@ TEST_F(RequireRunTest, auto_commit_require_done_keep) {
 
 TEST_F(RequireRunTest, auto_commit_require_error_release) {
     LogicOpMock & op1 = installOp("Op1");
-    expect_create_require(op1);
+    expect_create_require(op1, logic_op_exec_result_true);
 
     set_execute_immediately();
 
@@ -64,7 +64,7 @@ TEST_F(RequireRunTest, auto_commit_require_error_release) {
 TEST_F(RequireRunTest, auto_commit_require_error_keep) {
     LogicOpMock & op1 = installOp("Op1");
 
-    expect_create_require(op1);
+    expect_create_require(op1, logic_op_exec_result_true);
 
     set_require_keep();
     set_execute_immediately();
@@ -80,7 +80,7 @@ TEST_F(RequireRunTest, auto_commit_require_error_keep) {
 
 TEST_F(RequireRunTest, auto_commit_for_free) {
     LogicOpMock & op1 = installOp("Op1");
-    expect_create_require(op1);
+    expect_create_require(op1, logic_op_exec_result_true);
 
     set_execute_immediately();
 
@@ -94,7 +94,7 @@ TEST_F(RequireRunTest, auto_commit_for_free) {
 TEST_F(RequireRunTest, auto_commit_cancel_release) {
     LogicOpMock & op1 = installOp("Op1");
 
-    expect_create_require(op1);
+    expect_create_require(op1, logic_op_exec_result_true);
 
     set_execute_immediately();
 
@@ -110,7 +110,7 @@ TEST_F(RequireRunTest, auto_commit_cancel_release) {
 TEST_F(RequireRunTest, auto_commit_cancel_keep) {
     LogicOpMock & op1 = installOp("Op1");
 
-    expect_create_require(op1);
+    expect_create_require(op1, logic_op_exec_result_true);
 
     set_require_keep();
     set_execute_immediately();

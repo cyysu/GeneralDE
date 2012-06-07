@@ -29,12 +29,12 @@ static void create_rquire(logic_context_t context) {
     logic_require_create(context, (cpe_hash_string_t)name, 0);
 }
 
-void RunTest::expect_create_require(LogicOpMock & op) {
+void RunTest::expect_create_require(LogicOpMock & op, logic_op_exec_result_t rv) {
     EXPECT_CALL(op, execute(::testing::_))
         .WillOnce(
             ::testing::DoAll(
                 ::testing::Invoke(create_rquire),
-                ::testing::Return(logic_op_exec_result_true)));
+                ::testing::Return(rv)));
 }
 
 void RunTest::expect_return(LogicOpMock & op, logic_op_exec_result_t rv) {

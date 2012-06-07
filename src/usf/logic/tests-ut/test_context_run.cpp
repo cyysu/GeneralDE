@@ -41,7 +41,7 @@ TEST_F(ContextRunTest, waiting_basic) {
     LogicOpMock & op1 = installOp("Op1");
     LogicOpMock & op2 = installOp("Op2");
 
-    expect_create_require(op1);
+    expect_create_require(op1, logic_op_exec_result_true);
 
     execute(
         "- Op1\n"
@@ -61,7 +61,7 @@ TEST_F(ContextRunTest, waiting_basic) {
 TEST_F(ContextRunTest, waiting_no_left_op) {
     LogicOpMock & op1 = installOp("Op1");
 
-    expect_create_require(op1);
+    expect_create_require(op1, logic_op_exec_result_true);
 
     execute("- Op1\n");
 
@@ -80,7 +80,7 @@ TEST_F(ContextRunTest, cancel_in_wait) {
     LogicOpMock & op1 = installOp("Op1");
     installOp("Op2");
 
-    expect_create_require(op1);
+    expect_create_require(op1, logic_op_exec_result_true);
 
     execute(
         "- Op1\n"
@@ -101,7 +101,7 @@ TEST_F(ContextRunTest, timeout_in_wait) {
     LogicOpMock & op1 = installOp("Op1");
     installOp("Op2");
 
-    expect_create_require(op1);
+    expect_create_require(op1, logic_op_exec_result_true);
 
     execute(
         "- Op1\n"

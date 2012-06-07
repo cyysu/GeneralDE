@@ -126,7 +126,6 @@ void logic_stack_exec(struct logic_stack * stack, int32_t stop_stack_pos, logic_
                 if (action->m_type->m_op) {
                     stack_item->m_rv =
                         ((logic_op_fun_t)action->m_type->m_op)(ctx, stack_item->m_executr, action->m_type->m_ctx, action->m_args);
-
                     if (stack_item->m_rv == logic_op_exec_result_redo) {
                         if (ctx->m_require_waiting_count == 0) {
                             CPE_ERROR(
