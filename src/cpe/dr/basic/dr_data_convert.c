@@ -423,6 +423,31 @@ struct DRCtypeTypeReadOps g_dr_ctype_read_ops[] = {
             }                                                           \
         }                                                               \
     }                                                                   \
+    __to ## _t dr_entry_read_with_dft_ ## __to(                         \
+        const void * input, LPDRMETAENTRY entry, __to ## _t dft)        \
+    {                                                                   \
+        if (entry == NULL ||                                            \
+            entry->m_type < 0 || entry->m_type > CPE_READOPS_COUNT) {   \
+            return dft;                                       \
+        }                                                               \
+        else if (entry->m_type == CPE_DR_TYPE_STRING) {                 \
+            __to ## _t tmp = 0;                                         \
+            dr_ctype_set_from_string(                                   \
+                &tmp, __to_type, (const char * )input, 0);              \
+            return tmp;                                                 \
+        }                                                               \
+        else {                                                          \
+            if (g_dr_ctype_read_ops[entry->m_type].to_ ## __to) {       \
+                __to ## _t tmp = dft;                                     \
+                g_dr_ctype_read_ops[entry->m_type].to_ ## __to (        \
+                    &tmp, input, entry, NULL);                          \
+                return tmp;                                             \
+            }                                                           \
+            else {                                                      \
+                return dft;                                             \
+            }                                                           \
+        }                                                               \
+    }                                                                   \
     int dr_meta_try_read_ ## __to(                                      \
         __to ## _t * result,                                            \
         const void * input, LPDRMETA meta, const char * entryName,      \
@@ -455,7 +480,19 @@ struct DRCtypeTypeReadOps g_dr_ctype_read_ops[] = {
             return (__to ## _t)0;                                       \
         }                                                               \
     }                                                                   \
-
+    __to ## _t dr_meta_read_with_dft_ ##__to (                          \
+        const void * input, LPDRMETA meta, const char * entryName, __to ## _t dft) \
+    {                                                                   \
+        LPDRMETAENTRY entry = dr_meta_find_entry_by_path(meta, entryName); \
+        if (entry) {                                                    \
+            return dr_entry_read_with_dft_ ## __to(                              \
+                (const char *)input + entry->m_data_start_pos,          \
+                entry, dft);                                            \
+        }                                                               \
+        else {                                                          \
+            return dft;                                                 \
+        }                                                               \
+    }                                                                   \
 
 
 CPE_DEF_READ_FUN(int8, CPE_DR_TYPE_INT8);
