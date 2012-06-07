@@ -510,6 +510,10 @@ const char * dr_entry_read_string(const void * input, LPDRMETAENTRY entry) {
     return entry ? (const char *)input : "";
 }
 
+const char * dr_entry_read_with_dft_string(const void * input, LPDRMETAENTRY entry, const char * dft) {
+    return entry ? (const char *)input : dft;
+}
+
 const char * dr_meta_read_string(const void * input, LPDRMETA meta, const char * entryName) {
     LPDRMETAENTRY entry = dr_meta_find_entry_by_path(meta, entryName);
     if (entry) {
@@ -519,5 +523,18 @@ const char * dr_meta_read_string(const void * input, LPDRMETA meta, const char *
     }
     else {
         return "";
+    }
+}
+
+const char * dr_meta_read_with_dft_string(const void * input, LPDRMETA meta, const char * entryName, const char * dft) {
+    LPDRMETAENTRY entry = dr_meta_find_entry_by_path(meta, entryName);
+    if (entry) {
+        return dr_entry_read_with_dft_string(
+            (const char *)input + entry->m_data_start_pos,
+            entry,
+            dft);
+    }
+    else {
+        return dft;
     }
 }
