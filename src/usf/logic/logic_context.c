@@ -185,7 +185,6 @@ void logic_context_data_dump_to_cfg(logic_context_t context, cfg_t cfg) {
 }
 
 void logic_context_execute(logic_context_t context) {
-    logic_op_exec_result_t rv;
     logic_context_state_t old_state;
 
     if (context->m_state != logic_context_state_idle) return;
@@ -194,11 +193,11 @@ void logic_context_execute(logic_context_t context) {
     old_state = logic_context_state_i(context);
 
     context->m_runing = 1;
-    rv = logic_stack_exec(&context->m_stack, -1, context);
+    logic_stack_exec(&context->m_stack, -1, context);
     context->m_runing = 0;
 
     if (context->m_errno == 0 && context->m_stack.m_item_pos == -1) {
-        if (rv == logic_op_exec_result_true) {
+        if (context->m_stack.m_inline_items[0].m_rv == logic_op_exec_result_true) {
             context->m_state = logic_context_state_done; 
         }
         else {

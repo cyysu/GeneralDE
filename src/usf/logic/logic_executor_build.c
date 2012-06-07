@@ -149,9 +149,11 @@ logic_executor_build(
                 return NULL;
             }
 
-            logic_executor_condition_set_else(
-                executor,
-                logic_executor_build(mgr, else_cfg, type_group, em));
+            if (else_cfg) {
+                logic_executor_condition_set_else(
+                    executor,
+                    logic_executor_build(mgr, else_cfg, type_group, em));
+            }
 
             return executor;
         }

@@ -58,13 +58,34 @@ REINTER:
 
     assert(stack_item);
     stack_item->m_executr = executor;
+    stack_item->m_rv = logic_op_exec_result_true;
+
+    if (executor == NULL) {
+        --stack->m_item_pos;
+        return;
+    }
 
     if (executor->m_category == logic_executor_category_composite) {
         struct logic_executor_composite * composite = (struct logic_executor_composite *)executor;
+        if (composite->m_composite_type == logic_executor_composite_parallel) {
+            if (composite->m_args.m_parallel_policy == logic_executor_parallel_success_on_all) {
+                stack_item->m_rv = logic_op_exec_result_true;
+            }
+            else {
+                stack_item->m_rv = logic_op_exec_result_false;
+            }
+        }
+        else if (composite->m_composite_type == logic_executor_composite_selector) {
+            stack_item->m_rv = logic_op_exec_result_false;
+        }
+
         if (!TAILQ_EMPTY(&composite->m_members)) {
             executor = TAILQ_FIRST(&composite->m_members);
-            goto REINTER;
         }
+        else {
+            executor = NULL;
+        }
+        goto REINTER;
     }
 }
 
@@ -73,10 +94,7 @@ REINTER:
      ? &stack->m_inline_items[(pos)]                                    \
      : &stack->m_extern_items[(pos) - LOGIC_STACK_INLINE_ITEM_COUNT])   \
 
-logic_op_exec_result_t logic_stack_exec(struct logic_stack * stack, int32_t stop_stack_pos, logic_context_t ctx) {
-    struct logic_stack_item * last_stack_item;
-    last_stack_item = NULL;
-
+void logic_stack_exec(struct logic_stack * stack, int32_t stop_stack_pos, logic_context_t ctx) {
     while(ctx->m_state == logic_context_state_idle
           && stack->m_item_pos > stop_stack_pos
           && ctx->m_require_waiting_count == 0)
@@ -89,7 +107,6 @@ logic_op_exec_result_t logic_stack_exec(struct logic_stack * stack, int32_t stop
                 if (action->m_type->m_op) {
                     stack_item->m_rv =
                         ((logic_op_fun_t)action->m_type->m_op)(ctx, stack_item->m_executr, action->m_type->m_ctx, action->m_args);
-                    last_stack_item = stack_item;
 
                     if (stack_item->m_rv == logic_op_exec_result_redo) {
                         if (ctx->m_require_waiting_count == 0) {
@@ -129,14 +146,17 @@ logic_op_exec_result_t logic_stack_exec(struct logic_stack * stack, int32_t stop
 
                 switch(composite->m_composite_type) {
                 case logic_executor_composite_selector:
+                    if (pre_stack_item->m_rv == logic_op_exec_result_false) {
+                        if (next) logic_stack_push(stack, ctx, next);
+                    }
+                    else {
+                        assert(pre_stack_item->m_rv == logic_op_exec_result_true);
+                        stack_item->m_rv = logic_op_exec_result_true;
+                    }
                     break;
                 case logic_executor_composite_sequence: {
                     if (pre_stack_item->m_rv == logic_op_exec_result_true) {
-                        if (next) {
-                            pre_stack_item->m_executr = next;
-                            pre_stack_item->m_rv = logic_op_exec_result_false;
-                            ++stack->m_item_pos;
-                        }
+                        if (next) logic_stack_push(stack, ctx, next);
                     }
                     else {
                         assert(pre_stack_item->m_rv == logic_op_exec_result_false);
@@ -144,8 +164,24 @@ logic_op_exec_result_t logic_stack_exec(struct logic_stack * stack, int32_t stop
                     }
                     break;
                 }
-                case logic_executor_composite_parallel:
+                case logic_executor_composite_parallel: {
+                    if (composite->m_args.m_parallel_policy == logic_executor_parallel_success_on_all) {
+                        if(pre_stack_item->m_rv == logic_op_exec_result_false) {
+                            stack_item->m_rv = logic_op_exec_result_false;
+                        }
+                    }
+                    else {
+                        if(pre_stack_item->m_rv == logic_op_exec_result_true) {
+                            stack_item->m_rv = logic_op_exec_result_true;
+                        }
+                    }
+
+                    if (next) {
+                        logic_stack_push(stack, ctx, next);
+                    }
+
                     break;
+                }
                 default:
                     break;
                 }
@@ -155,7 +191,6 @@ logic_op_exec_result_t logic_stack_exec(struct logic_stack * stack, int32_t stop
                 switch(decorator->m_decorator_type) {
                 case logic_executor_decorator_protect:
                     stack_item->m_rv = logic_op_exec_result_true;
-                    last_stack_item = stack_item;
                     break;
                 case logic_executor_decorator_not:
                     if (pre_stack_item->m_rv == logic_op_exec_result_true) {
@@ -165,7 +200,6 @@ logic_op_exec_result_t logic_stack_exec(struct logic_stack * stack, int32_t stop
                         assert(pre_stack_item->m_rv == logic_op_exec_result_false);
                         stack_item->m_rv = logic_op_exec_result_true;
                     }                        
-                    last_stack_item = stack_item;
                     break;
                 }
                 --stack->m_item_pos;
@@ -175,6 +209,4 @@ logic_op_exec_result_t logic_stack_exec(struct logic_stack * stack, int32_t stop
             break;
         }
     }
-
-    return last_stack_item ? last_stack_item->m_rv : logic_op_exec_result_false;
 }
