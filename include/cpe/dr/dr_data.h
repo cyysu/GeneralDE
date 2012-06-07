@@ -32,6 +32,18 @@ float dr_entry_read_float(const void * input, LPDRMETAENTRY entry);
 double dr_entry_read_double(const void * input, LPDRMETAENTRY entry);
 const char * dr_entry_read_string(const void * input, LPDRMETAENTRY entry);
 
+int8_t dr_entry_read_with(const void * input, LPDRMETAENTRY entry, int8_t dft);
+uint8_t dr_entry_read_with_dft_uint8(const void * input, LPDRMETAENTRY entry, uint8_t dft);
+int16_t dr_entry_read_with_dft_int16(const void * input, LPDRMETAENTRY entry, int16_t dft);
+uint16_t dr_entry_read_with_dft_uint16(const void * input, LPDRMETAENTRY entry, uint16_t dft);
+int32_t dr_entry_read_with_dft_int32(const void * input, LPDRMETAENTRY entry, int32_t dft);
+uint32_t dr_entry_read_with_dft_uint32(const void * input, LPDRMETAENTRY entry, uint32_t dft);
+int64_t dr_entry_read_with_dft_int64(const void * input, LPDRMETAENTRY entry, int64_t dft);
+uint64_t dr_entry_read_with_dft_uint64(const void * input, LPDRMETAENTRY entry, uint64_t dft);
+float dr_entry_read_with_dft_float(const void * input, LPDRMETAENTRY entry, float dft);
+double dr_entry_read_with_dft_double(const void * input, LPDRMETAENTRY entry, double dft);
+const char * dr_entry_read_with_dft_string(const void * input, LPDRMETAENTRY entry, const char * dft);
+
 int dr_entry_print_to_stream(write_stream_t output, const void * input, LPDRMETAENTRY entry, error_monitor_t em);
 const char * dr_entry_to_string(mem_buffer_t buf, const void * input, LPDRMETAENTRY entry);
 
@@ -70,6 +82,18 @@ uint64_t dr_meta_read_uint64(const void * input, LPDRMETA meta, const char * ent
 float dr_meta_read_float(const void * input, LPDRMETA meta, const char * entry);
 double dr_meta_read_double(const void * input, LPDRMETA meta, const char * entry);
 const char * dr_meta_read_string(const void * input, LPDRMETA meta, const char * entry);
+
+int8_t dr_meta_read_with_dft_int8(const void * input, LPDRMETA meta, const char * entry, int8_t dft);
+uint8_t dr_meta_read_with_dft_uint8(const void * input, LPDRMETA meta, const char * entry, uint8_t dft);
+int16_t dr_meta_read_with_dft_int16(const void * input, LPDRMETA meta, const char * entry, int16_t dft);
+uint16_t dr_meta_read_with_dft_uint16(const void * input, LPDRMETA meta, const char * entry, uint16_t dft);
+int32_t dr_meta_read_with_dft_int32(const void * input, LPDRMETA meta, const char * entry, int32_t dft);
+uint32_t dr_meta_read_with_dft_uint32(const void * input, LPDRMETA meta, const char * entry, uint32_t dft);
+int64_t dr_meta_read_with_dft_int64(const void * input, LPDRMETA meta, const char * entry, int64_t dft);
+uint64_t dr_meta_read_with_dft_uint64(const void * input, LPDRMETA meta, const char * entry, uint64_t dft);
+float dr_meta_read_with_dft_float(const void * input, LPDRMETA meta, const char * entry, float dft);
+double dr_meta_read_with_dft_double(const void * input, LPDRMETA meta, const char * entry, double dft);
+const char * dr_meta_read_with_dft_string(const void * input, LPDRMETA meta, const char * entry, const char * dft);
 
 #define DR_SET_DEFAULTS_POLICY_NO_DEFAULT_IGNORE 1
 int dr_entry_set_defaults(void * inout, size_t capacity, LPDRMETAENTRY entry, int policy);
