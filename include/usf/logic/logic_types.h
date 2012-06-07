@@ -51,6 +51,11 @@ typedef enum logic_executor_composite_type {
     , logic_executor_composite_parallel
 } logic_executor_composite_type_t;
 
+typedef enum logic_executor_parallel_policy {
+    logic_executor_parallel_success_on_all
+    , logic_executor_parallel_success_on_one
+} logic_executor_parallel_policy_t;
+
 typedef enum logic_executor_decorator_type {
     logic_executor_decorator_protect
     , logic_executor_decorator_not

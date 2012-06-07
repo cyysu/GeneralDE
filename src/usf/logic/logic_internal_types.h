@@ -115,14 +115,22 @@ struct logic_executor_decorator {
     logic_executor_t m_inner;
 };
 
+union logic_executor_composite_arg {
+    logic_executor_parallel_policy_t m_parallel_policy;
+};
+
 struct logic_executor_composite {
     LOGIC_EXECUTOR_COMMON;
     logic_executor_composite_type_t m_composite_type;
+    union logic_executor_composite_arg m_args;
     logic_executor_list_t m_members;
 };
 
 struct logic_executor_condition {
     LOGIC_EXECUTOR_COMMON;
+    logic_executor_t m_if;
+    logic_executor_t m_do;
+    logic_executor_t m_else;
 };
 
 struct logic_executor_type {

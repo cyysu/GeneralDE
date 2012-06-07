@@ -26,7 +26,7 @@ TEST_F(ContextRunTest, basic_fail) {
     EXPECT_EQ((int32_t)-1, rv());
 }
 
-TEST_F(ContextRunTest, group_basic) {
+TEST_F(ContextRunTest, composite_sequence_basic) {
     LogicOpMock & op1 = installOp("Op1");
     expect_return(op1, logic_op_exec_result_true);
 
@@ -37,7 +37,7 @@ TEST_F(ContextRunTest, group_basic) {
     EXPECT_EQ((int32_t)0, rv());
 }
 
-TEST_F(ContextRunTest, group_multi) {
+TEST_F(ContextRunTest, composite_sequence_multi) {
     LogicOpMock & op1 = installOp("Op1");
     LogicOpMock & op2 = installOp("Op2");
 
@@ -57,7 +57,7 @@ TEST_F(ContextRunTest, group_multi) {
     EXPECT_EQ((int32_t)0, rv());
 }
 
-TEST_F(ContextRunTest, group_multi_error_break) {
+TEST_F(ContextRunTest, composite_sequence_multi_error_break) {
     LogicOpMock & op1 = installOp("Op1");
     expect_return(op1, logic_op_exec_result_false);
     installOp("Op2");
@@ -72,7 +72,7 @@ TEST_F(ContextRunTest, group_multi_error_break) {
     EXPECT_EQ((int32_t)-1, rv());
 }
 
-TEST_F(ContextRunTest, group_multi_level_error_break) {
+TEST_F(ContextRunTest, composite_sequence_multi_level_error_break) {
     LogicOpMock & op1 = installOp("Op1");
     installOp("Op2");
     installOp("Op3");

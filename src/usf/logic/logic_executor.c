@@ -40,6 +40,92 @@ logic_executor_action_create(logic_manage_t mgr, logic_executor_type_t type, cfg
     return (logic_executor_t)executor;
 }
 
+logic_executor_t logic_executor_condition_create(logic_manage_t mgr) {
+    struct logic_executor_condition * executor;
+
+    assert(mgr);
+
+    executor = (struct logic_executor_condition *)mem_alloc(mgr->m_alloc, sizeof(struct logic_executor_condition));
+    if (executor == NULL) return NULL;
+
+    executor->m_mgr = mgr;
+    executor->m_category = logic_executor_category_condition;
+    executor->m_if = NULL;
+    executor->m_do = NULL;
+    executor->m_else = NULL;
+
+    return (logic_executor_t)executor;
+}
+
+int logic_executor_condition_set_if(logic_executor_t executor, logic_executor_t check) {
+    struct logic_executor_condition * condition;
+
+    if (executor->m_category != logic_executor_category_condition) return -1;
+
+    condition = (struct logic_executor_condition *)executor;
+
+    if (condition->m_if) logic_executor_free(condition->m_if);
+    condition->m_if = check;
+
+    return 0;
+}
+
+int logic_executor_condition_set_do(logic_executor_t executor, logic_executor_t action) {
+    struct logic_executor_condition * condition;
+
+    if (executor->m_category != logic_executor_category_condition) return -1;
+
+    condition = (struct logic_executor_condition *)executor;
+
+    if (condition->m_do) logic_executor_free(condition->m_do);
+    condition->m_do = action;
+
+    return 0;
+}
+
+int logic_executor_condition_set_else(logic_executor_t executor, logic_executor_t action) {
+    struct logic_executor_condition * condition;
+
+    if (executor->m_category != logic_executor_category_condition) return -1;
+
+    condition = (struct logic_executor_condition *)executor;
+
+    if (condition->m_else) logic_executor_free(condition->m_else);
+    condition->m_else = action;
+
+    return 0;
+}
+
+logic_executor_t logic_executor_condition_if(logic_executor_t executor) {
+    struct logic_executor_condition * condition;
+
+    if (executor->m_category != logic_executor_category_condition) return NULL;
+
+    condition = (struct logic_executor_condition *)executor;
+
+    return condition->m_if;
+}
+
+logic_executor_t logic_executor_condition_do(logic_executor_t executor) {
+    struct logic_executor_condition * condition;
+
+    if (executor->m_category != logic_executor_category_condition) return NULL;
+
+    condition = (struct logic_executor_condition *)executor;
+
+    return condition->m_do;
+}
+
+logic_executor_t logic_executor_condition_else(logic_executor_t executor) {
+    struct logic_executor_condition * condition;
+
+    if (executor->m_category != logic_executor_category_condition) return NULL;
+
+    condition = (struct logic_executor_condition *)executor;
+
+    return condition->m_else;
+}
+
 logic_executor_t
 logic_executor_composite_create(logic_manage_t mgr, logic_executor_composite_type_t composite_type) {
     struct logic_executor_composite * executor;
@@ -52,6 +138,10 @@ logic_executor_composite_create(logic_manage_t mgr, logic_executor_composite_typ
     executor->m_mgr = mgr;
     executor->m_category = logic_executor_category_composite;
     executor->m_composite_type = composite_type;
+    if(composite_type == logic_executor_composite_parallel) {
+        executor->m_args.m_parallel_policy = logic_executor_parallel_success_on_all;
+    }
+
     TAILQ_INIT(&executor->m_members);
 
     return (logic_executor_t)executor;
@@ -67,6 +157,19 @@ int logic_executor_composite_add(logic_executor_t input_composite, logic_executo
     composite = (struct logic_executor_composite *)input_composite;
 
     TAILQ_INSERT_TAIL(&composite->m_members, member, m_next);
+
+    return 0;
+}
+
+int logic_executor_composite_parallel_set_policy(logic_executor_t parallel, logic_executor_parallel_policy_t policy) {
+    struct logic_executor_composite * composite;
+
+    if (parallel->m_category != logic_executor_category_composite) return -1;
+    
+    composite = (struct logic_executor_composite *)parallel;
+    if (composite->m_composite_type != logic_executor_composite_parallel) return -1;
+
+    composite->m_args.m_parallel_policy = policy;
 
     return 0;
 }
@@ -120,6 +223,9 @@ void logic_executor_free(logic_executor_t executor) {
     }
     case logic_executor_category_condition: {
         struct logic_executor_condition * condition = (struct logic_executor_condition *)executor;
+        if (condition->m_if) logic_executor_free(condition->m_if);
+        if (condition->m_do) logic_executor_free(condition->m_do);
+        if (condition->m_else) logic_executor_free(condition->m_else);
         mem_free(condition->m_mgr->m_alloc, condition);
     }
     }
@@ -178,9 +284,29 @@ void logic_executor_dump(logic_executor_t executor, write_stream_t stream, int l
         stream_putc_count(stream, ' ', level << 2);
         stream_printf(stream, "%s:", logic_executor_name(executor));
 
-        TAILQ_FOREACH(member, &composite->m_members, m_next) {
+        if (composite->m_composite_type == logic_executor_composite_parallel) {
             stream_putc(stream, '\n');
-            logic_executor_dump(member, stream, level + 1);
+            stream_putc_count(stream, ' ', (level + 1) << 2);
+            stream_printf(
+                stream, "policy: %s",
+                composite->m_args.m_parallel_policy == logic_executor_parallel_success_on_all
+                ? "SUCCESS_ON_ALL"
+                : "SUCCESS_ON_ONE");
+
+            stream_putc(stream, '\n');
+            stream_putc_count(stream, ' ', (level + 1) << 2);
+            stream_printf(stream, "childs:");
+
+            TAILQ_FOREACH(member, &composite->m_members, m_next) {
+                stream_putc(stream, '\n');
+                logic_executor_dump(member, stream, level + 2);
+            }
+        }
+        else {
+            TAILQ_FOREACH(member, &composite->m_members, m_next) {
+                stream_putc(stream, '\n');
+                logic_executor_dump(member, stream, level + 1);
+            }
         }
 
         break;
@@ -194,8 +320,32 @@ void logic_executor_dump(logic_executor_t executor, write_stream_t stream, int l
         break;
     }
     case logic_executor_category_condition: {
+        struct logic_executor_condition * condition = (struct logic_executor_condition *)executor;
+
         stream_putc_count(stream, ' ', level << 2);
-        stream_printf(stream, "%s", logic_executor_name(executor));
+        stream_printf(stream, "%s:", logic_executor_name(executor));
+
+        if (condition->m_if) {
+            stream_putc(stream, '\n');
+            stream_putc_count(stream, ' ', (level + 1) << 2);
+            stream_printf(stream, "if:\n");
+            logic_executor_dump(condition->m_if, stream, level + 2);
+        }
+
+        if (condition->m_do) {
+            stream_putc(stream, '\n');
+            stream_putc_count(stream, ' ', (level + 1) << 2);
+            stream_printf(stream, "do:\n");
+            logic_executor_dump(condition->m_do, stream, level + 2);
+        }
+
+        if (condition->m_else) {
+            stream_putc(stream, '\n');
+            stream_putc_count(stream, ' ', (level + 1) << 2);
+            stream_printf(stream, "else:\n");
+            logic_executor_dump(condition->m_else, stream, level + 2);
+        }
+
         break;
     }
     default:

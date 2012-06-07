@@ -11,11 +11,22 @@ extern "C" {
 logic_executor_t
 logic_executor_action_create(logic_manage_t mgr, logic_executor_type_t type, cfg_t args);
 
+/*condition*/
+logic_executor_t logic_executor_condition_create(logic_manage_t mgr);
+int logic_executor_condition_set_if(logic_executor_t condition, logic_executor_t check);
+int logic_executor_condition_set_do(logic_executor_t condition, logic_executor_t action);
+int logic_executor_condition_set_else(logic_executor_t condition, logic_executor_t action);
+
+logic_executor_t logic_executor_condition_if(logic_executor_t condition);
+logic_executor_t logic_executor_condition_do(logic_executor_t condition);
+logic_executor_t logic_executor_condition_else(logic_executor_t condition);
+
 /*composite*/
 logic_executor_t
 logic_executor_composite_create(logic_manage_t mgr, logic_executor_composite_type_t composite_type);
 
 int logic_executor_composite_add(logic_executor_t composite, logic_executor_t member);
+int logic_executor_composite_parallel_set_policy(logic_executor_t parallel, logic_executor_parallel_policy_t policy);
 
 /*decorator*/
 logic_executor_t

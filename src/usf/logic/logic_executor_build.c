@@ -66,6 +66,95 @@ logic_executor_build(
                 type_group,
                 em);
         }
+        else if (strcmp(name, "sequence") == 0) {
+            return logic_executor_create_composite(
+                mgr,
+                child,
+                logic_executor_composite_sequence,
+                type_group,
+                em);
+        }
+        else if (strcmp(name, "selector") == 0) {
+            return logic_executor_create_composite(
+                mgr,
+                child,
+                logic_executor_composite_selector,
+                type_group,
+                em);
+        }
+        else if (strcmp(name, "parallel") == 0) {
+            if (cfg_type(child) == CPE_CFG_TYPE_STRUCT) {
+                const char * policy_str;
+                logic_executor_t executor;
+
+                executor = logic_executor_create_composite(
+                    mgr,
+                    cfg_find_cfg(child, "childs"),
+                    logic_executor_composite_parallel,
+                    type_group,
+                    em);
+                if (executor == NULL) return NULL;
+
+                policy_str = cfg_get_string(child, "policy", "SUCCESS_ON_ALL");
+                if (strcmp(policy_str, "SUCCESS_ON_ALL") == 0) {
+                    logic_executor_composite_parallel_set_policy(executor, logic_executor_parallel_success_on_all);
+                }
+                else if (strcmp(policy_str, "SUCCESS_ON_ONE") == 0) {
+                    logic_executor_composite_parallel_set_policy(executor, logic_executor_parallel_success_on_one);
+                }
+                else {
+                    CPE_ERROR(em, "not support parallel policy %s", policy_str);
+                    logic_executor_free(executor);
+                    return NULL;
+                }
+
+                return executor;
+            }
+            else {
+                return logic_executor_create_composite(
+                    mgr,
+                    child,
+                    logic_executor_composite_parallel,
+                    type_group,
+                    em);
+            }
+        }
+        else if (strcmp(name, "condition") == 0) {
+            logic_executor_t executor;
+            cfg_t if_cfg;
+            cfg_t do_cfg;
+            cfg_t else_cfg;
+
+            if_cfg = cfg_find_cfg(child, "if");
+            do_cfg = cfg_find_cfg(child, "do");
+            else_cfg = cfg_find_cfg(child, "else");
+
+            if (if_cfg == NULL || do_cfg == NULL) return NULL;
+
+            executor = logic_executor_condition_create(mgr);
+            if (executor == NULL) return NULL;
+
+            logic_executor_condition_set_if(
+                executor,
+                logic_executor_build(mgr, if_cfg, type_group, em));
+
+            logic_executor_condition_set_do(
+                executor,
+                logic_executor_build(mgr, do_cfg, type_group, em));
+
+            if (logic_executor_condition_if(executor) == NULL
+                || logic_executor_condition_do(executor) == NULL)
+            {
+                logic_executor_free(executor);
+                return NULL;
+            }
+
+            logic_executor_condition_set_else(
+                executor,
+                logic_executor_build(mgr, else_cfg, type_group, em));
+
+            return executor;
+        }
         else {
             type = logic_executor_type_find(type_group, name);
             if (type == 0) {
