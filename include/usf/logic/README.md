@@ -64,37 +64,48 @@
 ### 配置action行为节点
 1. 简单的行节点
 
+```yaml
     action1
+```
 
 2. 带参数的行为节点
 
+```yaml
     action2: { arg1: 1, arg2 : 2 }
-    
+```
+
 ### 配置condition条件节点
 
 1. 完整的条件节点
 
+```yaml
     condition:
         if: action1
         do: action2
         else: action3
+```
 
 ### 配置decorator装饰节点
 
 1. protect装饰节点配置
 
+```yaml
     protect:
         action1
-        
+```
+
 2. not装饰节点配置
 
+```yaml
     not:
         action1
+```
 
 ### 配置composite组合节点
 
 1. 配置选择节点
 
+```yaml
     selector:
         - condition:
             if: action1
@@ -102,32 +113,39 @@
         - condition:
             if: action3
             do: action4
+```
 
 1. 配置sequence顺序节点
 
+```yaml
     sequence:
         - action1
         - action2
         - action3
-        
+```        
 
 1. 配置sequence顺序节点的简略方法
 
+```yaml
     - action1
     - action2
     - action3
-    
+```
+
 1. 配置parallel平行节点的完整方法
 
+```yaml
     parallel:
         policy: SUCCESS_ON_ALL   #或者 SUCCESS_ON_ONE，默认为SUCCESS_ON_ALL
         childs:
             - action1
             - action2
-
+```
 
 1. 配置parallel平行节点的简略方法
 
+```yaml
     parallel:  #policy默认为SUCCESS_ON_ALL
         - action1
         - action2
+```
