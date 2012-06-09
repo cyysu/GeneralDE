@@ -46,6 +46,14 @@ logic_executor_type_t
 logic_executor_type_find(logic_executor_type_group_t group, const char * name);
 
 #define logic_executor_type_next(it) ((it)->next ? (it)->next(it) : NULL)
+
+logic_executor_type_t
+logic_executor_type_create_global(
+    gd_app_context_t app, const char * group_name, const char * name,
+    logic_op_fun_t op_fun,
+    void * op_ctx,
+    error_monitor_t em);
+
 #ifdef __cplusplus
 }
 #endif

@@ -90,3 +90,53 @@ uint32_t logic_executor_type_hash(const struct logic_executor_type * type) {
 int logic_executor_type_cmp(const struct logic_executor_type * l, const struct logic_executor_type * r) {
     return strcmp(l->m_name, r->m_name) == 0;
 }
+
+logic_executor_type_t
+logic_executor_type_create_global(
+    gd_app_context_t app,
+    const char * group_name,
+    const char * name,
+    logic_op_fun_t op_fun,
+    void * op_ctx,
+    error_monitor_t em)
+{
+    logic_executor_type_group_t type_group;
+    logic_executor_type_t type;
+
+    if (group_name) {
+        type_group = logic_executor_type_group_find_nc(app, group_name);
+    }
+    else {
+        type_group = logic_executor_type_group_default(app);
+    }
+
+    if (type_group == NULL) {
+        CPE_ERROR(
+            em, "logic_executor_type_create_in_group: group %s not exist!",
+            group_name ? group_name : "default");
+        return NULL;
+    }
+
+    type = logic_executor_type_create(type_group, name);
+    if (type == NULL) {
+        CPE_ERROR(
+            em, "logic_executor_type_create_in_group: create %s in group %s fail!",
+            name, group_name ? group_name : "default");
+        return NULL;
+    }
+
+    if (logic_executor_type_bind(type, op_fun, op_ctx) != 0) {
+        CPE_ERROR(
+            em, "logic_executor_type_create_in_group: bind for %s in group %s fail!",
+            name, group_name ? group_name : "default");
+        logic_executor_type_free(type);
+        return NULL;
+    }        
+    else {
+        return type;
+    }
+}
+
+void logic_executor_type_remove_global(gd_app_context_t app, const char * name, logic_op_fun_t op_fun) {
+    
+}
