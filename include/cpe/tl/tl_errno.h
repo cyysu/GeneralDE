@@ -6,7 +6,7 @@
 extern "C" {
 #endif
 
-enum {
+enum tl_error_no {
     CPE_TL_ERROR_NONE = 0
     , CPE_TL_ERROR_NO_MEMORY = -128
     , CPE_TL_ERROR_BAD_ARG
