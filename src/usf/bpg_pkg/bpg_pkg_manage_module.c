@@ -105,10 +105,6 @@ static int bpg_pkg_manage_app_load_pkg_debug_info(gd_app_context_t app, gd_app_m
 
         name = cfg_name(child);
         level = bpg_pkg_manage_app_load_calc_debug_level(app, module, name, cfg_as_string(child, NULL));
-        if (level < 0) {
-            rv = -1;
-            continue;
-        }
 
         if (strcmp(name, "default") == 0) {
             mgr->m_pkg_debug_default_level = level;
