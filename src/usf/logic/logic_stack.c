@@ -1,8 +1,10 @@
 #include <assert.h>
 #include "gd/app/app_context.h"
+#include "usf/logic/logic_stack.h"
 #include "usf/logic/logic_context.h"
 #include "usf/logic/logic_manage.h"
 #include "usf/logic/logic_executor.h"
+#include "usf/logic/logic_data.h"
 #include "logic_internal_ops.h"
 
 #define LOGIC_STACK_INLINE_ITEM_COUNT \
@@ -22,7 +24,7 @@ void logic_stack_fini(struct logic_stack * stack, logic_context_t context) {
 }
 
 void logic_stack_push(struct logic_stack * stack, logic_context_t context, logic_executor_t executor) {
-    struct logic_stack_item * stack_item;
+    struct logic_stack_node * stack_item;
 
 REINTER:
     if (stack->m_item_pos + 1 < LOGIC_STACK_INLINE_ITEM_COUNT) {
@@ -32,10 +34,10 @@ REINTER:
         int32_t writePos = stack->m_item_pos + 1 - LOGIC_STACK_INLINE_ITEM_COUNT;
         if (writePos >= stack->m_extern_items_capacity) {
             int32_t new_capacity;
-            struct logic_stack_item * new_buf;
+            struct logic_stack_node * new_buf;
 
             new_capacity = stack->m_extern_items_capacity + 16;
-            new_buf = (struct logic_stack_item *)mem_alloc(context->m_mgr->m_alloc, sizeof(struct logic_stack_item) * new_capacity);
+            new_buf = (struct logic_stack_node *)mem_alloc(context->m_mgr->m_alloc, sizeof(struct logic_stack_node) * new_capacity);
             if (new_buf == NULL) {
                 context->m_errno = -1;
                 context->m_state = logic_context_state_error;
@@ -43,7 +45,7 @@ REINTER:
             }
 
             if (stack->m_extern_items) {
-                memcpy(new_buf, stack->m_extern_items, sizeof(struct logic_stack_item) * stack->m_extern_items_capacity);
+                memcpy(new_buf, stack->m_extern_items, sizeof(struct logic_stack_node) * stack->m_extern_items_capacity);
                 mem_free(context->m_mgr->m_alloc, stack->m_extern_items);
             }
 
@@ -58,6 +60,8 @@ REINTER:
 
     assert(stack_item);
     stack_item->m_executr = executor;
+    stack_item->m_context = context;
+    stack_item->m_data = NULL;
     stack_item->m_rv = logic_op_exec_result_null;
 
     if (executor == NULL) {
@@ -108,7 +112,7 @@ REINTER:
     }
 }
 
-#define logic_stack_item_at(stack, pos)                                 \
+#define logic_stack_node_at(stack, pos)                                 \
     ((pos) < LOGIC_STACK_INLINE_ITEM_COUNT                              \
      ? &stack->m_inline_items[(pos)]                                    \
      : &stack->m_extern_items[(pos) - LOGIC_STACK_INLINE_ITEM_COUNT])   \
@@ -118,14 +122,14 @@ void logic_stack_exec(struct logic_stack * stack, int32_t stop_stack_pos, logic_
           && stack->m_item_pos > stop_stack_pos
           && ctx->m_require_waiting_count == 0)
     {
-        struct logic_stack_item * stack_item = logic_stack_item_at(stack, stack->m_item_pos);
+        struct logic_stack_node * stack_item = logic_stack_node_at(stack, stack->m_item_pos);
 
         if (stack_item->m_executr) {
             if (stack_item->m_executr->m_category == logic_executor_category_action) {
                 struct logic_executor_action * action = (struct logic_executor_action *)stack_item->m_executr;
                 if (action->m_type->m_op) {
                     stack_item->m_rv =
-                        ((logic_op_fun_t)action->m_type->m_op)(ctx, stack_item->m_executr, action->m_type->m_ctx, action->m_args);
+                        ((logic_op_fun_t)action->m_type->m_op)(ctx, stack_item, stack_item->m_executr, action->m_type->m_ctx, action->m_args);
                     if (stack_item->m_rv == logic_op_exec_result_redo) {
                         if (ctx->m_require_waiting_count == 0) {
                             CPE_ERROR(
@@ -146,11 +150,13 @@ void logic_stack_exec(struct logic_stack * stack, int32_t stop_stack_pos, logic_
             CPE_ERROR(gd_app_em(ctx->m_mgr->m_app), "stack item have no executor!");
         }
 
+        logic_stack_node_data_clear(stack_item);
+
         --stack->m_item_pos;
 
         while(stack->m_item_pos > stop_stack_pos) {
-            struct logic_stack_item * stack_item = logic_stack_item_at(stack, stack->m_item_pos);
-            struct logic_stack_item * pre_stack_item = logic_stack_item_at(stack, stack->m_item_pos + 1);
+            struct logic_stack_node * stack_item = logic_stack_node_at(stack, stack->m_item_pos);
+            struct logic_stack_node * pre_stack_item = logic_stack_node_at(stack, stack->m_item_pos + 1);
             assert(pre_stack_item->m_rv != logic_op_exec_result_redo);
 
             if (stack_item->m_executr->m_category == logic_executor_category_composite) {
@@ -259,5 +265,28 @@ void logic_stack_exec(struct logic_stack * stack, int32_t stop_stack_pos, logic_
 
             break;
         }
+    }
+}
+
+logic_data_t logic_stack_node_data(logic_stack_node_t stack) {
+    return stack->m_data;
+}
+
+logic_data_t logic_stack_node_data_check_or_create(logic_stack_node_t stack, LPDRMETA meta, size_t capacity) {
+    assert(stack);
+
+    if (stack->m_data && stack->m_data->m_meta == meta) return stack->m_data;
+
+    if (stack->m_data) logic_data_free(stack->m_data);
+
+    stack->m_data = logic_data_get_or_create(stack->m_context, meta, capacity);
+
+    return stack->m_data;
+}
+
+void logic_stack_node_data_clear(logic_stack_node_t stack) {
+    if (stack->m_data) {
+        logic_data_free(stack->m_data);
+        stack->m_data = NULL;
     }
 }

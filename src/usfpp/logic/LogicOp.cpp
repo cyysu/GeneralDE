@@ -9,6 +9,7 @@
 #include "usf/logic/logic_manage.h"
 #include "usf/logic/logic_context.h"
 #include "usfpp/logic/LogicOp.hpp"
+#include "usfpp/logic/LogicOpStack.hpp"
 #include "usfpp/logic/LogicOpTypeGroup.hpp"
 
 namespace Usf { namespace Logic {
@@ -51,10 +52,10 @@ void LogicOp::regist_to(logic_executor_type_group_t group) {
     logic_executor_type_bind(type, logic_op_adapter, this);
 }
 
-logic_op_exec_result_t LogicOp::logic_op_adapter(logic_context_t ctx, logic_executor_t executor, void * user_data, cfg_t cfg) {
+logic_op_exec_result_t LogicOp::logic_op_adapter(logic_context_t ctx, logic_stack_node_t stack_node, logic_executor_t executor, void * user_data, cfg_t cfg) {
     LogicOp * op = (LogicOp*)user_data;
     try {
-        logic_op_exec_result_t rv = (op->*(op->m_exec_fun))(*(LogicOpContext*)ctx, Cpe::Cfg::Node::_cast(cfg));
+        logic_op_exec_result_t rv = (op->*(op->m_exec_fun))(*(LogicOpContext*)ctx, *(LogicOpStackNode*)stack_node, Cpe::Cfg::Node::_cast(cfg));
 
         if (logic_context_flag_is_enable(ctx, logic_context_flag_debug)) {
             APP_CTX_INFO(

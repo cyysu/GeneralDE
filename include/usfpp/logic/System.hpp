@@ -15,6 +15,7 @@ class LogicOpManager;
 class LogicOpExecutor;
 class LogicOpType;
 class LogicOpTypeGroup;
+class LogicOpStackNode;
 
 typedef logic_context_id_t LogicOpContextID;
 

@@ -28,14 +28,16 @@ struct logic_manage {
     struct cpe_hash_table m_require_types;
 };
 
-struct logic_stack_item {
+struct logic_stack_node {
     logic_executor_t m_executr;
+    logic_context_t m_context;
+    logic_data_t m_data;
     logic_op_exec_result_t m_rv;
 };
 
 struct logic_stack {
-    struct logic_stack_item m_inline_items[8];
-    struct logic_stack_item * m_extern_items;
+    struct logic_stack_node m_inline_items[8];
+    struct logic_stack_node * m_extern_items;
     int32_t m_extern_items_capacity;
     int32_t m_item_pos; 
 };
