@@ -10,8 +10,8 @@ class LogicOpStackNode : public Cpe::Utils::SimulateObject {
 public:
     operator logic_stack_node_t () const { return (logic_stack_node_t)this; }
 
-    LogicOpData * tryGetData(void) { return (LogicOpData *)logic_stack_node_data(*this); }
-    LogicOpData const * tryGetData(void) const { return (LogicOpData *)logic_stack_node_data(*this); }
+    LogicOpData * tryGetData(const char * name) { return (LogicOpData *)logic_stack_node_data(*this, name); }
+    LogicOpData const * tryGetData(const char * name) const { return (LogicOpData *)logic_stack_node_data(*this, name); }
 
     LogicOpData & checkCreateData(LPDRMETA meta, size_t capacity = 0);
 };

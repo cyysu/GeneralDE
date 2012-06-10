@@ -272,7 +272,7 @@ logic_executor_t logic_stack_node_executor(logic_stack_node_t stack) {
     return stack->m_executr;
 }
 
-logic_data_t logic_stack_node_data(logic_stack_node_t stack) {
+logic_data_t logic_stack_node_data(logic_stack_node_t stack, const char * name) {
     return stack->m_data;
 }
 
