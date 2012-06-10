@@ -1,13 +1,17 @@
 #include "cpe/cfg/cfg_read.h"
 #include "cpe/utils/buffer.h"
 #include "cpe/utils/stream_buffer.h"
+#include "cpe/dr/dr_metalib_manage.h"
 #include "gd/app/app_log.h"
 #include "gd/app/app_module.h"
 #include "gd/app/app_context.h"
 #include "usf/logic/logic_context.h"
+#include "usf/logic/logic_data.h"
+#include "usf/logic/logic_stack.h"
 #include "usf/logic/logic_executor.h"
 #include "usf/logic/logic_executor_type.h"
 #include "usf/logic_use/logic_op_async.h"
+#include "protocol/logic_op_async_data.h"
 
 struct logic_op_async_ctx {
     mem_allocrator_t m_alloc;
@@ -16,6 +20,8 @@ struct logic_op_async_ctx {
     void * m_user_data;
     logic_op_ctx_fini_fun_t m_fini_fun;
 };
+
+extern char g_metalib_logic_op_async_package[];
 
 logic_op_exec_result_t
 logic_op_asnyc_exec(
@@ -26,7 +32,32 @@ logic_op_asnyc_exec(
     void * user_data,
     cfg_t args)
 {
-    return logic_op_exec_result_true;
+    logic_data_t async_op_data;
+    LPDRMETA meta;
+    LOGIC_OP_ASNYC_STATE * async_op_state;
+
+    meta = dr_lib_find_meta_by_name((LPDRMETALIB)g_metalib_logic_op_async_package, "logic_op_asnyc_state");
+    if (meta == NULL) {
+        APP_CTX_ERROR(
+            logic_context_app(context), "logic_op_asnyc_exec: meta logic_op_asnyc_state not exist!");
+        return logic_op_exec_result_null;
+    }
+
+    async_op_data = logic_stack_node_data_check_or_create(stack_node, meta, 0);
+    if (async_op_data == NULL) {
+        APP_CTX_ERROR(
+            logic_context_app(context), "logic_op_asnyc_exec: create context fail!");
+        return logic_op_exec_result_null;
+    }
+
+    async_op_state = (LOGIC_OP_ASNYC_STATE *)logic_data_data(async_op_data);
+    if (async_op_state->state == 0) {
+        async_op_state->state = 1;
+        return send_fun(context, stack_node, user_data, args);
+    }
+    else {
+        return recv_fun(context, stack_node, user_data, args);
+    }
 }
 
 static logic_op_exec_result_t

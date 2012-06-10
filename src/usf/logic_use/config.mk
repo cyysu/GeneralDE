@@ -9,6 +9,6 @@ $(product).cpe-dr.op_send_pkg_data.generate:=h c
 $(product).cpe-dr.op_send_pkg_data.source:=$(product-base)/logic_op_async_data.xml
 $(product).cpe-dr.op_send_pkg_data.h.output:=protocol
 $(product).cpe-dr.op_send_pkg_data.c.output:=protocol/op_send_pkg_data_package.c
-$(product).cpe-dr.op_send_pkg_data.c.arg-name:=g_metalib_op_send_pkg_data_package
+$(product).cpe-dr.op_send_pkg_data.c.arg-name:=g_metalib_logic_op_async_package
 
 $(eval $(call product-def,$(product),tools))
