@@ -52,8 +52,10 @@ void LogicOp::regist_to(logic_executor_type_group_t group) {
     logic_executor_type_bind(type, logic_op_adapter, this, NULL);
 }
 
-logic_op_exec_result_t LogicOp::logic_op_adapter(logic_context_t ctx, logic_stack_node_t stack_node, logic_executor_t executor, void * user_data, cfg_t cfg) {
+logic_op_exec_result_t LogicOp::logic_op_adapter(logic_context_t ctx, logic_stack_node_t stack_node, void * user_data, cfg_t cfg) {
     LogicOp * op = (LogicOp*)user_data;
+    logic_executor_t executor = logic_stack_node_executor(stack_node);
+
     try {
         logic_op_exec_result_t rv = (op->*(op->m_exec_fun))(*(LogicOpContext*)ctx, *(LogicOpStackNode*)stack_node, Cpe::Cfg::Node::_cast(cfg));
 

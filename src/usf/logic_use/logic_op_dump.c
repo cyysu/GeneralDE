@@ -46,7 +46,7 @@ static void bpg_use_op_dump_part(logic_context_t context, cfg_t root, const char
     }
 }
 
-logic_op_exec_result_t logic_use_op_dump(logic_context_t context, logic_stack_node_t stack_node, logic_executor_t executor, void * user_data, cfg_t args) {
+logic_op_exec_result_t logic_use_op_dump(logic_context_t context, logic_stack_node_t stack_node, void * user_data, cfg_t args) {
     gd_app_context_t app = logic_context_app(context);
     cfg_t dump_data;
     cfg_t parts_cfg;

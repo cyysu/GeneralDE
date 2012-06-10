@@ -40,7 +40,7 @@ public:
 private:
     execute_fun m_exec_fun;
 
-    static logic_op_exec_result_t logic_op_adapter(logic_context_t ctx, logic_stack_node_t stack_node, logic_executor_t executor, void * user_data, cfg_t cfg);
+    static logic_op_exec_result_t logic_op_adapter(logic_context_t ctx, logic_stack_node_t stack_node, void * user_data, cfg_t cfg);
 };
 
 template<typename OutT, typename ContextT>

@@ -129,7 +129,7 @@ void logic_stack_exec(struct logic_stack * stack, int32_t stop_stack_pos, logic_
                 struct logic_executor_action * action = (struct logic_executor_action *)stack_item->m_executr;
                 if (action->m_type->m_op) {
                     stack_item->m_rv =
-                        ((logic_op_fun_t)action->m_type->m_op)(ctx, stack_item, stack_item->m_executr, action->m_type->m_ctx, action->m_args);
+                        ((logic_op_fun_t)action->m_type->m_op)(ctx, stack_item, action->m_type->m_ctx, action->m_args);
                     if (stack_item->m_rv == logic_op_exec_result_redo) {
                         if (ctx->m_require_waiting_count == 0) {
                             CPE_ERROR(
@@ -266,6 +266,10 @@ void logic_stack_exec(struct logic_stack * stack, int32_t stop_stack_pos, logic_
             break;
         }
     }
+}
+
+logic_executor_t logic_stack_node_executor(logic_stack_node_t stack) {
+    return stack->m_executr;
 }
 
 logic_data_t logic_stack_node_data(logic_stack_node_t stack) {

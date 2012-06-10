@@ -22,7 +22,7 @@ static void ctx_free(void * ctx) {
     delete (LogicTest::LogicOpMock*)ctx;
 }
 
-static logic_op_exec_result_t execute_fun (logic_context_t ctx, logic_stack_node_t stack_node, logic_executor_t executor, void * user_data, cfg_t cfg) {
+static logic_op_exec_result_t execute_fun (logic_context_t ctx, logic_stack_node_t stack_node, void * user_data, cfg_t cfg) {
     LogicTest::LogicOpMock * op = (LogicTest::LogicOpMock *)user_data;
     return op->execute(ctx);
 }
