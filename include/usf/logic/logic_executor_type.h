@@ -37,7 +37,8 @@ logic_executor_type_t
 logic_executor_type_create(logic_executor_type_group_t group, const char * name);
 void logic_executor_type_free(logic_executor_type_t t);
 
-int logic_executor_type_bind(logic_executor_type_t type, logic_op_fun_t fun, void * ctx);
+int logic_executor_type_bind(
+    logic_executor_type_t type, logic_op_fun_t fun, void * ctx, logic_op_ctx_fini_fun_t ctx_fini);
 
 const char * logic_executor_type_name(logic_executor_type_t type);
 void * logic_executor_type_ctx(logic_executor_type_t type);
@@ -52,6 +53,7 @@ logic_executor_type_create_global(
     gd_app_context_t app, const char * group_name, const char * name,
     logic_op_fun_t op_fun,
     void * op_ctx,
+    logic_op_ctx_fini_fun_t ctx_fini,
     error_monitor_t em);
 
 #ifdef __cplusplus

@@ -98,6 +98,7 @@ int logic_use_op_dump_app_init(gd_app_context_t app, gd_app_module_t module, cfg
         gd_app_module_name(module),
         logic_use_op_dump,
         NULL,
+        NULL,
         gd_app_em(app));
 
     return type ? 0 : -1;

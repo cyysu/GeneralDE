@@ -25,7 +25,7 @@ logic_executor_type_create(logic_executor_type_group_t group, const char * name)
     type->m_group = group;
     type->m_name = (char *)buf;
     type->m_op = NULL;
-    type->m_ctx = NULL;
+    type->m_ctx_fini = NULL;
 
     cpe_hash_entry_init(&type->m_hh);
     if (cpe_hash_table_insert_unique(&group->m_types, type) != 0) {
@@ -38,6 +38,7 @@ logic_executor_type_create(logic_executor_type_group_t group, const char * name)
 
 void logic_executor_type_free(logic_executor_type_t t) {
     cpe_hash_table_remove_by_ins(&t->m_group->m_types, t);
+    if (t->m_ctx_fini) t->m_ctx_fini(t->m_ctx);
     mem_free(t->m_group->m_alloc, (void*)t->m_name);
 }
 
@@ -74,11 +75,14 @@ void * logic_executor_type_ctx(logic_executor_type_t type) {
     return type->m_ctx;
 }
 
-int logic_executor_type_bind(logic_executor_type_t type, logic_op_fun_t fun, void * ctx) {
+int logic_executor_type_bind(logic_executor_type_t type, logic_op_fun_t fun, void * ctx, logic_op_ctx_fini_fun_t ctx_fini) {
     assert(type);
+
+    if (type->m_ctx_fini) type->m_ctx_fini(type->m_ctx);
 
     type->m_op = fun;
     type->m_ctx = ctx;
+    type->m_ctx_fini = ctx_fini;
 
     return 0;
 }
@@ -98,6 +102,7 @@ logic_executor_type_create_global(
     const char * name,
     logic_op_fun_t op_fun,
     void * op_ctx,
+    logic_op_ctx_fini_fun_t ctx_fini,
     error_monitor_t em)
 {
     logic_executor_type_group_t type_group;
@@ -125,7 +130,7 @@ logic_executor_type_create_global(
         return NULL;
     }
 
-    if (logic_executor_type_bind(type, op_fun, op_ctx) != 0) {
+    if (logic_executor_type_bind(type, op_fun, op_ctx, ctx_fini) != 0) {
         CPE_ERROR(
             em, "logic_executor_type_create_in_group: bind for %s in group %s fail!",
             name, group_name ? group_name : "default");

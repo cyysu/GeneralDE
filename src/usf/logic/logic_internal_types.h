@@ -140,6 +140,7 @@ struct logic_executor_type {
     char * m_name;
     void * m_op;
     void * m_ctx;
+    logic_op_ctx_fini_fun_t m_ctx_fini;
 
     struct cpe_hash_entry m_hh;
 };

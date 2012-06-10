@@ -49,7 +49,7 @@ void LogicOp::regist_to(logic_executor_type_group_t group) {
             name(), logic_executor_type_group_name(group));
     }
 
-    logic_executor_type_bind(type, logic_op_adapter, this);
+    logic_executor_type_bind(type, logic_op_adapter, this, NULL);
 }
 
 logic_op_exec_result_t LogicOp::logic_op_adapter(logic_context_t ctx, logic_stack_node_t stack_node, logic_executor_t executor, void * user_data, cfg_t cfg) {

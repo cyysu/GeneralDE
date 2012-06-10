@@ -13,14 +13,13 @@ void LogicTest::TearDown() {
     logic_executor_type_it it;
     logic_executor_type_group_types(&it, t_logic_executor_type_group(NULL));
 
-    while(logic_executor_type_t type = logic_executor_type_next(&it)) {
-        delete (LogicTest::LogicOpMock*)logic_executor_type_ctx(type);
-        logic_executor_type_bind(type, NULL, NULL);
-    }
-
     testing::DefaultValue<logic_op_exec_result>::Clear();
 
     Base::TearDown();
+}
+
+static void ctx_free(void * ctx) {
+    delete (LogicTest::LogicOpMock*)ctx;
 }
 
 static logic_op_exec_result_t execute_fun (logic_context_t ctx, logic_stack_node_t stack_node, logic_executor_t executor, void * user_data, cfg_t cfg) {
@@ -44,7 +43,7 @@ LogicTest::installOp(const char * name) {
         throw ::std::runtime_error("logic op not exist!");
     }
 
-    EXPECT_EQ(0, logic_executor_type_bind(type, execute_fun, new LogicOpMock));
+    EXPECT_EQ(0, logic_executor_type_bind(type, execute_fun, new LogicOpMock, ctx_free));
 
     return *(LogicTest::LogicOpMock*)logic_executor_type_ctx(type);
 }

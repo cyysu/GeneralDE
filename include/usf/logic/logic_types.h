@@ -82,6 +82,7 @@ typedef enum logic_op_exec_result {
 } logic_op_exec_result_t;
 
 typedef logic_op_exec_result_t (*logic_op_fun_t) (logic_context_t ctx, logic_stack_node_t stack_noe, logic_executor_t executor, void * user_data, cfg_t cfg);
+typedef void (*logic_op_ctx_fini_fun_t)(void*);
 
 typedef logic_executor_t (*logic_executor_create_fun_t) (
     logic_manage_t mgr, const char * name, void * ctx,
