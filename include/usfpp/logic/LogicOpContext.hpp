@@ -51,8 +51,8 @@ public:
     LogicOpData & data(const char * name);
     LogicOpData const & data(const char * name) const;
 
-    LogicOpData * findData(const char * name) { return (LogicOpData *)logic_data_find(*this, name); }
-    LogicOpData const * findData(const char * name) const { return (LogicOpData *)logic_data_find(*this, name); }
+    LogicOpData * findData(const char * name) { return (LogicOpData *)logic_context_data_find(*this, name); }
+    LogicOpData const * findData(const char * name) const { return (LogicOpData *)logic_context_data_find(*this, name); }
     LogicOpData & checkCreateData(LPDRMETA meta, size_t capacity = 0);
 
     template<typename T>

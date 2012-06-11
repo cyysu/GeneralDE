@@ -61,8 +61,9 @@ REINTER:
     assert(stack_item);
     stack_item->m_executr = executor;
     stack_item->m_context = context;
-    stack_item->m_data = NULL;
     stack_item->m_rv = logic_op_exec_result_null;
+
+    TAILQ_INIT(&stack_item->m_datas);
 
     if (executor == NULL) {
         --stack->m_item_pos;
@@ -272,25 +273,12 @@ logic_executor_t logic_stack_node_executor(logic_stack_node_t stack) {
     return stack->m_executr;
 }
 
-logic_data_t logic_stack_node_data(logic_stack_node_t stack, const char * name) {
-    return stack->m_data;
-}
-
-logic_data_t logic_stack_node_data_check_or_create(logic_stack_node_t stack, LPDRMETA meta, size_t capacity) {
-    assert(stack);
-
-    if (stack->m_data && stack->m_data->m_meta == meta) return stack->m_data;
-
-    if (stack->m_data) logic_data_free(stack->m_data);
-
-    stack->m_data = logic_data_get_or_create(stack->m_context, meta, capacity);
-
-    return stack->m_data;
+logic_context_t logic_stack_node_context(logic_stack_node_t stack) {
+    return stack->m_context;
 }
 
 void logic_stack_node_data_clear(logic_stack_node_t stack) {
-    if (stack->m_data) {
-        logic_data_free(stack->m_data);
-        stack->m_data = NULL;
+    while(!TAILQ_EMPTY(&stack->m_datas)) {
+        logic_data_free(TAILQ_FIRST(&stack->m_datas));
     }
 }

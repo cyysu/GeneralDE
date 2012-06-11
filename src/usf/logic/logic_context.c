@@ -257,3 +257,4 @@ void logic_context_do_state_change(logic_context_t context, logic_context_state_
         }
     }
 }
+

@@ -83,7 +83,7 @@ void with_logic::t_logic_context_install_data(logic_context_t context, cfg_t cfg
         EXPECT_TRUE(meta) << "t_logic_context_install_data: meta " << cfg_name(child) << " not exist!";
         if (meta == 0) continue;
 
-        data = logic_data_get_or_create(context, meta, dr_meta_size(meta) + 1024);
+        data = logic_context_data_get_or_create(context, meta, dr_meta_size(meta) + 1024);
         EXPECT_TRUE(meta)
             << "t_logic_context_install_data: meta "
             << cfg_name(child) << ": data create fail, capacity is"

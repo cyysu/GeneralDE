@@ -7,8 +7,7 @@ extern "C" {
 #endif
 
 logic_executor_t logic_stack_node_executor(logic_stack_node_t stack);
-logic_data_t logic_stack_node_data(logic_stack_node_t stack, const char * name);
-logic_data_t logic_stack_node_data_check_or_create(logic_stack_node_t stack, LPDRMETA meta, size_t capacity);
+logic_context_t logic_stack_node_context(logic_stack_node_t stack);
 void logic_stack_node_data_clear(logic_stack_node_t stack);
 
 #ifdef __cplusplus

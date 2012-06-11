@@ -31,7 +31,7 @@ struct logic_manage {
 struct logic_stack_node {
     logic_executor_t m_executr;
     logic_context_t m_context;
-    logic_data_t m_data;
+    logic_data_list_t m_datas;
     logic_op_exec_result_t m_rv;
 };
 
@@ -63,11 +63,13 @@ struct logic_context {
 };
 
 struct logic_require {
-    logic_context_t m_ctx;
+    logic_context_t m_context;
     logic_require_id_t m_id;
     logic_require_state_t m_state;
     logic_require_type_t m_type;
     size_t m_capacity;
+
+    logic_data_list_t m_datas;
 
     TAILQ_ENTRY(logic_require) m_next;
     struct cpe_hash_entry m_hh;
@@ -86,8 +88,21 @@ struct logic_require_type {
     struct cpe_hash_entry m_hh;
 };
 
+enum logic_data_owner_type {
+    logic_data_owner_context
+    , logic_data_owner_stack
+    , logic_data_owner_require
+};
+
+union logic_data_owner_data {
+    logic_context_t m_context;
+    logic_require_t m_require;
+    logic_stack_node_t m_stack;
+};
+
 struct logic_data {
-    logic_context_t m_ctx;    
+    enum logic_data_owner_type m_owner_type;
+    union logic_data_owner_data m_owner_data;
     const char * m_name;
     LPDRMETA m_meta;
     size_t m_capacity;

@@ -34,7 +34,7 @@ LogicOpData const & LogicOpContext::data(const char * name) const {
 
 LogicOpData &
 LogicOpContext::checkCreateData(LPDRMETA meta, size_t capacity) {
-    logic_data_t data = logic_data_get_or_create(*this, meta, capacity);
+    logic_data_t data = logic_context_data_get_or_create(*this, meta, capacity);
     if (data == 0) {
         APP_CTX_THROW_EXCEPTION(
             app(),
