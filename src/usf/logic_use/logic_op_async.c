@@ -1,3 +1,4 @@
+#include <assert.h>
 #include "cpe/cfg/cfg_read.h"
 #include "cpe/utils/buffer.h"
 #include "cpe/utils/stream_buffer.h"
@@ -8,15 +9,15 @@
 #include "usf/logic/logic_context.h"
 #include "usf/logic/logic_data.h"
 #include "usf/logic/logic_stack.h"
+#include "usf/logic/logic_require.h"
 #include "usf/logic/logic_executor.h"
 #include "usf/logic/logic_executor_type.h"
 #include "usf/logic_use/logic_op_async.h"
-#include "protocol/logic_op_async_data.h"
 
 struct logic_op_async_ctx {
     mem_allocrator_t m_alloc;
     logic_op_fun_t m_send_fun;
-    logic_op_fun_t m_recv_fun;
+    logic_op_recv_fun_t m_recv_fun;
     void * m_user_data;
     logic_op_ctx_fini_fun_t m_fini_fun;
 };
@@ -28,36 +29,65 @@ logic_op_asnyc_exec(
     logic_context_t context,
     logic_stack_node_t stack_node,
     logic_op_fun_t send_fun,
-    logic_op_fun_t recv_fun,
+    logic_op_recv_fun_t recv_fun,
     void * user_data,
     cfg_t args)
 {
-    logic_data_t async_op_data;
-    LPDRMETA meta;
-    LOGIC_OP_ASNYC_STATE * async_op_state;
+    struct logic_require_it require_it;
+    logic_require_t require;
     logic_executor_t executor;
+    logic_op_exec_result_t rv;
 
-    meta = dr_lib_find_meta_by_name((LPDRMETALIB)g_metalib_logic_op_async_package, "logic_op_asnyc_state");
-    if (meta == NULL) {
-        APP_CTX_ERROR(
-            logic_context_app(context), "logic_op_asnyc_exec: meta logic_op_asnyc_state not exist!");
-        return logic_op_exec_result_null;
-    }
+    assert(stack_node);
 
-    async_op_data = logic_stack_data_get_or_create(stack_node, meta, 0);
-    if (async_op_data == NULL) {
-        APP_CTX_ERROR(
-            logic_context_app(context), "logic_op_asnyc_exec: create context fail!");
-        return logic_op_exec_result_null;
-    }
+    executor = logic_stack_node_executor(stack_node);
+    assert(executor);
 
-    async_op_state = (LOGIC_OP_ASNYC_STATE *)logic_data_data(async_op_data);
-    if (async_op_state->state == 0) {
-        async_op_state->state = 1;
-        return send_fun(context, stack_node, user_data, args);
+    logic_stack_node_requires(stack_node, &require_it);
+
+    require = logic_require_next(&require_it);
+    if (require == NULL) {
+        rv = send_fun(context, stack_node, user_data, args);
+
+        if (rv == logic_op_exec_result_null) {
+            logic_stack_node_requires(stack_node, &require_it);
+
+            require = logic_require_next(&require_it);
+            if (require == NULL) {
+                require = logic_require_create(stack_node, logic_executor_name(executor));
+                if (require == NULL) {
+                    APP_CTX_ERROR(
+                        logic_context_app(context),
+                        "logic_op_asnyc_exec: %s: auto create require fail!",
+                        logic_executor_name(executor));
+                    return logic_op_exec_result_null;
+                }
+            }
+        }
+
+        return rv;
     }
     else {
-        return recv_fun(context, stack_node, user_data, args);
+        for(; require; require = logic_require_next(&require_it)) {
+            if (logic_require_stack(require) == NULL) continue;
+
+            rv = recv_fun(context, stack_node, require, user_data, args);
+            logic_require_disconnect_to_stack(require);
+
+            if (rv == logic_op_exec_result_true) continue;
+
+            if (rv == logic_op_exec_result_redo) {
+                APP_CTX_ERROR(
+                    logic_context_app(context),
+                    "logic_op_asnyc_exec: %s: exec recv return redo!",
+                    logic_executor_name(executor));
+                return logic_op_exec_result_null;
+            }
+
+            return rv;
+        }
+
+        return logic_op_exec_result_true;
     }
 }
 
@@ -79,7 +109,7 @@ logic_op_async_type_create(
     const char * group_name,
     const char * name,
     logic_op_fun_t send_fun,
-    logic_op_fun_t recv_fun,
+    logic_op_recv_fun_t recv_fun,
     void * user_data,
     logic_op_ctx_fini_fun_t fini_fun,
     error_monitor_t em)

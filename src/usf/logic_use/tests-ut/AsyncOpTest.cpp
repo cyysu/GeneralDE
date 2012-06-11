@@ -9,7 +9,7 @@ logic_op_send_adp(logic_context_t ctx, logic_stack_node_t stack_noe, void * user
 }
 
 static logic_op_exec_result_t
-logic_op_recv_adp(logic_context_t ctx, logic_stack_node_t stack_noe, void * user_data, cfg_t cfg) {
+logic_op_recv_adp(logic_context_t ctx, logic_stack_node_t stack_noe, logic_require_t require, void * user_data, cfg_t cfg) {
     AsyncOpTest * test = (AsyncOpTest*)user_data;
     return test->m_opMock.recv(ctx);
 }

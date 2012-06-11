@@ -10,8 +10,8 @@
 
 namespace Usf { namespace Logic {
 
-LogicAsyncOp::LogicAsyncOp(execute_fun send_fun, execute_fun recv_fun)
-    : Logic::LogicOp((execute_fun)&LogicAsyncOp::execute)
+LogicAsyncOp::LogicAsyncOp(execute_fun_t send_fun, recv_fun_t recv_fun)
+    : Logic::LogicOp((execute_fun_t)&LogicAsyncOp::execute)
     , m_send_fun(send_fun)
     , m_recv_fun(recv_fun)
 {
@@ -35,11 +35,21 @@ logic_op_exec_result_t LogicAsyncOp::send_op_adapter(logic_context_t ctx, logic_
     return logic_op_exec_result_null;
 }
 
-logic_op_exec_result_t LogicAsyncOp::recv_op_adapter(logic_context_t ctx, logic_stack_node_t stack_node, void * user_data, cfg_t cfg) {
+logic_op_exec_result_t
+LogicAsyncOp::recv_op_adapter(
+    logic_context_t ctx,
+    logic_stack_node_t stack_node,
+    logic_require_t require,
+    void * user_data, cfg_t cfg)
+{
     LogicAsyncOp * op = (LogicAsyncOp*)user_data;
     logic_executor_t executor = logic_stack_node_executor(stack_node);
     try {
-        logic_op_exec_result_t rv = (op->*(op->m_recv_fun))(*(Logic::LogicOpContext*)ctx, *(Logic::LogicOpStackNode*)stack_node, Cpe::Cfg::Node::_cast(cfg));
+        logic_op_exec_result_t rv = (op->*(op->m_recv_fun))(
+            *(Logic::LogicOpContext*)ctx,
+            *(Logic::LogicOpStackNode*)stack_node,
+            *(Logic::LogicOpRequire*)require,
+            Cpe::Cfg::Node::_cast(cfg));
 
         if (logic_context_flag_is_enable(ctx, logic_context_flag_debug)) {
             APP_CTX_INFO(

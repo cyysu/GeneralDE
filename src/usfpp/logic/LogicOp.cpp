@@ -14,7 +14,7 @@
 
 namespace Usf { namespace Logic {
 
-LogicOp::LogicOp(execute_fun fun) : m_exec_fun(fun) {
+LogicOp::LogicOp(execute_fun_t fun) : m_exec_fun(fun) {
 }
 
 LogicOp &

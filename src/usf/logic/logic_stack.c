@@ -294,3 +294,34 @@ void logic_stack_require_clear(logic_stack_node_t stack) {
     }
 }
 
+struct logic_stack_require_next_data {
+    logic_require_t m_next;
+    logic_stack_node_t m_stack;
+};
+
+static logic_require_t logic_stack_require_next(struct logic_require_it * it) {
+    struct logic_stack_require_next_data * data;
+    logic_require_t r;
+
+    assert(sizeof(struct logic_stack_require_next_data) <= sizeof(it->m_data));
+
+    data = (struct logic_stack_require_next_data *)it->m_data;
+
+    if (data->m_next == NULL) return NULL;
+
+    r = data->m_next;
+    data->m_next = TAILQ_NEXT(data->m_next, m_next_for_stack);
+    return r;
+}
+
+void logic_stack_node_requires(logic_stack_node_t stack, logic_require_it_t it) {
+    struct logic_stack_require_next_data * data;
+    
+    assert(sizeof(struct logic_stack_require_next_data) <= sizeof(it->m_data));
+
+    data = (struct logic_stack_require_next_data *)it->m_data;
+
+    data->m_stack = stack;
+    data->m_next = TAILQ_FIRST(&stack->m_requires);
+    it->next = logic_stack_require_next;
+}

@@ -95,6 +95,11 @@ typedef struct logic_executor_type_it {
     char m_data[16];
 } * logic_executor_type_it_t;
 
+typedef struct logic_require_it {
+    logic_require_t (*next)(struct logic_require_it * it);
+    char m_data[16];
+} * logic_require_it_t;
+
 #ifdef __cplusplus
 }
 #endif

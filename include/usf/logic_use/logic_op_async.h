@@ -11,7 +11,7 @@ logic_op_asnyc_exec(
     logic_context_t context,
     logic_stack_node_t stack_node,
     logic_op_fun_t send_fun,
-    logic_op_fun_t recv_fun,
+    logic_op_recv_fun_t recv_fun,
     void * user_data,
     cfg_t args);
 
@@ -21,7 +21,7 @@ logic_op_async_type_create(
     const char * group_name,
     const char * type_name,
     logic_op_fun_t send_fun,
-    logic_op_fun_t recv_fun,
+    logic_op_recv_fun_t recv_fun,
     void * user_ctx,
     logic_op_ctx_fini_fun_t fini_fun,
     error_monitor_t em);

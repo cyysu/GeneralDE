@@ -30,6 +30,10 @@ void logic_require_set_done(logic_require_t require);
 void logic_require_set_error(logic_require_t require);
 void logic_require_cancel(logic_require_t require);
 
+void logic_require_data_dump_to_cfg(logic_require_t require, cfg_t cfg);
+
+#define logic_require_next(it) ((it)->next ? (it)->next(it) : NULL)
+
 #ifdef __cplusplus
 }
 #endif

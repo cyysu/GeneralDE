@@ -19,9 +19,9 @@ public:
         logic_op_exec_result_t m_result;
     };
 
-    typedef R (LogicOp::*execute_fun)(LogicOpContext & context, LogicOpStackNode & stackNode, Cpe::Cfg::Node const & cfg) const;
+    typedef R (LogicOp::*execute_fun_t)(LogicOpContext & context, LogicOpStackNode & stackNode, Cpe::Cfg::Node const & cfg) const;
 
-    LogicOp(execute_fun fun);
+    LogicOp(execute_fun_t fun);
 
     void regist_to(logic_executor_type_group_t group);
 
@@ -38,7 +38,7 @@ public:
     static R _redo(void) { return logic_op_exec_result_redo; }
 
 private:
-    execute_fun m_exec_fun;
+    execute_fun_t m_exec_fun;
 
     static logic_op_exec_result_t logic_op_adapter(logic_context_t ctx, logic_stack_node_t stack_node, void * user_data, cfg_t cfg);
 };
@@ -46,7 +46,7 @@ private:
 template<typename OutT, typename ContextT>
 class LogicOpDef : public LogicOp {
 public:
-    LogicOpDef() : LogicOp((execute_fun)&LogicOpDef::execute) {}
+    LogicOpDef() : LogicOp((execute_fun_t)&LogicOpDef::execute) {}
 
     virtual R execute(
         ContextT & context,
