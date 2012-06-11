@@ -27,6 +27,10 @@ mem_allocrator_t gd_app_alloc(gd_app_context_t context) {
     return context->m_alloc;
 }
 
+void gd_app_set_alloc(gd_app_context_t context, mem_allocrator_t alloc) {
+    context->m_alloc = alloc;
+}
+
 cfg_t gd_app_cfg(gd_app_context_t context) {
     return context->m_cfg;
 }
