@@ -35,6 +35,9 @@ logic_op_asnyc_exec(
     logic_data_t async_op_data;
     LPDRMETA meta;
     LOGIC_OP_ASNYC_STATE * async_op_state;
+    logic_executor_t executor;
+
+    executor = 
 
     meta = dr_lib_find_meta_by_name((LPDRMETALIB)g_metalib_logic_op_async_package, "logic_op_asnyc_state");
     if (meta == NULL) {

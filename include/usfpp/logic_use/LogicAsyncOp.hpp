@@ -23,6 +23,12 @@ private:
 template<typename OutT, typename ContextT>
 class LogicAsyncOpDef : public LogicAsyncOp {
 public:
+    LogicAsyncOpDef()
+        : LogicAsyncOp(
+            (execute_fun)&LogicAsyncOpDef::send,
+            (execute_fun)&LogicAsyncOpDef::recv)
+    {}
+
     virtual R send(
         ContextT & context,
         Logic::LogicOpStackNode & stackNode,

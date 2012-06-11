@@ -41,7 +41,7 @@ void bpg_rsp_commit(logic_context_t op_context, void * user_data) {
         return;
     }
 
-    bpg_private_data = logic_data_find(op_context, "bpg_carry_info");
+    bpg_private_data = logic_context_data_find(op_context, "bpg_carry_info");
     if (bpg_private_data == NULL) {
         CPE_ERROR(
             em, "%s.%s: bpg_rsp_commit: no bpg_carry_info in context!",
@@ -63,7 +63,7 @@ void bpg_rsp_commit(logic_context_t op_context, void * user_data) {
 
     bpg_carry_data = NULL;
     if (bpg_private->carry_meta_name[0] != 0) {
-        bpg_carry_data = logic_data_find(op_context, bpg_private->carry_meta_name);
+        bpg_carry_data = logic_context_data_find(op_context, bpg_private->carry_meta_name);
         if (bpg_carry_data == NULL) {
             CPE_ERROR(
                 em, "%s.%s: bpg_rsp_commit: no carry data %s in context!",
@@ -137,7 +137,7 @@ static int bpg_rsp_commit_build_pkg_append_info_from_ctx(
     logic_data_t data;
     size_t size;
 
-    data = logic_data_find(op_context, dr_meta_name(data_meta));
+    data = logic_context_data_find(op_context, dr_meta_name(data_meta));
     if (data == NULL) return -1;
 
     if (bpg_pkg_add_append_data(
@@ -283,7 +283,7 @@ static int bpg_rsp_commit_build_pkg_main_info(bpg_rsp_t rsp, logic_context_t op_
     meta = bpg_pkg_main_data_meta(pkg, NULL);
     if (meta == NULL) return 0;
 
-    data = logic_data_find(op_context, dr_meta_name(meta));
+    data = logic_context_data_find(op_context, dr_meta_name(meta));
     if (data == NULL) {
         CPE_ERROR(
             em, "%s.%s: copy_ctx_to_pdu: main: can`t find %s from ctx!",

@@ -8,7 +8,7 @@
 
 int16_t bpg_rsp_addition_data_count(logic_context_t ctx) {
     logic_data_t data;
-    data = logic_data_find(ctx, "bpg_rsp_addition_data");
+    data = logic_context_data_find(ctx, "bpg_rsp_addition_data");
 
     return data == NULL
         ? 0
@@ -19,7 +19,7 @@ uint32_t bpg_rsp_addition_data_at(logic_context_t ctx, int16_t pos) {
     logic_data_t data;
     BPG_RSP_ADDITION_DATA * addition_data;
 
-    data = logic_data_find(ctx, "bpg_rsp_addition_data");
+    data = logic_context_data_find(ctx, "bpg_rsp_addition_data");
 
     addition_data = data == NULL
         ? NULL
@@ -42,7 +42,7 @@ bpg_rsp_addition_data_create(logic_context_t ctx, size_t capacity) {
     meta = dr_lib_find_meta_by_name((LPDRMETALIB)g_metalib_carry_package, "bpg_rsp_addition_data");
     if (meta == NULL) return NULL;
 
-    data = logic_data_get_or_create(ctx, meta, sizeof(BPG_RSP_ADDITION_DATA) + (capacity - 1) * sizeof(uint32_t));
+    data = logic_context_data_get_or_create(ctx, meta, sizeof(BPG_RSP_ADDITION_DATA) + (capacity - 1) * sizeof(uint32_t));
 
     addition_data = data == NULL
         ? NULL
@@ -57,7 +57,7 @@ int bpg_rsp_addition_data_add(logic_context_t ctx, uint32_t meta_id) {
     BPG_RSP_ADDITION_DATA * addition_data;
     int i;
 
-    data = logic_data_find(ctx, "bpg_rsp_addition_data");
+    data = logic_context_data_find(ctx, "bpg_rsp_addition_data");
 
     addition_data = data == NULL
         ? NULL
@@ -84,7 +84,7 @@ int bpg_rsp_addition_data_add(logic_context_t ctx, uint32_t meta_id) {
             memmove(
                 addition_data->pieces + i + 1,
                 addition_data->pieces + i,
-                sizeof(addition_data->pieces[0]) * addition_data->count - i);
+                sizeof(addition_data->pieces[0]) * (addition_data->count - i));
 
             addition_data->pieces[i] = meta_id;
 
@@ -116,7 +116,7 @@ int bpg_rsp_addition_data_exist(logic_context_t ctx, uint32_t meta_id) {
     logic_data_t data;
     BPG_RSP_ADDITION_DATA * addition_data;
 
-    data = logic_data_find(ctx, "bpg_rsp_addition_data");
+    data = logic_context_data_find(ctx, "bpg_rsp_addition_data");
 
     addition_data = data == NULL
         ? NULL

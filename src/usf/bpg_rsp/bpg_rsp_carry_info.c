@@ -6,7 +6,7 @@
 
 bpg_rsp_carry_info_t bpg_rsp_carry_info_find(logic_context_t ctx) {
     logic_data_t data;
-    data = logic_data_find(ctx, "bpg_carry_info");
+    data = logic_context_data_find(ctx, "bpg_carry_info");
 
     return data == NULL
         ? NULL

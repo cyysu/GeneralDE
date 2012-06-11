@@ -97,7 +97,7 @@ static int bpg_rsp_copy_main_to_ctx(bpg_rsp_t rsp, logic_context_t op_context, b
         return 0;
     }
 
-    data = logic_data_get_or_create(op_context, data_meta, bpg_pkg_body_origin_len(req));
+    data = logic_context_data_get_or_create(op_context, data_meta, bpg_pkg_body_origin_len(req));
     if (data == NULL) {
         CPE_ERROR(
             em, "%s.%s: bpg_rsp_execute: copy_pkg_to_ctx: %s create data fail, capacity=%d!",
@@ -153,7 +153,7 @@ static int bpg_rsp_copy_append_to_ctx(bpg_rsp_t rsp, logic_context_t op_context,
             return -1;
         }
 
-        data = logic_data_get_or_create(op_context, data_meta, bpg_pkg_append_info_origin_size(append_info));
+        data = logic_context_data_get_or_create(op_context, data_meta, bpg_pkg_append_info_origin_size(append_info));
         if (data == NULL) {
             CPE_ERROR(
                 em, "%s.%s: bpg_rsp_execute: copy_pkg_to_ctx: append %d: %s create data fail, capacity=%d!",
@@ -196,7 +196,7 @@ int bpg_rsp_copy_req_carry_data_to_ctx(bpg_rsp_manage_t mgr, logic_context_t op_
     carry_meta = bpg_pkg_carry_data_meta(bpg_req);
     if (carry_meta == NULL) return 0;
 
-    data = logic_data_get_or_create(op_context, carry_meta, bpg_pkg_carry_data_size(bpg_req));
+    data = logic_context_data_get_or_create(op_context, carry_meta, bpg_pkg_carry_data_size(bpg_req));
     if (data == NULL) {
         CPE_ERROR(
             em, "%s: copy_req_carry_data: %s create data fail, size=%d!",
@@ -227,7 +227,7 @@ int bpg_rsp_copy_bpg_carry_data_to_ctx(bpg_rsp_manage_t mgr, logic_context_t op_
     }
 
 
-    data = logic_data_get_or_create(op_context, bpg_carry_data_meta, dr_meta_size(bpg_carry_data_meta));
+    data = logic_context_data_get_or_create(op_context, bpg_carry_data_meta, dr_meta_size(bpg_carry_data_meta));
     if (data == NULL) {
         CPE_ERROR(
             em, "%s: copy_bpg_carry_data: %s create data fail, size=%d!",
