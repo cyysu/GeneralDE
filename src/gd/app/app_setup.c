@@ -1,10 +1,16 @@
-#include "assert.h"
+#include <assert.h>
+#include "cpe/pal/pal_stdio.h"
 #include "cpe/pal/pal_external.h"
+#include "cpe/utils/memory_debug.h"
+#include "cpe/utils/stream_file.h"
 #include "cpe/net/net_manage.h"
+#include "cpe/nm/nm_manage.h"
+#include "cpe/nm/nm_read.h"
 #include "cpe/tl/tl_manage.h"
 #include "cpe/cfg/cfg_read.h"
 #include "gd/app/app_context.h"
 #include "gd/app/app_log.h"
+#include "gd/app/app_module.h"
 #include "gd/app/app_tl.h"
 #include "app_internal_ops.h"
 
@@ -131,18 +137,81 @@ static int app_setup_build_tls(gd_app_context_t app, cfg_t cfg) {
     return 0;
 }
 
+struct app_setup_info {
+    gd_app_context_t m_app;
+    mem_allocrator_t m_debug_alloc;
+};
+
+static void app_setup_info_clear(nm_node_t node);
+
+struct nm_node_type s_nm_node_type_app_setup_info = {
+    "app_setup_info",
+    app_setup_info_clear
+};
+
+static
+struct app_setup_info *
+app_setup_info_create(gd_app_context_t app, const char * name) {
+    struct app_setup_info * setup_info;
+    nm_node_t setup_info_node;
+
+    setup_info_node = nm_instance_create(gd_app_nm_mgr(app), name, sizeof(struct app_setup_info));
+    if (setup_info_node == NULL) return NULL;
+
+    setup_info = (struct app_setup_info *)nm_node_data(setup_info_node);
+    setup_info->m_app = app;
+    setup_info->m_debug_alloc = NULL;
+
+    nm_node_set_type(setup_info_node, &s_nm_node_type_app_setup_info);
+    return setup_info;
+}
+
+static void app_setup_info_clear(nm_node_t node) {
+    struct app_setup_info * setup_info;
+    setup_info = (struct app_setup_info *)nm_node_data(node);
+
+    if (setup_info->m_debug_alloc) {
+        struct write_stream_file stream = CPE_WRITE_STREAM_FILE_INITIALIZER(stderr, NULL);
+
+        mem_allocrator_debug_dump((write_stream_t)&stream, 4, NULL);
+        mem_allocrator_debug_free(setup_info->m_debug_alloc);
+        setup_info->m_debug_alloc = NULL;
+    }
+}
+
 EXPORT_DIRECTIVE
 int app_setup_app_init(gd_app_context_t app, gd_app_module_t module, cfg_t cfg) {
+    struct app_setup_info * setup_info;
+
     gd_app_set_debug(app, cfg_get_int16(cfg, "debug-app", 0));
     net_mgr_set_debug(gd_app_net_mgr(app), cfg_get_int16(cfg, "debug-net", 0));
 
     if (app_setup_build_tls(app, cfg_find_cfg(cfg, "tl")) != 0) return -1;
     if (app_setup_build_tickers(app, cfg_find_cfg(cfg, "tickers")) != 0) return -1;
 
+    setup_info = app_setup_info_create(app, gd_app_module_name(module));
+    if (setup_info == NULL) return -1;
+
+    if (cfg_get_int16(cfg, "debug-mem", 0)) {
+        setup_info->m_debug_alloc = 
+            mem_allocrator_debug_create(
+                NULL,
+                NULL,
+                20,
+                gd_app_em(app));
+        gd_app_set_alloc(app, setup_info->m_debug_alloc);
+    }
+
     return 0;
 }
 
 EXPORT_DIRECTIVE
 void app_setup_app_fini(gd_app_context_t app, gd_app_module_t module) {
+    nm_node_t setup_info_node;
+
+    setup_info_node = nm_mgr_find_node_nc(gd_app_nm_mgr(app), gd_app_module_name(module));
+    if (setup_info_node) {
+        nm_node_free(setup_info_node);
+    }
 }
 

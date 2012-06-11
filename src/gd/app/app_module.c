@@ -1,6 +1,7 @@
 #include <assert.h>
 #include "cpe/pal/pal_string.h"
 #include "cpe/utils/stream_mem.h"
+#include "cpe/utils/memory.h"
 #include "cpe/cfg/cfg_read.h"
 #include "cpe/cfg/cfg_manage.h"
 #include "gd/app/app_log.h"
