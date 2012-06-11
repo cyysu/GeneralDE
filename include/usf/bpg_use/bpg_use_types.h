@@ -10,6 +10,7 @@ extern "C" {
 #endif
 
 typedef struct bpg_use_sp * bpg_use_sp_t;
+typedef struct bpg_use_proxy * bpg_use_proxy_t;
 
 #ifdef __cplusplus
 }
