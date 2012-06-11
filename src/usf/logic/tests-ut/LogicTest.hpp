@@ -19,18 +19,12 @@ class LogicTest : public testenv::fixture<LogicTestBase> {
 public:
     class LogicOpMock {
     public:
-        MOCK_METHOD1(execute, logic_op_exec_result_t(logic_context_t ctx));
+        MOCK_METHOD1(execute, logic_op_exec_result_t(logic_stack_node_t node));
     };
 
     class CommitMock {
     public:
         MOCK_METHOD1(commit, void(logic_context_t ctx));
-    };
-
-    class RequireTypeMock {
-    public:
-        MOCK_METHOD1(cancel, void(logic_require_t require));
-        MOCK_METHOD1(destory, void(logic_require_t require));
     };
 
     void SetUp();
@@ -42,8 +36,6 @@ public:
     LogicOpMock & op(const char * name);
 
     void set_commit(logic_context_t context, CommitMock & mock);
-    void set_destory(logic_require_type_t rt, RequireTypeMock & mock);
-    void set_cancel(logic_require_type_t rt, RequireTypeMock & mock);
 };
 
 #endif

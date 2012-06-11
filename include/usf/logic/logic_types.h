@@ -65,7 +65,6 @@ typedef struct logic_manage * logic_manage_t;
 typedef struct logic_context * logic_context_t;
 typedef struct logic_data * logic_data_t;
 typedef struct logic_require * logic_require_t;
-typedef struct logic_require_type * logic_require_type_t;
 
 typedef struct logic_stack * logic_stack_t;
 typedef struct logic_stack_node * logic_stack_node_t;
@@ -90,8 +89,6 @@ typedef logic_executor_t (*logic_executor_create_fun_t) (
     error_monitor_t em);
 
 typedef void (*logic_context_commit_fun_t) (logic_context_t ctx, void * user_data);
-
-typedef void (*logic_require_type_trigger_t) (logic_require_t require, void * user_data);
 
 typedef struct logic_executor_type_it {
     logic_executor_type_t (*next)(struct logic_executor_type_it * it);

@@ -3,9 +3,12 @@
 #include "usf/logic/logic_stack.h"
 #include "usf/logic/logic_context.h"
 #include "usf/logic/logic_manage.h"
+#include "usf/logic/logic_require.h"
 #include "usf/logic/logic_executor.h"
 #include "usf/logic/logic_data.h"
 #include "logic_internal_ops.h"
+
+static void logic_stack_require_clear(logic_stack_node_t stack);
 
 #define LOGIC_STACK_INLINE_ITEM_COUNT \
     ( sizeof(((struct logic_stack*)0)->m_inline_items) \
@@ -64,6 +67,7 @@ REINTER:
     stack_item->m_rv = logic_op_exec_result_null;
 
     TAILQ_INIT(&stack_item->m_datas);
+    TAILQ_INIT(&stack_item->m_requires);
 
     if (executor == NULL) {
         --stack->m_item_pos;
@@ -152,7 +156,7 @@ void logic_stack_exec(struct logic_stack * stack, int32_t stop_stack_pos, logic_
         }
 
         logic_stack_node_data_clear(stack_item);
-
+        logic_stack_require_clear(stack_item);
         --stack->m_item_pos;
 
         while(stack->m_item_pos > stop_stack_pos) {
@@ -282,3 +286,11 @@ void logic_stack_node_data_clear(logic_stack_node_t stack) {
         logic_data_free(TAILQ_FIRST(&stack->m_datas));
     }
 }
+
+void logic_stack_require_clear(logic_stack_node_t stack) {
+    while(!TAILQ_EMPTY(&stack->m_requires)) {
+        logic_require_t require = TAILQ_FIRST(&stack->m_requires);
+        logic_require_disconnect_to_stack(require);
+    }
+}
+

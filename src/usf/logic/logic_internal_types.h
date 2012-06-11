@@ -25,13 +25,13 @@ struct logic_manage {
     struct cpe_hash_table m_contexts;
     struct cpe_hash_table m_requires;
     struct cpe_hash_table m_datas;
-    struct cpe_hash_table m_require_types;
 };
 
 struct logic_stack_node {
     logic_executor_t m_executr;
     logic_context_t m_context;
     logic_data_list_t m_datas;
+    logic_require_list_t m_requires;
     logic_op_exec_result_t m_rv;
 };
 
@@ -64,26 +64,14 @@ struct logic_context {
 
 struct logic_require {
     logic_context_t m_context;
+    logic_stack_node_t m_stack;
     logic_require_id_t m_id;
     logic_require_state_t m_state;
-    logic_require_type_t m_type;
-    size_t m_capacity;
-
+    char * m_name;
     logic_data_list_t m_datas;
 
-    TAILQ_ENTRY(logic_require) m_next;
-    struct cpe_hash_entry m_hh;
-};
-
-struct logic_require_type {
-    logic_manage_t m_mgr;
-    cpe_hash_string_t m_name;
-
-    logic_require_type_trigger_t m_destory_op;
-    void * m_destory_ctx;
-
-    logic_require_type_trigger_t m_cancel_op;
-    void * m_cancel_ctx;
+    TAILQ_ENTRY(logic_require) m_next_for_context;
+    TAILQ_ENTRY(logic_require) m_next_for_stack;
 
     struct cpe_hash_entry m_hh;
 };

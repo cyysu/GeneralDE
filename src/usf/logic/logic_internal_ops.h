@@ -30,11 +30,6 @@ uint32_t logic_data_hash(const struct logic_data * data);
 int logic_data_cmp(const struct logic_data * l, const struct logic_data * r);
 void logic_data_free_all(logic_manage_t mgr);
 
-/*require type ops*/
-uint32_t logic_require_type_hash(const struct logic_require_type * require);
-int logic_require_type_cmp(const struct logic_require_type * l, const struct logic_require_type * r);
-void logic_require_type_free_all(logic_manage_t mgr);
-
 /*stack ops*/
 void logic_stack_init(struct logic_stack * stack);
 void logic_stack_fini(struct logic_stack * stack, logic_context_t context);

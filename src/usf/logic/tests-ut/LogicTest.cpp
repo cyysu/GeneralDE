@@ -1,5 +1,4 @@
 #include <stdexcept>
-#include "usf/logic/logic_require_type.h"
 #include "usf/logic/logic_executor_type.h"
 #include "LogicTest.hpp"
 
@@ -10,9 +9,6 @@ void LogicTest::SetUp() {
 }
 
 void LogicTest::TearDown() {
-    logic_executor_type_it it;
-    logic_executor_type_group_types(&it, t_logic_executor_type_group(NULL));
-
     testing::DefaultValue<logic_op_exec_result>::Clear();
 
     Base::TearDown();
@@ -24,7 +20,7 @@ static void ctx_free(void * ctx) {
 
 static logic_op_exec_result_t execute_fun (logic_context_t ctx, logic_stack_node_t stack_node, void * user_data, cfg_t cfg) {
     LogicTest::LogicOpMock * op = (LogicTest::LogicOpMock *)user_data;
-    return op->execute(ctx);
+    return op->execute(stack_node);
 }
 
 LogicTest::LogicOpMock &
@@ -69,18 +65,3 @@ void LogicTest::set_commit(logic_context_t context, CommitMock & mock) {
     logic_context_set_commit(context, commit_to_mock, &mock);
 }
 
-static void rt_destory_to_mock(logic_require_t require, void * user_data) {
-    ((LogicTest::RequireTypeMock*)user_data)->destory(require);
-}
-
-void LogicTest::set_destory(logic_require_type_t rt, RequireTypeMock & mock) {
-    logic_require_type_set_destory(rt, rt_destory_to_mock, &mock);
-}
-
-static void rt_cancel_to_mock(logic_require_t require, void * user_data) {
-    ((LogicTest::RequireTypeMock*)user_data)->cancel(require);
-}
-
-void LogicTest::set_cancel(logic_require_type_t rt, RequireTypeMock & mock) {
-    logic_require_type_set_cancel(rt, rt_cancel_to_mock, &mock);
-}

@@ -37,8 +37,6 @@ logic_op_asnyc_exec(
     LOGIC_OP_ASNYC_STATE * async_op_state;
     logic_executor_t executor;
 
-    executor = 
-
     meta = dr_lib_find_meta_by_name((LPDRMETALIB)g_metalib_logic_op_async_package, "logic_op_asnyc_state");
     if (meta == NULL) {
         APP_CTX_ERROR(
@@ -46,7 +44,7 @@ logic_op_asnyc_exec(
         return logic_op_exec_result_null;
     }
 
-    async_op_data = logic_stack_node_data_check_or_create(stack_node, meta, 0);
+    async_op_data = logic_stack_data_get_or_create(stack_node, meta, 0);
     if (async_op_data == NULL) {
         APP_CTX_ERROR(
             logic_context_app(context), "logic_op_asnyc_exec: create context fail!");
