@@ -49,19 +49,16 @@ logic_op_asnyc_exec(
     if (require == NULL) {
         rv = send_fun(context, stack_node, user_data, args);
 
-        if (rv == logic_op_exec_result_null) {
+        if (rv == logic_op_exec_result_redo) {
             logic_stack_node_requires(stack_node, &require_it);
 
             require = logic_require_next(&require_it);
             if (require == NULL) {
-                require = logic_require_create(stack_node, logic_executor_name(executor));
-                if (require == NULL) {
-                    APP_CTX_ERROR(
-                        logic_context_app(context),
-                        "logic_op_asnyc_exec: %s: auto create require fail!",
-                        logic_executor_name(executor));
-                    return logic_op_exec_result_null;
-                }
+                APP_CTX_ERROR(
+                    logic_context_app(context),
+                    "logic_op_asnyc_exec: %s: auto create require fail!",
+                    logic_executor_name(executor));
+                return logic_op_exec_result_null;
             }
         }
 

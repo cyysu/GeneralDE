@@ -2,6 +2,7 @@
 #include "cpe/pal/pal_external.h"
 #include "cpe/cfg/cfg_read.h"
 #include "cpe/dp/dp_responser.h"
+#include "cpe/dp/dp_manage.h"
 #include "cpe/nm/nm_manage.h"
 #include "cpe/nm/nm_read.h"
 #include "cpe/dr/dr_metalib_manage.h"
@@ -12,6 +13,7 @@
 #include "usf/logic/logic_require.h"
 #include "usf/logic/logic_data.h"
 #include "usf/bpg_cli/bpg_cli_proxy.h"
+#include "usf/bpg_pkg/bpg_pkg_dsp.h"
 #include "bpg_cli_internal_types.h"
 #include "protocol/bpg_cli_pkg_info.h"
 
@@ -48,27 +50,11 @@ bpg_cli_proxy_create(
     proxy->m_pkg_manage = pkg_manage;
 
     proxy->m_send_to = NULL;
-    proxy->m_send_pkg_buf_size = 4 * 1024;
+    proxy->m_send_pkg_max_size = 4 * 1024;
     proxy->m_send_pkg_buf = NULL;
     mem_buffer_init(&proxy->m_send_data_buf, gd_app_alloc(app));
 
     proxy->m_recv_at = NULL;
-    /* sp->m_dsp = bpg_pkg_dsp_create(gd_app_alloc(app)); */
-    /* if (sp->m_dsp == NULL) { */
-    /*     CPE_ERROR(em, "%s: bpg_cli_sp_create: create dsp fail!", bpg_cli_sp_name(sp)); */
-    /*     mem_buffer_clear(&sp->m_data_buf); */
-    /*     mem_free(sp->m_alloc, sp); */
-    /*     return NULL; */
-    /* } */
-
-    /* if (bpg_pkg_dsp_load(sp->m_dsp, cfg_find_cfg(cfg, "send-to"), em) != 0) { */
-    /*     CPE_ERROR(em, "%s: bpg_cli_sp_create: load dsp fail!", bpg_cli_sp_name(sp)); */
-    /*     bpg_pkg_dsp_free(sp->m_dsp); */
-    /*     mem_buffer_clear(&sp->m_data_buf); */
-    /*     mem_free(sp->m_alloc, sp); */
-    /*     return NULL; */
-    /* } */
-    
 
     nm_node_set_type(mgr_node, &s_nm_node_type_bpg_cli_proxy);
 
@@ -85,7 +71,7 @@ static void bpg_cli_proxy_clear(nm_node_t node) {
     }
 
     if (proxy->m_send_to != NULL) {
-        mem_free(proxy->m_alloc, proxy->m_send_to);
+        bpg_pkg_dsp_free(proxy->m_send_to);
         proxy->m_send_to = NULL;
     }
 
@@ -124,10 +110,95 @@ bpg_cli_proxy_find_nc(gd_app_context_t app, const char * name) {
     return (bpg_cli_proxy_t)nm_node_data(node);
 }
 
+void bpg_cli_proxy_set_send_buf_capacity(bpg_cli_proxy_t proxy, size_t capacity) {
+    proxy->m_send_pkg_max_size = capacity;
+}
+
+int bpg_cli_proxy_set_send_to(bpg_cli_proxy_t proxy, cfg_t cfg) {
+    if (proxy->m_send_to != NULL) {
+        bpg_pkg_dsp_free(proxy->m_send_to);
+        proxy->m_send_to = NULL;
+    }
+
+    proxy->m_send_to = bpg_pkg_dsp_create(proxy->m_alloc);
+    if (proxy->m_send_to == NULL) return -1;
+
+    if (bpg_pkg_dsp_load(proxy->m_send_to, cfg, proxy->m_em) != 0) return -1;
+
+    return 0;
+}
+
+int bpg_cli_proxy_set_recv_at(bpg_cli_proxy_t proxy, const char * name) {
+    char sp_name_buf[128];
+
+    if (proxy->m_recv_at != NULL) {
+        dp_rsp_free(proxy->m_recv_at);
+        proxy->m_recv_at = NULL;
+    }
+
+    snprintf(sp_name_buf, sizeof(sp_name_buf), "%s.recv.sp", bpg_cli_proxy_name(proxy));
+    proxy->m_recv_at = dp_rsp_create(gd_app_dp_mgr(proxy->m_app), sp_name_buf);
+    if (proxy->m_recv_at == NULL) {
+        CPE_ERROR(
+            proxy->m_em, "%s: bpg_cli_proxy_set_recv_at: create rsp fail!",
+            bpg_cli_proxy_name(proxy));
+        return -1;
+    }
+
+    if (dp_rsp_bind_string(proxy->m_recv_at, name, proxy->m_em) != 0) {
+        CPE_ERROR(
+            proxy->m_em, "%s: bpg_cli_proxy_set_recv_at: bind rsp to %s fail!",
+            bpg_cli_proxy_name(proxy), name);
+        dp_rsp_free(proxy->m_recv_at);
+        proxy->m_recv_at = NULL;
+        return -1;
+    }
+
+    return 0;
+}
+
+bpg_pkg_t
+bpg_cli_proxy_pkg_buf_for_send(bpg_cli_proxy_t proxy) {
+    if (proxy->m_send_pkg_buf) {
+        if (bpg_pkg_pkg_capacity(proxy->m_send_pkg_buf) < proxy->m_send_pkg_max_size) {
+            bpg_pkg_free(proxy->m_send_pkg_buf);
+            proxy->m_send_pkg_buf = NULL;
+        }
+    }
+
+    if (proxy->m_send_pkg_buf == NULL) {
+        proxy->m_send_pkg_buf = bpg_pkg_create(proxy->m_pkg_manage, proxy->m_send_pkg_max_size, NULL, 0);
+    }
+
+    return proxy->m_send_pkg_buf;
+}
+
 int bpg_cli_proxy_send(
     bpg_cli_proxy_t proxy,
-    logic_stack_node_t stack,
+    logic_require_t require,
     bpg_pkg_t pkg)
 {
+    int rv;
+
+    if (proxy->m_send_to == NULL) {
+        CPE_ERROR(
+            proxy->m_em, "%s: bpg_cli_proxy_set_recv_at: no send to configured!",
+            bpg_cli_proxy_name(proxy));
+        logic_require_set_error(require);
+        return -1;
+    }
+
+    bpg_pkg_set_sn(pkg, logic_require_id(require));
+
+    rv = bpg_pkg_dsp_dispatch(proxy->m_send_to, pkg, proxy->m_em);
+
+    if (rv != 0) {
+        CPE_ERROR(
+            proxy->m_em, "%s: bpg_cli_proxy_set_recv_at: dispatch to send fail!",
+            bpg_cli_proxy_name(proxy));
+        logic_require_set_error(require);
+        return rv;
+    }
+
     return 0;
 }
