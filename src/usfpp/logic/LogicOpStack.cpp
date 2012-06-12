@@ -3,6 +3,7 @@
 #include "cpepp/dr/MetaLib.hpp"
 #include "gdpp/app/Log.hpp"
 #include "gdpp/app/Random.hpp"
+#include "usf/logic/logic_require.h"
 #include "usfpp/logic/LogicOpStack.hpp"
 #include "usfpp/logic/LogicOpContext.hpp"
 
@@ -43,6 +44,20 @@ LogicOpStackNode::checkCreateData(LPDRMETA meta, size_t capacity) {
             dr_meta_name(meta));
     }
     return *(LogicOpData*)data;
+}
+
+LogicOpRequire &
+LogicOpStackNode::createRequire(const char * name) {
+    logic_require_t require = logic_require_create(*this, name);
+
+    if (require == 0) {
+        APP_CTX_THROW_EXCEPTION(
+            context().app(),
+            ::std::runtime_error,
+            "require %s create in stack fail!",
+            name);
+    }
+    return *(LogicOpRequire*)require;
 }
 
 }}

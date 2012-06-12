@@ -1,6 +1,7 @@
 #include "cpepp/dr/MetaLib.hpp"
 #include "cpepp/dr/Meta.hpp"
 #include "gdpp/app/Log.hpp"
+#include "usfpp/logic/LogicOpRequire.hpp"
 #include "usfpp/bpg_pkg/Package.hpp"
 #include "usfpp/bpg_cli/CliProxy.hpp"
 
@@ -104,6 +105,36 @@ Cpe::Dr::Data CliProxy::dataBuf(void) {
     }
 
     return Cpe::Dr::Data(buf, bpg_cli_proxy_buf_capacity(*this));
+}
+
+void CliProxy::send(Usf::Logic::LogicOpRequire & require, Usf::Bpg::Package & pkg) {
+    if (bpg_cli_proxy_send(*this, require, pkg) != 0) {
+        APP_CTX_THROW_EXCEPTION(
+            app(), ::std::runtime_error,
+            "%s: send pkg fail!", name().c_str());
+    }
+}
+
+void CliProxy::send(Usf::Logic::LogicOpRequire & require, Cpe::Dr::Data const & data) {
+    Usf::Bpg::Package & pkg = pkgBuf() ;
+    pkg.clearData();
+    pkg.setErrCode(0);
+    pkg.setCmdAndData(data);
+    send(require, pkg);
+}
+
+void CliProxy::send(Usf::Logic::LogicOpRequire & requrest, const char * metaName, void const * data, size_t size) {
+    Usf::Bpg::Package & pkg = pkgBuf() ;
+    pkg.clearData();
+    pkg.setErrCode(0);
+    pkg.setCmdAndData(metaName, data, size);
+}
+
+void CliProxy::send(Usf::Logic::LogicOpRequire & requrest, LPDRMETA meta, void const * data, size_t size) {
+    Usf::Bpg::Package & pkg = pkgBuf() ;
+    pkg.clearData();
+    pkg.setErrCode(0);
+    pkg.setCmdAndData(dr_meta_name(meta), data, size);
 }
 
 }}

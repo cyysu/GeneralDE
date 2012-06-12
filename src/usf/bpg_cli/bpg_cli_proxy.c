@@ -1,5 +1,6 @@
 #include <assert.h>
 #include "cpe/pal/pal_external.h"
+#include "cpe/pal/pal_stdio.h"
 #include "cpe/cfg/cfg_read.h"
 #include "cpe/dp/dp_responser.h"
 #include "cpe/dp/dp_manage.h"
@@ -84,6 +85,10 @@ static void bpg_cli_proxy_clear(nm_node_t node) {
     mem_buffer_clear(&proxy->m_send_data_buf);
 }
 
+gd_app_context_t bpg_cli_proxy_app(bpg_cli_proxy_t proxy) {
+    return proxy->m_app;
+}
+
 void bpg_cli_proxy_free(bpg_cli_proxy_t mgr) {
     nm_node_t mgr_node;
     assert(mgr);
@@ -109,6 +114,15 @@ bpg_cli_proxy_find_nc(gd_app_context_t app, const char * name) {
     node = nm_mgr_find_node_nc(gd_app_nm_mgr(app), name);
     if (node == NULL || nm_node_type(node) != &s_nm_node_type_bpg_cli_proxy) return NULL;
     return (bpg_cli_proxy_t)nm_node_data(node);
+}
+
+const char * bpg_cli_proxy_name(bpg_cli_proxy_t proxy) {
+    return nm_node_name(nm_node_from_data(proxy));
+}
+
+cpe_hash_string_t
+bpg_cli_proxy_name_hs(bpg_cli_proxy_t proxy) {
+    return nm_node_name_hs(nm_node_from_data(proxy));
 }
 
 size_t bpg_cli_proxy_buf_capacity(bpg_cli_proxy_t proxy) {

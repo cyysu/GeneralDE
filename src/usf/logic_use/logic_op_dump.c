@@ -9,7 +9,7 @@
 #include "usf/logic/logic_executor.h"
 #include "usf/logic/logic_executor_type.h"
 
-static void bpg_use_op_dump_all(logic_context_t context, cfg_t root) {
+static void logic_op_dump_all(logic_context_t context, cfg_t root) {
     struct mem_buffer buffer;
     struct write_stream_buffer stream = CPE_WRITE_STREAM_BUFFER_INITIALIZER(&buffer);
     gd_app_context_t app = logic_context_app(context);
@@ -25,7 +25,7 @@ static void bpg_use_op_dump_all(logic_context_t context, cfg_t root) {
     mem_buffer_clear(&buffer);
 }
 
-static void bpg_use_op_dump_part(logic_context_t context, cfg_t root, const char * path) {
+static void logic_op_dump_part(logic_context_t context, cfg_t root, const char * path) {
     gd_app_context_t app = logic_context_app(context);
     cfg_t child = cfg_find_cfg(root, path);
     if (child) {
@@ -67,7 +67,7 @@ logic_op_exec_result_t logic_use_op_dump(logic_context_t context, logic_stack_no
 
     parts_cfg = cfg_find_cfg(args, "parts");
     if (parts_cfg == NULL) {
-        bpg_use_op_dump_all(context, dump_data);
+        logic_op_dump_all(context, dump_data);
     }
     else {
         struct cfg_it it;
@@ -77,7 +77,7 @@ logic_op_exec_result_t logic_use_op_dump(logic_context_t context, logic_stack_no
         while((child = cfg_it_next(&it))) {
             const char * path = cfg_as_string(child, NULL);
             if (path) {
-                bpg_use_op_dump_part(context, cfg_child_only(dump_data), path);
+                logic_op_dump_part(context, cfg_child_only(dump_data), path);
             }
         }
     }
@@ -89,7 +89,7 @@ logic_op_exec_result_t logic_use_op_dump(logic_context_t context, logic_stack_no
 };
 
 EXPORT_DIRECTIVE
-int logic_use_op_dump_app_init(gd_app_context_t app, gd_app_module_t module, cfg_t cfg) {
+int logic_op_dump_app_init(gd_app_context_t app, gd_app_module_t module, cfg_t cfg) {
     logic_executor_type_t type;
 
     type = logic_executor_type_create_global(
@@ -105,5 +105,5 @@ int logic_use_op_dump_app_init(gd_app_context_t app, gd_app_module_t module, cfg
 }
 
 EXPORT_DIRECTIVE
-void logic_use_op_dump_app_fini(gd_app_context_t app, gd_app_module_t module) {
+void logic_op_dump_app_fini(gd_app_context_t app, gd_app_module_t module) {
 }

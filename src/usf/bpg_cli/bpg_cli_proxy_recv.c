@@ -68,9 +68,10 @@ static int bpg_cli_proxy_save_append_infos(logic_require_t require, bpg_pkg_t pk
     LPDRMETA meta;
     size_t size;
     int32_t append_info_count;
+    int32_t i;
 
     append_info_count = bpg_pkg_append_info_count(pkg);
-    for(int32_t i = 0; i < append_info_count; ++i) {
+    for(i = 0; i < append_info_count; ++i) {
         bpg_pkg_append_info_t append_info = bpg_pkg_append_info_at(pkg, i);
         assert(append_info);
 

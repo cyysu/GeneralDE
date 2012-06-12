@@ -24,6 +24,7 @@ bpg_cli_proxy_find_nc(gd_app_context_t app, const char * name);
 
 gd_app_context_t bpg_cli_proxy_app(bpg_cli_proxy_t proxy);
 const char * bpg_cli_proxy_name(bpg_cli_proxy_t proxy);
+cpe_hash_string_t bpg_cli_proxy_name_hs(bpg_cli_proxy_t proxy);
 
 LPDRMETALIB bpg_cli_proxy_metalib(bpg_cli_proxy_t proxy);
 LPDRMETA bpg_cli_proxy_meta(bpg_cli_proxy_t proxy, const char * name);

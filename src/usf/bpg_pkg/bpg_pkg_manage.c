@@ -278,3 +278,25 @@ bpg_pkg_manage_cmd_meta_name(bpg_pkg_manage_t mgr) {
     return mgr->m_cmd_meta_name;
 }
 
+int bpg_pkg_find_cmd_from_meta_name(
+    uint32_t * cmd, bpg_pkg_manage_t mgr, const char * meta_name)
+{
+    int entry_count, i;
+    LPDRMETA cmd_meta;
+
+    cmd_meta = bpg_pkg_manage_cmd_meta(mgr);
+    if (cmd_meta == NULL) return -1;
+
+    entry_count = dr_meta_entry_num(cmd_meta);
+
+    for(i = 0; i < entry_count; ++i) {
+        LPDRMETAENTRY entry = dr_meta_entry_at(cmd_meta, i);
+        LPDRMETA entry_meta = dr_entry_ref_meta(entry);
+        if (strcmp(dr_meta_name(entry_meta), meta_name) == 0) {
+            *cmd = dr_entry_id(entry);
+            return 0;
+        }
+    }
+
+    return -1;
+}

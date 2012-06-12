@@ -105,6 +105,10 @@ logic_stack_node_t logic_require_stack(logic_require_t require) {
     return require->m_stack;
 }
 
+logic_context_t logic_require_context(logic_require_t require) {
+    return require->m_context;
+}
+
 void logic_require_disconnect_to_stack(logic_require_t require) {
     if (require->m_stack) {
         TAILQ_REMOVE(&require->m_stack->m_requires, require, m_next_for_stack);

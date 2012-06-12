@@ -27,6 +27,21 @@ public:
     Cpe::Dr::Data dataBuf(void);
     Usf::Bpg::Package & pkgBuf(void);
 
+    void send(Usf::Logic::LogicOpRequire & requrest, Usf::Bpg::Package & pkg);
+    void send(Usf::Logic::LogicOpRequire & requrest, Cpe::Dr::Data const & data);
+    void send(Usf::Logic::LogicOpRequire & requrest, const char * metaName, void const * data, size_t size);
+    void send(Usf::Logic::LogicOpRequire & requrest, LPDRMETA meta, void const * data, size_t size);
+
+    template<typename T>
+    void send(Usf::Logic::LogicOpRequire & requrest, const char * metaName, T const & data) {
+        send(requrest, metaName, &data, sizeof(data));
+    }
+
+    template<typename T>
+    void send(Usf::Logic::LogicOpRequire & requrest, LPDRMETA meta, T const & data) {
+        send(requrest, meta, &data, sizeof(data));
+    }
+
     static CliProxy & _cast(bpg_cli_proxy_t cli_proxy);
     static CliProxy & instance(gd_app_context_t app, const char * name);
 };
