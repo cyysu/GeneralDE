@@ -189,6 +189,9 @@ uint32_t logic_data_hash(const struct logic_data * data) {
         return (cpe_hash_str(data->m_name, strlen(data->m_name)) << 4)
             | (data->m_owner_data.m_require->m_id & 0xFF);
     }
+
+    assert(0);
+    return 1;
 }
 
 int logic_data_cmp(const struct logic_data * l, const struct logic_data * r) {
