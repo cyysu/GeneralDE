@@ -20,15 +20,6 @@ struct bpg_use_sp {
     bpg_pkg_dsp_t m_dsp;
 };
 
-struct bpg_use_proxy {
-    gd_app_context_t m_app;
-    mem_allocrator_t m_alloc;
-    error_monitor_t m_em;
-    logic_manage_t m_logic_mgr;
-
-    int m_debug;
-};
-
 #ifdef __cplusplus
 }
 #endif

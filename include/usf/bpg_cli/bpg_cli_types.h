@@ -1,5 +1,5 @@
-#ifndef USF_BPG_USE_TYPES_H
-#define USF_BPG_USE_TYPES_H
+#ifndef USF_BPG_CLI_TYPES_H
+#define USF_BPG_CLI_TYPES_H
 #include "cpe/utils/error.h"
 #include "cpe/utils/hash_string.h"
 #include "cpe/cfg/cfg_types.h"
@@ -9,7 +9,7 @@
 extern "C" {
 #endif
 
-typedef struct bpg_use_sp * bpg_use_sp_t;
+typedef struct bpg_cli_proxy * bpg_cli_proxy_t;
 
 #ifdef __cplusplus
 }
