@@ -9,6 +9,7 @@
 #include "gd/app/app_module.h"
 #include "gd/app/app_context.h"
 #include "usf/bpg_pkg/bpg_pkg.h"
+#include "usf/bpg_pkg/bpg_pkg_manage.h"
 #include "usf/logic/logic_manage.h"
 #include "usf/logic/logic_require.h"
 #include "usf/logic/logic_data.h"
@@ -110,7 +111,11 @@ bpg_cli_proxy_find_nc(gd_app_context_t app, const char * name) {
     return (bpg_cli_proxy_t)nm_node_data(node);
 }
 
-void bpg_cli_proxy_set_send_buf_capacity(bpg_cli_proxy_t proxy, size_t capacity) {
+size_t bpg_cli_proxy_buf_capacity(bpg_cli_proxy_t proxy) {
+    return proxy->m_send_pkg_max_size;
+}
+
+void bpg_cli_proxy_set_buf_capacity(bpg_cli_proxy_t proxy, size_t capacity) {
     proxy->m_send_pkg_max_size = capacity;
 }
 
@@ -157,8 +162,28 @@ int bpg_cli_proxy_set_recv_at(bpg_cli_proxy_t proxy, const char * name) {
     return 0;
 }
 
+LPDRMETALIB bpg_cli_proxy_metalib(bpg_cli_proxy_t proxy) {
+    return bpg_pkg_manage_data_metalib(proxy->m_pkg_manage);
+}
+
+LPDRMETA bpg_cli_proxy_meta(bpg_cli_proxy_t proxy, const char * name) {
+    LPDRMETALIB metalib = bpg_pkg_manage_data_metalib(proxy->m_pkg_manage);
+    return metalib == NULL
+        ? NULL
+        : dr_lib_find_meta_by_name(metalib, name);
+}
+
+void * bpg_cli_proxy_data_buf(bpg_cli_proxy_t proxy) {
+    mem_buffer_set_size(&proxy->m_send_data_buf, proxy->m_send_pkg_max_size);
+    return mem_buffer_make_continuous(&proxy->m_send_data_buf, 0);
+}
+
+bpg_pkg_manage_t bpg_cli_proxy_pkg_manage(bpg_cli_proxy_t proxy) {
+    return proxy->m_pkg_manage;
+}
+
 bpg_pkg_t
-bpg_cli_proxy_pkg_buf_for_send(bpg_cli_proxy_t proxy) {
+bpg_cli_proxy_pkg_buf(bpg_cli_proxy_t proxy) {
     if (proxy->m_send_pkg_buf) {
         if (bpg_pkg_pkg_capacity(proxy->m_send_pkg_buf) < proxy->m_send_pkg_max_size) {
             bpg_pkg_free(proxy->m_send_pkg_buf);

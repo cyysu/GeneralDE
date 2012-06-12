@@ -17,14 +17,26 @@ bpg_cli_proxy_create(
 
 void bpg_cli_proxy_free(bpg_cli_proxy_t proxy);
 
+bpg_cli_proxy_t
+bpg_cli_proxy_find(gd_app_context_t app, cpe_hash_string_t name);
+bpg_cli_proxy_t
+bpg_cli_proxy_find_nc(gd_app_context_t app, const char * name);
+
 gd_app_context_t bpg_cli_proxy_app(bpg_cli_proxy_t proxy);
 const char * bpg_cli_proxy_name(bpg_cli_proxy_t proxy);
 
-void bpg_cli_proxy_set_send_buf_capacity(bpg_cli_proxy_t proxy, size_t capacity);
+LPDRMETALIB bpg_cli_proxy_metalib(bpg_cli_proxy_t proxy);
+LPDRMETA bpg_cli_proxy_meta(bpg_cli_proxy_t proxy, const char * name);
+
+size_t bpg_cli_proxy_buf_capacity(bpg_cli_proxy_t proxy);
+void bpg_cli_proxy_set_buf_capacity(bpg_cli_proxy_t proxy, size_t capacity);
 int bpg_cli_proxy_set_send_to(bpg_cli_proxy_t proxy, cfg_t cfg);
 int bpg_cli_proxy_set_recv_at(bpg_cli_proxy_t proxy, const char * name);
 
-bpg_pkg_t bpg_cli_proxy_pkg_buf_for_send(bpg_cli_proxy_t proxy);
+bpg_pkg_manage_t bpg_cli_proxy_pkg_manage(bpg_cli_proxy_t proxy);
+
+void * bpg_cli_proxy_data_buf(bpg_cli_proxy_t proxy);
+bpg_pkg_t bpg_cli_proxy_pkg_buf(bpg_cli_proxy_t proxy);
 
 int bpg_cli_proxy_send(
     bpg_cli_proxy_t proxy,
@@ -36,3 +48,4 @@ int bpg_cli_proxy_send(
 #endif
 
 #endif
+
