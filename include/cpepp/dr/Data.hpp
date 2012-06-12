@@ -86,6 +86,9 @@ public:
 
     ConstDataElement operator[](const char * name) const;
 
+    template<typename T>
+    T & as(void) { return *(T *)data(); }
+
 protected:
     const void * m_data;
     size_t m_capacity;
@@ -112,6 +115,12 @@ public:
     void copy(Data const & data);
     void copy(ConstDataElement const & data);
     void copy(DataElement const & data);
+
+    template<typename T>
+    T & as(void) { return *(T *)data(); }
+
+    template<typename T>
+    T const & as(void) const { return *(T const *)data(); }
 };
 
 inline void DataElement::copy(ConstData const & data) { copy(data.data(), data.capacity()); }
