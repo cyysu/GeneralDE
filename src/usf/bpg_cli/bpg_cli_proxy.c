@@ -147,6 +147,7 @@ int bpg_cli_proxy_set_send_to(bpg_cli_proxy_t proxy, cfg_t cfg) {
     return 0;
 }
 
+int bpg_cli_proxy_rsp(dp_req_t req, void * ctx, error_monitor_t em);
 int bpg_cli_proxy_set_recv_at(bpg_cli_proxy_t proxy, const char * name) {
     char sp_name_buf[128];
 
@@ -163,6 +164,7 @@ int bpg_cli_proxy_set_recv_at(bpg_cli_proxy_t proxy, const char * name) {
             bpg_cli_proxy_name(proxy));
         return -1;
     }
+    dp_rsp_set_processor(proxy->m_recv_at, bpg_cli_proxy_rsp, proxy);
 
     if (dp_rsp_bind_string(proxy->m_recv_at, name, proxy->m_em) != 0) {
         CPE_ERROR(
