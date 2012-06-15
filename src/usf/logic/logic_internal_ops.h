@@ -12,6 +12,9 @@ int logic_context_cmp(const struct logic_context * l, const struct logic_context
 void logic_context_free_all(logic_manage_t mgr);
 void logic_context_do_state_change(logic_context_t context, logic_context_state_t old_sate);
 
+void logic_context_dequeue(logic_context_t context);
+void logic_context_enqueue(logic_context_t context, enum logic_context_queue_state queue_type);
+
 #define logic_context_state_i(context)                  \
     (context->m_errno                                   \
      ? logic_context_state_error                        \

@@ -53,6 +53,7 @@ logic_context_create(logic_manage_t mgr, logic_context_id_t id, size_t capacity)
     context->m_commit_op = NULL;
     context->m_commit_ctx = NULL;
     context->m_require_waiting_count = 0;
+    context->m_queue_state = logic_context_queue_none;
 
     logic_stack_init(&context->m_stack);
     TAILQ_INIT(&context->m_datas);
@@ -72,6 +73,8 @@ void logic_context_free(logic_context_t context) {
     }
 
     logic_stack_fini(&context->m_stack, context);
+
+    logic_context_dequeue(context);
 
     cpe_hash_table_remove_by_ins(&context->m_mgr->m_contexts, context);
 
@@ -190,6 +193,8 @@ void logic_context_execute(logic_context_t context) {
     if (context->m_state != logic_context_state_idle) return;
     assert(context->m_runing == 0);
 
+    logic_context_dequeue(context);
+
     old_state = logic_context_state_i(context);
 
     context->m_runing = 1;
@@ -207,6 +212,12 @@ void logic_context_execute(logic_context_t context) {
     }
 
     logic_context_do_state_change(context, old_state);
+
+    if (context->m_state == logic_context_state_waiting
+        && context->m_queue_state == logic_context_queue_none)
+    {
+        logic_context_enqueue(context, logic_context_queue_waiting);
+    }
 }
 
 int logic_context_bind(logic_context_t context, logic_executor_t executor) {
@@ -250,6 +261,9 @@ void logic_context_do_state_change(logic_context_t context, logic_context_state_
         if (context->m_flags & logic_context_flag_execute_immediately) {
             logic_context_execute(context);
         }
+        else {
+            logic_context_enqueue(context, logic_context_queue_pending);
+        }
     }
     else {
         if (context->m_commit_op) {
@@ -258,3 +272,38 @@ void logic_context_do_state_change(logic_context_t context, logic_context_state_
     }
 }
 
+void logic_context_dequeue(logic_context_t context) {
+    switch(context->m_queue_state) {
+    case logic_context_queue_waiting:
+        TAILQ_REMOVE(&context->m_mgr->m_waiting_contexts, context, m_next);
+        context->m_queue_state = logic_context_queue_none;
+        --context->m_mgr->m_waiting_count;
+        break;
+    case logic_context_queue_pending:
+        TAILQ_REMOVE(&context->m_mgr->m_pending_contexts, context, m_next);
+        context->m_queue_state = logic_context_queue_none;
+        --context->m_mgr->m_pending_count;
+        break;
+    case logic_context_queue_none:
+        break;
+    }
+}
+
+void logic_context_enqueue(logic_context_t context, enum logic_context_queue_state queue_type) {
+    logic_context_dequeue(context);
+
+    switch(queue_type) {
+    case logic_context_queue_waiting:
+        TAILQ_INSERT_TAIL(&context->m_mgr->m_waiting_contexts, context, m_next);
+        context->m_queue_state = queue_type;
+        ++context->m_mgr->m_waiting_count;
+        break;
+    case logic_context_queue_pending:
+        TAILQ_INSERT_TAIL(&context->m_mgr->m_pending_contexts, context, m_next);
+        context->m_queue_state = queue_type;
+        ++context->m_mgr->m_pending_count;
+        break;
+    case logic_context_queue_none:
+        break;
+    }
+}
