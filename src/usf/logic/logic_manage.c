@@ -105,12 +105,9 @@ static void logic_manage_clear(nm_node_t node) {
     logic_context_free_all(mgr);
     logic_require_free_all(mgr);
     logic_data_free_all(mgr);
-<<<<<<< Local
 
     assert(TAILQ_EMPTY(&mgr->m_waiting_contexts));
     assert(TAILQ_EMPTY(&mgr->m_pending_contexts));
-=======
->>>>>>> Remote
 
     cpe_hash_table_fini(&mgr->m_contexts);
     cpe_hash_table_fini(&mgr->m_requires);
