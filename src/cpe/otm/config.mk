@@ -1,4 +1,4 @@
-product:=gd_otm
+product:=cpe_otm
 $(product).type:=lib
 $(product).depends:=cpe_utils
 $(product).c.sources:=$(wildcard $(product-base)/*.c)
