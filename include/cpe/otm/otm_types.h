@@ -9,15 +9,15 @@ extern "C" {
 
 typedef uint32_t otm_timer_id_t;
 
-typedef struct otm_memo_node {
+typedef struct otm_memo {
     otm_timer_id_t m_id;
     tl_time_t m_last_action_time;
-} * otm_memo_node_t;
+} * otm_memo_t;
 
 typedef struct otm_timer * otm_timer_t;
 typedef struct otm_manage * otm_manage_t;
 
-typedef void (*otm_process_fun_t) (tl_time_t pre_exec_time, tl_time_t cur_exec_time, void * timer_ctx, void * obj_ctx);
+typedef void (*otm_process_fun_t) (otm_memo_t memo, tl_time_t cur_exec_time, void * timer_ctx, void * obj_ctx);
 
 #ifdef __cplusplus
 }
