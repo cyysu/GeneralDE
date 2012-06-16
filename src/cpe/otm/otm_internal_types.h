@@ -1,15 +1,12 @@
-#ifndef GD_OTM_INTERNAL_TYPES_H
-#define GD_OTM_INTERNAL_TYPES_H
+#ifndef CPE_OTM_INTERNAL_TYPES_H
+#define CPE_OTM_INTERNAL_TYPES_H
 #include "cpe/utils/hash.h"
-#include "gd/app/app_types.h"
-#include "gd/otm/otm_types.h"
+#include "cpe/utils/error.h"
+#include "cpe/otm/otm_types.h"
 
 struct otm_manage {
-    gd_app_context_t m_app;
     mem_allocrator_t m_alloc;
     error_monitor_t m_em;
-    int64_t m_tick_span;
-    int m_debug;
 
     struct cpe_hash_table m_timers;
 };
