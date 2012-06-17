@@ -3,7 +3,7 @@ product-def-c-env-items:= c.flags.cpp c.flags.ld c.sources c.includes \
                           product.c.includes product.c.flags.ld product.c.defs product.c.ldpathes product.c.libraries 
 
 product-def-all-items+= c.libraries c.frameworks c.ldpathes c.linker c.export-symbols \
-                        c.flags.lan c.flags.lan.c c.flags.lan.cc c.flags.lan.m c.flags.lan.mm c.lib.type c.env-includes c.env-libraries\
+                        c.flags.lan.all c.flags.lan c.flags.lan.c c.flags.lan.cc c.flags.lan.m c.flags.lan.mm c.lib.type c.env-includes c.env-libraries\
                         product.c.frameworks product.c.env-includes product.c.env-libraries\
                         $(product-def-c-env-items) $(foreach e,$(dev-env-list),$(addprefix $e.,$(product-def-c-env-items)))
 
@@ -70,12 +70,8 @@ product-def-c-linker-cpp=$(LINK.cc)
 product-def-c-linker-obj-c=$(LINK.c)
 product-def-c-linker-obj-cpp=$(LINK.cc)
 
-# $(call c-make-depend,source-file,object-file,depend-file,product-name,domain)
-define c-make-depend
-	$(CCACHE) $($($5.env).GCC) -MM -MF $3 -MP -MT $2 $($($5.env).CPPFLAGS) $(call c-generate-depend-cpp-flags,$4,$5) $($($5.env).TARGET_ARCH) $1
-endef
-
 product-def-rule-c-compile-cmd.c=$($($2.env).CC) \
+                                 $(compiler.$(call compiler-category,$($($2.env).CC)).flags.gen-dep) \
                                  $(compiler.$(call compiler-category,$($($2.env).CC)).flags.warning) \
                                  $($($2.env).CFLAGS) \
                                  $(r.$1.c.flags.lan.all) \
@@ -84,6 +80,7 @@ product-def-rule-c-compile-cmd.c=$($($2.env).CC) \
                                  $($($2.env).TARGET_ARCH) -c
 
 product-def-rule-c-compile-cmd.cc=$($($2.env).CXX) \
+                                  $(compiler.$(call compiler-category,$($($2.env).CXX)).flags.gen-dep) \
                                   $(compiler.$(call compiler-category,$($($2.env).CXX)).flags.warning) \
                                   $($($2.env).CXXFLAGS) \
                                   $(r.$1.c.flags.lan.all) \
@@ -92,6 +89,7 @@ product-def-rule-c-compile-cmd.cc=$($($2.env).CXX) \
                                   $($($2.env).TARGET_ARCH) -c 
 
 product-def-rule-c-compile-cmd.mm=$($($2.env).CXX) $($($2.env).MMFLAGS) \
+                                  $(compiler.$(call compiler-category,$($($2.env).CXX)).flags.gen-dep) \
                                   $(compiler.$(call compiler-category,$($($2.env).CXX)).flags.warning) \
                                   $(r.$1.c.flags.lan.all) \
                                   $(r.$1.c.flags.lan.mm) \
@@ -99,6 +97,7 @@ product-def-rule-c-compile-cmd.mm=$($($2.env).CXX) $($($2.env).MMFLAGS) \
                                   $($($2.env).TARGET_ARCH) -c 
 
 product-def-rule-c-compile-cmd.m=$($($2.env).CC) $($($2.env).MFLAGS) \
+                                 $(compiler.$(call compiler-category,$($($2.env).CC)).flags.gen-dep) \
                                  $(compiler.$(call compiler-category,$($($2.env).CC)).flags.warning) \
                                  $(r.$1.c.flags.lan.all) \
                                  $(r.$1.c.flags.lan.m) \
@@ -111,7 +110,6 @@ product-def-rule-c-compile-cmd.cpp=$(call product-def-rule-c-compile-cmd.cc,$1,$
 # $(call compile-rule, binary-file, source-files, product-name,domain)
 define product-def-rule-c-compile-rule
 $1: $2
-	$$(call with_message)$$(call c-make-depend,$2,$1,$(subst .o,.d,$1),$3,$4)
 	$$(call with_message,compiling $(subst $(CPDE_ROOT)/,,$2) --> $(subst $(CPDE_ROOT)/,,$1) ...)\
           $(CCACHE) $$(call product-def-rule-c-compile-cmd$(suffix $2),$3,$4) $$(call c-generate-depend-cpp-flags,$3,$4) -o $$@ $$<
 
@@ -175,7 +173,7 @@ $(CPDE_OUTPUT_ROOT)/$(r.$1.$3.product): $(call c-source-to-object,$(r.$1.c.sourc
 
 $(foreach f,$(r.$1.c.sources) $(r.$1.$($3.env).c.sources) $(r.$1.$3.c.sources),$(call product-def-rule-c-compile-rule,$(call c-source-to-object,$f,$3),$f,$1,$3))
 
-$(eval r.$1.makefile.include += $(patsubst %.o,%.d,$(call c-source-to-object,$(r.$1.c.sources) $(r.$1.$($3.env).c.sources) $(r.$1.$3.c.sources),$3)))
+$(eval r.$1.$3.makefile.include += $(patsubst %.o,%.d,$(call c-source-to-object,$(r.$1.c.sources) $(r.$1.$($3.env).c.sources) $(r.$1.$3.c.sources),$3)))
 
 ifeq ($(filter progn,$2),progn)
 $(eval r.$1.$3.run.libraries+=$(if $(r.$1.buildfor),$(CPDE_OUTPUT_ROOT)/$($3.output)/$(r.$1.buildfor)-lib,) $(CPDE_OUTPUT_ROOT)/$($3.output)/lib)
