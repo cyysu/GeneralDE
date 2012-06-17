@@ -32,7 +32,8 @@ include $(addsuffix /config.mk,$(modules))
 
 include $(CPDE_BUILD_DETAIL_DIR)/domain-auto-def.mk
 
--include $(foreach p,$(project_repository), $(r.$p.makefile.include))
+-include $(foreach d,$(using-domain-list),\
+	$(foreach p,$($(d).product-list), $(r.$p.$d.makefile.include)))
 
 include $(CPDE_BUILD_DETAIL_DIR)/create-dirs.mk
 
