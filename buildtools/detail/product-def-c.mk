@@ -111,7 +111,7 @@ product-def-rule-c-compile-cmd.cpp=$(call product-def-rule-c-compile-cmd.cc,$1,$
 define product-def-rule-c-compile-rule
 $1: $2
 	$$(call with_message,compiling $(subst $(CPDE_ROOT)/,,$2) --> $(subst $(CPDE_ROOT)/,,$1) ...)\
-          $(CCACHE) $$(call product-def-rule-c-compile-cmd$(suffix $2),$3,$4) $$(call c-generate-depend-cpp-flags,$3,$4) -o $$@ $$<
+          $(CPDE_C_COMPILE_PREFIX) $$(call product-def-rule-c-compile-cmd$(suffix $2),$3,$4) $$(call c-generate-depend-cpp-flags,$3,$4) -o $$@ $$<
 
 endef
 
