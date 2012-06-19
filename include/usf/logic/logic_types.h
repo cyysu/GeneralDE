@@ -100,6 +100,11 @@ typedef struct logic_require_it {
     char m_data[16];
 } * logic_require_it_t;
 
+typedef struct logic_data_it {
+    logic_data_t (*next)(struct logic_data_it * it);
+    char m_data[16];
+} * logic_data_it_t;
+
 #ifdef __cplusplus
 }
 #endif

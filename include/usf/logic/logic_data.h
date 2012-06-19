@@ -8,14 +8,19 @@ extern "C" {
 
 logic_data_t logic_context_data_find(logic_context_t context, const char * name);
 logic_data_t logic_context_data_get_or_create(logic_context_t context, LPDRMETA meta, size_t capacity);
+void logic_context_datas(logic_context_t context, logic_data_it_t it);
 
 logic_data_t logic_stack_data_find(logic_stack_node_t stack_node, const char * name);
 logic_data_t logic_stack_data_get_or_create(logic_stack_node_t stack_node, LPDRMETA meta, size_t capacity);
+void logic_stack_datas(logic_stack_node_t context, logic_data_it_t it);
 
 logic_data_t logic_require_data_find(logic_require_t require, const char * name);
 logic_data_t logic_require_data_get_or_create(logic_require_t require, LPDRMETA meta, size_t capacity);
+void logic_require_datas(logic_require_t context, logic_data_it_t it);
 
 void logic_data_free(logic_data_t data);
+
+#define logic_data_next(it) ((it)->next ? (it)->next(it) : NULL)
 
 LPDRMETA logic_data_meta(logic_data_t data);
 const char * logic_data_name(logic_data_t data);
