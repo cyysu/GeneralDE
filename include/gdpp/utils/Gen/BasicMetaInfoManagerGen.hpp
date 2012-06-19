@@ -18,10 +18,10 @@ public:
     typedef BasicMetaInfoManagerGen Base;
 
     virtual void load(Cpe::Cfg::Node const & configNode) {
-        m_elements.resize(configNode.childCount());
-
-        size_t writeCount = 0;
+        size_t writeCount = m_elements.size();
         size_t readCount = 0;
+
+        m_elements.resize(m_elements.size() + configNode.childCount());
 
         Cpe::Cfg::NodeConstIterator configNodes = configNode.childs();
         while(Cpe::Cfg::Node const * boxCfg = configNodes.next()) {
@@ -60,6 +60,8 @@ public:
     virtual ElementT const & at(size_t pos) const {
         return m_elements[pos];
     }
+
+    virtual void clear(void) { m_elements.clear(); }
 
 protected:
     typedef ::std::vector<ElementT> ElementContainer;
