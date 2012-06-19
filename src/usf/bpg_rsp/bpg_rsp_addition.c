@@ -102,6 +102,22 @@ int bpg_rsp_addition_data_add(logic_context_t ctx, uint32_t meta_id) {
     return 0;
 }
 
+int bpg_rsp_addition_data_add_all(logic_context_t ctx) {
+    struct logic_data_it data_it;
+    logic_data_t data;
+
+    int rv = 0;
+
+    logic_context_datas(ctx, &data_it);
+    while((data = logic_data_next(&data_it))) {
+        LPDRMETA meta = logic_data_meta(data);
+        if (dr_meta_id(meta) != -1) {
+            if (bpg_rsp_addition_data_add(ctx, dr_meta_id(meta)) != 0) rv = -1;
+        }
+    }
+
+    return rv;
+}
 
 static int bpg_rsp_addition_data_cmp(const void * l, const void * r) {
     const uint32_t * l_v = (const uint32_t *)l;
