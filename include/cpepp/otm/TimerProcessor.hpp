@@ -4,9 +4,10 @@
 
 namespace Cpe { namespace Otm {
 
+template<typename ContextT>
 class TimerProcessor {
 public:
-    ~TimerProcessor(); //not virtual!!!
+    ~TimerProcessor() {}
 };
 
 }}

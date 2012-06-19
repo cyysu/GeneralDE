@@ -2,14 +2,70 @@
 #define CPEPP_OTM_MANAGER_H
 #include "cpepp/utils/ClassCategory.hpp"
 #include "cpe/otm/otm_manage.h"
+#include "TimerProcessor.hpp"
+#include "MemoBuf.hpp"
 #include "System.hpp"
 
 namespace Cpe { namespace Otm {
 
-class Manager : public Cpe::Utils::SimulateObject {
+class ManagerBase : public Cpe::Utils::SimulateObject {
 public:
     operator otm_manage_t (void) const { return (otm_manage_t)(this); }
 
+    void init(otm_memo_t memo, size_t memo_capacitiy);
+
+    void tick(tl_time_t cur_time, void * obj_ctx, otm_memo_t memo, size_t memo_capacitiy) {
+        otm_manage_tick(*this, cur_time, obj_ctx, memo, memo_capacitiy);
+    }
+
+    void enable(otm_timer_id_t id, tl_time_t cur_time, otm_memo_t memo_buf, size_t memo_capacitiy);
+
+    void disable(otm_timer_id_t id, otm_memo_t memo_buf, size_t memo_capacitiy);
+
+    template<size_t capacity>
+    void init(MemoBuf<capacity> & buf) {
+        init(buf, capacity);
+    }
+
+    template<size_t capacity>
+    void enable(otm_timer_id_t id, tl_time_t cur_time, MemoBuf<capacity> & buf) { 
+        enable(id, cur_time, buf, capacity);
+    }
+
+    template<size_t capacity>
+    void disable(otm_timer_id_t id, MemoBuf<capacity> & buf) { 
+        disable(id, buf, capacity);
+    }
+
+
+	void unregisterTimer(otm_timer_id_t id);
+
+    static ManagerBase & _cast(otm_manage_t otm);
+
+protected:
+    /*VC编译器处理成员函数地址时有错误，没有生成垫片函数，所以为了正确调用函数指针，必须直接把传入T类型的对象绑定在调用的对象上
+      所以传入的realResponser为真实的Responser地址，而useResponser是T的this地址，用于调用函数的
+     */
+	void registerTimer(
+        otm_timer_id_t id,
+        const char * name,
+        void * realResponser, void * fun,
+        tl_time_span_t span
+#ifdef _MSC_VER
+        , void * useResponser
+#endif
+        );
+
+    void unregisterTimer(void * processor);
+};
+
+template<typename ContextT>
+class Manager : public ManagerBase {
+public:
+    typedef Cpe::Otm::TimerProcessor<ContextT> TimerProcessor;
+    typedef void (TimerProcessor::*Fun)(Memo & memo, tl_time_t cur_exec_time, void * obj_ctx);
+
+    using ManagerBase::registerTimer;
     template<typename T>
     void registerTimer(
         otm_timer_id_t id,
@@ -20,31 +76,34 @@ public:
     {
 #ifdef _MSC_VER
         this->registerTimer(
-            id, name, r, static_cast<TimerProcessFun>(fun), span
+            id, name, r, static_cast<TimerProcessor::Fun >(fun), span
             , *((TimerProcessor*)((void*)&r)));
 #else
+        /*
         this->registerTimer(
             id, name,
             static_cast<TimerProcessor&>(r), static_cast<TimerProcessFun>(fun),
             span);
+        */
 #endif
     }
 
-    /*VC编译器处理成员函数地址时有错误，没有生成垫片函数，所以为了正确调用函数指针，必须直接把传入T类型的对象绑定在调用的对象上
-      所以传入的realResponser为真实的Responser地址，而useResponser是T的this地址，用于调用函数的
-     */
-	void registerTimer(
-        otm_timer_id_t id,
-        const char * name,
-        TimerProcessor& realResponser, TimerProcessFun fun
-        tl_time_span_t span,
-#ifdef _MSC_VER
-        , TimerProcessor& useResponser
-#endif
-        );
+    using ManagerBase::unregisterTimer;
+	void unregisterTimer(TimerProcessor const & processor) {
+        ManagerBase::unregisterTimer(&processor);
+    }
 
-	void unregisterTimer(otm_timer_id_t id);
-	void unregisterTimer(TimerProcessor const & processor);
+
+    using ManagerBase::tick;
+
+    template<size_t capacity>
+    void tick(tl_time_t cur_time, ContextT & ctx, MemoBuf<capacity> & buf) {
+        tick(cur_time, &ctx, buf, capacity);
+    }
+
+    static Manager & _cast(otm_manage_t otm) {
+        return static_cast<Manager&>(ManagerBase::_cast(otm));
+    }
 };
 
 }}
