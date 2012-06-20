@@ -11,10 +11,17 @@ otm_timer_t otm_timer_create(
     otm_timer_id_t id,
     const char * name,
     otm_timer_id_t span,
-    otm_process_fun_t process,
-    void * process_ctx);
+    size_t capacity,
+    otm_process_fun_t process);
 
 void otm_timer_free(otm_timer_t timer);
+
+otm_timer_t otm_timer_find(otm_manage_t mgr, otm_timer_id_t id);
+
+otm_timer_id_t otm_timer_id(otm_timer_t timer);
+const char * otm_timer_name(otm_timer_t timer);
+void * otm_timer_data(otm_timer_t timer);
+size_t otm_timer_capacity(otm_timer_t timer);
 
 #ifdef __cplusplus
 }
