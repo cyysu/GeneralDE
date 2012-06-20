@@ -239,6 +239,7 @@ int bpg_rsp_copy_bpg_carry_data_to_ctx(bpg_rsp_manage_t mgr, logic_context_t op_
     buf = (BPG_CARRY_INFO *)logic_data_data(data);
     buf->clientId = bpg_pkg_client_id(bpg_req);
     buf->connectionId = bpg_pkg_connection_id(bpg_req);
+    buf->sn = bpg_pkg_sn(bpg_req);
     buf->cmd = bpg_pkg_cmd(bpg_req);
     buf->carry_data_size = bpg_pkg_carry_data_size(bpg_req);
     buf->no_response = 0;

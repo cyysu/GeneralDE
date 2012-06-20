@@ -86,7 +86,7 @@ void bpg_rsp_commit(logic_context_t op_context, void * user_data) {
     }
 
     bpg_pkg_init(response_buf);
-    bpg_pkg_set_sn(response_buf, logic_context_id(op_context));
+    bpg_pkg_set_sn(response_buf, bpg_private->sn);
     bpg_pkg_set_client_id(response_buf, bpg_private->clientId);
     bpg_pkg_set_errno(response_buf, logic_context_errno(op_context));
     bpg_pkg_set_cmd(response_buf, bpg_private->cmd);
@@ -115,7 +115,7 @@ void bpg_rsp_commit(logic_context_t op_context, void * user_data) {
 
 SEND_ERROR_RESPONSE:
     bpg_pkg_init(response_buf);
-    bpg_pkg_set_sn(response_buf, logic_context_id(op_context));
+    bpg_pkg_set_sn(response_buf, bpg_private->sn);
     bpg_pkg_set_client_id(response_buf, bpg_private->clientId);
     bpg_pkg_set_errno(response_buf, -1);
     bpg_pkg_set_cmd(response_buf, bpg_private->cmd);
