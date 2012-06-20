@@ -15,8 +15,9 @@ struct otm_timer {
     otm_manage_t m_mgr;
     otm_timer_id_t m_id;
     const char * m_name;
+    otm_timer_id_t m_span;
+    size_t m_capacity;
     otm_process_fun_t m_process;
-    void * m_process_ctx;
 
     struct cpe_hash_entry m_hh;
 };
