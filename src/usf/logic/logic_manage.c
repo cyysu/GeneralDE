@@ -37,8 +37,8 @@ logic_manage_create(
     mgr = (logic_manage_t)nm_node_data(mgr_node);
     mgr->m_alloc = alloc;
     mgr->m_app = app;
-    mgr->m_context_id = 0;
-    mgr->m_require_id = 0;
+    mgr->m_context_id = 1;
+    mgr->m_require_id = 1;
     mgr->m_debug = 0;
     mgr->m_waiting_count = 0;
     TAILQ_INIT(&mgr->m_waiting_contexts);
