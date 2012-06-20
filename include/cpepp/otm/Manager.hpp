@@ -49,21 +49,21 @@ protected:
 	void registerTimer(
         otm_timer_id_t id,
         const char * name,
-        void * realResponser, void * fun,
+        void * realResponser, void * fun_addr, size_t fun_size,
         tl_time_span_t span
 #ifdef _MSC_VER
         , void * useResponser
 #endif
         );
 
-    void unregisterTimer(void * processor);
+    void unregisterTimer(void const * processor);
 };
 
 template<typename ContextT>
 class Manager : public ManagerBase {
 public:
     typedef Cpe::Otm::TimerProcessor<ContextT> TimerProcessor;
-    typedef void (TimerProcessor::*Fun)(Memo & memo, tl_time_t cur_exec_time, void * obj_ctx);
+    typedef void (TimerProcessor::*Fun)(Timer & timer, Memo & memo, tl_time_t cur_exec_time, ContextT & obj_ctx);
 
     using ManagerBase::registerTimer;
     template<typename T>
@@ -71,7 +71,7 @@ public:
         otm_timer_id_t id,
         const char * name,
         T & r,
-        void (T::*fun)(Memo & memo, tl_time_t cur_exec_time, void * obj_ctx),
+        void (T::*fun)(Timer & timer, Memo & memo, tl_time_t cur_exec_time, ContextT & obj_ctx),
         tl_time_span_t span)
     {
 #ifdef _MSC_VER
@@ -79,12 +79,11 @@ public:
             id, name, r, static_cast<TimerProcessor::Fun >(fun), span
             , *((TimerProcessor*)((void*)&r)));
 #else
-        /*
+        Fun save_fun = static_cast<Fun>(fun);
         this->registerTimer(
             id, name,
-            static_cast<TimerProcessor&>(r), static_cast<TimerProcessFun>(fun),
+            &static_cast<TimerProcessor&>(r), &save_fun, sizeof(save_fun),
             span);
-        */
 #endif
     }
 

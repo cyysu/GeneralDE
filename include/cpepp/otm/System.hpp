@@ -5,10 +5,12 @@
 
 namespace Cpe { namespace Otm {
 
-template<size_t capacity> class MemoBuf;
 class Memo;
-
+class Timer;
 class ManagerBase;
+
+template<size_t capacity>
+class MemoBuf;
 
 template<typename ContextT>
 class Manager;
