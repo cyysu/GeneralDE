@@ -123,18 +123,20 @@ void CliProxy::send(Usf::Logic::LogicOpRequire & require, Cpe::Dr::Data const & 
     send(require, pkg);
 }
 
-void CliProxy::send(Usf::Logic::LogicOpRequire & requrest, const char * metaName, void const * data, size_t size) {
+void CliProxy::send(Usf::Logic::LogicOpRequire & require, const char * metaName, void const * data, size_t size) {
     Usf::Bpg::Package & pkg = pkgBuf() ;
     pkg.clearData();
     pkg.setErrCode(0);
     pkg.setCmdAndData(metaName, data, size);
+    send(require, pkg);
 }
 
-void CliProxy::send(Usf::Logic::LogicOpRequire & requrest, LPDRMETA meta, void const * data, size_t size) {
+void CliProxy::send(Usf::Logic::LogicOpRequire & require, LPDRMETA meta, void const * data, size_t size) {
     Usf::Bpg::Package & pkg = pkgBuf() ;
     pkg.clearData();
     pkg.setErrCode(0);
     pkg.setCmdAndData(dr_meta_name(meta), data, size);
+    send(require, pkg);
 }
 
 }}
