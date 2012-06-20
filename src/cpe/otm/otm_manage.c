@@ -1,6 +1,7 @@
 #include <assert.h>
 #include "cpe/pal/pal_stdlib.h"
 #include "cpe/otm/otm_manage.h"
+#include "cpe/otm/otm_timer.h"
 #include "otm_internal_ops.h"
 
 otm_manage_t
@@ -53,6 +54,7 @@ int otm_manage_buf_init(otm_manage_t mgr, otm_memo_t memo_buf, size_t memo_capac
     while((timer = (otm_timer_t)cpe_hash_it_next(&timer_it))) {
         memo_buf[i].m_id = timer->m_id;
         memo_buf[i].m_last_action_time = 0;
+        memo_buf[i].m_next_action_time = 0;
         ++i;
     }
 
@@ -61,12 +63,35 @@ int otm_manage_buf_init(otm_manage_t mgr, otm_memo_t memo_buf, size_t memo_capac
     return 0;
 }
 
-void otm_manage_tick(otm_manage_t mgr, tl_time_t cur_time, void * obj_ctx, otm_memo_t memo_buf, size_t memo_capacity) {
+error_monitor_t otm_manage_em(otm_manage_t mgr) {
+    return mgr->m_em;
 }
 
-int otm_manage_enable(otm_manage_t mgr, otm_timer_id_t id, tl_time_t cur_time, otm_memo_t memo, size_t memo_capacitiy) {
+void otm_manage_tick(otm_manage_t mgr, tl_time_t cur_time, void * obj_ctx, otm_memo_t memo_buf, size_t memo_capacity) {
+    size_t i;
+    for(i = 0; i < memo_capacity; ++i) {
+        otm_memo_t memo = memo_buf + i;
+
+        if (memo->m_id == 0) continue;
+        if (memo->m_next_action_time == 0 || memo->m_next_action_time > cur_time) break;
+
+        otm_timer_t timer = otm_timer_find(mgr, memo->m_id);
+        if (timer == NULL) continue;
+
+        while(memo->m_next_action_time > 0 && memo->m_next_action_time <= cur_time) {
+            tl_time_t cur_next_action_time = memo->m_next_action_time;
+            timer->m_process(timer, memo, cur_next_action_time, obj_ctx);
+            if (memo->m_next_action_time == cur_next_action_time) {
+                memo->m_next_action_time += timer->m_span;
+            }
+        }
+    }
+}
+
+int otm_manage_enable(otm_manage_t mgr, otm_timer_id_t id, tl_time_t cur_time, tl_time_t first_exec_span, otm_memo_t memo, size_t memo_capacitiy) {
     struct otm_memo key;
     otm_memo_t timer_memo;
+    otm_timer_t timer;
 
     assert(mgr);
     assert(memo);
@@ -74,11 +99,15 @@ int otm_manage_enable(otm_manage_t mgr, otm_timer_id_t id, tl_time_t cur_time, o
     key.m_id = id;
 
     timer_memo = (otm_memo_t)bsearch(&key, memo, memo_capacitiy, sizeof(struct otm_memo), otm_memo_cmp);
-    if (timer_memo == NULL) {
-        return -1;
-    }
+    if (timer_memo == NULL) return -1;
+
+    timer = otm_timer_find(mgr, id);
+    if (timer == NULL) return -1;
+
+    if (first_exec_span == 0) first_exec_span = timer->m_span;
 
     timer_memo->m_last_action_time = cur_time;
+    timer_memo->m_next_action_time = cur_time + first_exec_span;
     return 0;
 }
 
@@ -100,7 +129,7 @@ int otm_manage_perform(otm_manage_t mgr, tl_time_t cur_time, otm_timer_id_t id, 
     timer = (otm_timer_t)cpe_hash_table_find(&mgr->m_timers, &key_timer);
     if (timer == NULL) return -1;
 
-    timer->m_process(timer_memo, cur_time, timer->m_process_ctx, obj_ctx);
+    timer->m_process(timer, timer_memo, cur_time, obj_ctx);
 
     return 0;
 }
@@ -118,6 +147,7 @@ int otm_manage_disable(otm_manage_t mgr, otm_timer_id_t id, otm_memo_t memo, siz
     if (timer_memo == NULL) return 0;
 
     timer_memo->m_last_action_time = 0;
+    timer_memo->m_next_action_time = 0;
     return 0;
 }
 
@@ -131,4 +161,31 @@ int otm_memo_cmp(void const * l, void const * r) {
            ? 1
            : 0);
         
+}
+
+
+struct otm_timer_next_data {
+    struct cpe_hash_it timer_it;
+};
+
+static otm_timer_t otm_timer_it_next(struct otm_timer_it * it) {
+    struct otm_timer_next_data * data;
+
+    assert(sizeof(struct otm_timer_next_data) <= sizeof(it->m_data));
+
+    data = (struct otm_timer_next_data *)it->m_data;
+
+    return (otm_timer_t)cpe_hash_it_next(&data->timer_it);
+}
+
+void otm_manage_timers(otm_manage_t mgr, otm_timer_it_t it) {
+    struct otm_timer_next_data * data;
+
+    assert(sizeof(struct otm_timer_next_data) <= sizeof(it->m_data));
+
+    data = (struct otm_timer_next_data *)it->m_data;
+
+    cpe_hash_it_init(&data->timer_it, &mgr->m_timers);
+
+    it->next = otm_timer_it_next;
 }

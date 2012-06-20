@@ -5,8 +5,9 @@
 
 namespace Cpe { namespace Otm {
 
-class MemoBuf : public Cpe::Utils::ClassCategory {
+class Memo : public Cpe::Utils::SimulateObject {
 public:
+    operator otm_memo_t (void) const { return (otm_memo_t)(this); }
 };
 
 }}
