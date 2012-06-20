@@ -5,8 +5,8 @@ cygwin.CC?=$(shell which gcc)
 cygwin.CXX?=$(shell which g++)
 cygwin.AR?=$(shell which ar)
 
-cygwin.CFLAGS+=-Wall
-cygwin.CXXFLAGS+=-Wall
+cygwin.CFLAGS+=
+cygwin.CXXFLAGS+=
 
 cygwin.linker.c:=$(cygwin.GCC)
 cygwin.linker.cpp:=$(cygwin.CXX)
