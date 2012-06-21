@@ -39,7 +39,7 @@ void otm_manage_free(otm_manage_t mgr) {
     mem_free(mgr->m_alloc, mgr);
 }
 
-int otm_manage_buf_init(otm_manage_t mgr, otm_memo_t memo_buf, size_t memo_capacitiy) {
+int otm_manage_buf_init(otm_manage_t mgr, tl_time_t cur_time, otm_memo_t memo_buf, size_t memo_capacitiy) {
     struct cpe_hash_it timer_it;
     otm_timer_t timer;
     size_t i;
@@ -53,12 +53,23 @@ int otm_manage_buf_init(otm_manage_t mgr, otm_memo_t memo_buf, size_t memo_capac
     i = 0;
     while((timer = (otm_timer_t)cpe_hash_it_next(&timer_it))) {
         memo_buf[i].m_id = timer->m_id;
-        memo_buf[i].m_last_action_time = 0;
-        memo_buf[i].m_next_action_time = 0;
+
+        if (otm_timer_auto_enable(timer)) {
+            memo_buf[i].m_last_action_time = cur_time;
+            memo_buf[i].m_next_action_time = cur_time + timer->m_span;
+        }
+        else {
+            memo_buf[i].m_last_action_time = 0;
+            memo_buf[i].m_next_action_time = 0;
+        }
         ++i;
     }
 
     qsort(memo_buf, memo_capacitiy, sizeof(struct otm_memo), otm_memo_cmp);
+
+    for(i = 0; i < memo_capacitiy; ++i) {
+        printf("task order %d: %d\n", i,  memo_buf[i].m_id);
+    }
 
     return 0;
 }
@@ -104,10 +115,9 @@ int otm_manage_enable(otm_manage_t mgr, otm_timer_id_t id, tl_time_t cur_time, t
     timer = otm_timer_find(mgr, id);
     if (timer == NULL) return -1;
 
-    if (first_exec_span == 0) first_exec_span = timer->m_span;
+    printf("enable %d, memo=%d\n", timer->m_id, memo->m_id);
+    otm_timer_enable(timer, cur_time, first_exec_span, timer_memo);
 
-    timer_memo->m_last_action_time = cur_time;
-    timer_memo->m_next_action_time = cur_time + first_exec_span;
     return 0;
 }
 
@@ -148,6 +158,7 @@ int otm_manage_disable(otm_manage_t mgr, otm_timer_id_t id, otm_memo_t memo, siz
 
     timer_memo->m_last_action_time = 0;
     timer_memo->m_next_action_time = 0;
+
     return 0;
 }
 

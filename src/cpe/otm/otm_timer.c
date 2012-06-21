@@ -36,6 +36,7 @@ otm_timer_t otm_timer_create(
     timer->m_span = span;
     timer->m_capacity = capacity;
     timer->m_process = process;
+    timer->m_flags = 0;
 
     cpe_hash_entry_init(&timer->m_hh);
     if (cpe_hash_table_insert_unique(&mgr->m_timers, timer) != 0) {
@@ -93,4 +94,36 @@ void * otm_timer_data(otm_timer_t timer) {
 
 size_t otm_timer_capacity(otm_timer_t timer) {
     return timer->m_capacity;
+}
+
+void otm_timer_set_auto_enable(otm_timer_t timer, int enable_p) {
+    if (enable_p) {
+        timer->m_flags &= OTM_TIMER_FLAGS_AUTO_ENABLE;
+    }
+    else {
+        timer->m_flags |= ~OTM_TIMER_FLAGS_AUTO_ENABLE;
+    }
+}
+
+int otm_timer_auto_enable(otm_timer_t timer) {
+    return timer->m_flags | OTM_TIMER_FLAGS_AUTO_ENABLE;
+}
+
+void otm_timer_enable(otm_timer_t timer, tl_time_t cur_time, tl_time_t first_exec_span, otm_memo_t memo) {
+    if (memo->m_last_action_time != 0) {
+        if (first_exec_span != 0) {
+            memo->m_next_action_time = cur_time + first_exec_span;
+        }
+    }
+    else {
+        if (first_exec_span == 0) first_exec_span = timer->m_span;
+
+        memo->m_last_action_time = cur_time;
+        memo->m_next_action_time = cur_time + first_exec_span;
+    }
+}
+
+void otm_timer_disable(otm_timer_t timer, otm_memo_t memo) {
+    memo->m_last_action_time = 0;
+    memo->m_next_action_time = 0;
 }

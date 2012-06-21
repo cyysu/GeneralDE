@@ -4,6 +4,8 @@
 #include "cpe/utils/error.h"
 #include "cpe/otm/otm_types.h"
 
+#define OTM_TIMER_FLAGS_AUTO_ENABLE 1
+
 struct otm_manage {
     mem_allocrator_t m_alloc;
     error_monitor_t m_em;
@@ -18,6 +20,7 @@ struct otm_timer {
     otm_timer_id_t m_span;
     size_t m_capacity;
     otm_process_fun_t m_process;
+    int m_flags;
 
     struct cpe_hash_entry m_hh;
 };
