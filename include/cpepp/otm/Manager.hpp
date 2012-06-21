@@ -12,24 +12,30 @@ class ManagerBase : public Cpe::Utils::SimulateObject {
 public:
     operator otm_manage_t (void) const { return (otm_manage_t)(this); }
 
-    void init(otm_memo_t memo, size_t memo_capacitiy);
+    void init(tl_time_t cur_time, otm_memo_t memo, size_t memo_capacitiy) {
+        otm_manage_buf_init(*this, cur_time, memo, memo_capacitiy);
+    }
 
     void tick(tl_time_t cur_time, void * obj_ctx, otm_memo_t memo, size_t memo_capacitiy) {
         otm_manage_tick(*this, cur_time, obj_ctx, memo, memo_capacitiy);
     }
 
-    void enable(otm_timer_id_t id, tl_time_t cur_time, otm_memo_t memo_buf, size_t memo_capacitiy);
+    void enable(otm_timer_id_t id, tl_time_t cur_time, otm_memo_t memo_buf, size_t memo_capacitiy, tl_time_t first_exec_span = 0) {
+        otm_manage_enable(*this, id, cur_time, first_exec_span, memo_buf, memo_capacitiy);
+    }
 
-    void disable(otm_timer_id_t id, otm_memo_t memo_buf, size_t memo_capacitiy);
-
-    template<size_t capacity>
-    void init(MemoBuf<capacity> & buf) {
-        init(buf, capacity);
+    void disable(otm_timer_id_t id, otm_memo_t memo_buf, size_t memo_capacitiy) {
+        otm_manage_disable(*this, id, memo_buf, memo_capacitiy);
     }
 
     template<size_t capacity>
-    void enable(otm_timer_id_t id, tl_time_t cur_time, MemoBuf<capacity> & buf) { 
-        enable(id, cur_time, buf, capacity);
+    void init(tl_time_t cur_time, MemoBuf<capacity> & buf) {
+        init(cur_time, buf, capacity);
+    }
+
+    template<size_t capacity>
+    void enable(otm_timer_id_t id, tl_time_t cur_time, MemoBuf<capacity> & buf, tl_time_t first_exec_span = 0) { 
+        enable(id, cur_time, buf, capacity, first_exec_span);
     }
 
     template<size_t capacity>
@@ -46,7 +52,7 @@ protected:
     /*VC编译器处理成员函数地址时有错误，没有生成垫片函数，所以为了正确调用函数指针，必须直接把传入T类型的对象绑定在调用的对象上
       所以传入的realResponser为真实的Responser地址，而useResponser是T的this地址，用于调用函数的
      */
-	void registerTimer(
+	Timer & registerTimer(
         otm_timer_id_t id,
         const char * name,
         void * realResponser, void * fun_addr, size_t fun_size,
@@ -67,7 +73,7 @@ public:
 
     using ManagerBase::registerTimer;
     template<typename T>
-    void registerTimer(
+    Timer & registerTimer(
         otm_timer_id_t id,
         const char * name,
         T & r,
@@ -75,12 +81,12 @@ public:
         tl_time_span_t span)
     {
 #ifdef _MSC_VER
-        this->registerTimer(
+        return this->registerTimer(
             id, name, r, static_cast<TimerProcessor::Fun >(fun), span
             , *((TimerProcessor*)((void*)&r)));
 #else
         Fun save_fun = static_cast<Fun>(fun);
-        this->registerTimer(
+        return this->registerTimer(
             id, name,
             &static_cast<TimerProcessor&>(r), &save_fun, sizeof(save_fun),
             span);

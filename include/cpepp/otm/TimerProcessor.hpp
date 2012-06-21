@@ -1,5 +1,5 @@
-#ifndef CPEPP_OTM_TIMER_H
-#define CPEPP_OTM_TIMER_H
+#ifndef CPEPP_OTM_TIMERPROCESSOR_H
+#define CPEPP_OTM_TIMERPROCESSOR_H
 #include "System.hpp"
 
 namespace Cpe { namespace Otm {
