@@ -103,13 +103,20 @@ sub calc_col_fun {
 
     return sub {
       my ($row, $value, $input_row) = @_;
+
       if ($value =~ /$matcher/) {
-        my $input = $1;
-        if ( exists $converts{$input} ) {
-          $row->{$resultColName} = $converts{$input};
+        if (not defined $1) {
+          if ($default) {
+            $row->{$resultColName} = $default;
+          }
         }
-        elsif ($default) {
-          $row->{$resultColName} = $default;
+        else {
+          my $input = $1;
+          if (defined $input && exists $converts{$input} ) {
+            $row->{$resultColName} = $converts{$input};
+          } elsif ($default) {
+            $row->{$resultColName} = $default;
+          }
         }
       }
     };

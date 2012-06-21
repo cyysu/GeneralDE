@@ -41,7 +41,8 @@ void otm_process_adp(otm_timer_t timer, otm_memo_t memo, tl_time_t cur_exec_time
      }
 }
 
-void ManagerBase::registerTimer(
+Timer &
+ManagerBase::registerTimer(
         otm_timer_id_t id,
         const char * name,
         void * realResponser, void * fun_addr, size_t fun_size,
@@ -76,6 +77,8 @@ void ManagerBase::registerTimer(
     data->m_use_responser = (DummyTimerProcessor*)realResponser;
 #endif
     memcpy(&data->m_fun, fun_addr, fun_size);
+
+    return *(Timer*)timer;
 }
 
 void ManagerBase::unregisterTimer(otm_timer_id_t id) {
