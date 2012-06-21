@@ -32,12 +32,12 @@ tools.cvt.replace.dep=$(addprefix $$(CPDE_ROOT)/,$1)
 
 # $(call install-def-rule-copy,product-name,source,target,domain)
 define install-def-rule-copy
-auto-build-dirs+=$(dir $3)                              
+auto-build-dirs+=$(dir $3) 
 
 $4.$1: $3
 
 $3: $2
-	$(call with_message,copy $(subst $(CPDE_ROOT)/,,$2) to $(subst $(CPDE_ROOT)/,,$3) ...)\
+	$(call with_message,copy $(subst $(CPDE_ROOT)/,,$2) to $(subst $(CPDE_OUTPUT_ROOT)/,,$3) ...)\
          cp $$< $$@
 
 $(eval r.$1.cleanup += $3)
@@ -48,10 +48,12 @@ endef
 define install-def-rule-cvt
 $(if $(tools.cvt.$(strip $4).cmd),,$(warning cvt way '$(strip $4)' not support))
 
+auto-build-dirs+=$(dir $3)
+
 $6.$1: $3
 
 $3: $2 $(call tools.cvt.$(strip $4).dep,$5)
-	$(call with_message,convert $(subst $(CPDE_ROOT)/,,$2) to $(subst $(CPDE_ROOT)/,,$3) ...)\
+	$(call with_message,convert $(subst $(CPDE_ROOT)/,,$2) to $(subst $(CPDE_OUTPUT_ROOT)/,,$3) ...)\
           $(call tools.cvt.$(strip $4).cmd,$5)
 
 $(eval r.$1.cleanup += $3)
@@ -91,7 +93,7 @@ define product-def-rule-install-copy-file
 $(call install-def-rule-copy,\
        $1,\
        $(CPDE_ROOT)/$(subst /env/,/$($2.env)/,$(patsubst %/env,%/$($2.env),$(word 1,$3))),\
-       $(CPDE_OUTPUT_ROOT)/$($2.output)$(word 2,$3),\
+       $(CPDE_OUTPUT_ROOT)/$($2.output)/$(word 2,$3),\
        $2)
 endef
 
