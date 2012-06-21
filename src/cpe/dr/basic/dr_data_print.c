@@ -39,12 +39,12 @@ int dr_printf_double_to_stream(write_stream_t stream, const void * data, LPDRMET
 
 int dr_printf_char_to_stream(write_stream_t stream, const void * data, LPDRMETAENTRY entry, error_monitor_t em) {
     char tmp = *((char*)data);
-    return stream_printf(stream, "%c", tmp);
+    return stream_printf(stream, "%d", tmp);
 }
 
 int dr_printf_uchar_to_stream(write_stream_t stream, const void * data, LPDRMETAENTRY entry, error_monitor_t em) {
     unsigned char tmp = *((unsigned char*)data);
-    return stream_printf(stream, "%c", tmp);
+    return stream_printf(stream, "%d", tmp);
 }
 
 int dr_printf_string_to_stream(write_stream_t stream, const void * data, LPDRMETAENTRY entry, error_monitor_t em) {

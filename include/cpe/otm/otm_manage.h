@@ -16,7 +16,7 @@ otm_manage_create(
 
 void otm_manage_free(otm_manage_t mgr);
 
-int otm_manage_buf_init(otm_manage_t mgr, otm_memo_t memo, size_t memo_capacitiy);
+int otm_manage_buf_init(otm_manage_t mgr, tl_time_t cur_time, otm_memo_t memo, size_t memo_capacitiy);
 
 void otm_manage_tick(otm_manage_t mgr, tl_time_t cur_time, void * obj_ctx, otm_memo_t memo_buf, size_t memo_capacity);
 
