@@ -23,6 +23,12 @@ const char * otm_timer_name(otm_timer_t timer);
 void * otm_timer_data(otm_timer_t timer);
 size_t otm_timer_capacity(otm_timer_t timer);
 
+void otm_timer_set_auto_enable(otm_timer_t timer, int enable_p);
+int otm_timer_auto_enable(otm_timer_t timer);
+
+void otm_timer_enable(otm_timer_t timer, tl_time_t cur_time, tl_time_t first_exec_span, otm_memo_t memo);
+void otm_timer_disable(otm_timer_t timer, otm_memo_t memo);
+
 #ifdef __cplusplus
 }
 #endif
