@@ -283,6 +283,10 @@
 					>
 				</File>
 				<File
+ 					RelativePath="..\..\src\usf\logic\logic_data_read.c"
+ 					>
+ 				</File>
+ 				<File
 					RelativePath="..\..\src\usf\logic\logic_executor.c"
 					>
 				</File>
@@ -312,10 +316,6 @@
 				</File>
 				<File
 					RelativePath="..\..\src\usf\logic\logic_require.c"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\usf\logic\logic_require_type.c"
 					>
 				</File>
 				<File
@@ -522,6 +522,59 @@
 					>
 				</File>
 			</Filter>
+ 			<Filter
+ 				Name="logic_use"
+ 				>
+ 				<File
+ 					RelativePath="..\..\src\usf\logic_use\logic_op_async.c"
+ 					>
+ 				</File>
+ 				<File
+ 					RelativePath="..\..\src\usf\logic_use\logic_op_dump.c"
+ 					>
+ 				</File>
+ 			</Filter>
+ 			<Filter
+ 				Name="bpg_cli"
+ 				>
+ 				<File
+ 					RelativePath="..\..\src\usf\bpg_cli\bpg_cli_internal_types.h"
+ 					>
+ 				</File>
+ 				<File
+ 					RelativePath="..\..\build\protocol\bpg_cli\bpg_cli_pkg_info.c"
+ 					>
+ 				</File>
+ 				<File
+ 					RelativePath="..\..\build\protocol\bpg_cli\bpg_cli_pkg_info.h"
+ 					>
+ 				</File>
+ 				<File
+ 					RelativePath="..\..\src\usf\bpg_cli\bpg_cli_pkg_info.xml"
+ 					>
+ 					<FileConfiguration
+ 						Name="Debug|Win32"
+ 						>
+ 						<Tool
+ 							Name="VCCustomBuildTool"
+ 							CommandLine="set PATH=$(SolutionDir)..\..\3rdTools\iconv\vc\bin;$(SolutionDir)..\..\3rdTools\zlib\vc\bin;%PATH%&#x0D;&#x0A;$(SolutionDir)..\..\build\tools\bin\cpe_dr_tool.exe -i $(InputPath) --output-h $(OutDir)\..\protocol\bpg_cli --output-lib-c $(OutDir)\..\protocol\bpg_cli\$(InputName).c --output-lib-c-arg g_metalib_bpg_cli_pkg_info&#x0D;&#x0A;&#x0D;&#x0A;"
+ 							Outputs="$(OutDir)\..\protocol\bpg_cli\bpg_cli_pkg_info.h;$(OutDir)\..\protocol\bpg_cli\bpg_cli_pkg_info.c"
+ 						/>
+ 					</FileConfiguration>
+ 				</File>
+ 				<File
+ 					RelativePath="..\..\src\usf\bpg_cli\bpg_cli_proxy.c"
+ 					>
+ 				</File>
+ 				<File
+ 					RelativePath="..\..\src\usf\bpg_cli\bpg_cli_proxy_module.c"
+ 					>
+ 				</File>
+ 				<File
+ 					RelativePath="..\..\src\usf\bpg_cli\bpg_cli_proxy_recv.c"
+ 					>
+ 				</File>
+ 			</Filter>
 		</Filter>
 	</Files>
 	<Globals>

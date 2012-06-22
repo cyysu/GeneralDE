@@ -17,7 +17,7 @@
 #include "usf/bpg_cli/bpg_cli_proxy.h"
 #include "usf/bpg_pkg/bpg_pkg_dsp.h"
 #include "bpg_cli_internal_types.h"
-#include "protocol/bpg_cli_pkg_info.h"
+#include "protocol/bpg_cli/bpg_cli_pkg_info.h"
 
 static void bpg_cli_proxy_clear(nm_node_t node);
 
