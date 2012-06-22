@@ -392,6 +392,10 @@
 					RelativePath="..\..\include\cpe\utils\stream_mem.h"
 					>
 				</File>
+ 				<File
+ 					RelativePath="..\..\include\cpe\utils\string_utils.h"
+ 					>
+ 				</File>
 			</Filter>
 			<Filter
 				Name="net"
@@ -752,6 +756,14 @@
 						>
 					</File>
 				</Filter>
+ 				<Filter
+ 					Name="meta-validate"
+ 					>
+ 					<File
+ 						RelativePath="..\..\src\cpe\dr\meta-validate\dr_validate_align.c"
+ 						>
+ 					</File>
+ 				</Filter>
 			</Filter>
 			<Filter
 				Name="pal"
@@ -868,6 +880,10 @@
 					RelativePath="..\..\src\cpe\utils\stream_printf.c"
 					>
 				</File>
+ 				<File
+ 					RelativePath="..\..\src\cpe\utils\string_utils.c"
+ 					>
+ 				</File>
 			</Filter>
 			<Filter
 				Name="net"
