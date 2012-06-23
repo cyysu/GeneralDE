@@ -409,7 +409,7 @@ my ( $col_min, $col_max ) = $sheet->col_range();
 if ( $row_max < 0 || $row_min >= $row_max ) { die "sheet $inputSheet row range error!"; }
 if ( $col_max < 0 || $col_min >= $col_max ) { die "sheet $inputSheet col range error!"; }
 
-my @tableHead = ();
+my %tableHead = ();
 foreach my $colPos ($col_min .. $col_max) {
   my $colName;
   my $cell = $sheet->get_cell($row_min, $colPos);
@@ -417,7 +417,7 @@ foreach my $colPos ($col_min .. $col_max) {
     $colName = $cell->value();
   }
 
-  push @tableHead, $colName;
+  $tableHead{$colPos} = $colName;
 }
 
 my @table;
@@ -430,7 +430,7 @@ foreach my $rowPos ( $row_min + 1 .. $row_max ) {
     my $cell = $sheet->get_cell($rowPos, $colPos);
     next if not defined $cell;
 
-    my $colName = $tableHead[$colPos];
+    my $colName = $tableHead{$colPos};
     next if not defined $colName;
 
     $input_row{$colName} = $cell->value();
