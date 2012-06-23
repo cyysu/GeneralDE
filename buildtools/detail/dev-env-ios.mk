@@ -2,10 +2,10 @@
 
 dev-env-list+=ios
 
-ios.CFLAGS+=-Wall
-ios.CXXFLAGS+=-Wall
-ios.MFLAGS+=-Wall -pipe -x objective-c
-ios.MMFLAGS+=-Wall -pipe -x objective-c++
+ios.CFLAGS+=
+ios.CXXFLAGS+=
+ios.MFLAGS+=-pipe -x objective-c
+ios.MMFLAGS+=-pipe -x objective-c++
 
 ifneq ($(DEBUG),0)
 ios.CFLAGS+=-g
@@ -84,10 +84,6 @@ iPhoneSimulator.LDFLAGS ?=  -arch i386\
                             -Xlinker 2 
 
 iPhoneSimulator.install-dir?=$(HOME)/Library/Application Support/iPhone Simulator/$(IOS_PLATFORM_VERSION)/Applications
-iPhoneSimulator.run := 	echo ' \
-application "iPhone Simulator" quit\n \
-application "iPhone Simulator" activate\n \
-' | osascript
 
 # }}}
 # {{{ toolset def
