@@ -193,7 +193,7 @@ void dr_data_cvt(
                     if (dr_ctype_try_read_int32(
                             &readBuf, 
                             curStack->m_src_data + src_entry->m_array_refer_data_start_pos,
-                            src_entry->m_type,
+                            srcRefer->m_type,
                             0) == 0)
                     {
                         src_array_count_max = readBuf;

@@ -206,7 +206,11 @@ struct DRCtypeTypeReadOps g_dr_ctype_read_ops[] = {
       , int8_to_float, int8_to_double
     }
     , /*CPE_DR_TYPE_UCHAR*/
-    { NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL
+    { uint8_to_int8, uint8_to_uint8
+      , uint8_to_int16, uint8_to_uint16
+      , uint8_to_int32, uint8_to_uint32
+      , uint8_to_int64, uint8_to_uint64
+      , uint8_to_float, uint8_to_double
     }
     , /*CPE_DR_TYPE_INT8*/
     { int8_to_int8, int8_to_uint8
@@ -342,6 +346,7 @@ struct DRCtypeTypeReadOps g_dr_ctype_read_ops[] = {
                     result, input, NULL, em);                           \
             }                                                           \
             else {                                                      \
+                printf("222 type=%d, %s\n", type, #__to);              \
                 CPE_ERROR(em, "read from %d, type not support to "      \
                           #__to, type);                                 \
                 return -1;                                              \
