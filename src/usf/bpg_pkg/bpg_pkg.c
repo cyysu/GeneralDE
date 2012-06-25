@@ -346,7 +346,7 @@ bpg_pkg_debug_level_t bpg_pkg_debug_level(bpg_pkg_t req) {
 }
 
 const char * bpg_pkg_dump(bpg_pkg_t req, mem_buffer_t buffer) {
-    char decode_buf[4 * 1024];
+    struct mem_buffer decode_buffer;
     size_t buf_size;
     struct write_stream_buffer stream = CPE_WRITE_STREAM_BUFFER_INITIALIZER(buffer);
     LPDRMETALIB metalib;
@@ -354,6 +354,7 @@ const char * bpg_pkg_dump(bpg_pkg_t req, mem_buffer_t buffer) {
     BASEPKG * pkg;
     int i;
 
+    mem_buffer_init(&decode_buffer, NULL);
     mem_buffer_clear_data(buffer);
 
     pkg = (BASEPKG *)bpg_pkg_pkg_data(req);
@@ -374,9 +375,14 @@ const char * bpg_pkg_dump(bpg_pkg_t req, mem_buffer_t buffer) {
         if ((meta = bpg_pkg_main_data_meta(req, NULL))) {
             stream_printf(((write_stream_t)&stream), " %s", dr_meta_name(meta));
 
-            buf_size = sizeof(decode_buf);
-            if (bpg_pkg_get_main_data(req, meta, decode_buf, &buf_size, NULL) == 0) {
-                dr_json_print((write_stream_t)&stream, decode_buf, meta, DR_JSON_PRINT_BEAUTIFY, 0);
+            mem_buffer_set_size(&decode_buffer, bpg_pkg_body_origin_len(req));
+            buf_size = mem_buffer_size(&decode_buffer);
+            if (bpg_pkg_get_main_data(req, meta, mem_buffer_make_continuous(&decode_buffer, 0), &buf_size, NULL) == 0) {
+                dr_json_print(
+                    (write_stream_t)&stream,
+                    mem_buffer_make_continuous(&decode_buffer, 0),
+                    meta,
+                    DR_JSON_PRINT_BEAUTIFY, 0);
             }
             else {
                 stream_printf((write_stream_t)&stream, "[decode fail] bodylen=%d", pkg->head.bodylen);
@@ -395,10 +401,12 @@ const char * bpg_pkg_dump(bpg_pkg_t req, mem_buffer_t buffer) {
 
         if ((meta = bpg_pkg_append_data_meta(req, append_info, NULL))) {
             stream_printf((write_stream_t)&stream, "\nappend %d(%s): ", dr_meta_id(meta), dr_meta_name(meta));
-            
-            buf_size = sizeof(decode_buf);
-            if (bpg_pkg_get_append_data(req, append_info, meta, decode_buf, &buf_size, NULL) == 0) {
-                dr_json_print((write_stream_t)&stream, decode_buf, meta, DR_JSON_PRINT_BEAUTIFY, 0);
+
+
+            mem_buffer_set_size(&decode_buffer, bpg_pkg_append_info_origin_size(append_info));
+            buf_size = mem_buffer_size(&decode_buffer);
+            if (bpg_pkg_get_append_data(req, append_info, meta, mem_buffer_make_continuous(&decode_buffer, 0), &buf_size, NULL) == 0) {
+                dr_json_print((write_stream_t)&stream, mem_buffer_make_continuous(&decode_buffer, 0), meta, DR_JSON_PRINT_BEAUTIFY, 0);
             }
             else {
                 stream_printf(
@@ -416,6 +424,7 @@ const char * bpg_pkg_dump(bpg_pkg_t req, mem_buffer_t buffer) {
                 bpg_pkg_append_info_origin_size(append_info));
         }
     }
+    mem_buffer_clear(&decode_buffer);
 
     stream_putc((write_stream_t)&stream, 0);
 
