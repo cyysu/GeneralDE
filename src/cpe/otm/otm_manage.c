@@ -67,10 +67,6 @@ int otm_manage_buf_init(otm_manage_t mgr, tl_time_t cur_time, otm_memo_t memo_bu
 
     qsort(memo_buf, memo_capacitiy, sizeof(struct otm_memo), otm_memo_cmp);
 
-    for(i = 0; i < memo_capacitiy; ++i) {
-        printf("task order %d: %d\n", i,  memo_buf[i].m_id);
-    }
-
     return 0;
 }
 
@@ -115,7 +111,6 @@ int otm_manage_enable(otm_manage_t mgr, otm_timer_id_t id, tl_time_t cur_time, t
     timer = otm_timer_find(mgr, id);
     if (timer == NULL) return -1;
 
-    printf("enable %d, memo=%d\n", timer->m_id, memo->m_id);
     otm_timer_enable(timer, cur_time, first_exec_span, timer_memo);
 
     return 0;
