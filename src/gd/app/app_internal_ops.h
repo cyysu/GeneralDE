@@ -48,6 +48,11 @@ void gd_app_module_data_free(
     gd_app_context_t context,
     const char * moduleName);
 
+/*gd_app_em operations*/
+uint32_t gd_app_em_hash(const struct gd_app_em * require);
+int gd_app_em_cmp(const struct gd_app_em * l, const struct gd_app_em * r);
+void gd_app_em_free_all(gd_app_context_t context);
+
 #ifdef __cplusplus
 }
 #endif

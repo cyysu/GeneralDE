@@ -22,7 +22,7 @@ public:
         cfg_t cmpRoot = (__cfg);                                        \
         const char * str_expect = __expect;                             \
         cfg_t expectRoot = 0;                                           \
-        if (strlen(str_expect) > 0) {                                   \
+        if (str_expect && strlen(str_expect) > 0) {                     \
             expectRoot = t_cfg_parse(str_expect);                       \
             EXPECT_TRUE(expectRoot) << "parse expect cfg fail!";        \
             EXPECT_TRUE(cmpRoot) << "cmp target is fail!";              \

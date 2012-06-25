@@ -41,8 +41,20 @@ gd_app_context_create(
     allocSize = sizeof(struct gd_app_context) + capacity;
     context = (gd_app_context_t)mem_alloc(alloc, allocSize);
     if (context == NULL) return NULL;
-
+    
     bzero(context, allocSize);
+
+    if (cpe_hash_table_init(
+            &context->m_named_ems,
+            alloc,
+            (cpe_hash_fun_t) gd_app_em_hash,
+            (cpe_hash_cmp_t) gd_app_em_cmp,
+            CPE_HASH_OBJ2ENTRY(gd_app_em, m_hh),
+            -1) != 0)
+    {
+        mem_free(context->m_alloc, context);
+        return NULL;
+    }
 
     context->m_state = gd_app_init;
 
@@ -54,6 +66,7 @@ gd_app_context_create(
     TAILQ_INIT(&context->m_tls);
 
     if (gd_app_parse_args(context, argc, argv) != 0) {
+        cpe_hash_table_fini(&context->m_named_ems);
         gd_app_context_free(context);
         return NULL;
     }
@@ -137,5 +150,8 @@ void gd_app_context_free(gd_app_context_t context) {
         context->m_root = NULL;
     }
 
+    gd_app_em_free_all(context);
+    cpe_hash_table_fini(&context->m_named_ems);
+    
     mem_free(context->m_alloc, context);
 }
