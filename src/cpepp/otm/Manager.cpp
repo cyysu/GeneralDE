@@ -113,7 +113,4 @@ ManagerBase & ManagerBase::_cast(otm_manage_t otm) {
     return *reinterpret_cast<ManagerBase*>(otm);
 }
 
-void ManagerBase::init(otm_memo_t memo, size_t memo_capacitiy) {
-}
-
 }}
