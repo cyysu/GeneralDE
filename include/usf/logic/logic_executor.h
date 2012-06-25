@@ -37,6 +37,9 @@ const char * logic_executor_name(logic_executor_t executor);
 void logic_executor_free(logic_executor_t executor);
 void logic_executor_dump(logic_executor_t executor, write_stream_t stream, int level);
 
+logic_executor_t
+logic_executor_clone(logic_manage_t mgr, logic_executor_t executor);
+
 #ifdef __cplusplus
 }
 #endif

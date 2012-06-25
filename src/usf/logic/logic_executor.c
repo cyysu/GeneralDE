@@ -262,6 +262,94 @@ const char * logic_executor_name(logic_executor_t executor) {
     }
 }
 
+logic_executor_t logic_executor_clone(logic_manage_t mgr, logic_executor_t executor) {
+    assert(executor);
+
+    switch(executor->m_category) {
+    case logic_executor_category_action: {
+        struct logic_executor_action * action = (struct logic_executor_action *)(executor);
+        return logic_executor_action_create(mgr, action->m_type, action->m_args);
+    }
+    case logic_executor_category_composite: {
+        struct logic_executor_composite * composite;
+        logic_executor_t member;
+        logic_executor_t r;
+
+        composite  = (struct logic_executor_composite*)(executor);
+
+        r = logic_executor_composite_create(mgr, composite->m_composite_type);
+        if (r == NULL) return NULL;
+
+        TAILQ_FOREACH(member, &composite->m_members, m_next) {
+            logic_executor_t member_r = logic_executor_clone(mgr, member);
+            if (member_r == NULL || logic_executor_composite_add(r, member_r) != 0) {
+                logic_executor_free(r);
+                return NULL;
+            }
+        }
+
+        ((struct logic_executor_composite *)r)->m_args = composite->m_args;
+        
+        return r;
+    }
+    case logic_executor_category_condition: {
+        struct logic_executor_condition * condition;
+        logic_executor_t r;
+
+        condition  = (struct logic_executor_condition*)(executor);
+
+        r = logic_executor_condition_create(mgr);
+        if (r == NULL) return NULL;
+
+        if (condition->m_if) {
+            logic_executor_t if_r = logic_executor_clone(mgr, condition->m_if);
+            if (if_r == NULL || logic_executor_condition_set_if(r, if_r) != 0) {
+                logic_executor_free(r);
+                return NULL;
+            }
+        }
+
+        if (condition->m_do) {
+            logic_executor_t do_r = logic_executor_clone(mgr, condition->m_do);
+            if (do_r == NULL || logic_executor_condition_set_do(r, do_r) != 0) {
+                logic_executor_free(r);
+                return NULL;
+            }
+        }
+
+        if (condition->m_else) {
+            logic_executor_t else_r = logic_executor_clone(mgr, condition->m_else);
+            if (else_r == NULL || logic_executor_condition_set_else(r, else_r) != 0) {
+                logic_executor_free(r);
+                return NULL;
+            }
+        }
+
+        return r;
+    }
+    case logic_executor_category_decorator: {
+        struct logic_executor_decorator * decorator;
+        logic_executor_t r;
+        logic_executor_t inner;
+
+        decorator  = (struct logic_executor_decorator*)(executor);
+
+        inner = logic_executor_clone(mgr, decorator->m_inner);
+        if (inner == NULL) return NULL;
+
+        r = logic_executor_decorator_create(mgr, decorator->m_decorator_type, inner);
+        if (r == NULL) {
+            logic_executor_free(inner);
+            return NULL;
+        }
+
+        return r;
+    }
+    }
+
+    return NULL;
+}
+
 void logic_executor_dump(logic_executor_t executor, write_stream_t stream, int level) {
     if (executor == NULL) return;
 
