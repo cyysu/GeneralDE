@@ -210,6 +210,10 @@
 					RelativePath="..\..\include\usf\bpg_pkg\bpg_pkg_types.h"
 					>
 				</File>
+				<File
+					RelativePath="..\..\include\usf\bpg_pkg\README.md"
+					>
+				</File>
 			</Filter>
 			<Filter
 				Name="bpg_rsp"
@@ -264,6 +268,18 @@
 				</File>
 				<File
 					RelativePath="..\..\include\usf\bpg_use\bpg_use_types.h"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="bpg_cli"
+				>
+				<File
+					RelativePath="..\..\include\usf\bpg_cli\bpg_cli_proxy.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\include\usf\bpg_cli\bpg_cli_types.h"
 					>
 				</File>
 			</Filter>
