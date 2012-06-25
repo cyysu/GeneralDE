@@ -169,6 +169,24 @@ struct logic_executor_type_group {
     struct cpe_hash_table m_types;
 };
 
+struct logic_executor_ref {
+    logic_executor_mgr_t m_mgr;
+    uint16_t m_ref_count;
+    const char * m_name;
+    logic_executor_t m_executor;
+
+    struct cpe_hash_entry m_hh;
+};
+
+struct logic_executor_mgr {
+    gd_app_context_t m_app;
+    mem_allocrator_t m_alloc;
+    error_monitor_t m_em;
+    int m_debug;
+
+    struct cpe_hash_table m_executor_refs;
+};
+
 #ifdef __cplusplus
 }
 #endif

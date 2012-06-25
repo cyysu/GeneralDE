@@ -45,6 +45,13 @@ uint32_t logic_executor_type_hash(const struct logic_executor_type * type);
 int logic_executor_type_cmp(const struct logic_executor_type * l, const struct logic_executor_type * r);
 void logic_executor_type_free_all(logic_executor_type_group_t group);
 
+/*executor type ops*/
+uint32_t logic_executor_ref_hash(const struct logic_executor_ref * type);
+int logic_executor_ref_cmp(const struct logic_executor_ref * l, const struct logic_executor_ref * r);
+void logic_executor_ref_free_all(logic_executor_mgr_t mgr);
+
+logic_executor_ref_t logic_executor_ref_create(logic_executor_mgr_t mgr, const char * name, logic_executor_t executor);
+
 #ifdef __cplusplus
 }
 #endif

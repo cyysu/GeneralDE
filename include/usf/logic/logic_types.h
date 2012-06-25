@@ -70,6 +70,8 @@ typedef struct logic_stack * logic_stack_t;
 typedef struct logic_stack_node * logic_stack_node_t;
 
 typedef struct logic_executor * logic_executor_t;
+typedef struct logic_executor_ref * logic_executor_ref_t;
+typedef struct logic_executor_mgr * logic_executor_mgr_t;
 typedef struct logic_executor_type * logic_executor_type_t;
 typedef struct logic_executor_type_group * logic_executor_type_group_t;
 
