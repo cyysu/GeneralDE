@@ -19,7 +19,7 @@ define product-def-rule-cpe-dr-c-module-validate
 	$$(call with_message,cpe-dr validate dr lib $2 ...) \
 	LD_LIBRARY_PATH=$(CPDE_OUTPUT_ROOT)/$(tools.output)/lib:$$$$LD_LIBRARY_PATH \
 	$(cpe-dr-tool) $(addprefix --validate ,$($1.cpe-dr.$2.validate)) \
-                   $(addprefix -i ,$(r.$1.$3.cpe-dr.$2.source)) | tee > $(r.$1.$3.cpe-dr.$2.generated.validate)
+                   $(addprefix -i ,$(r.$1.$3.cpe-dr.$2.source)) | tee $(r.$1.$3.cpe-dr.$2.generated.validate)
 
 endef
 
