@@ -266,6 +266,7 @@ static void net_connector_check_connect_result(net_connector_t connector) {
             connector->m_mgr->m_em,
             "connector %s: check state, getsockopt error, errno=%d (%s)",
             connector->m_name, cpe_sock_errno(), cpe_sock_errstr(cpe_sock_errno()));
+        net_socket_close(&connector->m_ep->m_fd, connector->m_mgr->m_em);
         connector->m_state = net_connector_state_error;
     }
     else {
@@ -281,6 +282,7 @@ static void net_connector_check_connect_result(net_connector_t connector) {
                 connector->m_mgr->m_em,
                 "connector %s: connect error, errno=%d (%s)",
                 connector->m_name, err, cpe_sock_errstr(err));
+            net_socket_close(&connector->m_ep->m_fd, connector->m_mgr->m_em);
             connector->m_state = net_connector_state_error;
         }
     }
