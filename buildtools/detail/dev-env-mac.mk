@@ -23,8 +23,6 @@ mac.export-symbols=$(addprefix -u ,$(foreach m,$1,_$m))
 mac.lib.iconv?=iconv
 mac.lib.math?=m
 mac.lib.dl?=dl
-<<<<<<< HEAD
-=======
 
 # }}}
 # {{{ validate
@@ -127,4 +125,3 @@ mac.linker.obj-c:=$(mac.GCC)
 mac.linker.obj-cpp:=$(mac.CXX)
 
 # }}}
->>>>>>> t/support/game
