@@ -21,6 +21,10 @@ int stream_write(struct write_stream * stream, const void * buf, size_t size);
 
 int stream_printf(struct write_stream * stream, const char * fmt, ...);
 int stream_vprintf(struct write_stream * stream, const char * fmt, va_list ap);
+int stream_toupper_len(struct write_stream * stream, const char * data, size_t len);
+int stream_toupper(struct write_stream * stream, const char * data);
+int stream_tolower_len(struct write_stream * stream, const char * data, size_t len);
+int stream_tolower(struct write_stream * stream, const char * data);
 
 int stream_do_flush_dummy(struct write_stream * stream);
 

@@ -9,6 +9,11 @@ typedef struct tl_manage * tl_manage_t;
 typedef uint64_t tl_time_t;
 typedef int64_t tl_time_span_t;
 
+typedef enum tl_manage_state {
+    tl_manage_state_runing
+    , tl_manage_state_pause
+} tl_manage_state_t;
+
 typedef struct tl_intercept * tl_intercept_t;
 
 typedef tl_time_t (*tl_time_fun_t)(void * context);

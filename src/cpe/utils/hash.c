@@ -90,7 +90,6 @@ int cpe_hash_table_init(
 
     /*create bulck list*/
     hashtable->m_bucket_capacity = select_next_prime(suggestCapacity);
-    if (hashtable->m_bucket_capacity < 0) return -1;
 
     bucketsBufSize = sizeof(struct cpe_hash_bucket) * hashtable->m_bucket_capacity;
     hashtable->m_buckets = (struct cpe_hash_bucket *)mem_alloc(alloc, bucketsBufSize);

@@ -34,17 +34,17 @@ int dr_printf_float_to_stream(write_stream_t stream, const void * data, LPDRMETA
     return stream_printf(stream, "%f", *((float*)data));
 }
 int dr_printf_double_to_stream(write_stream_t stream, const void * data, LPDRMETAENTRY entry, error_monitor_t em) {
-    return stream_printf(stream, "%f", *((double*)data));
+    return stream_printf(stream, "%d", *((double*)data));
 }
 
 int dr_printf_char_to_stream(write_stream_t stream, const void * data, LPDRMETAENTRY entry, error_monitor_t em) {
     char tmp = *((char*)data);
-    return stream_printf(stream, "%c", tmp);
+    return stream_printf(stream, "%d", tmp);
 }
 
 int dr_printf_uchar_to_stream(write_stream_t stream, const void * data, LPDRMETAENTRY entry, error_monitor_t em) {
     unsigned char tmp = *((unsigned char*)data);
-    return stream_printf(stream, "%c", tmp);
+    return stream_printf(stream, "%d", tmp);
 }
 
 int dr_printf_string_to_stream(write_stream_t stream, const void * data, LPDRMETAENTRY entry, error_monitor_t em) {

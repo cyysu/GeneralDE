@@ -10,6 +10,10 @@ public:
     virtual uint32_t generate(uint32_t max) = 0;
     virtual ~Random();
 
+	//取一个范围里的值，两遍闭区间，两位精度
+	float generateBetween(float min, float max, int calc_p = 1000);
+	double generateBetween(double min, double max, int calc_p = 1000);
+
     static Random & dft(void);
 };
 
