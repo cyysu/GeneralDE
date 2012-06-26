@@ -30,6 +30,18 @@ public:
 
     void send(Usf::Bpg::Package & pkg);
     void send(Cpe::Dr::Data const & data);
+    void send(const char * metaName, void const * data, size_t size);
+    void send(LPDRMETA meta, void const * data, size_t size);
+
+    template<typename T>
+    void send(const char * metaName, T const & data) {
+        send(metaName, &data, sizeof(data));
+    }
+
+    template<typename T>
+    void send(LPDRMETA meta, T const & data) {
+        send(meta, &data, sizeof(data));
+    }
 
 private:
     bpg_use_sp_t m_sp;
