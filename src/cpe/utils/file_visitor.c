@@ -30,13 +30,22 @@ dir_search_i(
     nextOp = dir_visit_next_go;
 
     while((rv = readdir_r(dirp, &dbuf, &dp)) == 0 && dp) {
+        int st_mode;
+
         if (strcmp(dp->d_name, ".") == 0 || strcmp(dp->d_name, "..") == 0) continue;
 
         if (
             mem_buffer_strcat(buffer, "/") != 0 || 
             mem_buffer_strcat(buffer, dp->d_name) != 0) break;
 
-        if (S_ISDIR(DTTOIF(dp->d_type))) {
+        st_mode = DTTOIF(dp->d_type);
+        if (st_mode == 0) {
+            struct stat file_stat;
+            stat((const char *)mem_buffer_make_continuous(buffer, 0), &file_stat);
+            st_mode = file_stat.st_mode;
+        }
+
+        if (S_ISDIR(st_mode)) {
             if (visitor->on_dir_enter) {
                 nextOp = visitor->on_dir_enter(
                     (const char *)mem_buffer_make_continuous(buffer, 0),
@@ -67,7 +76,7 @@ dir_search_i(
                 if (nextOp == dir_visit_next_exit) break;
             }
         }
-        else if (S_ISREG(DTTOIF(dp->d_type))) {
+        else if (S_ISREG(st_mode)) {
             if (visitor->on_file) {
                 nextOp = visitor->on_file(
                     (const char *)mem_buffer_make_continuous(buffer, 0),
