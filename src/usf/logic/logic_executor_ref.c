@@ -48,6 +48,11 @@ void logic_executor_ref_dec(logic_executor_ref_t executor_ref) {
     }
 }
 
+logic_executor_t
+logic_executor_ref_executor(logic_executor_ref_t ref) {
+    return ref->m_executor;
+}
+
 logic_executor_ref_t
 logic_executor_ref_find(logic_executor_mgr_t mgr, const char * name) {
     struct logic_executor_ref key;

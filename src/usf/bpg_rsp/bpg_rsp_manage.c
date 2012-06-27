@@ -29,6 +29,7 @@ bpg_rsp_manage_create(
     gd_app_context_t app,
     const char * name,
     logic_manage_t logic_mgr,
+    logic_executor_mgr_t executor_mgr,
     error_monitor_t em)
 {
     bpg_rsp_manage_t mgr;
@@ -36,6 +37,7 @@ bpg_rsp_manage_create(
 
     assert(app);
     assert(logic_mgr);
+    assert(executor_mgr);
 
     if (name == 0) name = cpe_hs_data((cpe_hash_string_t)&s_bpg_rsp_manage_default_name);
     if (em == 0) em = gd_app_em(app);
@@ -53,6 +55,7 @@ bpg_rsp_manage_create(
     mgr->m_app = app;
     mgr->m_alloc = gd_app_alloc(app);
     mgr->m_logic_mgr = logic_mgr;
+    mgr->m_executor_mgr = executor_mgr;
     mgr->m_em = em;
     mgr->m_flags = 0;
 

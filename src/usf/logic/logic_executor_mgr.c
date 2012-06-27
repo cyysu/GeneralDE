@@ -119,6 +119,8 @@ logic_executor_mgr_import(
     logic_executor_t executor;
     logic_executor_ref_t ref;
 
+    assert(mgr);
+
     executor = logic_executor_build(
         logic_mgr,
         cfg,

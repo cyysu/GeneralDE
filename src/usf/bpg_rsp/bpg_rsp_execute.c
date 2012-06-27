@@ -5,6 +5,7 @@
 #include "cpe/dp/dp_request.h"
 #include "cpe/dp/dp_manage.h"
 #include "usf/logic/logic_context.h"
+#include "usf/logic/logic_executor_ref.h"
 #include "usf/logic/logic_data.h"
 #include "usf/bpg_pkg/bpg_pkg.h"
 #include "usf/bpg_pkg/bpg_pkg_manage.h"
@@ -64,7 +65,10 @@ int bpg_rsp_execute(dp_req_t dp_req, void * ctx, error_monitor_t em) {
         return 0;
     }
 
-    if (logic_context_bind(op_context, bpg_rsp->m_executor) != 0) {
+    if (logic_context_bind(
+            op_context,
+            logic_executor_ref_executor(bpg_rsp->m_executor_ref)) != 0)
+    {
         CPE_ERROR(
             em, "%s.%s: bpg_rsp_execute: bind executor to context fail!",
             bpg_rsp_manage_name(bpg_mgr), bpg_rsp_name(bpg_rsp));

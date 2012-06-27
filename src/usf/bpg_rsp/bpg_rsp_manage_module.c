@@ -5,6 +5,7 @@
 #include "gd/app/app_module.h"
 #include "gd/app/app_library.h"
 #include "usf/logic/logic_manage.h"
+#include "usf/logic/logic_executor_mgr.h"
 #include "gd/dr_store/dr_store.h"
 #include "gd/dr_store/dr_store_manage.h"
 #include "usf/bpg_pkg/bpg_pkg_dsp.h"
@@ -69,7 +70,9 @@ EXPORT_DIRECTIVE
 int bpg_rsp_manage_app_init(gd_app_context_t app, gd_app_module_t module, cfg_t cfg) {
     bpg_rsp_manage_t bpg_rsp_manage;
     logic_manage_t logic_mgr;
+    logic_executor_mgr_t executor_mgr;
     cfg_t child_cfg;
+    const char * executor_mgr_name;
 
     logic_mgr = logic_manage_find_nc(app, cfg_get_string(cfg, "logic-manage", NULL));
     if (logic_mgr == NULL) {
@@ -80,7 +83,31 @@ int bpg_rsp_manage_app_init(gd_app_context_t app, gd_app_module_t module, cfg_t 
         return -1;
     }
 
-    bpg_rsp_manage = bpg_rsp_manage_create(app, gd_app_module_name(module), logic_mgr, NULL);
+    executor_mgr_name = cfg_get_string(cfg, "executor-manage", NULL);
+    if (executor_mgr_name == NULL) {
+        CPE_INFO(
+            gd_app_em(app),
+            "%s: create: executor-manage not configured",
+            gd_app_module_name(module));
+        return -1;
+    }
+
+    executor_mgr = logic_executor_mgr_find_nc(app, executor_mgr_name);
+    if (executor_mgr == NULL) {
+        CPE_INFO(
+            gd_app_em(app),
+            "%s: create: executor-manage %s not exist",
+            gd_app_module_name(module), executor_mgr_name);
+        return -1;
+    }
+
+    bpg_rsp_manage = 
+        bpg_rsp_manage_create(
+            app,
+            gd_app_module_name(module),
+            logic_mgr,
+            executor_mgr,
+            NULL);
     if (bpg_rsp_manage == NULL) {
         return -1;
     }

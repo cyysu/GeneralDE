@@ -6,6 +6,8 @@
 #include "cpe/dp/dp_manage.h"
 #include "cpe/dp/dp_responser.h"
 #include "usf/logic/logic_executor.h"
+#include "usf/logic/logic_executor_ref.h"
+#include "usf/logic/logic_executor_mgr.h"
 #include "usf/logic/logic_executor_build.h"
 #include "usf/logic/logic_executor_type.h"
 #include "usf/bpg_rsp/bpg_rsp.h"
@@ -133,12 +135,14 @@ bpg_rsp_t bpg_rsp_create(bpg_rsp_manage_t mgr, cfg_t cfg) {
         return NULL;
     }
 
-    rsp->m_executor = logic_executor_build(
-        mgr->m_logic_mgr,
-        cfg_executor,
-        type_group,
-        mgr->m_em);
-    if (rsp->m_executor == NULL) {
+    rsp->m_executor_ref =
+        logic_executor_mgr_import(
+            mgr->m_executor_mgr,
+            name,
+            mgr->m_logic_mgr,
+            type_group,
+            cfg_executor);
+    if (rsp->m_executor_ref == NULL) {
         CPE_ERROR(mgr->m_em, "%s: create rsp %s: create executor fail!", bpg_rsp_manage_name(mgr), name) ;
         bpg_rsp_copy_info_clear(rsp);
         nm_node_free(rsp_node);
@@ -148,7 +152,7 @@ bpg_rsp_t bpg_rsp_create(bpg_rsp_manage_t mgr, cfg_t cfg) {
     if (cfg_get_int32(cfg, "debug", 0)) bpg_rsp_flag_enable(rsp, bpg_rsp_flag_debug);
 
     if (bpg_rsp_create_dp_rsp_and_bind(rsp, cfg) != 0) {
-        logic_executor_free(rsp->m_executor);
+        logic_executor_ref_dec(rsp->m_executor_ref);
         bpg_rsp_copy_info_clear(rsp);
         nm_node_free(rsp_node);
         return NULL;
@@ -208,9 +212,9 @@ static void bpg_rsp_clear(nm_node_t node) {
 
     bpg_rsp_copy_info_clear(bpg_rsp);
 
-    if (bpg_rsp->m_executor) {
-        logic_executor_free(bpg_rsp->m_executor);
-        bpg_rsp->m_executor = NULL;
+    if (bpg_rsp->m_executor_ref) {
+        logic_executor_ref_dec(bpg_rsp->m_executor_ref);
+        bpg_rsp->m_executor_ref = NULL;
     }
 
     dp_rsp = dp_rsp_find_by_name(gd_app_dp_mgr(bpg_rsp->m_mgr->m_app), bpg_rsp_name(bpg_rsp));

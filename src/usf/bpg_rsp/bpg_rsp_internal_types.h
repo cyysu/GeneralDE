@@ -18,6 +18,7 @@ struct bpg_rsp_manage {
     gd_app_context_t m_app;
     mem_allocrator_t m_alloc;
     logic_manage_t m_logic_mgr;
+    logic_executor_mgr_t m_executor_mgr;
     error_monitor_t m_em;
     uint32_t m_flags;
 
@@ -48,7 +49,7 @@ typedef TAILQ_HEAD(bpg_rsp_copy_info_list, bpg_rsp_copy_info) * bpg_rsp_copy_inf
 
 struct bpg_rsp {
     bpg_rsp_manage_t m_mgr;
-    logic_executor_t m_executor;
+    logic_executor_ref_t m_executor_ref;
     uint32_t m_flags;
     TAILQ_ENTRY(bpg_rsp) m_next;
 

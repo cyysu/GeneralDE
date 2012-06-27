@@ -11,6 +11,7 @@ bpg_rsp_manage_create(
     gd_app_context_t app,
     const char * name,
     logic_manage_t logic_mgr,
+    logic_executor_mgr_t executor_mgr,
     error_monitor_t em);
 
 void bpg_rsp_manage_free(bpg_rsp_manage_t mgr);
