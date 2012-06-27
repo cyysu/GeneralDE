@@ -84,10 +84,26 @@ logic_manage_create(
         return NULL;
     }
 
+    if (cpe_hash_table_init(
+            &mgr->m_queues,
+            alloc,
+            (cpe_hash_fun_t) logic_queue_hash,
+            (cpe_hash_cmp_t) logic_queue_cmp,
+            CPE_HASH_OBJ2ENTRY(logic_queue, m_hh),
+            -1) != 0)
+    {
+        cpe_hash_table_fini(&mgr->m_requires);
+        cpe_hash_table_fini(&mgr->m_datas);
+        cpe_hash_table_fini(&mgr->m_contexts);
+        nm_node_free(mgr_node);
+        return NULL;
+    }
+
     if (gd_app_tick_add(app, logic_manage_tick, mgr, (ptr_int_t)500) != 0) {
         cpe_hash_table_fini(&mgr->m_requires);
         cpe_hash_table_fini(&mgr->m_datas);
         cpe_hash_table_fini(&mgr->m_contexts);
+        cpe_hash_table_fini(&mgr->m_queues);
         nm_node_free(mgr_node);
     }
 
@@ -105,6 +121,7 @@ static void logic_manage_clear(nm_node_t node) {
     logic_context_free_all(mgr);
     logic_require_free_all(mgr);
     logic_data_free_all(mgr);
+    logic_queue_free_all(mgr);
 
     assert(TAILQ_EMPTY(&mgr->m_waiting_contexts));
     assert(TAILQ_EMPTY(&mgr->m_pending_contexts));
@@ -115,6 +132,7 @@ static void logic_manage_clear(nm_node_t node) {
     cpe_hash_table_fini(&mgr->m_contexts);
     cpe_hash_table_fini(&mgr->m_requires);
     cpe_hash_table_fini(&mgr->m_datas);
+    cpe_hash_table_fini(&mgr->m_queues);
 }
 
 void logic_manage_free(logic_manage_t mgr) {

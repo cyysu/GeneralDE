@@ -25,6 +25,7 @@ struct logic_manage {
 
     struct cpe_hash_table m_contexts;
     struct cpe_hash_table m_requires;
+    struct cpe_hash_table m_queues;
     struct cpe_hash_table m_datas;
 
     uint32_t m_waiting_count;
@@ -71,10 +72,22 @@ struct logic_context {
     struct logic_stack m_stack;
     int32_t m_errno;
 
+    logic_queue_t m_logic_queue;
+    TAILQ_ENTRY(logic_context) m_next_logic_queue;
+    
     struct cpe_hash_entry m_hh;
 
     enum logic_context_queue_state m_queue_state;
     TAILQ_ENTRY(logic_context) m_next;
+};
+
+struct logic_queue {
+    logic_manage_t m_mgr;
+    cpe_hash_string_t m_name;
+    logic_context_list_t m_contexts;
+    uint32_t m_count;
+    uint32_t m_max_count;
+    struct cpe_hash_entry m_hh;
 };
 
 struct logic_require {

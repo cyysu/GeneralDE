@@ -28,6 +28,11 @@ uint32_t logic_require_hash(const struct logic_require * require);
 int logic_require_cmp(const struct logic_require * l, const struct logic_require * r);
 void logic_require_free_all(logic_manage_t mgr);
 
+/*queue ops*/
+uint32_t logic_queue_hash(const struct logic_queue * queue);
+int logic_queue_cmp(const struct logic_queue * l, const struct logic_queue * r);
+void logic_queue_free_all(logic_manage_t mgr);
+
 /*data ops*/
 uint32_t logic_data_hash(const struct logic_data * data);
 int logic_data_cmp(const struct logic_data * l, const struct logic_data * r);

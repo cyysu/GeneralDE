@@ -69,6 +69,7 @@ typedef struct logic_require * logic_require_t;
 typedef struct logic_stack * logic_stack_t;
 typedef struct logic_stack_node * logic_stack_node_t;
 
+typedef struct logic_queue * logic_queue_t;
 typedef struct logic_executor * logic_executor_t;
 typedef struct logic_executor_ref * logic_executor_ref_t;
 typedef struct logic_executor_mgr * logic_executor_mgr_t;

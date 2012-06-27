@@ -6,6 +6,7 @@
 #include "usf/logic/logic_require.h"
 #include "usf/logic/logic_data.h"
 #include "usf/logic/logic_executor.h"
+#include "usf/logic/logic_queue.h"
 #include "logic_internal_ops.h"
 
 logic_context_t
@@ -54,9 +55,12 @@ logic_context_create(logic_manage_t mgr, logic_context_id_t id, size_t capacity)
     context->m_commit_ctx = NULL;
     context->m_require_waiting_count = 0;
     context->m_queue_state = logic_context_queue_none;
+    context->m_logic_queue = NULL;
 
     logic_stack_init(&context->m_stack);
     TAILQ_INIT(&context->m_datas);
+
+    logic_context_enqueue(context, logic_context_queue_pending);
 
     return context;
 }
@@ -77,6 +81,11 @@ void logic_context_free(logic_context_t context) {
     logic_context_dequeue(context);
 
     cpe_hash_table_remove_by_ins(&context->m_mgr->m_contexts, context);
+
+    if (context->m_logic_queue) {
+        logic_queue_dequeue(context->m_logic_queue, context);
+        assert(context->m_logic_queue);
+    }
 
     mem_free(context->m_mgr->m_alloc, context);
 }
