@@ -17,6 +17,9 @@ public:
 
     logic_manage_t t_logic_manage(const char * name = NULL);
 
+    logic_executor_mgr_t t_logic_executor_mgr_create(const char * name);
+    logic_executor_mgr_t t_logic_executor_mgr_find(const char * name);
+
     logic_context_t t_logic_context_create(
         size_t capacity = 0, logic_require_id_t id = INVALID_LOGIC_CONTEXT_ID);
 

@@ -1,4 +1,5 @@
 #include <assert.h>
+#include "cpe/pal/pal_string.h"
 #include "cpe/cfg/cfg_read.h"
 #include "cpe/nm/nm_manage.h"
 #include "cpe/nm/nm_read.h"
@@ -93,6 +94,8 @@ bpg_rsp_t bpg_rsp_create(bpg_rsp_manage_t mgr, cfg_t cfg) {
     const char * name;
     cfg_t cfg_executor;
     const char * group_name;
+    const char * queue_name;
+    struct bpg_rsp_queue_info *  queue_info;
     logic_executor_type_group_t type_group;
 
     assert(mgr);
@@ -119,6 +122,25 @@ bpg_rsp_t bpg_rsp_create(bpg_rsp_manage_t mgr, cfg_t cfg) {
         return NULL;
     }
 
+    queue_name = cfg_get_string(cfg, "queue", NULL);
+    if (queue_name == NULL) {
+        queue_info = mgr->m_default_queue_info;
+    }
+    else if (strcasecmp(queue_name, "none") == 0) {
+        queue_info = NULL;
+    }
+    else {
+        char name_buf[128];
+        cpe_hs_init((cpe_hash_string_t)name_buf, sizeof(name_buf), name);
+        queue_info = bpg_rsp_queue_info_find(mgr, (cpe_hash_string_t)name_buf);
+        if (queue_info == NULL) {
+            CPE_ERROR(
+                mgr->m_em, "%s: create rsp %s: logic queue %s(%s) not exist!", 
+                bpg_rsp_manage_name(mgr), name, cpe_hs_data((cpe_hash_string_t)name_buf), queue_name) ;
+            return NULL;
+        }
+    }
+    
     rsp_node = nm_instance_create(gd_app_nm_mgr(mgr->m_app), name, sizeof(struct bpg_rsp_manage));
     if (rsp_node == NULL) {
         CPE_ERROR(mgr->m_em, "%s: create rsp %s: create fail, maybe name duplicate!", bpg_rsp_manage_name(mgr), name) ;
@@ -127,6 +149,7 @@ bpg_rsp_t bpg_rsp_create(bpg_rsp_manage_t mgr, cfg_t cfg) {
 
     rsp = (bpg_rsp_t)nm_node_data(rsp_node);
     rsp->m_mgr = mgr;
+    rsp->m_queue_info = queue_info;
     rsp->m_flags = 0;
     TAILQ_INIT(&rsp->m_ctx_to_pdu);
 

@@ -23,7 +23,11 @@ void with_bpg_rsp::TearDown() {
 }
 
 bpg_rsp_manage_t
-with_bpg_rsp::t_bpg_rsp_manage(const char * name, const char * logic_name) {
+with_bpg_rsp::t_bpg_rsp_manage(
+    const char * name,
+    const char * logic_name,
+    const char * executor_mgr_name)
+{
     bpg_rsp_manage_t mgr = bpg_rsp_manage_find_nc(envOf<gd::app::testenv::with_app>().t_app(), name);
     if (mgr == NULL) {
 
@@ -32,10 +36,22 @@ with_bpg_rsp::t_bpg_rsp_manage(const char * name, const char * logic_name) {
             em = with_em->t_em();
         }
 
+        if (executor_mgr_name == NULL) executor_mgr_name = name;
+        EXPECT_TRUE(executor_mgr_name) << "executor_mgr_name is NULL";
+
+        logic_executor_mgr_t executor_mgr = 
+            envOf<usf::logic::testenv::with_logic>().t_logic_executor_mgr_find(executor_mgr_name);
+        if (executor_mgr == NULL) {
+            executor_mgr = envOf<usf::logic::testenv::with_logic>().t_logic_executor_mgr_create(executor_mgr_name);
+            EXPECT_TRUE(executor_mgr) << "create executor_mgr " << executor_mgr_name << " fail!";
+            return NULL;
+        }
+
         mgr = bpg_rsp_manage_create(
             envOf<gd::app::testenv::with_app>().t_app(),
             name,
             envOf<usf::logic::testenv::with_logic>().t_logic_manage(logic_name),
+            executor_mgr,
             em);
     }
 

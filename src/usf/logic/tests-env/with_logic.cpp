@@ -10,6 +10,7 @@
 #include "cpe/nm/nm_manage.h"
 #include "usf/logic/logic_executor_build.h"
 #include "usf/logic/logic_executor_type.h"
+#include "usf/logic/logic_executor_mgr.h"
 #include "usf/logic/logic_data.h"
 #include "usf/logic/tests-env/with_logic.hpp"
 
@@ -44,6 +45,32 @@ with_logic::t_logic_manage(const char * name) {
     }
 
     return mgr;
+}
+
+logic_executor_mgr_t
+with_logic::t_logic_executor_mgr_create(const char * name) {
+    error_monitor_t em = NULL;
+    if (utils::testenv::with_em * with_em = tryEnvOf<utils::testenv::with_em>()) {
+        em = with_em->t_em();
+    }
+
+    logic_executor_mgr_t executor_mgr = 
+        logic_executor_mgr_create(
+            envOf<gd::app::testenv::with_app>().t_app(),
+            name, 
+            t_allocrator(),
+            em);
+
+    EXPECT_TRUE(executor_mgr) << "create executor mgr " << name << " fail!";
+
+    return executor_mgr;
+}
+
+logic_executor_mgr_t
+with_logic::t_logic_executor_mgr_find(const char * name) {
+    return logic_executor_mgr_find_nc(
+        envOf<gd::app::testenv::with_app>().t_app(),
+        name);
 }
 
 logic_context_t

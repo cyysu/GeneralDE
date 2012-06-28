@@ -11,7 +11,7 @@
 #include "usf/bpg_pkg/bpg_pkg_dsp.h"
 #include "usf/bpg_rsp/bpg_rsp_manage.h"
 #include "usf/bpg_rsp/bpg_rsp.h"
-#include "bpg_rsp_internal_types.h"
+#include "bpg_rsp_internal_ops.h"
 
 static int bpg_rsp_manage_load_commit_dsp(
     gd_app_context_t app, gd_app_module_t module, bpg_rsp_manage_t bpg_rsp_manage, cfg_t cfg)
@@ -36,6 +36,68 @@ static int bpg_rsp_manage_load_commit_dsp(
         }
 
         bpg_rsp_manage_set_commit_dsp(bpg_rsp_manage, dsp);
+    }
+
+    return 0;
+}
+
+static int bpg_rsp_manage_load_queue_infos(
+    gd_app_context_t app, gd_app_module_t module, bpg_rsp_manage_t bpg_rsp_manage, cfg_t cfg)
+{
+    struct cfg_it queue_it;
+    cfg_t queue_cfg;
+
+    cfg_it_init(&queue_it, cfg_find_cfg(cfg, "logic-queue"));
+
+    while((queue_cfg = cfg_it_next(&queue_it))) {
+        const char * name;
+        const char * scope_name;
+        bpg_rsp_queue_scope_t scope;
+
+        name = cfg_get_string(queue_cfg, "name", NULL);
+        if (name == NULL) {
+            CPE_ERROR(
+                gd_app_em(app), "%s: create: create logic queue info: no name!",
+                gd_app_module_name(module));
+            return -1;
+        }
+
+        scope_name = cfg_get_string(queue_cfg, "scope", NULL);
+        if (scope_name == NULL) {
+            CPE_ERROR(
+                gd_app_em(app), "%s: create: create logic queue %s: scope not configured!",
+                gd_app_module_name(module), name);
+            return -1;
+        }
+
+        if (strcmp(scope_name, "global") == 0) {
+            scope = bpg_rsp_queue_scope_global;
+        }
+        else if (strcmp(scope_name, "client") == 0) {
+            scope = bpg_rsp_queue_scope_client;
+        }
+        else {
+            CPE_ERROR(
+                gd_app_em(app), "%s: create: create logic queue %s: scope not configured!",
+                gd_app_module_name(module), name);
+            return -1;
+        }
+
+        if (bpg_rsp_queue_info_create(bpg_rsp_manage, name, scope) == NULL) {
+            CPE_ERROR(
+                gd_app_em(app), "%s: create: create logic queue %s: create fail!",
+                gd_app_module_name(module), name);
+            return -1;
+        }
+
+        if (cfg_get_int32(queue_cfg, "is-default", 0)) {
+            if (bpg_rsp_manage->m_default_queue_info != NULL) {
+                CPE_ERROR(
+                    gd_app_em(app), "%s: create: create logic queue %s: default queue info already exist, it is %s!",
+                    gd_app_module_name(module), name, bpg_rsp_queue_name(bpg_rsp_manage->m_default_queue_info));
+                return -1;
+            }
+        }
     }
 
     return 0;
@@ -118,6 +180,11 @@ int bpg_rsp_manage_app_init(gd_app_context_t app, gd_app_module_t module, cfg_t 
     }
 
     if (bpg_rsp_manage_load_forward_dsp(app, module, bpg_rsp_manage, cfg) != 0) {
+        bpg_rsp_manage_free(bpg_rsp_manage);
+        return -1;
+    }
+
+    if (bpg_rsp_manage_load_queue_infos(app, module, bpg_rsp_manage, cfg) != 0) {
         bpg_rsp_manage_free(bpg_rsp_manage);
         return -1;
     }

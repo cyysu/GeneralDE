@@ -1,10 +1,12 @@
 #include <assert.h>
 #include "cpe/pal/pal_string.h"
+#include "cpe/pal/pal_stdio.h"
 #include "cpe/dr/dr_metalib_manage.h"
 #include "cpe/dr/dr_cvt.h"
 #include "cpe/dp/dp_request.h"
 #include "cpe/dp/dp_manage.h"
 #include "usf/logic/logic_context.h"
+#include "usf/logic/logic_queue.h"
 #include "usf/logic/logic_executor_ref.h"
 #include "usf/logic/logic_data.h"
 #include "usf/bpg_pkg/bpg_pkg.h"
@@ -16,6 +18,7 @@
 
 static int bpg_rsp_copy_pkg_to_ctx(bpg_rsp_t rsp, logic_context_t op_context, bpg_pkg_t req, error_monitor_t em);
 static void bpg_rsp_commit_error(bpg_rsp_t rsp, logic_context_t op_context, int err);
+static int bpg_rsp_queue_context(bpg_rsp_manage_t bpg_mgr, bpg_rsp_t rsp, logic_context_t op_context, error_monitor_t em);
 
 int bpg_rsp_execute(dp_req_t dp_req, void * ctx, error_monitor_t em) {
     bpg_rsp_t bpg_rsp;
@@ -76,11 +79,93 @@ int bpg_rsp_execute(dp_req_t dp_req, void * ctx, error_monitor_t em) {
         return 0;
     }
 
-    logic_context_set_commit(op_context, bpg_rsp_commit, bpg_rsp);
-
-    logic_context_execute(op_context);
+    if (bpg_rsp->m_queue_info) {
+        if (bpg_rsp_queue_context(bpg_mgr, bpg_rsp, op_context, em) == 0) {
+            logic_context_set_commit(op_context, bpg_rsp_commit, bpg_rsp);
+        }
+        else {
+            bpg_rsp_commit_error(bpg_rsp, op_context, -1);
+        }
+    }
+    else {
+        logic_context_set_commit(op_context, bpg_rsp_commit, bpg_rsp);
+        logic_context_execute(op_context);
+    }
 
     return 0;
+}
+
+static logic_queue_t
+bpg_rsp_queue_get_or_create(
+    bpg_rsp_manage_t mgr, bpg_rsp_t rsp, 
+    cpe_hash_string_t queue_name, struct bpg_rsp_queue_info * queue_info, error_monitor_t em)
+{
+    logic_queue_t queue = logic_queue_find(mgr->m_logic_mgr, queue_name);
+    if (queue) return queue;
+
+    queue = logic_queue_create(mgr->m_logic_mgr, cpe_hs_data(queue_name));
+    if (queue == NULL) {
+        CPE_ERROR(
+            em, "%s.%s: bpg_rsp_execute: create queue(%s) fail!",
+            bpg_rsp_manage_name(mgr), bpg_rsp_name(rsp), cpe_hs_data(queue_name));
+        return NULL;
+    }
+
+    if (mgr->m_debug) {
+        CPE_INFO(
+            em, "%s.%s: bpg_rsp_execute: create queue(%s) success, max-size=%d, size=%d!",
+            bpg_rsp_manage_name(mgr), bpg_rsp_name(rsp),
+            logic_queue_name(queue), logic_queue_max_count(queue), logic_queue_count(queue));
+    }
+
+    return queue;
+}
+
+static int bpg_rsp_queue_context(
+    bpg_rsp_manage_t mgr, bpg_rsp_t rsp, logic_context_t op_context, error_monitor_t em)
+{
+    struct bpg_rsp_queue_info * queue_info = rsp->m_queue_info;
+    logic_queue_t queue;
+
+    assert(queue_info);
+
+    switch(queue_info->m_scope) {
+    case bpg_rsp_queue_scope_global:
+        queue = bpg_rsp_queue_get_or_create(mgr, rsp, queue_info->m_name, queue_info, em);
+        break;
+    case bpg_rsp_queue_scope_client: {
+        cpe_hs_printf(
+            (cpe_hash_string_t)queue_info->m_name_buf,
+            sizeof(queue_info->m_name_buf),
+            "%s."FMT_SIZE_T, bpg_rsp_queue_name(queue_info), 1);
+        queue = bpg_rsp_queue_get_or_create(mgr, rsp, (cpe_hash_string_t)queue_info->m_name_buf, queue_info, em);
+        break;
+    }
+    default:
+        CPE_ERROR(
+            em, "%s.%s: bpg_rsp_execute: bpg_rsp_queue_context: unknown scope type!",
+            bpg_rsp_manage_name(mgr), bpg_rsp_name(rsp));
+        return -1;
+    }
+
+    if (queue) {
+        logic_queue_enqueue_tail(queue, op_context);
+        if (mgr->m_debug) {
+            CPE_INFO(
+                em, "%s.%s: bpg_rsp_execute: add to queue(%s) tail, max-size=%d, size=%d!",
+                bpg_rsp_manage_name(mgr), bpg_rsp_name(rsp),
+                logic_queue_name(queue), logic_queue_max_count(queue), logic_queue_count(queue));
+        }
+
+        return 0;
+    }
+    else {
+        CPE_ERROR(
+            em, "%s.%s: bpg_rsp_execute: add to queue(%s) fail, max-size=%d, size=%d!",
+            bpg_rsp_manage_name(mgr), bpg_rsp_name(rsp),
+            logic_queue_name(queue), logic_queue_max_count(queue), logic_queue_count(queue));
+        return -1;
+    }
 }
 
 static int bpg_rsp_copy_main_to_ctx(bpg_rsp_t rsp, logic_context_t op_context, bpg_pkg_t req, error_monitor_t em) {

@@ -86,7 +86,7 @@ cpe_hash_string_t logic_queue_name_hs(logic_queue_t queue) {
     return queue->m_name;
 }
 
-int logic_queue_encode_head(logic_queue_t queue, logic_context_t context) {
+int logic_queue_enqueue_head(logic_queue_t queue, logic_context_t context) {
     assert(context->m_state == logic_context_queue_pending);
 
     if (queue->m_max_count > 0 && queue->m_count >= queue->m_max_count) return -1;
@@ -107,7 +107,7 @@ int logic_queue_encode_head(logic_queue_t queue, logic_context_t context) {
     return 0;
 }
 
-int logic_queue_encode_tail(logic_queue_t queue, logic_context_t context) {
+int logic_queue_enqueue_tail(logic_queue_t queue, logic_context_t context) {
     assert(context->m_state == logic_context_queue_pending);
 
     if (queue->m_max_count > 0 && queue->m_count >= queue->m_max_count) return -1;

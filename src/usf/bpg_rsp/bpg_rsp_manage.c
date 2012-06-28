@@ -76,6 +76,20 @@ bpg_rsp_manage_create(
     TAILQ_INIT(&mgr->m_pkg_builders);
     TAILQ_INIT(&mgr->m_rsps);
 
+    mgr->m_default_queue_info = NULL;
+    if (cpe_hash_table_init(
+            &mgr->m_queue_infos,
+            mgr->m_alloc,
+            (cpe_hash_fun_t) bpg_rsp_queue_info_hash,
+            (cpe_hash_cmp_t) bpg_rsp_queue_info_cmp,
+            CPE_HASH_OBJ2ENTRY(bpg_rsp_queue_info, m_hh),
+            -1) != 0)
+    {
+        nm_node_free(mgr_node);
+        return NULL;
+    }
+
+
     nm_node_set_type(mgr_node, &s_nm_node_type_bpg_rsp_manage);
 
     return mgr;
@@ -107,6 +121,10 @@ static void bpg_rsp_manage_clear(nm_node_t node) {
         bpg_pkg_dsp_free(mgr->m_forward_dsp);
         mgr->m_forward_dsp = NULL;
     }
+
+    mgr->m_default_queue_info = NULL;
+    bpg_rsp_queue_info_free_all(mgr);
+    cpe_hash_table_fini(&mgr->m_queue_infos);
 }
 
 void bpg_rsp_manage_free(bpg_rsp_manage_t mgr) {
