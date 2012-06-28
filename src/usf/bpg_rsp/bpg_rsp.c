@@ -131,7 +131,7 @@ bpg_rsp_t bpg_rsp_create(bpg_rsp_manage_t mgr, cfg_t cfg) {
     }
     else {
         char name_buf[128];
-        cpe_hs_init((cpe_hash_string_t)name_buf, sizeof(name_buf), name);
+        cpe_hs_init((cpe_hash_string_t)name_buf, sizeof(name_buf), queue_name);
         queue_info = bpg_rsp_queue_info_find(mgr, (cpe_hash_string_t)name_buf);
         if (queue_info == NULL) {
             CPE_ERROR(

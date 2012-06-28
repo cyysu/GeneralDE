@@ -28,7 +28,11 @@ const char * bpg_rsp_copy_info_data(struct bpg_rsp_copy_info * copy_info);
 /*bpg_rsp_queue_info ops*/
 const char * bpg_rsp_queue_name(const struct bpg_rsp_queue_info * queue);
 struct bpg_rsp_queue_info *
-bpg_rsp_queue_info_create(bpg_rsp_manage_t mgr, const char * queue_name, bpg_rsp_queue_scope_t scope);
+bpg_rsp_queue_info_create(
+    bpg_rsp_manage_t mgr,
+    const char * queue_name,
+    bpg_rsp_queue_scope_t scope,
+    uint32_t max_count);
 struct bpg_rsp_queue_info *
 bpg_rsp_queue_info_find(bpg_rsp_manage_t mgr, cpe_hash_string_t queue_name);
 

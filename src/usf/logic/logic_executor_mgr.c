@@ -134,8 +134,6 @@ logic_executor_mgr_import(
         return NULL;
     }
 
-    logic_executor_ref_inc(ref);
-
     return ref;
 }
 

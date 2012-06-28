@@ -1,11 +1,14 @@
 #include <assert.h>
+#include "cpe/pal/pal_stdio.h"
 #include "cpe/cfg/cfg_manage.h"
 #include "cpe/dr/dr_metalib_manage.h"
 #include "cpe/dr/dr_cfg.h"
+#include "gd/app/app_log.h"
 #include "usf/logic/logic_context.h"
 #include "usf/logic/logic_require.h"
 #include "usf/logic/logic_data.h"
 #include "usf/logic/logic_executor.h"
+#include "usf/logic/logic_manage.h"
 #include "usf/logic/logic_queue.h"
 #include "logic_internal_ops.h"
 
@@ -62,12 +65,17 @@ logic_context_create(logic_manage_t mgr, logic_context_id_t id, size_t capacity)
 
     logic_context_enqueue(context, logic_context_queue_pending);
 
+    if (context->m_mgr->m_debug >= 3) {
+        APP_CTX_INFO(
+            context->m_mgr->m_app, "%s: context "FMT_UINT64_T" create",
+            logic_manage_name(context->m_mgr), logic_context_id(context));
+    }
+
     return context;
 }
 
 void logic_context_free(logic_context_t context) {
     assert(context);
-
     while(!TAILQ_EMPTY(&context->m_requires)) {
         logic_require_free(TAILQ_FIRST(&context->m_requires));
     }
@@ -84,7 +92,13 @@ void logic_context_free(logic_context_t context) {
 
     if (context->m_logic_queue) {
         logic_queue_dequeue(context->m_logic_queue, context);
-        assert(context->m_logic_queue);
+        assert(context->m_logic_queue == NULL);
+    }
+
+    if (context->m_mgr->m_debug >= 3) {
+        APP_CTX_INFO(
+            context->m_mgr->m_app, "%s: context "FMT_UINT64_T" free",
+            logic_manage_name(context->m_mgr), logic_context_id(context));
     }
 
     mem_free(context->m_mgr->m_alloc, context);

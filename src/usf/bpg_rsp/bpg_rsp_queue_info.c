@@ -4,7 +4,7 @@
 #include "bpg_rsp_internal_ops.h"
 
 struct bpg_rsp_queue_info *
-bpg_rsp_queue_info_create(bpg_rsp_manage_t mgr, const char * queue_name, bpg_rsp_queue_scope_t scope) {
+bpg_rsp_queue_info_create(bpg_rsp_manage_t mgr, const char * queue_name, bpg_rsp_queue_scope_t scope, uint32_t max_count) {
     char * buf;
     struct bpg_rsp_queue_info * queue_info;
     size_t name_len = cpe_hs_len_to_binary_len(strlen(queue_name));
@@ -17,9 +17,10 @@ bpg_rsp_queue_info_create(bpg_rsp_manage_t mgr, const char * queue_name, bpg_rsp
     queue_info = (struct bpg_rsp_queue_info*)(buf + name_len);
     queue_info->m_name = (cpe_hash_string_t)buf;
     queue_info->m_scope = scope;
+    queue_info->m_max_count = max_count;
 
     cpe_hash_entry_init(&queue_info->m_hh);
-    if (cpe_hash_table_insert_unique(&mgr->m_queue_infos, queue_info) == 0) {
+    if (cpe_hash_table_insert_unique(&mgr->m_queue_infos, queue_info) != 0) {
         mem_free(mgr->m_alloc, buf);
         return NULL;
     }

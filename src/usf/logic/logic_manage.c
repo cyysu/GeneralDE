@@ -199,7 +199,7 @@ ptr_int_t logic_manage_tick(void * ctx, ptr_int_t max_process_count) {
 
     mgr = (logic_manage_t)ctx;
 
-    if (mgr->m_debug >= 2) {
+    if (mgr->m_debug >= 4) {
         CPE_INFO(
             gd_app_em(mgr->m_app), "%s: tick: waiting-count=%d, pending-count=%d",
             logic_manage_name(mgr), mgr->m_waiting_count, mgr->m_pending_count);

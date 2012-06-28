@@ -53,6 +53,7 @@ static int bpg_rsp_manage_load_queue_infos(
         const char * name;
         const char * scope_name;
         bpg_rsp_queue_scope_t scope;
+        struct bpg_rsp_queue_info * queue;
 
         name = cfg_get_string(queue_cfg, "name", NULL);
         if (name == NULL) {
@@ -83,7 +84,10 @@ static int bpg_rsp_manage_load_queue_infos(
             return -1;
         }
 
-        if (bpg_rsp_queue_info_create(bpg_rsp_manage, name, scope) == NULL) {
+        queue = bpg_rsp_queue_info_create(
+            bpg_rsp_manage, name, scope,
+            cfg_get_uint32(queue_cfg, "max-count", 0));
+        if (queue == NULL) {
             CPE_ERROR(
                 gd_app_em(app), "%s: create: create logic queue %s: create fail!",
                 gd_app_module_name(module), name);
@@ -97,7 +101,25 @@ static int bpg_rsp_manage_load_queue_infos(
                     gd_app_module_name(module), name, bpg_rsp_queue_name(bpg_rsp_manage->m_default_queue_info));
                 return -1;
             }
+            else {
+                bpg_rsp_manage->m_default_queue_info = queue;
+            }
         }
+
+        if (bpg_rsp_manage->m_debug) {
+            CPE_INFO(
+                gd_app_em(app), "%s: create: create logic queue %s: scope=%s, max-count=%d!",
+                gd_app_module_name(module), cpe_hs_data(queue->m_name), scope_name, queue->m_max_count);
+        }
+    }
+
+    if (bpg_rsp_manage->m_debug) {
+        CPE_INFO(
+            gd_app_em(app), "%s: create: default queue %s!",
+            gd_app_module_name(module), 
+            bpg_rsp_manage->m_default_queue_info
+            ? cpe_hs_data(bpg_rsp_manage->m_default_queue_info->m_name)
+            : "none");
     }
 
     return 0;
@@ -174,6 +196,8 @@ int bpg_rsp_manage_app_init(gd_app_context_t app, gd_app_module_t module, cfg_t 
         return -1;
     }
 
+    bpg_rsp_manage->m_debug = cfg_get_int32(cfg, "debug", 0);
+
     if (bpg_rsp_manage_load_commit_dsp(app, module, bpg_rsp_manage, cfg) != 0) {
         bpg_rsp_manage_free(bpg_rsp_manage);
         return -1;
@@ -199,8 +223,6 @@ int bpg_rsp_manage_app_init(gd_app_context_t app, gd_app_module_t module, cfg_t 
 
     bpg_rsp_manage->m_rsp_max_size =
         cfg_get_uint32(cfg, "rsp-max-size", bpg_rsp_manage->m_rsp_max_size);
-
-    bpg_rsp_manage->m_debug = cfg_get_int32(cfg, "debug", 0);
 
     if (bpg_rsp_manage->m_debug) {
         CPE_INFO(

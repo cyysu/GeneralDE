@@ -59,6 +59,7 @@ typedef enum bpg_rsp_queue_scope {
 struct bpg_rsp_queue_info {
     cpe_hash_string_t m_name;
     bpg_rsp_queue_scope_t m_scope;
+    uint32_t m_max_count;
     char m_name_buf[128];
     struct cpe_hash_entry m_hh;
 };

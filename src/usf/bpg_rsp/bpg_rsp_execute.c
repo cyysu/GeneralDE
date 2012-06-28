@@ -111,6 +111,8 @@ bpg_rsp_queue_get_or_create(
         return NULL;
     }
 
+    logic_queue_set_max_count(queue, queue_info->m_max_count);
+
     if (mgr->m_debug) {
         CPE_INFO(
             em, "%s.%s: bpg_rsp_execute: create queue(%s) success, max-size=%d, size=%d!",
@@ -161,9 +163,8 @@ static int bpg_rsp_queue_context(
     }
     else {
         CPE_ERROR(
-            em, "%s.%s: bpg_rsp_execute: add to queue(%s) fail, max-size=%d, size=%d!",
-            bpg_rsp_manage_name(mgr), bpg_rsp_name(rsp),
-            logic_queue_name(queue), logic_queue_max_count(queue), logic_queue_count(queue));
+            em, "%s.%s: bpg_rsp_execute: add to queue fail!",
+            bpg_rsp_manage_name(mgr), bpg_rsp_name(rsp));
         return -1;
     }
 }
