@@ -67,7 +67,7 @@ logic_context_create(logic_manage_t mgr, logic_context_id_t id, size_t capacity)
 
     if (context->m_mgr->m_debug >= 3) {
         APP_CTX_INFO(
-            context->m_mgr->m_app, "%s: context "FMT_UINT64_T" create",
+            context->m_mgr->m_app, "%s: context "FMT_UINT32_T" create",
             logic_manage_name(context->m_mgr), logic_context_id(context));
     }
 
@@ -97,7 +97,7 @@ void logic_context_free(logic_context_t context) {
 
     if (context->m_mgr->m_debug >= 3) {
         APP_CTX_INFO(
-            context->m_mgr->m_app, "%s: context "FMT_UINT64_T" free",
+            context->m_mgr->m_app, "%s: context "FMT_UINT32_T" free",
             logic_manage_name(context->m_mgr), logic_context_id(context));
     }
 

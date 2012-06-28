@@ -123,7 +123,7 @@ int logic_queue_enqueue_head(logic_queue_t queue, logic_context_t context) {
 
     if (queue->m_mgr->m_debug >= 2) {
         APP_CTX_INFO(
-            queue->m_mgr->m_app, "%s: queue %s: enqueue head: context "FMT_UINT64_T", count=%d",
+            queue->m_mgr->m_app, "%s: queue %s: enqueue head: context "FMT_UINT32_T", count=%d",
             logic_manage_name(queue->m_mgr), cpe_hs_data(queue->m_name), logic_context_id(context),
             queue->m_count);
     }
@@ -153,7 +153,7 @@ int logic_queue_enqueue_tail(logic_queue_t queue, logic_context_t context) {
 
     if (queue->m_mgr->m_debug >= 2) {
         APP_CTX_INFO(
-            queue->m_mgr->m_app, "%s: queue %s: enqueue tail: context "FMT_UINT64_T", count=%d",
+            queue->m_mgr->m_app, "%s: queue %s: enqueue tail: context "FMT_UINT32_T", count=%d",
             logic_manage_name(queue->m_mgr), cpe_hs_data(queue->m_name), logic_context_id(context),
             queue->m_count);
     }
@@ -183,7 +183,7 @@ int logic_queue_enqueue_after(logic_context_t pre, logic_context_t context) {
     if (queue->m_mgr->m_debug >= 2) {
         APP_CTX_INFO(
             queue->m_mgr->m_app,
-            "%s: queue %s: enqueue after "FMT_UINT64_T": context "FMT_UINT64_T", count=%d",
+            "%s: queue %s: enqueue after "FMT_UINT32_T": context "FMT_UINT32_T", count=%d",
             logic_manage_name(queue->m_mgr), cpe_hs_data(queue->m_name),
             logic_context_id(pre),
             logic_context_id(context),
@@ -222,7 +222,7 @@ void logic_queue_dequeue(logic_queue_t queue, logic_context_t context) {
     if (queue->m_mgr->m_debug >= 2) {
         if (wakup_context) {
             APP_CTX_INFO(
-                queue->m_mgr->m_app, "%s: queue %s: dequeue: context "FMT_UINT64_T",wakup "FMT_UINT64_T", count=%d",
+                queue->m_mgr->m_app, "%s: queue %s: dequeue: context "FMT_UINT32_T",wakup "FMT_UINT32_T", count=%d",
                 logic_manage_name(queue->m_mgr), cpe_hs_data(queue->m_name),
                 logic_context_id(context),
                 logic_context_id(wakup_context),
@@ -230,7 +230,7 @@ void logic_queue_dequeue(logic_queue_t queue, logic_context_t context) {
         }
         else {
             APP_CTX_INFO(
-                queue->m_mgr->m_app, "%s: queue %s: dequeue: context "FMT_UINT64_T", no wakup, count=%d",
+                queue->m_mgr->m_app, "%s: queue %s: dequeue: context "FMT_UINT32_T", no wakup, count=%d",
                 logic_manage_name(queue->m_mgr), cpe_hs_data(queue->m_name),
                 logic_context_id(context),
                 queue->m_count);
