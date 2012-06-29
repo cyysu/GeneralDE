@@ -1,202 +1,94 @@
 #include <assert.h>
 #include "cpe/pal/pal_string.h"
 #include "cpe/cfg/cfg_read.h"
-#include "cpe/nm/nm_manage.h"
-#include "cpe/nm/nm_read.h"
 #include "gd/app/app_context.h"
 #include "cpe/dp/dp_manage.h"
 #include "cpe/dp/dp_responser.h"
 #include "usf/logic/logic_executor.h"
 #include "usf/logic/logic_executor_ref.h"
-#include "usf/logic/logic_executor_mgr.h"
 #include "usf/logic/logic_executor_build.h"
-#include "usf/logic/logic_executor_type.h"
 #include "usf/bpg_rsp/bpg_rsp.h"
 #include "usf/bpg_rsp/bpg_rsp_manage.h"
 #include "bpg_rsp_internal_ops.h"
 
-static void bpg_rsp_clear(nm_node_t node);
-
-struct nm_node_type s_nm_node_type_bpg_rsp = {
-    "usf_bpg_rsp",
-    bpg_rsp_clear
-};
-
-static int bpg_rsp_read_respons_copy_infos(bpg_rsp_t bpg_rsp, cfg_t cfg) {
-    struct cfg_it it;
-    cfg_t child_cfg;
-    cfg_it_init(&it, cfg);
-    
-    while((child_cfg = cfg_it_next(&it))) {
-        const char * write_data_name = cfg_as_string(child_cfg, NULL);
-        if (write_data_name == NULL) {
-            CPE_ERROR(
-                bpg_rsp->m_mgr->m_em,
-                "%s: create rsp %s: read response-data fail!",
-                bpg_rsp_manage_name(bpg_rsp->m_mgr), bpg_rsp_name(bpg_rsp));
-            return -1;
-        }
-
-        if (bpg_rsp_copy_info_create(bpg_rsp, write_data_name) == NULL) {
-            CPE_ERROR(
-                bpg_rsp->m_mgr->m_em,
-                "%s: create rsp %s: crate response-data %s!",
-                bpg_rsp_manage_name(bpg_rsp->m_mgr), bpg_rsp_name(bpg_rsp), write_data_name);
-            return -1;
-        }
-    }
-
-    return 0;
-}
-
-static int bpg_rsp_create_dp_rsp_and_bind(bpg_rsp_t bpg_rsp, cfg_t cfg) {
-    dp_rsp_t dp_rsp;
-    cfg_t cfg_respons;
-
-    cfg_respons = cfg_find_cfg(cfg, "respons-to");
-    if (cfg_respons == NULL) return 0;
-
-    dp_rsp = dp_rsp_create(
-        gd_app_dp_mgr(bpg_rsp->m_mgr->m_app),
-        bpg_rsp_name(bpg_rsp));
-    if (dp_rsp == NULL) {
-        CPE_ERROR(
-            bpg_rsp->m_mgr->m_em,
-            "%s: create rsp %s: create dp_rsp fail, maybe name duplicate!",
-            bpg_rsp_manage_name(bpg_rsp->m_mgr), bpg_rsp_name(bpg_rsp));
-        return -1;
-    }
-
-    dp_rsp_set_processor(dp_rsp, bpg_rsp_execute, bpg_rsp);
-
-    if (dp_rsp_bind_by_cfg(dp_rsp, cfg_respons, bpg_rsp->m_mgr->m_em) != 0) {
-        CPE_ERROR(
-            bpg_rsp->m_mgr->m_em,
-            "%s: create rsp %s: bind rsps by cfg fail!",
-            bpg_rsp_manage_name(bpg_rsp->m_mgr), bpg_rsp_name(bpg_rsp));
-        dp_rsp_free(dp_rsp);
-        return -1;
-    }
-    else {
-        return 0;
-    }
-}
-
-bpg_rsp_t bpg_rsp_create(bpg_rsp_manage_t mgr, cfg_t cfg) {
+bpg_rsp_t bpg_rsp_create(bpg_rsp_manage_t mgr, const char * name) {
+    char * buf;
+    size_t name_len;
     bpg_rsp_t rsp;
-    nm_node_t rsp_node;
-    const char * name;
-    cfg_t cfg_executor;
-    const char * group_name;
-    const char * queue_name;
-    struct bpg_rsp_queue_info *  queue_info;
-    logic_executor_type_group_t type_group;
-
-    assert(mgr);
-    if (cfg == 0) return NULL;
-
-    name = cfg_get_string(cfg, "name", NULL);
-    if (name == NULL) {
-        CPE_ERROR(mgr->m_em, "%s: create rsp: no name configured!", bpg_rsp_manage_name(mgr)) ;
-        return NULL;
-    }
-
-    group_name = cfg_get_string(cfg, "operations-from", NULL);
-    type_group = logic_executor_type_group_find_nc(mgr->m_app, group_name);
-    if (type_group == NULL) {
-        CPE_ERROR(
-            mgr->m_em, "%s: create rsp %s: executor_type_group '%s' not exist! (read from operations-from)",
-            bpg_rsp_manage_name(mgr), name, (group_name ? group_name : "default")) ;
-        return NULL;
-    }
-
-    cfg_executor = cfg_find_cfg(cfg, "operations");
-    if (cfg_executor == NULL) {
-        CPE_ERROR(mgr->m_em, "%s: create rsp %s: no executor configured! (read from operations)", bpg_rsp_manage_name(mgr), name) ;
-        return NULL;
-    }
-
-    queue_name = cfg_get_string(cfg, "queue", NULL);
-    if (queue_name == NULL) {
-        queue_info = mgr->m_default_queue_info;
-    }
-    else if (strcasecmp(queue_name, "none") == 0) {
-        queue_info = NULL;
-    }
-    else {
-        char name_buf[128];
-        cpe_hs_init((cpe_hash_string_t)name_buf, sizeof(name_buf), queue_name);
-        queue_info = bpg_rsp_queue_info_find(mgr, (cpe_hash_string_t)name_buf);
-        if (queue_info == NULL) {
-            CPE_ERROR(
-                mgr->m_em, "%s: create rsp %s: logic queue %s(%s) not exist!", 
-                bpg_rsp_manage_name(mgr), name, cpe_hs_data((cpe_hash_string_t)name_buf), queue_name) ;
-            return NULL;
-        }
-    }
     
-    rsp_node = nm_instance_create(gd_app_nm_mgr(mgr->m_app), name, sizeof(struct bpg_rsp_manage));
-    if (rsp_node == NULL) {
-        CPE_ERROR(mgr->m_em, "%s: create rsp %s: create fail, maybe name duplicate!", bpg_rsp_manage_name(mgr), name) ;
+    assert(name);
+
+    name_len = strlen(name) + 1;
+
+    buf = mem_alloc(mgr->m_alloc, sizeof(struct bpg_rsp) + name_len);
+    if (buf == NULL) {
+        CPE_ERROR(mgr->m_em, "%s: create rsp %s: alloc fail", bpg_rsp_manage_name(mgr), name) ;
         return NULL;
     }
 
-    rsp = (bpg_rsp_t)nm_node_data(rsp_node);
+    memcpy(buf, name, name_len);
+
+    rsp = (bpg_rsp_t)(buf + name_len);
     rsp->m_mgr = mgr;
-    rsp->m_queue_info = queue_info;
+    rsp->m_name = buf;
+    rsp->m_queue_info = NULL;
     rsp->m_flags = 0;
+
     TAILQ_INIT(&rsp->m_ctx_to_pdu);
-
-    if (bpg_rsp_read_respons_copy_infos(rsp, cfg_find_cfg(cfg, "response-data")) != 0) {
-        nm_node_free(rsp_node);
-        return NULL;
-    }
-
-    rsp->m_executor_ref =
-        logic_executor_mgr_import(
-            mgr->m_executor_mgr,
-            name,
-            mgr->m_logic_mgr,
-            type_group,
-            cfg_executor);
-    if (rsp->m_executor_ref == NULL) {
-        CPE_ERROR(mgr->m_em, "%s: create rsp %s: create executor fail!", bpg_rsp_manage_name(mgr), name) ;
-        bpg_rsp_copy_info_clear(rsp);
-        nm_node_free(rsp_node);
-        return NULL;
-    }
-
-    if (cfg_get_int32(cfg, "debug", 0)) bpg_rsp_flag_enable(rsp, bpg_rsp_flag_debug);
-
-    if (bpg_rsp_create_dp_rsp_and_bind(rsp, cfg) != 0) {
-        logic_executor_ref_dec(rsp->m_executor_ref);
-        bpg_rsp_copy_info_clear(rsp);
-        nm_node_free(rsp_node);
-        return NULL;
-    }
-
     TAILQ_INSERT_TAIL(&mgr->m_rsps, rsp, m_next);
 
-    nm_node_set_type(rsp_node, &s_nm_node_type_bpg_rsp);
     return rsp;
 }
 
 void bpg_rsp_free(bpg_rsp_t rsp) {
-    nm_node_t rsp_node;
-    assert(rsp);
+    dp_rsp_t dp_rsp;
 
-    rsp_node = nm_node_from_data(rsp);
-    if (nm_node_type(rsp_node) != &s_nm_node_type_bpg_rsp) return;
-    nm_node_free(rsp_node);
+    TAILQ_REMOVE(&rsp->m_mgr->m_rsps, rsp, m_next);
+
+    bpg_rsp_copy_info_clear(rsp);
+
+    if (rsp->m_executor_ref) {
+        logic_executor_ref_dec(rsp->m_executor_ref);
+        rsp->m_executor_ref = NULL;
+    }
+
+    dp_rsp = dp_rsp_find_by_name(gd_app_dp_mgr(rsp->m_mgr->m_app), bpg_rsp_name(rsp));
+    if (dp_rsp) {
+        dp_rsp_free(dp_rsp);
+    }
+
+    mem_free(rsp->m_mgr->m_alloc, (void*)rsp->m_name);
 }
+
+void bpg_rsp_set_executor(bpg_rsp_t rsp, logic_executor_ref_t executor) {
+    if (rsp->m_executor_ref) logic_executor_ref_dec(rsp->m_executor_ref);
+    if (executor) logic_executor_ref_inc(executor);
+    rsp->m_executor_ref = executor;
+}
+
+int bpg_rsp_set_queue(bpg_rsp_t rsp, const char * queue_name) {
+    struct bpg_rsp_queue_info *  queue_info = NULL;
+    
+    if (queue_name) {
+        char name_buf[128];
+        cpe_hs_init((cpe_hash_string_t)name_buf, sizeof(name_buf), queue_name);
+        queue_info = bpg_rsp_queue_info_find(rsp->m_mgr, (cpe_hash_string_t)name_buf);
+        if (queue_info == NULL) {
+            CPE_ERROR(
+                rsp->m_mgr->m_em, "%s: rsp %s: logic queue %s not exist!", 
+                bpg_rsp_manage_name(rsp->m_mgr), bpg_rsp_name(rsp), queue_name) ;
+            return -1;
+        }
+    }
+
+    rsp->m_queue_info = queue_info;
+
+    return 0;
+}
+
 
 const char * bpg_rsp_name(bpg_rsp_t rsp) {
-    return nm_node_name(nm_node_from_data(rsp));
-}
-
-cpe_hash_string_t
-bpg_rsp_name_hs(bpg_rsp_t rsp) {
-    return nm_node_name_hs(nm_node_from_data(rsp));
+    return rsp->m_name;
 }
 
 uint32_t bpg_rsp_flags(bpg_rsp_t rsp) {
@@ -217,25 +109,4 @@ void bpg_rsp_flag_disable(bpg_rsp_t rsp, bpg_rsp_flag_t flag) {
 
 int bpg_rsp_flag_is_enable(bpg_rsp_t rsp, bpg_rsp_flag_t flag) {
     return rsp->m_flags & flag;
-}
-
-static void bpg_rsp_clear(nm_node_t node) {
-    bpg_rsp_t bpg_rsp;
-    dp_rsp_t dp_rsp;
-
-    bpg_rsp = (bpg_rsp_t)nm_node_data(node);
-
-    TAILQ_REMOVE(&bpg_rsp->m_mgr->m_rsps, bpg_rsp, m_next);
-
-    bpg_rsp_copy_info_clear(bpg_rsp);
-
-    if (bpg_rsp->m_executor_ref) {
-        logic_executor_ref_dec(bpg_rsp->m_executor_ref);
-        bpg_rsp->m_executor_ref = NULL;
-    }
-
-    dp_rsp = dp_rsp_find_by_name(gd_app_dp_mgr(bpg_rsp->m_mgr->m_app), bpg_rsp_name(bpg_rsp));
-    if (dp_rsp) {
-        dp_rsp_free(dp_rsp);
-    }
 }

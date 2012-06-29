@@ -66,6 +66,8 @@ struct bpg_rsp_queue_info {
 
 struct bpg_rsp {
     bpg_rsp_manage_t m_mgr;
+    const char * m_name;
+
     logic_executor_ref_t m_executor_ref;
     uint32_t m_flags;
     struct bpg_rsp_queue_info *  m_queue_info;

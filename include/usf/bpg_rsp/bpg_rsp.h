@@ -6,11 +6,13 @@
 extern "C" {
 #endif
 
-bpg_rsp_t bpg_rsp_create(bpg_rsp_manage_t mgr, cfg_t cfg);
+bpg_rsp_t bpg_rsp_create(bpg_rsp_manage_t mgr, const char * name);
 void bpg_rsp_free(bpg_rsp_t rsp);
 
+void bpg_rsp_set_executor(bpg_rsp_t rsp, logic_executor_ref_t executor);
+int bpg_rsp_set_queue(bpg_rsp_t rsp, const char * queue_name);
+
 const char * bpg_rsp_name(bpg_rsp_t rsp);
-cpe_hash_string_t bpg_rsp_name_hs(bpg_rsp_t rsp);
 
 uint32_t bpg_rsp_flags(bpg_rsp_t rsp);
 void bpg_rsp_flags_set(bpg_rsp_t rsp, uint32_t flag);
