@@ -16,6 +16,9 @@ bpg_pkg_t bpg_rsp_manage_rsp_buf(
 /*bpg_rsp ops*/
 int bpg_rsp_execute(dp_req_t req, void * ctx, error_monitor_t em);
 void bpg_rsp_commit(logic_context_t op_context, void * user_data);
+uint32_t bpg_rsp_hash(const struct bpg_rsp * rsp);
+int bpg_rsp_cmp(const struct bpg_rsp * l, const struct bpg_rsp * r);
+void bpg_rsp_free_all(bpg_rsp_manage_t mgr);
 
 /*bpg_rsp_copy_info ops*/
 struct bpg_rsp_copy_info *

@@ -9,7 +9,14 @@ extern "C" {
 bpg_rsp_t bpg_rsp_create(bpg_rsp_manage_t mgr, const char * name);
 void bpg_rsp_free(bpg_rsp_t rsp);
 
+bpg_rsp_t bpg_rsp_find(bpg_rsp_manage_t mgr, const char * name);
+
+dp_rsp_t bpg_rsp_dp(bpg_rsp_t rsp);
+
+logic_executor_t bpg_rsp_executor(bpg_rsp_t rsp);
 void bpg_rsp_set_executor(bpg_rsp_t rsp, logic_executor_ref_t executor);
+
+const char * bpg_rsp_queue(bpg_rsp_t rsp);
 int bpg_rsp_set_queue(bpg_rsp_t rsp, const char * queue_name);
 
 const char * bpg_rsp_name(bpg_rsp_t rsp);

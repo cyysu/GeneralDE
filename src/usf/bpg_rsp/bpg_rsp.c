@@ -35,7 +35,12 @@ bpg_rsp_t bpg_rsp_create(bpg_rsp_manage_t mgr, const char * name) {
     rsp->m_flags = 0;
 
     TAILQ_INIT(&rsp->m_ctx_to_pdu);
-    TAILQ_INSERT_TAIL(&mgr->m_rsps, rsp, m_next);
+
+    cpe_hash_entry_init(&rsp->m_hh);
+    if (cpe_hash_table_insert_unique(&mgr->m_rsps, rsp) != 0) {
+        mem_free(mgr->m_alloc, buf);
+        return NULL;
+    }
 
     return rsp;
 }
@@ -43,7 +48,7 @@ bpg_rsp_t bpg_rsp_create(bpg_rsp_manage_t mgr, const char * name) {
 void bpg_rsp_free(bpg_rsp_t rsp) {
     dp_rsp_t dp_rsp;
 
-    TAILQ_REMOVE(&rsp->m_mgr->m_rsps, rsp, m_next);
+    cpe_hash_table_remove_by_ins(&rsp->m_mgr->m_rsps, rsp);
 
     bpg_rsp_copy_info_clear(rsp);
 
@@ -60,10 +65,29 @@ void bpg_rsp_free(bpg_rsp_t rsp) {
     mem_free(rsp->m_mgr->m_alloc, (void*)rsp->m_name);
 }
 
+bpg_rsp_t
+bpg_rsp_find(bpg_rsp_manage_t mgr, const char * rsp_name) {
+    struct bpg_rsp key;
+    key.m_name = rsp_name;
+    return (struct bpg_rsp *)cpe_hash_table_find(&mgr->m_rsps, &key);
+}
+
+dp_rsp_t bpg_rsp_dp(bpg_rsp_t rsp) {
+    return dp_rsp_find_by_name(gd_app_dp_mgr(rsp->m_mgr->m_app), bpg_rsp_name(rsp));
+}
+
+logic_executor_t bpg_rsp_executor(bpg_rsp_t rsp) {
+    return rsp->m_executor_ref ? logic_executor_ref_executor(rsp->m_executor_ref) : NULL;
+}
+
 void bpg_rsp_set_executor(bpg_rsp_t rsp, logic_executor_ref_t executor) {
     if (rsp->m_executor_ref) logic_executor_ref_dec(rsp->m_executor_ref);
     if (executor) logic_executor_ref_inc(executor);
     rsp->m_executor_ref = executor;
+}
+
+const char * bpg_rsp_queue(bpg_rsp_t rsp) {
+    return rsp->m_queue_info ? cpe_hs_data(rsp->m_queue_info->m_name) : NULL;
 }
 
 int bpg_rsp_set_queue(bpg_rsp_t rsp, const char * queue_name) {
@@ -109,4 +133,26 @@ void bpg_rsp_flag_disable(bpg_rsp_t rsp, bpg_rsp_flag_t flag) {
 
 int bpg_rsp_flag_is_enable(bpg_rsp_t rsp, bpg_rsp_flag_t flag) {
     return rsp->m_flags & flag;
+}
+
+uint32_t bpg_rsp_hash(const struct bpg_rsp * rsp) {
+    return cpe_hash_str(rsp->m_name, strlen(rsp->m_name));
+}
+
+int bpg_rsp_cmp(const struct bpg_rsp * l, const struct bpg_rsp * r) {
+    return strcmp(l->m_name, r->m_name) == 0;
+}
+
+void bpg_rsp_free_all(bpg_rsp_manage_t mgr) {
+    struct cpe_hash_it rsp_it;
+    struct bpg_rsp * rsp;
+
+    cpe_hash_it_init(&rsp_it, &mgr->m_rsps);
+
+    rsp = cpe_hash_it_next(&rsp_it);
+    while (rsp) {
+        struct bpg_rsp * next = cpe_hash_it_next(&rsp_it);
+        bpg_rsp_free(rsp);
+        rsp = next;
+    }
 }
