@@ -15,6 +15,7 @@ typedef struct dp_rsp_it * dp_rsp_it_t;
 typedef struct dp_req * dp_req_t;
 typedef struct dp_mgr * dp_mgr_t;
 typedef struct dp_rsp_type * dp_rsp_type_t;
+typedef struct dp_binding * dp_binding_t;
 
 typedef int (*dp_node_send_fun_t)(dp_node_t node, dp_req_t req, error_monitor_t em);
 typedef int (*dp_node_reply_fun_t)(dp_node_t node, dp_req_t req, char * buf, size_t size, error_monitor_t em);
@@ -37,6 +38,11 @@ typedef dp_rsp_t (*dp_rsp_it_next_fun)(dp_rsp_it_t it);
 
 struct dp_rsp_it {
     dp_rsp_it_next_fun m_next_fun;
+    void * m_context;
+};
+
+struct dp_binding_it {
+    dp_binding_t (*m_next)(struct dp_binding_it * it);
     void * m_context;
 };
 
