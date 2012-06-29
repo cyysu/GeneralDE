@@ -267,6 +267,20 @@ int dp_rsp_unbind_string(dp_rsp_t rsp, const char * cmd) {
     return count;
 }
 
+int dp_binding_numeric(uint32_t * value,  dp_binding_t binding) {
+    if (binding->m_kt != dp_key_numeric) return -1;
+
+    *value = ((struct dp_binding_numeric *)binding)->m_value;
+    return 0;
+}
+
+int dp_binding_string(char const * * cmd,  dp_binding_t binding) {
+    if (binding->m_kt != dp_key_string) return -1;
+
+    *cmd = ((struct dp_binding_string *)binding)->m_value;
+    return 0;
+}
+
 int dp_rsp_bind_by_cfg(dp_rsp_t dp_rsp, cfg_t cfg_respons, error_monitor_t em) {
     int rv = 0;
 
