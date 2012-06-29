@@ -80,7 +80,7 @@ void otm_manage_tick(otm_manage_t mgr, tl_time_t cur_time, void * obj_ctx, otm_m
         otm_memo_t memo = memo_buf + i;
 
         if (memo->m_id == 0) continue;
-        if (memo->m_next_action_time == 0 || memo->m_next_action_time > cur_time) break;
+        if (memo->m_next_action_time == 0 || memo->m_next_action_time > cur_time) continue;
 
         otm_timer_t timer = otm_timer_find(mgr, memo->m_id);
         if (timer == NULL) continue;
