@@ -17,6 +17,8 @@ void dp_rsp_set_processor(dp_rsp_t rsp, dp_rsp_process_fun_t process, void * ctx
 dp_rsp_process_fun_t dp_rsp_processor(dp_rsp_t rsp);
 void * dp_rsp_context(dp_rsp_t rsp);
 
+void dp_rsp_bindings(struct dp_binding_it * it, dp_rsp_t rsp);
+
 #ifdef __cplusplus
 }
 #endif
