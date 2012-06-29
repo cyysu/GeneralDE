@@ -54,13 +54,7 @@ static int bpg_rsp_create_dp_rsp_and_bind(bpg_rsp_t bpg_rsp, cfg_t cfg) {
     cfg_t cfg_respons;
 
     cfg_respons = cfg_find_cfg(cfg, "respons-to");
-    if (cfg_respons == NULL) {
-        CPE_ERROR(
-            bpg_rsp->m_mgr->m_em,
-            "%s: create rsp %s: create dp_rsp fail, maybe name duplicate!",
-            bpg_rsp_manage_name(bpg_rsp->m_mgr), bpg_rsp_name(bpg_rsp));
-        return -1;
-    }
+    if (cfg_respons == NULL) return 0;
 
     dp_rsp = dp_rsp_create(
         gd_app_dp_mgr(bpg_rsp->m_mgr->m_app),
