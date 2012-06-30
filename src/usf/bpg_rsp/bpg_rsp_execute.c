@@ -413,6 +413,7 @@ bpg_rsp_manage_create_follow_op_by_name(bpg_rsp_manage_t bpg_mgr, logic_context_
     logic_context_t follow_context;
     logic_data_t input_carry_data;
     logic_data_t carry_data;
+    bpg_rsp_carry_info_t carry_info;
 
     assert(rsp_name);
 
@@ -447,6 +448,10 @@ bpg_rsp_manage_create_follow_op_by_name(bpg_rsp_manage_t bpg_mgr, logic_context_
         return NULL;
     }
 
+    carry_info = (bpg_rsp_carry_info_t)logic_data_data(carry_data);
+    assert(carry_info);
+    printf("clientId=%d\n", (int)bpg_rsp_context_client_id(carry_info));
+
     if ((dp_rsp = bpg_rsp_dp(rsp))) {
         struct dp_binding_it binding_it;
         dp_binding_t only_binding;
@@ -457,7 +462,7 @@ bpg_rsp_manage_create_follow_op_by_name(bpg_rsp_manage_t bpg_mgr, logic_context_
             uint32_t cmd;
             if (dp_binding_numeric(&cmd, only_binding) == 0) {
                 assert(carry_data != NULL);
-                bpg_rsp_context_set_cmd((bpg_rsp_carry_info_t)logic_data_data(carry_data), cmd);
+                bpg_rsp_context_set_cmd(carry_info, cmd);
             }
         }
     }
@@ -496,6 +501,8 @@ bpg_rsp_manage_create_follow_op_by_name(bpg_rsp_manage_t bpg_mgr, logic_context_
             return NULL;
         }
     }
+
+    logic_context_set_commit(follow_context, bpg_rsp_commit, rsp);
 
     return follow_context;
 }

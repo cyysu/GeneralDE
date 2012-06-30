@@ -49,13 +49,17 @@ bpg_rsp_addition_data_create(logic_context_t ctx, size_t capacity) {
         : (BPG_RSP_ADDITION_DATA *)logic_data_data(data);
 
     if (addition_data) addition_data->capacity = capacity;
+
     return addition_data;
+}
+
+int bpg_rsp_meta_id_cmp(const void *m1, const void *m2) {
+    return *((const int32_t *)m2) - *((const int32_t *)m1);
 }
 
 int bpg_rsp_addition_data_add(logic_context_t ctx, uint32_t meta_id) {
     logic_data_t data;
     BPG_RSP_ADDITION_DATA * addition_data;
-    int i;
 
     data = logic_context_data_find(ctx, "bpg_rsp_addition_data");
 
@@ -65,40 +69,32 @@ int bpg_rsp_addition_data_add(logic_context_t ctx, uint32_t meta_id) {
 
     if (addition_data == NULL) {
         addition_data = 
-            bpg_rsp_addition_data_create(ctx, BPG_RSP_ADDITION_DATA_ONCE_SIZE - 1);
+            bpg_rsp_addition_data_create(ctx, BPG_RSP_ADDITION_DATA_ONCE_SIZE);
         if (addition_data == NULL) return -1;
+        assert(addition_data->count == 0);
     }
 
-    for(i = 0; i < addition_data->count; ++i) {
-        if (addition_data->pieces[i] == meta_id) return 0;
-
-        if (addition_data->pieces[i] > meta_id) {
-            if (addition_data->count + 1 >= addition_data->capacity) {
-                addition_data = 
-                    bpg_rsp_addition_data_create(ctx, addition_data->capacity + BPG_RSP_ADDITION_DATA_ONCE_SIZE);
-                if (addition_data == NULL) return -1;
-            }
-
-            addition_data->count++;
-
-            memmove(
-                addition_data->pieces + i + 1,
-                addition_data->pieces + i,
-                sizeof(addition_data->pieces[0]) * (addition_data->count - i));
-
-            addition_data->pieces[i] = meta_id;
-
-            return 0;
-        }
+    if (bsearch(
+            &meta_id, addition_data->pieces,
+            addition_data->count, sizeof(meta_id),
+            bpg_rsp_meta_id_cmp))
+    {
+        return 0;
     }
 
-    if (addition_data->count + 1 >= addition_data->capacity) {
+    if (addition_data->count >= addition_data->capacity) {
         addition_data = 
             bpg_rsp_addition_data_create(ctx, addition_data->capacity + BPG_RSP_ADDITION_DATA_ONCE_SIZE);
         if (addition_data == NULL) return -1;
     }
 
-    addition_data->pieces[addition_data->count++] = meta_id;
+    assert(addition_data->count < addition_data->capacity);
+
+    addition_data->pieces[addition_data->count] = meta_id;
+    addition_data->count += 1;
+
+    qsort(addition_data->pieces, addition_data->count, sizeof(meta_id), bpg_rsp_meta_id_cmp);
+
     return 0;
 }
 

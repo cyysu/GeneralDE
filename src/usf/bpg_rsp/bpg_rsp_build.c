@@ -108,7 +108,10 @@ static bpg_rsp_t bpg_rsp_build_one(bpg_rsp_manage_t mgr, cfg_t cfg) {
 
     queue_name = cfg_get_string(cfg, "queue", NULL);
     if (queue_name == NULL) {
-        queue_name = bpg_rsp_queue_name(mgr->m_default_queue_info);
+        queue_name = 
+            mgr->m_default_queue_info
+            ? bpg_rsp_queue_name(mgr->m_default_queue_info)
+            : NULL;
     }
     else if (strcasecmp(queue_name, "none") == 0) {
         queue_name = NULL;

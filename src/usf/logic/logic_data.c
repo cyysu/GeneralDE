@@ -33,9 +33,6 @@ void logic_data_init_data(logic_data_t data, logic_data_t old_data) {
     if (old_data) {
         assert(data->m_capacity >= old_data->m_capacity);
         memcpy(data + 1, old_data + 1, old_data->m_capacity);
-
-        printf("new capacity=%d, old_capacity=%d\n", data->m_capacity, old_data->m_capacity);
-
         bzero(((char *)(data + 1)) + old_data->m_capacity, data->m_capacity - old_data->m_capacity);
     }
     else {
@@ -44,7 +41,7 @@ void logic_data_init_data(logic_data_t data, logic_data_t old_data) {
 }
 
 logic_data_t 
-logic_data_get_or_create_i(logic_data_t key, LPDRMETA meta, size_t capacity, void * src_data) {
+logic_data_get_or_create_i(logic_data_t key, LPDRMETA meta, size_t capacity, logic_data_t src_data) {
     logic_data_t old_data;
     logic_data_t new_data;
     logic_manage_t mgr;
@@ -143,7 +140,7 @@ logic_data_t logic_context_data_copy(logic_context_t context, logic_data_t data)
     key.m_owner_type = logic_data_owner_context;
     key.m_owner_data.m_context = context;
 
-    return logic_data_get_or_create_i(&key, data->m_meta, data->m_capacity, logic_data_data(data));
+    return logic_data_get_or_create_i(&key, data->m_meta, data->m_capacity, data);
 }
 
 logic_data_t logic_stack_data_find(logic_stack_node_t stack_node, const char * name) {
@@ -171,7 +168,7 @@ logic_data_t logic_stack_data_copy(logic_stack_node_t stack_node, logic_data_t d
     key.m_owner_type = logic_data_owner_stack;
     key.m_owner_data.m_stack = stack_node;
 
-    return logic_data_get_or_create_i(&key, data->m_meta, data->m_capacity, logic_data_data(data));
+    return logic_data_get_or_create_i(&key, data->m_meta, data->m_capacity, data);
 }
 
 logic_data_t logic_require_data_find(logic_require_t require, const char * name) {
@@ -199,7 +196,7 @@ logic_data_t logic_require_data_copy(logic_require_t require, logic_data_t data)
     key.m_owner_type = logic_data_owner_require;
     key.m_owner_data.m_require = require;
 
-    return logic_data_get_or_create_i(&key, data->m_meta, data->m_capacity, logic_data_data(data));
+    return logic_data_get_or_create_i(&key, data->m_meta, data->m_capacity, data);
 }
 
 void logic_data_free(logic_data_t data) {
