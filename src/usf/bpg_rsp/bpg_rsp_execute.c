@@ -3,6 +3,8 @@
 #include "cpe/pal/pal_stdio.h"
 #include "cpe/dr/dr_metalib_manage.h"
 #include "cpe/dr/dr_cvt.h"
+#include "cpe/dp/dp_responser.h"
+#include "cpe/dp/dp_binding.h"
 #include "cpe/dp/dp_request.h"
 #include "cpe/dp/dp_manage.h"
 #include "usf/logic/logic_context.h"
@@ -13,6 +15,7 @@
 #include "usf/bpg_pkg/bpg_pkg_manage.h"
 #include "usf/bpg_rsp/bpg_rsp_manage.h"
 #include "usf/bpg_rsp/bpg_rsp.h"
+#include "usf/bpg_rsp/bpg_rsp_carry_info.h"
 #include "protocol/bpg_rsp/bpg_rsp_carry_info.h"
 #include "bpg_rsp_internal_ops.h"
 
@@ -401,5 +404,99 @@ logic_context_t bpg_rsp_manage_create_context(bpg_rsp_manage_t bpg_mgr, bpg_pkg_
     }
     
     return op_context;
+}
+
+logic_context_t
+bpg_rsp_manage_create_follow_op_by_name(bpg_rsp_manage_t bpg_mgr, logic_context_t context, const char * rsp_name, error_monitor_t em) {
+    bpg_rsp_t rsp;
+    dp_rsp_t dp_rsp;
+    logic_context_t follow_context;
+    logic_data_t input_carry_data;
+    logic_data_t carry_data;
+
+    assert(rsp_name);
+
+    rsp = bpg_rsp_find(bpg_mgr, rsp_name);
+    if (rsp == NULL) {
+        CPE_ERROR(
+            em, "%s.%s: create follow op: fail, rsp not exist!",
+            bpg_rsp_manage_name(bpg_mgr), rsp_name);
+        return NULL;
+    }
+
+    follow_context =
+        logic_context_create(
+            bpg_mgr->m_logic_mgr,
+            INVALID_LOGIC_CONTEXT_ID,
+            bpg_mgr->m_ctx_capacity);
+    if (follow_context == NULL) {
+        CPE_ERROR(
+            em, "%s.%s: create follow op: fail, capacity is %d!",
+            bpg_rsp_manage_name(bpg_mgr), rsp_name, (int)bpg_mgr->m_ctx_capacity);
+        return NULL;
+    }
+
+    if ((input_carry_data = logic_context_data_find(context, "bpg_carry_info"))) {
+        carry_data = logic_context_data_copy(follow_context, input_carry_data);
+    }
+    else {
+        CPE_ERROR(
+            em, "%s.%s: create follow op: bpg_carry_info not exist in input context!",
+            bpg_rsp_manage_name(bpg_mgr), rsp_name);
+        logic_context_free(follow_context);
+        return NULL;
+    }
+
+    if ((dp_rsp = bpg_rsp_dp(rsp))) {
+        struct dp_binding_it binding_it;
+        dp_binding_t only_binding;
+
+        dp_rsp_bindings(&binding_it, dp_rsp);
+        only_binding = dp_binding_next(&binding_it);
+        if (only_binding && dp_binding_next(&binding_it) == NULL) {
+            uint32_t cmd;
+            if (dp_binding_numeric(&cmd, only_binding) == 0) {
+                assert(carry_data != NULL);
+                bpg_rsp_context_set_cmd((bpg_rsp_carry_info_t)logic_data_data(carry_data), cmd);
+            }
+        }
+    }
+
+    if (bpg_mgr->m_debug >= 2 || logic_context_flag_is_enable(context, logic_context_flag_debug)) {
+        logic_context_flag_enable(follow_context, logic_context_flag_debug);
+    }
+
+    if (bpg_mgr->m_ctx_init) {
+        if (bpg_mgr->m_ctx_init(follow_context, NULL, bpg_mgr->m_ctx_ctx) != 0) {
+            CPE_ERROR(
+                em, "%s.%s: create follow op: use-ctx-init: init fail!",
+                bpg_rsp_manage_name(bpg_mgr), rsp_name);
+            logic_context_free(follow_context);
+            return NULL;
+        }
+    }
+
+    if (logic_context_bind(
+            follow_context,
+            logic_executor_ref_executor(rsp->m_executor_ref)) != 0)
+    {
+        CPE_ERROR(
+            em, "%s.%s: create follow op: bind executor to context fail!",
+            bpg_rsp_manage_name(bpg_mgr), rsp_name);
+        bpg_rsp_manage_free_context(bpg_mgr, follow_context);
+        return NULL;
+    }
+
+    if (logic_context_queue(context)) {
+        if (logic_queue_enqueue_after(context, follow_context) != 0) {
+            CPE_ERROR(
+                em, "%s.%s: create follow op: enqueue after input fail!",
+                bpg_rsp_manage_name(bpg_mgr), rsp_name);
+            bpg_rsp_manage_free_context(bpg_mgr, follow_context);
+            return NULL;
+        }
+    }
+
+    return follow_context;
 }
 

@@ -1,3 +1,5 @@
+#include <cassert>
+#include "cpepp/utils/ErrorCollector.hpp"
 #include "gdpp/app/Log.hpp"
 #include "usfpp/bpg_rsp/RspManager.hpp"
 
@@ -22,5 +24,25 @@ RspManager & RspManager::instance(gd_app_context_t app, const char * name) {
 
     return *(RspManager*)rsp_manage;
 }
+
+RspOpContext &
+RspManager::createFollowOp(logic_context_t context, const char * rspName) {
+    Cpe::Utils::ErrorCollector ec;
+
+    logic_context_t follow_context = 
+        bpg_rsp_manage_create_follow_op_by_name(
+            *this,
+            context,
+            rspName,
+            ec);
+
+    if (follow_context == NULL) {
+        ec.checkThrowWithMsg< ::std::runtime_error>("Usf::Bpg::RspManager::createFollowOp: ");
+    }
+
+    assert(follow_context);
+    return *(RspOpContext*)follow_context;
+}
+
 
 }}
