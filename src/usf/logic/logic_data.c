@@ -32,9 +32,11 @@ static logic_manage_t logic_data_dequeue(logic_manage_t mgr, logic_data_t data) 
 void logic_data_init_data(logic_data_t data, logic_data_t old_data) {
     if (old_data) {
         assert(data->m_capacity >= old_data->m_capacity);
-        memcpy(data + 1, old_data + 1, data->m_capacity);
+        memcpy(data + 1, old_data + 1, old_data->m_capacity);
 
-        bzero(((char *)data + 1) + old_data->m_capacity, data->m_capacity - old_data->m_capacity);
+        printf("new capacity=%d, old_capacity=%d\n", data->m_capacity, old_data->m_capacity);
+
+        bzero(((char *)(data + 1)) + old_data->m_capacity, data->m_capacity - old_data->m_capacity);
     }
     else {
         bzero(data + 1, data->m_capacity);
@@ -60,6 +62,7 @@ logic_data_get_or_create_i(logic_data_t key, LPDRMETA meta, size_t capacity, voi
 
     old_data = (logic_data_t)cpe_hash_table_find(&mgr->m_datas, key);
     if (old_data && old_data->m_capacity >= capacity) {
+
         if (src_data) logic_data_init_data(old_data, src_data);
         return old_data;
     }

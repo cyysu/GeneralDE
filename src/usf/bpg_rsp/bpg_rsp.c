@@ -33,6 +33,7 @@ bpg_rsp_t bpg_rsp_create(bpg_rsp_manage_t mgr, const char * name) {
     rsp->m_name = buf;
     rsp->m_queue_info = NULL;
     rsp->m_flags = 0;
+    rsp->m_executor_ref = NULL;
 
     TAILQ_INIT(&rsp->m_ctx_to_pdu);
 
@@ -81,8 +82,8 @@ logic_executor_t bpg_rsp_executor(bpg_rsp_t rsp) {
 }
 
 void bpg_rsp_set_executor(bpg_rsp_t rsp, logic_executor_ref_t executor) {
-    if (rsp->m_executor_ref) logic_executor_ref_dec(rsp->m_executor_ref);
     if (executor) logic_executor_ref_inc(executor);
+    if (rsp->m_executor_ref) logic_executor_ref_dec(rsp->m_executor_ref);
     rsp->m_executor_ref = executor;
 }
 

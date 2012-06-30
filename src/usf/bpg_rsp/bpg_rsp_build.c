@@ -131,7 +131,7 @@ static bpg_rsp_t bpg_rsp_build_one(bpg_rsp_manage_t mgr, cfg_t cfg) {
             mgr->m_logic_mgr,
             type_group,
             cfg_executor);
-    if (rsp->m_executor_ref == NULL) {
+    if (executor_ref == NULL) {
         CPE_ERROR(mgr->m_em, "%s: create rsp %s: create executor fail!", bpg_rsp_manage_name(mgr), name) ;
         bpg_rsp_free(rsp);
         return NULL;
