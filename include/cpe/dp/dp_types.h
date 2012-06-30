@@ -42,7 +42,7 @@ struct dp_rsp_it {
 };
 
 struct dp_binding_it {
-    dp_binding_t (*m_next)(struct dp_binding_it * it);
+    dp_binding_t (*next)(struct dp_binding_it * it);
     void * m_context;
 };
 
