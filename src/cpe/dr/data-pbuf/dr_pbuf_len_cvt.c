@@ -84,14 +84,14 @@ dr_cvt_fun_pbuf_len_decode(
     r = dr_pbuf_read(output, *output_capacity, (const char *)input + size_size, data_size, meta, em);
     if (r < 0) {
         CPE_ERROR(
-            em, "decode %s: pbuf-len: fail, data size "FMT_SIZE_T", output buf "FMT_SIZE_T,
+            em, "decode %s: pbuf-len: fail, data size %d, output buf "FMT_SIZE_T,
             dr_meta_name(meta), size_size, *output_capacity);
         return dr_cvt_result_error;
     }
 
     if (debug) {
         CPE_INFO(
-            em, "decode %s: pbuf-len: ok, %d data to output, data-size="FMT_SIZE_T", input-size="FMT_SIZE_T,
+            em, "decode %s: pbuf-len: ok, %d data to output, data-size=%d, input-size="FMT_SIZE_T,
             dr_meta_name(meta), r, data_size, *input_capacity);
     }
 

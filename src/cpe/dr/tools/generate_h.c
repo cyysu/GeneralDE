@@ -90,6 +90,10 @@ static void cpe_dr_generate_h_metas(write_stream_t stream, dr_metalib_source_t s
                 stream_printf(stream, "char %s", dr_entry_name(entry));
                 break;
             }
+            case CPE_DR_TYPE_UCHAR: {
+                stream_printf(stream, "unsigned char %s", dr_entry_name(entry));
+                break;
+            }
             case CPE_DR_TYPE_FLOAT: {
                 stream_printf(stream, "float %s", dr_entry_name(entry));
                 break;
