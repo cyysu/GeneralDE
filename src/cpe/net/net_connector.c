@@ -21,13 +21,15 @@ net_connector_create(
     net_connector_t connector;
     char * buf;
     size_t nameLen;
+    size_t baseLen;
+    baseLen = strlen(name) + 1;
 
-    nameLen = CPE_PAL_ALIGN_8(strlen(name) + 1);
+    nameLen = CPE_PAL_ALIGN_8(baseLen);
 
     buf = mem_alloc(nmgr->m_alloc, sizeof(struct net_connector) + nameLen);
     if (buf == NULL) return NULL;
 
-    memcpy(buf, name, nameLen);
+    memcpy(buf, name, baseLen);
     connector = (net_connector_t)(buf + nameLen);
 
     connector->m_mgr = nmgr;
