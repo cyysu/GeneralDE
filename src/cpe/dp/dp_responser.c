@@ -100,5 +100,5 @@ static dp_binding_t dp_rsp_binding_do_next(struct dp_binding_it * it) {
 void dp_rsp_bindings(struct dp_binding_it * it, dp_rsp_t rsp) {
     assert(it);
     it->m_context = rsp->m_bindings;
-    it->m_next = dp_rsp_binding_do_next;
+    it->next = dp_rsp_binding_do_next;
 }
