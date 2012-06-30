@@ -46,6 +46,19 @@ LogicOpStackNode::checkCreateData(LPDRMETA meta, size_t capacity) {
     return *(LogicOpData*)data;
 }
 
+LogicOpData &
+LogicOpStackNode::copy(logic_data_t input) {
+    logic_data_t data = logic_stack_data_copy(*this, input);
+    if (data == 0) {
+        APP_CTX_THROW_EXCEPTION(
+            context().app(),
+            ::std::runtime_error,
+            "data %s copy to stack fail!",
+            logic_data_name(input));
+    }
+    return *(LogicOpData*)data;
+}
+
 LogicOpRequire &
 LogicOpStackNode::createRequire(const char * name) {
     logic_require_t require = logic_require_create(*this, name);

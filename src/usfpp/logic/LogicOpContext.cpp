@@ -45,6 +45,19 @@ LogicOpContext::checkCreateData(LPDRMETA meta, size_t capacity) {
     return *(LogicOpData*)data;
 }
 
+LogicOpData &
+LogicOpContext::copy(logic_data_t input) {
+    logic_data_t data = logic_context_data_copy(*this, input);
+    if (data == 0) {
+        APP_CTX_THROW_EXCEPTION(
+            app(),
+            ::std::runtime_error,
+            "data %s copy to context fail!",
+            logic_data_name(input));
+    }
+    return *(LogicOpData*)data;
+}
+
 Cpe::Utils::Random &
 LogicOpContext::random(cpe_hash_string_t name) {
     return Gd::App::Random::instance(

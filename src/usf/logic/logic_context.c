@@ -210,6 +210,10 @@ void logic_context_data_dump_to_cfg(logic_context_t context, cfg_t cfg) {
     }
 }
 
+logic_queue_t logic_context_queue(logic_context_t context) {
+    return context->m_logic_queue;
+}
+
 void logic_context_execute(logic_context_t context) {
     logic_context_state_t old_state;
 

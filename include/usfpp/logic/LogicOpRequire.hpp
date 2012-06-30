@@ -32,6 +32,7 @@ public:
     LogicOpData * findData(const char * name) { return (LogicOpData *)logic_require_data_find(*this, name); }
     LogicOpData const * findData(const char * name) const { return (LogicOpData *)logic_require_data_find(*this, name); }
     LogicOpData & checkCreateData(LPDRMETA meta, size_t capacity = 0);
+    LogicOpData & copy(logic_data_t input);
 
     void dump_data(cfg_t cfg) const { logic_require_data_dump_to_cfg(*this, cfg); }
 
