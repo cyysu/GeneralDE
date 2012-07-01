@@ -13,6 +13,7 @@
 #include "usf/logic/logic_executor.h"
 #include "usf/logic/logic_executor_type.h"
 #include "usf/logic_use/logic_op_async.h"
+#include "protocol/logic_use/logic_op_async_info.h"
 
 struct logic_op_async_ctx {
     mem_allocrator_t m_alloc;
@@ -22,7 +23,7 @@ struct logic_op_async_ctx {
     logic_op_ctx_fini_fun_t m_fini_fun;
 };
 
-extern char g_metalib_logic_op_async_package[];
+extern char g_metalib_logic_use[];
 
 logic_op_exec_result_t
 logic_op_asnyc_exec(
@@ -34,58 +35,81 @@ logic_op_asnyc_exec(
     cfg_t args)
 {
     struct logic_require_it require_it;
-    logic_require_t require;
+    logic_require_t require, next_require;
     logic_executor_t executor;
-    logic_op_exec_result_t rv;
+    logic_op_exec_result_t tmp_rv;
+    LPDRMETA meta;
+    logic_data_t asnyc_info_data;
+    LOGIC_OP_ASNYC_INFO * asnyc_info;
 
     assert(stack_node);
 
     executor = logic_stack_node_executor(stack_node);
     assert(executor);
 
-    logic_stack_node_requires(stack_node, &require_it);
-
-    require = logic_require_next(&require_it);
-    if (require == NULL) {
-        rv = send_fun(context, stack_node, user_data, args);
-
-        if (rv == logic_op_exec_result_redo) {
-            logic_stack_node_requires(stack_node, &require_it);
-
-            require = logic_require_next(&require_it);
-            if (require == NULL) {
-                APP_CTX_ERROR(
-                    logic_context_app(context),
-                    "logic_op_asnyc_exec: %s: auto create require fail!",
-                    logic_executor_name(executor));
-                return logic_op_exec_result_null;
-            }
+    asnyc_info_data = logic_context_data_find(context, "logic_op_asnyc_info");
+    if (asnyc_info_data == NULL) {
+        meta = dr_lib_find_meta_by_name((LPDRMETALIB)g_metalib_logic_use, "logic_op_asnyc_info");
+        if (meta == NULL) {
+            APP_CTX_ERROR(
+                logic_context_app(context),
+                "logic_op_asnyc_exec: %s: meta not exist!",
+                logic_executor_name(executor));
+            return logic_op_exec_result_null;
         }
 
-        return rv;
+        asnyc_info_data = logic_context_data_get_or_create(context, meta, sizeof(LOGIC_OP_ASNYC_INFO));
+        if (asnyc_info_data == NULL) {
+            APP_CTX_ERROR(
+                logic_context_app(context),
+                "logic_op_asnyc_exec: %s: create asnyc_info_data fail!",
+                logic_executor_name(executor));
+            return logic_op_exec_result_null;
+        }
+
+        asnyc_info = (LOGIC_OP_ASNYC_INFO *)logic_data_data(asnyc_info_data);
+
+        tmp_rv = send_fun(context, stack_node, user_data, args);
+        if (tmp_rv == logic_op_exec_result_null) return logic_op_exec_result_null;
+        assert(tmp_rv != logic_op_exec_result_redo);
+
+        asnyc_info->res_rv = tmp_rv;
     }
     else {
-        for(; require; require = logic_require_next(&require_it)) {
-            if (logic_require_stack(require) == NULL) continue;
+        asnyc_info = (LOGIC_OP_ASNYC_INFO *)logic_data_data(asnyc_info_data);
+    }
 
-            rv = recv_fun(context, stack_node, require, user_data, args);
-            logic_require_disconnect_to_stack(require);
+    assert(asnyc_info);
 
-            if (rv == logic_op_exec_result_true) continue;
+    logic_stack_node_requires(stack_node, &require_it);
+    require = logic_require_next(&require_it);
+    for(; require; require = next_require) {
+        logic_require_state_t require_state;
 
-            if (rv == logic_op_exec_result_redo) {
-                APP_CTX_ERROR(
-                    logic_context_app(context),
-                    "logic_op_asnyc_exec: %s: exec recv return redo!",
-                    logic_executor_name(executor));
-                return logic_op_exec_result_null;
-            }
+        next_require = logic_require_next(&require_it);
 
-            return rv;
+        assert(logic_require_stack(require) == stack_node);
+
+        require_state = logic_require_state(require);
+        if (require_state == logic_require_state_waiting
+            || require_state == logic_require_state_canceling)
+        {
+            continue;
         }
 
-        return logic_op_exec_result_true;
+        tmp_rv = recv_fun(context, stack_node, require, user_data, args);
+        logic_require_disconnect_to_stack(require);
+
+        if (tmp_rv == logic_op_exec_result_null) return logic_op_exec_result_null;
+        assert(tmp_rv != logic_op_exec_result_redo);
+
+        if (tmp_rv == logic_op_exec_result_false) asnyc_info->res_rv = logic_op_exec_result_false;
     }
+
+    /*最后检查还有没有require*/
+    logic_stack_node_requires(stack_node, &require_it);
+
+    return logic_require_next(&require_it) ? logic_op_exec_result_redo : asnyc_info->res_rv;
 }
 
 static logic_op_exec_result_t
