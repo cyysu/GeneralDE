@@ -242,7 +242,6 @@ void logic_stack_exec(struct logic_stack * stack, int32_t stop_stack_pos, logic_
                 struct logic_executor_condition * condition = (struct logic_executor_condition *)stack_item->m_executr;
 
                 if (condition->m_if == pre_stack_item->m_executr) {
-                    printf("if return,rv=%d\n", pre_stack_item->m_rv);
                     if (pre_stack_item->m_rv == logic_op_exec_result_true) {
                         logic_stack_push(stack, ctx, condition->m_do);
                     }

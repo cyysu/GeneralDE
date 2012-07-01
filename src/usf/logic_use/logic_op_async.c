@@ -47,7 +47,7 @@ logic_op_asnyc_exec(
     executor = logic_stack_node_executor(stack_node);
     assert(executor);
 
-    asnyc_info_data = logic_context_data_find(context, "logic_op_asnyc_info");
+    asnyc_info_data = logic_stack_data_find(stack_node, "logic_op_asnyc_info");
     if (asnyc_info_data == NULL) {
         meta = dr_lib_find_meta_by_name((LPDRMETALIB)g_metalib_logic_use, "logic_op_asnyc_info");
         if (meta == NULL) {
@@ -58,7 +58,7 @@ logic_op_asnyc_exec(
             return logic_op_exec_result_null;
         }
 
-        asnyc_info_data = logic_context_data_get_or_create(context, meta, sizeof(LOGIC_OP_ASNYC_INFO));
+        asnyc_info_data = logic_stack_data_get_or_create(stack_node, meta, sizeof(LOGIC_OP_ASNYC_INFO));
         if (asnyc_info_data == NULL) {
             APP_CTX_ERROR(
                 logic_context_app(context),
@@ -66,6 +66,7 @@ logic_op_asnyc_exec(
                 logic_executor_name(executor));
             return logic_op_exec_result_null;
         }
+        assert(logic_stack_data_find(stack_node, "logic_op_asnyc_info"));
 
         asnyc_info = (LOGIC_OP_ASNYC_INFO *)logic_data_data(asnyc_info_data);
 

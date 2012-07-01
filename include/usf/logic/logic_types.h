@@ -9,7 +9,8 @@
 extern "C" {
 #endif
 
-#define INVALID_LOGIC_CONTEXT_ID ((logic_require_id_t)-1)
+#define INVALID_LOGIC_CONTEXT_ID ((logic_context_id_t)-1)
+#define INVALID_LOGIC_REQUIRE_ID ((logic_require_id_t)-1)
 
 typedef uint32_t logic_context_id_t;
 typedef uint32_t logic_require_id_t;

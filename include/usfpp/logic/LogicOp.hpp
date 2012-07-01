@@ -8,7 +8,7 @@ namespace Usf { namespace Logic {
 class LogicOp : public Cpe::Nm::Object {
 public:
     struct R {
-        R(bool v) : m_result(v ? logic_op_exec_result_true : logic_op_exec_result_true) {}
+        R(bool v) : m_result(v ? logic_op_exec_result_true : logic_op_exec_result_false) {}
         R(logic_op_exec_result_t v) : m_result(v) {}
 
         operator logic_op_exec_result_t () const { return m_result; };

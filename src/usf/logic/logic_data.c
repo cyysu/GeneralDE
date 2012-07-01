@@ -250,8 +250,7 @@ uint32_t logic_data_hash(const struct logic_data * data) {
         return (cpe_hash_str(data->m_name, strlen(data->m_name)) << 4)
             | (data->m_owner_data.m_context->m_id & 0xFF);
     case logic_data_owner_stack:
-        return (cpe_hash_str(data->m_name, strlen(data->m_name)) << 4)
-            | (data->m_owner_data.m_require->m_id & 0xFF);
+        return cpe_hash_str(data->m_name, strlen(data->m_name));
     case logic_data_owner_require:
         return (cpe_hash_str(data->m_name, strlen(data->m_name)) << 4)
             | (data->m_owner_data.m_require->m_id & 0xFF);
@@ -262,9 +261,16 @@ uint32_t logic_data_hash(const struct logic_data * data) {
 }
 
 int logic_data_cmp(const struct logic_data * l, const struct logic_data * r) {
-    return l->m_owner_type == r->m_owner_type
-        && l->m_owner_data.m_context == r->m_owner_data.m_context
-        && strcmp(l->m_name, r->m_name) == 0;
+    if (l->m_owner_type != r->m_owner_type || strcmp(l->m_name, r->m_name) != 0) return -1;
+
+    switch(l->m_owner_type) {
+    case logic_data_owner_context:
+        return l->m_owner_data.m_context->m_id == r->m_owner_data.m_context->m_id;
+    case logic_data_owner_stack:
+        return l->m_owner_data.m_stack == r->m_owner_data.m_stack;
+    case logic_data_owner_require:
+        return l->m_owner_data.m_require->m_id == r->m_owner_data.m_require->m_id;
+    }
 }
 
 struct logic_data_next_data {
