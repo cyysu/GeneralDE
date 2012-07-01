@@ -34,6 +34,7 @@ logic_executor_ref_create(logic_executor_mgr_t mgr, const char * name, logic_exe
 void logic_executor_ref_free(logic_executor_ref_t executor_ref) {
     logic_executor_mgr_t mgr = executor_ref->m_mgr;
     assert(executor_ref->m_ref_count == 0);
+    cpe_hash_table_remove_by_ins(&mgr->m_executor_refs, executor_ref);
     mem_free(mgr->m_alloc, (void*)executor_ref->m_name);
 }
 
