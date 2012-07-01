@@ -157,6 +157,7 @@ int bpg_rsp_manage_app_init(gd_app_context_t app, gd_app_module_t module, cfg_t 
     logic_executor_mgr_t executor_mgr;
     cfg_t child_cfg;
     const char * executor_mgr_name;
+    const char * load_from;
 
     logic_mgr = logic_manage_find_nc(app, cfg_get_string(cfg, "logic-manage", NULL));
     if (logic_mgr == NULL) {
@@ -213,7 +214,18 @@ int bpg_rsp_manage_app_init(gd_app_context_t app, gd_app_module_t module, cfg_t 
         return -1;
     }
 
-    child_cfg = cfg_find_cfg(cfg, "rsps");
+    if ((load_from = cfg_get_string(cfg, "rsps-load-from", NULL))) {
+        if (*load_from == '/') {
+            child_cfg = cfg_find_cfg(gd_app_cfg(app), load_from + 1);
+        }
+        else {
+            child_cfg = cfg_find_cfg(cfg, load_from);
+        }
+    }
+    else {
+        child_cfg = cfg_find_cfg(cfg, "rsps");
+    }
+
     if (child_cfg) {
         if (bpg_rsp_build(bpg_rsp_manage, child_cfg, gd_app_em(app)) != 0) {
             bpg_rsp_manage_free(bpg_rsp_manage);

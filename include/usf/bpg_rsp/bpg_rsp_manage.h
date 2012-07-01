@@ -29,6 +29,8 @@ gd_app_context_t bpg_rsp_manage_app(bpg_rsp_manage_t mgr);
 const char * bpg_rsp_manage_name(bpg_rsp_manage_t mgr);
 cpe_hash_string_t bpg_rsp_manage_name_hs(bpg_rsp_manage_t mgr);
 
+logic_manage_t bpg_rsp_manage_logic(bpg_rsp_manage_t mgr);
+
 void bpg_rsp_manage_set_context_op(
     bpg_rsp_manage_t mgr,
     size_t ctx_capacity,

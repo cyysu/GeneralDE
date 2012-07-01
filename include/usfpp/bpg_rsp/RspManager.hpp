@@ -4,6 +4,7 @@
 #include "cpepp/utils/CString.hpp"
 #include "gdpp/app/Application.hpp"
 #include "usf/bpg_rsp/bpg_rsp_manage.h"
+#include "usfpp/logic/System.hpp"
 #include "System.hpp"
 
 namespace Usf { namespace Bpg {
@@ -13,6 +14,9 @@ public:
     operator bpg_rsp_manage_t() const { return (bpg_rsp_manage_t)this; }
 
     Cpe::Utils::CString const & name(void) const { return Cpe::Utils::CString::_cast(bpg_rsp_manage_name(*this)); }
+
+    Usf::Logic::LogicOpManager & logicManager(void) { return *(Usf::Logic::LogicOpManager*)bpg_rsp_manage_logic(*this); }
+    Usf::Logic::LogicOpManager const & logicManager(void) const { return *(Usf::Logic::LogicOpManager*)bpg_rsp_manage_logic(*this); }
 
     Gd::App::Application & app(void) { return Gd::App::Application::_cast(bpg_rsp_manage_app(*this)); }
     Gd::App::Application const & app(void) const { return Gd::App::Application::_cast(bpg_rsp_manage_app(*this)); }

@@ -187,6 +187,10 @@ bpg_rsp_manage_name_hs(bpg_rsp_manage_t mgr) {
     return nm_node_name_hs(nm_node_from_data(mgr));
 }
 
+logic_manage_t bpg_rsp_manage_logic(bpg_rsp_manage_t mgr) {
+    return mgr->m_logic_mgr;
+}
+
 bpg_pkg_dsp_t bpg_rsp_manage_commit_dsp(bpg_rsp_manage_t mgr) {
     return mgr->m_commit_dsp;
 }
