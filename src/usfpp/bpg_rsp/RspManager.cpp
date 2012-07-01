@@ -26,6 +26,24 @@ RspManager & RspManager::instance(gd_app_context_t app, const char * name) {
 }
 
 RspOpContext &
+RspManager::createOp(const char * rspName) {
+    Cpe::Utils::ErrorCollector ec;
+
+    logic_context_t context = 
+        bpg_rsp_manage_create_op_by_name(
+            *this,
+            rspName,
+            ec);
+
+    if (context == NULL) {
+        ec.checkThrowWithMsg< ::std::runtime_error>("Usf::Bpg::RspManager::createOp: ");
+    }
+
+    assert(context);
+    return *(RspOpContext*)context;
+}
+
+RspOpContext &
 RspManager::createFollowOp(logic_context_t context, const char * rspName) {
     Cpe::Utils::ErrorCollector ec;
 

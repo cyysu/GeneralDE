@@ -54,6 +54,10 @@ logic_context_t
 bpg_rsp_manage_create_follow_op_by_name(
     bpg_rsp_manage_t mgr, logic_context_t ctx, const char * rsp_name, error_monitor_t em);
 
+logic_context_t
+bpg_rsp_manage_create_op_by_name(
+    bpg_rsp_manage_t mgr, const char * rsp_name, error_monitor_t em);
+
 void bpg_rsp_manage_free_context(bpg_rsp_manage_t mgr, logic_context_t op_context);
 
 #ifdef __cplusplus

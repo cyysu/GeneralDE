@@ -17,6 +17,7 @@ public:
     Gd::App::Application & app(void) { return Gd::App::Application::_cast(bpg_rsp_manage_app(*this)); }
     Gd::App::Application const & app(void) const { return Gd::App::Application::_cast(bpg_rsp_manage_app(*this)); }
 
+    RspOpContext & createOp(const char * rspName);
     RspOpContext & createFollowOp(logic_context_t context, const char * rspName);
 
     static RspManager & _cast(bpg_rsp_manage_t rsp_mgr);

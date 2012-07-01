@@ -309,8 +309,6 @@ int bpg_rsp_copy_bpg_carry_data_to_ctx(bpg_rsp_manage_t mgr, logic_context_t op_
     logic_data_t data;
     BPG_CARRY_INFO * buf;
 
-    if (bpg_req == NULL) return 0;
-
     bpg_carry_data_meta = dr_lib_find_meta_by_name((LPDRMETALIB)g_metalib_carry_package, "bpg_carry_info");
     if (bpg_carry_data_meta == NULL) {
         CPE_ERROR(
@@ -318,7 +316,6 @@ int bpg_rsp_copy_bpg_carry_data_to_ctx(bpg_rsp_manage_t mgr, logic_context_t op_
             bpg_rsp_manage_name(mgr));
         return -1;
     }
-
 
     data = logic_context_data_get_or_create(op_context, bpg_carry_data_meta, dr_meta_size(bpg_carry_data_meta));
     if (data == NULL) {
@@ -330,21 +327,28 @@ int bpg_rsp_copy_bpg_carry_data_to_ctx(bpg_rsp_manage_t mgr, logic_context_t op_
     }
 
     buf = (BPG_CARRY_INFO *)logic_data_data(data);
-    buf->clientId = bpg_pkg_client_id(bpg_req);
-    buf->connectionId = bpg_pkg_connection_id(bpg_req);
-    buf->sn = bpg_pkg_sn(bpg_req);
-    buf->cmd = bpg_pkg_cmd(bpg_req);
-    buf->carry_data_size = bpg_pkg_carry_data_size(bpg_req);
-    buf->no_response = 0;
 
-    if (bpg_pkg_carry_data_meta(bpg_req)) {
-        strncpy(buf->carry_meta_name, dr_meta_name(bpg_pkg_carry_data_meta(bpg_req)), sizeof(buf->carry_meta_name));
+    if (bpg_req) {
+        buf->clientId = bpg_pkg_client_id(bpg_req);
+        buf->connectionId = bpg_pkg_connection_id(bpg_req);
+        buf->sn = bpg_pkg_sn(bpg_req);
+        buf->cmd = bpg_pkg_cmd(bpg_req);
+        buf->carry_data_size = bpg_pkg_carry_data_size(bpg_req);
+        buf->no_response = 0;
+
+        if (bpg_pkg_carry_data_meta(bpg_req)) {
+            strncpy(buf->carry_meta_name, dr_meta_name(bpg_pkg_carry_data_meta(bpg_req)), sizeof(buf->carry_meta_name));
+        }
+        else {
+            buf->carry_meta_name[0] = 0;
+        }
+
+        strncpy(buf->pkg_mgr_name, bpg_pkg_manage_name(bpg_pkg_mgr(bpg_req)), sizeof(buf->pkg_mgr_name));
     }
     else {
-        buf->carry_meta_name[0] = 0;
+        bzero(buf, sizeof(*buf));
+        buf->no_response = 1;
     }
-
-    strncpy(buf->pkg_mgr_name, bpg_pkg_manage_name(bpg_pkg_mgr(bpg_req)), sizeof(buf->pkg_mgr_name));
 
     return 0;
 }
@@ -378,7 +382,7 @@ logic_context_t bpg_rsp_manage_create_context(bpg_rsp_manage_t bpg_mgr, bpg_pkg_
             return NULL;
         }
 
-        if (bpg_rsp_copy_bpg_carry_data_to_ctx(bpg_mgr, op_context, req, em) != 0) {
+        if (req && bpg_rsp_copy_bpg_carry_data_to_ctx(bpg_mgr, op_context, req, em) != 0) {
             logic_context_free(op_context);
             return NULL;
         }
@@ -450,7 +454,6 @@ bpg_rsp_manage_create_follow_op_by_name(bpg_rsp_manage_t bpg_mgr, logic_context_
 
     carry_info = (bpg_rsp_carry_info_t)logic_data_data(carry_data);
     assert(carry_info);
-    printf("clientId=%d\n", (int)bpg_rsp_context_client_id(carry_info));
 
     if ((dp_rsp = bpg_rsp_dp(rsp))) {
         struct dp_binding_it binding_it;
@@ -505,5 +508,105 @@ bpg_rsp_manage_create_follow_op_by_name(bpg_rsp_manage_t bpg_mgr, logic_context_
     logic_context_set_commit(follow_context, bpg_rsp_commit, rsp);
 
     return follow_context;
+}
+
+logic_context_t
+bpg_rsp_manage_create_op_by_name(bpg_rsp_manage_t bpg_mgr, const char * rsp_name, error_monitor_t em) {
+    bpg_rsp_t rsp;
+    dp_rsp_t dp_rsp;
+    logic_context_t context;
+    logic_data_t carry_data;
+    bpg_rsp_carry_info_t carry_info;
+
+    assert(rsp_name);
+
+    rsp = bpg_rsp_find(bpg_mgr, rsp_name);
+    if (rsp == NULL) {
+        CPE_ERROR(
+            em, "%s.%s: create op: fail, rsp not exist!",
+            bpg_rsp_manage_name(bpg_mgr), rsp_name);
+        return NULL;
+    }
+
+    context =
+        logic_context_create(
+            bpg_mgr->m_logic_mgr,
+            INVALID_LOGIC_CONTEXT_ID,
+            bpg_mgr->m_ctx_capacity);
+    if (context == NULL) {
+        CPE_ERROR(
+            em, "%s.%s: create op: fail, capacity is %d!",
+            bpg_rsp_manage_name(bpg_mgr), rsp_name, (int)bpg_mgr->m_ctx_capacity);
+        return NULL;
+    }
+
+    if (bpg_rsp_copy_bpg_carry_data_to_ctx(bpg_mgr, context, NULL, em) != 0) {
+        CPE_ERROR(
+            em, "%s.%s: create op: fail, create carry info fail!",
+            bpg_rsp_manage_name(bpg_mgr), rsp_name);
+        logic_context_free(context);
+        return NULL;
+    }
+
+    carry_data = logic_context_data_find(context, "bpg_carry_info");
+    assert(carry_data);
+
+    carry_info = (bpg_rsp_carry_info_t)logic_data_data(carry_data);
+    assert(carry_info);
+
+    if ((dp_rsp = bpg_rsp_dp(rsp))) {
+        struct dp_binding_it binding_it;
+        dp_binding_t only_binding;
+
+        dp_rsp_bindings(&binding_it, dp_rsp);
+        only_binding = dp_binding_next(&binding_it);
+        if (only_binding && dp_binding_next(&binding_it) == NULL) {
+            uint32_t cmd;
+            if (dp_binding_numeric(&cmd, only_binding) == 0) {
+                bpg_rsp_context_set_cmd(carry_info, cmd);
+            }
+        }
+    }
+
+    if (bpg_mgr->m_debug >= 2 || logic_context_flag_is_enable(context, logic_context_flag_debug)) {
+        logic_context_flag_enable(context, logic_context_flag_debug);
+    }
+
+    if (bpg_mgr->m_ctx_init) {
+        if (bpg_mgr->m_ctx_init(context, NULL, bpg_mgr->m_ctx_ctx) != 0) {
+            CPE_ERROR(
+                em, "%s.%s: create op: use-ctx-init: init fail!",
+                bpg_rsp_manage_name(bpg_mgr), rsp_name);
+            logic_context_free(context);
+            return NULL;
+        }
+    }
+
+    if (logic_context_bind(
+            context,
+            logic_executor_ref_executor(rsp->m_executor_ref)) != 0)
+    {
+        CPE_ERROR(
+            em, "%s.%s: create op: bind executor to context fail!",
+            bpg_rsp_manage_name(bpg_mgr), rsp_name);
+        bpg_rsp_manage_free_context(bpg_mgr, context);
+        return NULL;
+    }
+
+    if (rsp->m_queue_info) {
+        if (bpg_rsp_queue_context(bpg_mgr, rsp, context, em) == 0) {
+            logic_context_set_commit(context, bpg_rsp_commit, rsp);
+        }
+        else {
+            bpg_rsp_manage_free_context(bpg_mgr, context);
+            return NULL;
+        }
+    }
+    else {
+        logic_context_set_commit(context, bpg_rsp_commit, rsp);
+        logic_context_execute(context);
+    }
+
+    return context;
 }
 
