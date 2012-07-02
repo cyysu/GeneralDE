@@ -290,6 +290,11 @@ void logic_stack_node_data_clear(logic_stack_node_t stack) {
 void logic_stack_require_clear(logic_stack_node_t stack) {
     while(!TAILQ_EMPTY(&stack->m_requires)) {
         logic_require_t require = TAILQ_FIRST(&stack->m_requires);
+
+        if (require->m_state == logic_require_state_waiting) {
+            logic_require_cancel(require);
+        }
+
         logic_require_disconnect_to_stack(require);
     }
 }

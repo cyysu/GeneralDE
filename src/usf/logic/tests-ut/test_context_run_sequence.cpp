@@ -72,3 +72,25 @@ TEST_F(ContextRunSequenceTest, multi_level_error_break) {
     EXPECT_EQ((int32_t)-1, rv());
 }
 
+TEST_F(ContextRunSequenceTest, multi_level_null_break) {
+    LogicOpMock & op1 = installOp("Op1");
+    installOp("Op2");
+    installOp("Op3");
+    installOp("Op4");
+
+    expect_return(op1, logic_op_exec_result_null);
+
+    expect_commit();
+    execute(
+        "-\n"
+        "  -\n"
+        "    - Op1\n"
+        "    - Op2\n"
+        "  - Op3\n"
+        "- Op4"
+        );
+
+    EXPECT_EQ(logic_context_state_error, state());
+    EXPECT_EQ((int32_t)-1, rv());
+}
+
