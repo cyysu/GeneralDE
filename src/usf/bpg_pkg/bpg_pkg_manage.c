@@ -252,11 +252,29 @@ LPDRMETALIB bpg_pkg_manage_data_metalib(bpg_pkg_manage_t mgr) {
 }
 
 LPDRMETA bpg_pkg_manage_cmd_meta(bpg_pkg_manage_t mgr) {
-    if (mgr->m_cmd_meta == NULL && mgr->m_cmd_meta_name[0]) {
+    if (mgr->m_cmd_meta_name[0] == 0) {
+        CPE_ERROR(
+            mgr->m_em, "bpg_pkg_manage %s: cmd meta name not confitured!",
+            bpg_pkg_manage_name(mgr));
+        return NULL;
+    }
+
+    if (mgr->m_cmd_meta == NULL) {
         LPDRMETALIB metalib = bpg_pkg_manage_data_metalib(mgr);
-        if (metalib) {
-            mgr->m_cmd_meta = dr_lib_find_meta_by_name(metalib, mgr->m_cmd_meta_name);
+        if (metalib == NULL) {
+            CPE_ERROR(
+                mgr->m_em, "bpg_pkg_manage %s: cmd meta lib not exist!",
+                bpg_pkg_manage_name(mgr));
+            return NULL;
         }
+
+        mgr->m_cmd_meta = dr_lib_find_meta_by_name(metalib, mgr->m_cmd_meta_name);
+        if (mgr->m_cmd_meta == NULL) {
+            CPE_ERROR(
+                mgr->m_em, "bpg_pkg_manage %s: cmd meta %s not exist in metalib!",
+                bpg_pkg_manage_name(mgr), mgr->m_cmd_meta_name);
+            return NULL;
+        } 
     }
 
     return mgr->m_cmd_meta;
