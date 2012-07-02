@@ -1,5 +1,7 @@
 #include <assert.h>
+#if ! defined _MSC_VER
 #include <execinfo.h>
+#endif
 #include <cpe/pal/pal_stdlib.h>
 #include "cpe/utils/memory_debug.h"
 #include "cpe/utils/hash.h"
@@ -63,7 +65,9 @@ static void * do_debug_allocrator_alloc(size_t size, struct mem_allocrator * all
 
     alloc_info->m_addr = r;
     alloc_info->m_size = size;
+#if ! defined _MSC_VER
     alloc_info->m_stack_size = backtrace((void**)(alloc_info + 1), dalloc->m_stack_size);
+#endif
     cpe_hash_entry_init(&alloc_info->m_hh);
 
     if (cpe_hash_table_insert_unique(&dalloc->m_alloc_infos, alloc_info) != 0) {
@@ -200,6 +204,7 @@ void mem_allocrator_debug_dump(write_stream_t stream, int ident, mem_allocrator_
         stream_putc_count(stream, ' ', ident);
         stream_printf(stream, "address: %p, size: %d\n", info->m_addr, info->m_size);
 
+#if ! defined _MSC_VER
         if (info->m_stack_size) {
             char ** symbols = backtrace_symbols((void **)(info + 1), info->m_stack_size);
             if (symbols) {
@@ -211,6 +216,7 @@ void mem_allocrator_debug_dump(write_stream_t stream, int ident, mem_allocrator_
                 free(symbols);
             }
         }
+#endif
 
         stream_printf(stream, "\n");
     }
