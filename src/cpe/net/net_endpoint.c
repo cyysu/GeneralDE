@@ -148,21 +148,37 @@ int net_ep_is_open(net_ep_t ep) {
 }
 
 int net_ep_set_timeout(net_ep_t ep, tl_time_span_t span) {
-    ev_tstamp ev_span = (ev_tstamp)span / 1000.0;
-
-    if (ev_cb(&ep->m_timer) == NULL) {
-        ev_timer_init(&ep->m_timer, net_ep_timeout_cb, ev_span, ev_span);
-        ev_timer_start(ep->m_mgr->m_ev_loop, &ep->m_timer);
-        return 0;
-    }
-    else if (ev_cb(&ep->m_timer) == net_ep_timeout_cb) {
-        ev_timer_stop(ep->m_mgr->m_ev_loop, &ep->m_timer);
-        ev_timer_set(&ep->m_timer, ev_span, ev_span);
-        ev_timer_start(ep->m_mgr->m_ev_loop, &ep->m_timer);
-        return 0;
+    if (span == 0) {
+        if (ev_cb(&ep->m_timer) == NULL) {
+            return 0;
+        }
+        else if (ev_cb(&ep->m_timer) == net_ep_timeout_cb) {
+            ev_timer_stop(ep->m_mgr->m_ev_loop, &ep->m_timer);
+            ev_init(&ep->m_timer, NULL);
+            ev_timer_set(&ep->m_timer, 0, 0);
+            return 0;
+        }
+        else {
+            return -1;
+        }
     }
     else {
-        return -1;
+        ev_tstamp ev_span = (ev_tstamp)span / 1000.0;
+
+        if (ev_cb(&ep->m_timer) == NULL) {
+            ev_timer_init(&ep->m_timer, net_ep_timeout_cb, ev_span, ev_span);
+            ev_timer_start(ep->m_mgr->m_ev_loop, &ep->m_timer);
+            return 0;
+        }
+        else if (ev_cb(&ep->m_timer) == net_ep_timeout_cb) {
+            ev_timer_stop(ep->m_mgr->m_ev_loop, &ep->m_timer);
+            ev_timer_set(&ep->m_timer, ev_span, ev_span);
+            ev_timer_start(ep->m_mgr->m_ev_loop, &ep->m_timer);
+            return 0;
+        }
+        else {
+            return -1;
+        }
     }
 }
 
@@ -203,6 +219,10 @@ void net_ep_close_i(net_ep_t ep, net_ep_event_t ev) {
     }
 
     ep->m_fd = -1;
+
+    if (ep->m_connector) {
+        net_connector_on_disconnect(ep->m_connector);
+    }
 
     if (ep->m_process_fun) ep->m_process_fun(ep, ep->m_process_ctx, ev);
 }
