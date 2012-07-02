@@ -86,14 +86,14 @@ void logic_context_free(logic_context_t context) {
 
     logic_stack_fini(&context->m_stack, context);
 
-    logic_context_dequeue(context);
-
     cpe_hash_table_remove_by_ins(&context->m_mgr->m_contexts, context);
 
     if (context->m_logic_queue) {
         logic_queue_dequeue(context->m_logic_queue, context);
         assert(context->m_logic_queue == NULL);
     }
+
+    logic_context_dequeue(context);
 
     if (context->m_mgr->m_debug >= 3) {
         APP_CTX_INFO(
@@ -248,12 +248,12 @@ void logic_context_execute(logic_context_t context) {
 }
 
 int logic_context_bind(logic_context_t context, logic_executor_t executor) {
-   if (executor == NULL) return -1;
-   if (context->m_state != logic_context_state_init) return -1;
+    if (executor == NULL) return -1;
+    if (context->m_state != logic_context_state_init) return -1;
 
-   logic_stack_push(&context->m_stack, context, executor);
-   context->m_state = logic_context_state_idle;
-   return 0;
+    logic_stack_push(&context->m_stack, context, executor);
+    context->m_state = logic_context_state_idle;
+    return 0;
 }
 
 void logic_context_cancel(logic_context_t context) {

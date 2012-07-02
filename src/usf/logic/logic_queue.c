@@ -128,6 +128,10 @@ int logic_queue_enqueue_head(logic_queue_t queue, logic_context_t context) {
             queue->m_count);
     }
 
+    assert(
+        (context == TAILQ_FIRST(&queue->m_contexts) && context->m_queue_state == logic_context_queue_pending)
+        || (context != TAILQ_FIRST(&queue->m_contexts) && context->m_queue_state == logic_context_queue_none));
+
     return 0;
 }
 
@@ -157,6 +161,10 @@ int logic_queue_enqueue_tail(logic_queue_t queue, logic_context_t context) {
             logic_manage_name(queue->m_mgr), cpe_hs_data(queue->m_name), logic_context_id(context),
             queue->m_count);
     }
+
+    assert(
+        (context == TAILQ_FIRST(&queue->m_contexts) && context->m_queue_state == logic_context_queue_pending)
+        || (context != TAILQ_FIRST(&queue->m_contexts) && context->m_queue_state == logic_context_queue_none));
 
     return 0;
 }
@@ -189,6 +197,10 @@ int logic_queue_enqueue_after(logic_context_t pre, logic_context_t context) {
             logic_context_id(context),
             queue->m_count);
     }
+
+    assert(
+        (context == TAILQ_FIRST(&queue->m_contexts) && context->m_queue_state == logic_context_queue_pending)
+        || (context != TAILQ_FIRST(&queue->m_contexts) && context->m_queue_state == logic_context_queue_none));
 
     return 0;
 }

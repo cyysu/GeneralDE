@@ -33,6 +33,7 @@ void logic_data_init_data(logic_data_t data, logic_data_t old_data) {
     if (old_data) {
         assert(data->m_capacity >= old_data->m_capacity);
         memcpy(data + 1, old_data + 1, old_data->m_capacity);
+
         bzero(((char *)(data + 1)) + old_data->m_capacity, data->m_capacity - old_data->m_capacity);
     }
     else {
@@ -261,7 +262,7 @@ uint32_t logic_data_hash(const struct logic_data * data) {
 }
 
 int logic_data_cmp(const struct logic_data * l, const struct logic_data * r) {
-    if (l->m_owner_type != r->m_owner_type || strcmp(l->m_name, r->m_name) != 0) return -1;
+    if (l->m_owner_type != r->m_owner_type || strcmp(l->m_name, r->m_name) != 0) return 0;
 
     switch(l->m_owner_type) {
     case logic_data_owner_context:
