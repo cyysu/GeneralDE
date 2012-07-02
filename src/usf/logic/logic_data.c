@@ -271,6 +271,9 @@ int logic_data_cmp(const struct logic_data * l, const struct logic_data * r) {
     case logic_data_owner_require:
         return l->m_owner_data.m_require->m_id == r->m_owner_data.m_require->m_id;
     }
+
+	assert(1 && "unknown owner type");
+	return 0;
 }
 
 struct logic_data_next_data {
