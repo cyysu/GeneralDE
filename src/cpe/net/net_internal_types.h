@@ -106,6 +106,7 @@ struct net_ep {
     void * m_process_ctx;
     int m_fd;
     struct ev_io m_watcher;
+    struct ev_timer m_timer;
 };
 
 struct net_ep_page {
