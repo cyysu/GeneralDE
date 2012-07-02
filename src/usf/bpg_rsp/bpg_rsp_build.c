@@ -148,6 +148,10 @@ static bpg_rsp_t bpg_rsp_build_one(bpg_rsp_manage_t mgr, cfg_t cfg) {
         bpg_rsp_flag_enable(rsp, bpg_rsp_flag_debug);
     }
 
+    if (cfg_get_int32(cfg, "append-info-manual", 0)) {
+        bpg_rsp_flag_enable(rsp, bpg_rsp_flag_append_info_manual);
+    }
+
     if (bpg_rsp_create_dp_rsp_and_bind(rsp, cfg) != 0) {
         bpg_rsp_free(rsp);
         return NULL;

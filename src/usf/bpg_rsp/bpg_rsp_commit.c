@@ -137,6 +137,8 @@ static int bpg_rsp_commit_build_pkg_append_info_from_ctx(
     logic_data_t data;
     size_t size;
 
+    if (bpg_rsp_flag_is_enable(rsp, bpg_rsp_flag_append_info_manual)) return 0;
+
     data = logic_context_data_find(op_context, dr_meta_name(data_meta));
     if (data == NULL) return -1;
 

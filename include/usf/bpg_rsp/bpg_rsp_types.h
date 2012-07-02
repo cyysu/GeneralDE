@@ -13,6 +13,7 @@ extern "C" {
 
 typedef enum bpg_rsp_flag {
     bpg_rsp_flag_debug = 1 << 0
+    , bpg_rsp_flag_append_info_manual = 1 << 1
 } bpg_rsp_flag_t;
 
 typedef enum bpg_rsp_manage_flag {

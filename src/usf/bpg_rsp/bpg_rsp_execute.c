@@ -470,8 +470,11 @@ bpg_rsp_manage_create_follow_op_by_name(bpg_rsp_manage_t bpg_mgr, logic_context_
             }
         }
     }
+    else {
+        bpg_rsp_context_set_no_response(carry_info);
+    }
 
-    if (bpg_mgr->m_debug >= 2 || logic_context_flag_is_enable(context, logic_context_flag_debug)) {
+    if (bpg_mgr->m_debug >= 2 || bpg_rsp_flag_is_enable(rsp, bpg_rsp_flag_debug)) {
         logic_context_flag_enable(follow_context, logic_context_flag_debug);
     }
 
@@ -569,7 +572,7 @@ bpg_rsp_manage_create_op_by_name(bpg_rsp_manage_t bpg_mgr, const char * rsp_name
         }
     }
 
-    if (bpg_mgr->m_debug >= 2 || logic_context_flag_is_enable(context, logic_context_flag_debug)) {
+    if (bpg_mgr->m_debug >= 2 || bpg_rsp_flag_is_enable(rsp, bpg_rsp_flag_debug)) {
         logic_context_flag_enable(context, logic_context_flag_debug);
     }
 
