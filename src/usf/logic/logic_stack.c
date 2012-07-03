@@ -64,6 +64,7 @@ REINTER:
     assert(stack_item);
     stack_item->m_executr = executor;
     stack_item->m_context = context;
+    stack_item->m_require_waiting_count = 0;
     stack_item->m_rv = logic_op_exec_result_null;
 
     TAILQ_INIT(&stack_item->m_datas);
@@ -124,8 +125,7 @@ REINTER:
 
 void logic_stack_exec(struct logic_stack * stack, int32_t stop_stack_pos, logic_context_t ctx) {
     while(ctx->m_state == logic_context_state_idle
-          && stack->m_item_pos > stop_stack_pos
-          && ctx->m_require_waiting_count == 0)
+          && stack->m_item_pos > stop_stack_pos)
     {
         struct logic_stack_node * stack_item = logic_stack_node_at(stack, stack->m_item_pos);
 
@@ -135,14 +135,7 @@ void logic_stack_exec(struct logic_stack * stack, int32_t stop_stack_pos, logic_
                 if (action->m_type->m_op) {
                     stack_item->m_rv =
                         ((logic_op_fun_t)action->m_type->m_op)(ctx, stack_item, action->m_type->m_ctx, action->m_args);
-                    if (stack_item->m_rv == logic_op_exec_result_redo) {
-                        if (ctx->m_require_waiting_count == 0) {
-                            CPE_ERROR(
-                                gd_app_em(ctx->m_mgr->m_app), "logic_stack_exec: action logic op %s return redo, but no pending require!",
-                                logic_executor_name(stack_item->m_executr));
-                            ctx->m_errno = -1;
-                            ctx->m_state = logic_context_state_error;
-                        }
+                    if (stack_item->m_require_waiting_count > 0 && stack_item->m_rv != logic_op_exec_result_null) {
                         break;
                     }
                 }
@@ -162,7 +155,6 @@ void logic_stack_exec(struct logic_stack * stack, int32_t stop_stack_pos, logic_
         while(stack->m_item_pos > stop_stack_pos) {
             struct logic_stack_node * stack_item = logic_stack_node_at(stack, stack->m_item_pos);
             struct logic_stack_node * pre_stack_item = logic_stack_node_at(stack, stack->m_item_pos + 1);
-            assert(pre_stack_item->m_rv != logic_op_exec_result_redo);
 
             if (stack_item->m_executr->m_category == logic_executor_category_composite) {
                 struct logic_executor_composite * composite = (struct logic_executor_composite *)stack_item->m_executr;
@@ -290,11 +282,6 @@ void logic_stack_node_data_clear(logic_stack_node_t stack) {
 void logic_stack_require_clear(logic_stack_node_t stack) {
     while(!TAILQ_EMPTY(&stack->m_requires)) {
         logic_require_t require = TAILQ_FIRST(&stack->m_requires);
-
-        if (require->m_state == logic_require_state_waiting) {
-            logic_require_cancel(require);
-        }
-
         logic_require_disconnect_to_stack(require);
     }
 }

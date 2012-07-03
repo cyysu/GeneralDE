@@ -44,6 +44,7 @@ logic_require_create(logic_stack_node_t stack, const char * require_name) {
     TAILQ_INSERT_TAIL(&context->m_requires, require, m_next_for_context);
     TAILQ_INSERT_TAIL(&stack->m_requires, require, m_next_for_stack);
 
+    ++stack->m_require_waiting_count;
     ++context->m_require_waiting_count;
 
     return require;
@@ -111,14 +112,12 @@ logic_context_t logic_require_context(logic_require_t require) {
 
 void logic_require_disconnect_to_stack(logic_require_t require) {
     if (require->m_stack) {
+        if (require->m_state == logic_require_state_waiting) {
+            logic_require_do_cancel(require);
+        }
+
         TAILQ_REMOVE(&require->m_stack->m_requires, require, m_next_for_stack);
         require->m_stack = NULL;
-
-        if (require->m_state != logic_require_state_waiting
-            && !(require->m_context->m_flags & logic_context_flag_require_keep))
-        {
-            logic_require_free(require);
-        }
     }
 }
 
@@ -129,6 +128,7 @@ static void logic_require_do_cancel(logic_require_t require) {
 
     old_state = logic_context_state_i(require->m_context);
 
+    --require->m_stack->m_require_waiting_count;
     --require->m_context->m_require_waiting_count;
     require->m_state = logic_require_state_canceling;
 
@@ -141,12 +141,6 @@ static void logic_require_do_cancel(logic_require_t require) {
 
 void logic_require_cancel(logic_require_t require) {
     logic_require_do_cancel(require);
-
-    if (require->m_stack == NULL 
-        && !(require->m_context->m_flags & logic_context_flag_require_keep))
-    {
-        logic_require_free(require);
-    }
 }
 
 void logic_require_set_done(logic_require_t require) {
@@ -161,14 +155,10 @@ void logic_require_set_done(logic_require_t require) {
     ctx = require->m_context;
     old_state = logic_context_state_i(ctx);
 
+    assert(require->m_stack);
+    --require->m_stack->m_require_waiting_count;
     --ctx->m_require_waiting_count;
     require->m_state = logic_require_state_done;
-
-    if (require->m_stack == NULL 
-        && !(require->m_context->m_flags & logic_context_flag_require_keep))
-    {
-        logic_require_free(require);
-    }
 
     logic_context_do_state_change(ctx, old_state);
 }
@@ -185,14 +175,10 @@ void logic_require_set_error(logic_require_t require) {
     ctx = require->m_context;
     old_state = logic_context_state_i(ctx);
 
+    assert(require->m_stack);
+    --require->m_stack->m_require_waiting_count;
     --ctx->m_require_waiting_count;
     require->m_state = logic_require_state_error;
-
-    if (require->m_stack == NULL 
-        && !(require->m_context->m_flags & logic_context_flag_require_keep))
-    {
-        logic_require_free(require);
-    }
 
     logic_context_do_state_change(ctx, old_state);
 }

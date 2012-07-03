@@ -53,9 +53,27 @@ TEST_F(ContextRunTest, waiting_basic) {
 
     logic_require_free(logic_require_find(t_logic_manage(), 1));
 
+    expect_return(op1, logic_op_exec_result_true);
     expect_return(op2, logic_op_exec_result_false);
     expect_commit();
     execute_again();
+}
+
+TEST_F(ContextRunTest, waiting_return_null) {
+    LogicOpMock & op1 = installOp("Op1");
+    installOp("Op2");
+
+    expect_create_require(op1, logic_op_exec_result_null);
+
+    expect_commit();
+
+    execute(
+        "- Op1\n"
+        "- Op2\n"
+        );
+
+    EXPECT_EQ(logic_context_state_error, state());
+    EXPECT_EQ((int32_t)-1, rv());
 }
 
 TEST_F(ContextRunTest, waiting_no_left_op) {
@@ -72,6 +90,7 @@ TEST_F(ContextRunTest, waiting_no_left_op) {
     logic_require_free(logic_require_find(t_logic_manage(), 1));
 
     /*retry*/
+    expect_return(op1, logic_op_exec_result_true);
     expect_commit();
     execute_again();
 }

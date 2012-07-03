@@ -53,10 +53,6 @@ void RunTest::expect_commit(void) {
     EXPECT_CALL(m_commitMock, commit(::testing::_));
 }
 
-void RunTest::set_require_keep(void) {
-    logic_context_flag_enable(m_context, logic_context_flag_require_keep);
-}
-
 void RunTest::set_execute_immediately(void) {
     logic_context_flag_enable(m_context, logic_context_flag_execute_immediately);
 }

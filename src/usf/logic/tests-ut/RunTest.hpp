@@ -15,7 +15,6 @@ public:
 
     void execute(const char * data);
     void execute_again(void);
-    void set_require_keep(void);
     void set_execute_immediately(void);
 
     void cancel(void);

@@ -38,6 +38,7 @@ struct logic_stack_node {
     logic_executor_t m_executr;
     logic_context_t m_context;
     logic_data_list_t m_datas;
+    uint32_t m_require_waiting_count;
     logic_require_list_t m_requires;
     logic_op_exec_result_t m_rv;
 };

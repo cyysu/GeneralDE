@@ -18,7 +18,6 @@ typedef uint32_t logic_require_id_t;
 typedef enum logic_context_flag {
     logic_context_flag_debug = 1 << 0
     , logic_context_flag_execute_immediately = 1 << 1
-    , logic_context_flag_require_keep = 1 << 2
 } logic_context_flag_t;
 
 typedef enum logic_context_state {
@@ -81,7 +80,6 @@ typedef enum logic_op_exec_result {
     logic_op_exec_result_true = 1,
     logic_op_exec_result_false = 2,
     logic_op_exec_result_null = 3,
-    logic_op_exec_result_redo = 4,
 } logic_op_exec_result_t;
 
 typedef logic_op_exec_result_t (*logic_op_fun_t) (logic_context_t ctx, logic_stack_node_t stack_noe, void * user_data, cfg_t cfg);

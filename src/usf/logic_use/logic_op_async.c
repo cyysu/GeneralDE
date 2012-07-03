@@ -72,7 +72,6 @@ logic_op_asnyc_exec(
 
         tmp_rv = send_fun(context, stack_node, user_data, args);
         if (tmp_rv == logic_op_exec_result_null) return logic_op_exec_result_null;
-        assert(tmp_rv != logic_op_exec_result_redo);
 
         asnyc_info->res_rv = tmp_rv;
     }
@@ -102,7 +101,6 @@ logic_op_asnyc_exec(
         logic_require_disconnect_to_stack(require);
 
         if (tmp_rv == logic_op_exec_result_null) return logic_op_exec_result_null;
-        assert(tmp_rv != logic_op_exec_result_redo);
 
         if (tmp_rv == logic_op_exec_result_false) asnyc_info->res_rv = logic_op_exec_result_false;
     }
@@ -110,7 +108,7 @@ logic_op_asnyc_exec(
     /*最后检查还有没有require*/
     logic_stack_node_requires(stack_node, &require_it);
 
-    return logic_require_next(&require_it) ? logic_op_exec_result_redo : asnyc_info->res_rv;
+    return logic_require_next(&require_it) ? logic_op_exec_result_true : asnyc_info->res_rv;
 }
 
 static logic_op_exec_result_t
