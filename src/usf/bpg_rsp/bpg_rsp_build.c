@@ -4,6 +4,7 @@
 #include "cpe/cfg/cfg_read.h"
 #include "cpe/dp/dp_manage.h"
 #include "cpe/dp/dp_responser.h"
+#include "cpe/dr/dr_metalib_manage.h"
 #include "usf/logic/logic_executor_ref.h"
 #include "usf/logic/logic_executor_mgr.h"
 #include "usf/logic/logic_executor_type.h"
@@ -11,7 +12,7 @@
 #include "usf/bpg_rsp/bpg_rsp.h"
 #include "bpg_rsp_internal_ops.h"
 
-static int bpg_rsp_read_respons_copy_infos(bpg_rsp_t bpg_rsp, cfg_t cfg) {
+static int bpg_rsp_read_respons_copy_infos(bpg_rsp_t bpg_rsp, cfg_t cfg, error_monitor_t em) {
     struct cfg_it it;
     cfg_t child_cfg;
     cfg_it_init(&it, cfg);
@@ -20,7 +21,7 @@ static int bpg_rsp_read_respons_copy_infos(bpg_rsp_t bpg_rsp, cfg_t cfg) {
         const char * write_data_name = cfg_as_string(child_cfg, NULL);
         if (write_data_name == NULL) {
             CPE_ERROR(
-                bpg_rsp->m_mgr->m_em,
+                em,
                 "%s: create rsp %s: read response-data fail!",
                 bpg_rsp_manage_name(bpg_rsp->m_mgr), bpg_rsp_name(bpg_rsp));
             return -1;
@@ -28,7 +29,7 @@ static int bpg_rsp_read_respons_copy_infos(bpg_rsp_t bpg_rsp, cfg_t cfg) {
 
         if (bpg_rsp_copy_info_create(bpg_rsp, write_data_name) == NULL) {
             CPE_ERROR(
-                bpg_rsp->m_mgr->m_em,
+                em,
                 "%s: create rsp %s: crate response-data %s!",
                 bpg_rsp_manage_name(bpg_rsp->m_mgr), bpg_rsp_name(bpg_rsp), write_data_name);
             return -1;
@@ -38,7 +39,21 @@ static int bpg_rsp_read_respons_copy_infos(bpg_rsp_t bpg_rsp, cfg_t cfg) {
     return 0;
 }
 
-static int bpg_rsp_create_dp_rsp_and_bind(bpg_rsp_t bpg_rsp, cfg_t cfg) {
+static int bpg_rsp_str_cmd_cvt(int32_t * r, const char * str, void * ctx, error_monitor_t em) {
+    int dr_result;
+
+    if (ctx == NULL) return -1;
+
+    if (dr_lib_find_macro_value(&dr_result, (LPDRMETALIB)ctx, str) == 0) {
+        *r = dr_result;
+        return 0;
+    }
+    else {
+        return -1;
+    } 
+}
+
+static int bpg_rsp_create_dp_rsp_and_bind(bpg_rsp_t bpg_rsp, cfg_t cfg, LPDRMETALIB metalib, error_monitor_t em) {
     dp_rsp_t dp_rsp;
     cfg_t cfg_respons;
 
@@ -50,7 +65,7 @@ static int bpg_rsp_create_dp_rsp_and_bind(bpg_rsp_t bpg_rsp, cfg_t cfg) {
         bpg_rsp_name(bpg_rsp));
     if (dp_rsp == NULL) {
         CPE_ERROR(
-            bpg_rsp->m_mgr->m_em,
+            em,
             "%s: create rsp %s: create dp_rsp fail, maybe name duplicate!",
             bpg_rsp_manage_name(bpg_rsp->m_mgr), bpg_rsp_name(bpg_rsp));
         return -1;
@@ -58,9 +73,9 @@ static int bpg_rsp_create_dp_rsp_and_bind(bpg_rsp_t bpg_rsp, cfg_t cfg) {
 
     dp_rsp_set_processor(dp_rsp, bpg_rsp_execute, bpg_rsp);
 
-    if (dp_rsp_bind_by_cfg(dp_rsp, cfg_respons, bpg_rsp->m_mgr->m_em) != 0) {
+    if (dp_rsp_bind_by_cfg_ex(dp_rsp, cfg_respons, bpg_rsp_str_cmd_cvt, metalib, em) != 0) {
         CPE_ERROR(
-            bpg_rsp->m_mgr->m_em,
+            em,
             "%s: create rsp %s: bind rsps by cfg fail!",
             bpg_rsp_manage_name(bpg_rsp->m_mgr), bpg_rsp_name(bpg_rsp));
         dp_rsp_free(dp_rsp);
@@ -71,7 +86,7 @@ static int bpg_rsp_create_dp_rsp_and_bind(bpg_rsp_t bpg_rsp, cfg_t cfg) {
     }
 }
 
-static bpg_rsp_t bpg_rsp_build_one(bpg_rsp_manage_t mgr, cfg_t cfg) {
+static bpg_rsp_t bpg_rsp_build_one(bpg_rsp_manage_t mgr, cfg_t cfg, LPDRMETALIB metalib, error_monitor_t em) {
     bpg_rsp_t rsp;
     const char * name;
     cfg_t cfg_executor;
@@ -123,7 +138,7 @@ static bpg_rsp_t bpg_rsp_build_one(bpg_rsp_manage_t mgr, cfg_t cfg) {
         return NULL;
     }
 
-    if (bpg_rsp_read_respons_copy_infos(rsp, cfg_find_cfg(cfg, "response-data")) != 0) {
+    if (bpg_rsp_read_respons_copy_infos(rsp, cfg_find_cfg(cfg, "response-data"), em) != 0) {
         bpg_rsp_free(rsp);
         return NULL;
     }
@@ -152,7 +167,7 @@ static bpg_rsp_t bpg_rsp_build_one(bpg_rsp_manage_t mgr, cfg_t cfg) {
         bpg_rsp_flag_enable(rsp, bpg_rsp_flag_append_info_manual);
     }
 
-    if (bpg_rsp_create_dp_rsp_and_bind(rsp, cfg) != 0) {
+    if (bpg_rsp_create_dp_rsp_and_bind(rsp, cfg, metalib, em) != 0) {
         bpg_rsp_free(rsp);
         return NULL;
     }
@@ -160,7 +175,7 @@ static bpg_rsp_t bpg_rsp_build_one(bpg_rsp_manage_t mgr, cfg_t cfg) {
     return rsp;
 }
 
-static int bpg_rsp_build_i(bpg_rsp_manage_t mgr, cfg_t cfg, mem_buffer_t buf, cfg_t root, error_monitor_t em) {
+static int bpg_rsp_build_i(bpg_rsp_manage_t mgr, cfg_t cfg, mem_buffer_t buf, cfg_t root, LPDRMETALIB metalib, error_monitor_t em) {
     struct cfg_it child_it;
     cfg_t child;
     int rv;
@@ -170,7 +185,7 @@ static int bpg_rsp_build_i(bpg_rsp_manage_t mgr, cfg_t cfg, mem_buffer_t buf, cf
     if (cfg_type(cfg) == CPE_CFG_TYPE_SEQUENCE) {
         cfg_it_init(&child_it, cfg);
         while((child = cfg_it_next(&child_it))) {
-            bpg_rsp_t rsp = bpg_rsp_build_one(mgr, child);
+            bpg_rsp_t rsp = bpg_rsp_build_one(mgr, child, metalib, em);
             if (rsp == NULL) {
                 CPE_ERROR(
                     em, "%s: %s: create fail",
@@ -182,7 +197,7 @@ static int bpg_rsp_build_i(bpg_rsp_manage_t mgr, cfg_t cfg, mem_buffer_t buf, cf
     else if (cfg_type(cfg) == CPE_CFG_TYPE_STRUCT) {
         cfg_it_init(&child_it, cfg);
         while((child = cfg_it_next(&child_it))) {
-            if (bpg_rsp_build_i(mgr, child, buf, root, em) != 0) {
+            if (bpg_rsp_build_i(mgr, child, buf, root, metalib, em) != 0) {
                 rv = -1;
             }
         } 
@@ -197,13 +212,13 @@ static int bpg_rsp_build_i(bpg_rsp_manage_t mgr, cfg_t cfg, mem_buffer_t buf, cf
     return rv;
 }
 
-int bpg_rsp_build(bpg_rsp_manage_t mgr, cfg_t cfg, error_monitor_t em) {
+int bpg_rsp_build(bpg_rsp_manage_t mgr, cfg_t cfg, LPDRMETALIB metalib, error_monitor_t em) {
     struct mem_buffer buffer;
     int r;
 
     mem_buffer_init(&buffer, NULL);
 
-    r = bpg_rsp_build_i(mgr, cfg, &buffer, cfg, em);
+    r = bpg_rsp_build_i(mgr, cfg, &buffer, cfg, metalib, em);
 
     mem_buffer_clear(&buffer);
 

@@ -24,6 +24,8 @@ public:
     RspOpContext & createOp(const char * rspName);
     RspOpContext & createFollowOp(logic_context_t context, const char * rspName);
 
+    void loadRsps(cfg_t cfg, LPDRMETALIB metalib = NULL);
+
     static RspManager & _cast(bpg_rsp_manage_t rsp_mgr);
     static RspManager & instance(gd_app_context_t app, const char * name);
 };

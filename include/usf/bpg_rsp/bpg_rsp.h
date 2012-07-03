@@ -27,7 +27,7 @@ void bpg_rsp_flag_enable(bpg_rsp_t rsp, bpg_rsp_flag_t flag);
 void bpg_rsp_flag_disable(bpg_rsp_t rsp, bpg_rsp_flag_t flag);
 int bpg_rsp_flag_is_enable(bpg_rsp_t rsp, bpg_rsp_flag_t flag);
 
-int bpg_rsp_build(bpg_rsp_manage_t mgr, cfg_t cfg, error_monitor_t em);
+int bpg_rsp_build(bpg_rsp_manage_t mgr, cfg_t cfg, LPDRMETALIB metalib, error_monitor_t em);
 
 #ifdef __cplusplus
 }

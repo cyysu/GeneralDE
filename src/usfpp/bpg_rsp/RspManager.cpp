@@ -1,6 +1,7 @@
 #include <cassert>
 #include "cpepp/utils/ErrorCollector.hpp"
 #include "gdpp/app/Log.hpp"
+#include "usf/bpg_rsp/bpg_rsp.h"
 #include "usfpp/bpg_rsp/RspManager.hpp"
 
 namespace Usf { namespace Bpg {
@@ -62,5 +63,12 @@ RspManager::createFollowOp(logic_context_t context, const char * rspName) {
     return *(RspOpContext*)follow_context;
 }
 
+void RspManager::loadRsps(cfg_t cfg, LPDRMETALIB metalib) {
+    Cpe::Utils::ErrorCollector ec;
+
+    if (bpg_rsp_build(*this, cfg, metalib, ec) != 0) {
+        ec.checkThrowWithMsg< ::std::runtime_error>("Usf::Bpg::RspManager::loadRsps: ");
+    }
+}
 
 }}

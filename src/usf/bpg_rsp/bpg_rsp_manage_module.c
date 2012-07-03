@@ -227,7 +227,35 @@ int bpg_rsp_manage_app_init(gd_app_context_t app, gd_app_module_t module, cfg_t 
     }
 
     if (child_cfg) {
-        if (bpg_rsp_build(bpg_rsp_manage, child_cfg, gd_app_em(app)) != 0) {
+        const char * rsps_metalib_name = cfg_get_string(cfg, "rsps-load-meta", NULL);
+        dr_store_t rsps_metalib = NULL;
+
+        if (rsps_metalib_name) {
+            const char * dr_store_manage_name= cfg_get_string(cfg, "rsp-load-meta-store-manage", NULL);
+            dr_store_manage_t dr_store_mgr = dr_store_manage_find_nc(app, dr_store_manage_name);
+            if (dr_store_mgr == NULL) {
+                CPE_ERROR(
+                    gd_app_em(app),
+                    "%s: create: respons-load-metalib-store-manage %s not exist",
+                    gd_app_module_name(module), dr_store_manage_name ? dr_store_manage_name : "default");
+                bpg_rsp_manage_free(bpg_rsp_manage);
+                return -1;
+            }
+
+            rsps_metalib = dr_store_find(dr_store_mgr, rsps_metalib_name);
+            if (rsps_metalib == NULL) {
+                CPE_ERROR(
+                    gd_app_em(app),
+                    "%s: create: metalib %s not exist in dr-store-manage %s",
+                    gd_app_module_name(module), 
+                    rsps_metalib_name,
+                    dr_store_manage_name ? dr_store_manage_name : "default");
+                bpg_rsp_manage_free(bpg_rsp_manage);
+                return -1;
+            }
+        }
+
+        if (bpg_rsp_build(bpg_rsp_manage, child_cfg, rsps_metalib ? dr_store_lib(rsps_metalib) : NULL, gd_app_em(app)) != 0) {
             bpg_rsp_manage_free(bpg_rsp_manage);
             return -1;
         }
