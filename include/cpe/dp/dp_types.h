@@ -46,6 +46,8 @@ struct dp_binding_it {
     void * m_context;
 };
 
+typedef int (*dp_str_cmd_cvt_t)(int32_t * r, const char * str, void * ctx, error_monitor_t em);
+
 #ifdef __cplusplus
 }
 #endif
