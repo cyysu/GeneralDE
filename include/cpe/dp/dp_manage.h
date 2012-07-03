@@ -21,6 +21,10 @@ int dp_mgr_unbind_string(dp_mgr_t dp, const char * cmd);
 int dp_rsp_bind_numeric(dp_rsp_t rsp, int32_t cmd, error_monitor_t em);
 int dp_rsp_bind_string(dp_rsp_t rsp, const char * cmd, error_monitor_t em);
 int dp_rsp_bind_by_cfg(dp_rsp_t dp_rsp, cfg_t cfg_respons, error_monitor_t em);
+int dp_rsp_bind_by_cfg_ex(
+    dp_rsp_t dp_rsp, cfg_t cfg_respons,
+    dp_str_cmd_cvt_t cmd_cvt, void * cmd_cvt_ctx,
+    error_monitor_t em);
 
 int dp_rsp_unbind_numeric(dp_rsp_t dp, int32_t cmd);
 int dp_rsp_unbind_string(dp_rsp_t dp, const char * cmd);
