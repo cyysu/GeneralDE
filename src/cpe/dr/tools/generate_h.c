@@ -1,8 +1,21 @@
 #include <assert.h>
+#include <ctype.h>
 #include "cpe/dr/dr_ctypes_info.h"
 #include "cpe/dr/dr_metalib_builder.h"
 #include "cpe/dr/dr_metalib_manage.h"
 #include "generate_ops.h"
+
+static void cpe_dr_generate_h_includes(write_stream_t stream, dr_metalib_source_t source, cpe_dr_generate_ctx_t ctx) {
+    struct dr_metalib_source_it include_source_it;
+    dr_metalib_source_t include_source;
+
+    dr_metalib_source_includes(&include_source_it, source);
+    while((include_source = dr_metalib_source_next(&include_source_it))) {
+        stream_printf(stream, "#include \"%s.h\"\n", dr_metalib_source_name(include_source));
+    }
+
+    stream_printf(stream, "\n");
+}
 
 static void cpe_dr_generate_h_macros(write_stream_t stream, dr_metalib_source_t source, cpe_dr_generate_ctx_t ctx) {
     struct dr_metalib_source_element_it element_it;
@@ -20,6 +33,8 @@ static void cpe_dr_generate_h_macros(write_stream_t stream, dr_metalib_source_t 
                macro_value);
        }
     }
+
+    stream_printf(stream, "\n");
 }
 
 static void cpe_dr_generate_h_metas(write_stream_t stream, dr_metalib_source_t source, cpe_dr_generate_ctx_t ctx) {
@@ -34,6 +49,7 @@ static void cpe_dr_generate_h_metas(write_stream_t stream, dr_metalib_source_t s
     while((element = dr_metalib_source_element_next(&element_it))) {
         LPDRMETA meta;
         int entry_pos;
+        const char * meta_name;
 
         if (dr_metalib_source_element_type(element) != dr_metalib_source_element_type_meta) continue;
 
@@ -46,7 +62,8 @@ static void cpe_dr_generate_h_metas(write_stream_t stream, dr_metalib_source_t s
             packed = 1;
         }
 
-        stream_printf(stream, "\nstruct %s {", dr_meta_name(meta));
+        meta_name = dr_meta_name(meta);
+        stream_printf(stream, "\ntypedef %s _%s {", dr_type_name(dr_meta_type(meta)), meta_name);
 
         for(entry_pos = 0; entry_pos < dr_meta_entry_num(meta); ++entry_pos) {
             LPDRMETAENTRY entry = dr_meta_entry_at(meta, entry_pos);
@@ -61,11 +78,28 @@ static void cpe_dr_generate_h_metas(write_stream_t stream, dr_metalib_source_t s
                 ref_meta = dr_entry_ref_meta(entry);
                 if (ref_meta == NULL) continue;
 
-                stream_printf(stream, "%s %s %s", dr_type_name(dr_entry_type(entry)), dr_meta_name(ref_meta), dr_entry_name(entry));
+                stream_toupper(stream, dr_meta_name(ref_meta));
+                stream_printf(stream, " %s", dr_entry_name(entry));
                 break;
             }
             case CPE_DR_TYPE_STRING: {
                 stream_printf(stream, "char %s[%d]", dr_entry_name(entry), dr_entry_size(entry));
+                break;
+            }
+            case CPE_DR_TYPE_CHAR: {
+                stream_printf(stream, "char %s", dr_entry_name(entry));
+                break;
+            }
+            case CPE_DR_TYPE_UCHAR: {
+                stream_printf(stream, "unsigned char %s", dr_entry_name(entry));
+                break;
+            }
+            case CPE_DR_TYPE_FLOAT: {
+                stream_printf(stream, "float %s", dr_entry_name(entry));
+                break;
+            }
+            case CPE_DR_TYPE_DOUBLE: {
+                stream_printf(stream, "double %s", dr_entry_name(entry));
                 break;
             }
             default: {
@@ -81,7 +115,9 @@ static void cpe_dr_generate_h_metas(write_stream_t stream, dr_metalib_source_t s
             stream_printf(stream, ";");
         }
 
-        stream_printf(stream, "\n};\n");
+        stream_printf(stream, "\n} ");
+        stream_toupper(stream, meta_name);
+        stream_printf(stream, ";\n");
     }
 
     if (packed) {
@@ -104,6 +140,7 @@ int cpe_dr_generate_h(write_stream_t stream, dr_metalib_source_t source, cpe_dr_
         stream_printf(stream, "#define DR_GENERATED_H_%s_INCLEDED\n", dr_metalib_source_name(source));
     }
     stream_printf(stream, "#include \"cpe/pal/pal_types.h\"\n");
+    cpe_dr_generate_h_includes(stream, source, ctx);
 
     cpe_dr_generate_h_macros(stream, source, ctx);
 

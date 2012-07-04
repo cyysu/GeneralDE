@@ -6,8 +6,8 @@ vc.check=$(call assert-not-null,VC_HOME) \
 vc.GCC?=$(shell which gcc)
 vc.CC=$(vc.GCC)
 
-vc.CFLAGS+=-Wall
-vc.CXXFLAGS+=-Wall
+vc.CFLAGS+=
+vc.CXXFLAGS+=
 
 ifneq ($(DEBUG),0)
 vc.CFLAGS+=-ggdb

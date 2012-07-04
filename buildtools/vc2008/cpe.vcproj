@@ -392,6 +392,10 @@
 					RelativePath="..\..\include\cpe\utils\stream_mem.h"
 					>
 				</File>
+				<File
+					RelativePath="..\..\include\cpe\utils\string_utils.h"
+					>
+				</File>
 			</Filter>
 			<Filter
 				Name="net"
@@ -525,6 +529,10 @@
 				Name="cfg"
 				>
 				<File
+					RelativePath="..\..\src\cpe\cfg\cfg_compaire.c"
+					>
+				</File>
+				<File
 					RelativePath="..\..\src\cpe\cfg\cfg_dir_read.c"
 					>
 				</File>
@@ -546,6 +554,10 @@
 				</File>
 				<File
 					RelativePath="..\..\src\cpe\cfg\cfg_merge.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\cpe\cfg\cfg_path_create.c"
 					>
 				</File>
 				<File
@@ -752,14 +764,18 @@
 						>
 					</File>
 				</Filter>
+				<Filter
+					Name="meta-validate"
+					>
+					<File
+						RelativePath="..\..\src\cpe\dr\meta-validate\dr_validate_align.c"
+						>
+					</File>
+				</Filter>
 			</Filter>
 			<Filter
 				Name="pal"
 				>
-				<File
-					RelativePath="..\..\src\cpe\pal\getopt.c"
-					>
-				</File>
 				<File
 					RelativePath="..\..\src\cpe\pal\msvc_dlfcn.c"
 					>
@@ -837,7 +853,15 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\src\cpe\utils\hex_utils.c"
+					>
+				</File>
+				<File
 					RelativePath="..\..\src\cpe\utils\memory.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\cpe\utils\memory_debug.c"
 					>
 				</File>
 				<File
@@ -866,6 +890,10 @@
 				</File>
 				<File
 					RelativePath="..\..\src\cpe\utils\stream_printf.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\cpe\utils\string_utils.c"
 					>
 				</File>
 			</Filter>

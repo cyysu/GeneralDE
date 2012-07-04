@@ -242,7 +242,11 @@ struct DRCtypeTypeWriteOps g_dr_ctype_write_ops[] = {
       , int8_from_float, int8_from_double
     }
     , /*CPE_DR_TYPE_UCHAR*/
-    { NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL
+    { uint8_from_int8, uint8_from_uint8
+      , uint8_from_int16, uint8_from_uint16
+      , uint8_from_int32, uint8_from_uint32
+      , uint8_from_int64, uint8_from_uint64
+      , uint8_from_float, uint8_from_double
     }
     , /*CPE_DR_TYPE_INT8*/
     { int8_from_int8, int8_from_uint8

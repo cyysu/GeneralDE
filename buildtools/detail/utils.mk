@@ -79,3 +79,11 @@ $(if $1\
           , $(call select-var,$(wordlist 2,$(words $1), $1))) \
      ,)
 endef
+
+compiler-category=$(strip \
+                      $(if $(filter %clang,$1),clang,\
+                      $(if $(filter %clang++,$1),clang,\
+                      $(if $(filter %gcc,$1),gcc,\
+                      $(if $(filter %g++,$1),gcc,\
+                      $(warning unknown compiler $1))))))
+

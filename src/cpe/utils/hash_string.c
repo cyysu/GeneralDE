@@ -1,4 +1,7 @@
 #include <string.h>
+#include <assert.h>
+#include "cpe/pal/pal_stdarg.h"
+#include "cpe/pal/pal_stdio.h"
 #include "cpe/utils/hash_string.h"
 #include "cpe/utils/hash.h"
 
@@ -47,6 +50,20 @@ void cpe_hs_strcat(cpe_hash_string_t target, size_t capacity, const char * data)
     memcpy(buf + *len, data, dataLen);
     *len += dataLen;
     buf[*len] = 0;
+    *hash = 0;
+}
+
+void cpe_hs_printf(cpe_hash_string_t target, size_t capacity, const char * fmt, ...) {
+    int32_t * hash = (int32_t *)target;
+    int32_t * len = hash + 1;
+    va_list args;
+    char * buf = (char *)(len + 1);
+
+    assert(capacity > 8);
+
+    va_start(args, fmt);
+    *len = (int32_t)vsnprintf(buf, capacity - 8, fmt, args);
+    va_end(args);
     *hash = 0;
 }
 

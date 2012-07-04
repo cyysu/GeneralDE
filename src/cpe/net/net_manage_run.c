@@ -43,7 +43,7 @@ int net_mgr_run(net_mgr_t nmgr, int64_t span, net_run_tick_fun_t tick_fun, void 
 
         tick_timer.data = &tick_env;
 
-        ev_span = ((ev_tstamp)span) / 10000;
+        ev_span = ((ev_tstamp)span) / 10000.0;
         ev_timer_init (&tick_timer, net_mgr_run_tick_cb, ev_span, ev_span);
         ev_timer_start(nmgr->m_ev_loop, &tick_timer);
     }
