@@ -40,7 +40,11 @@ int net_connector_unbind(net_connector_t connector);
 int net_connector_enable(net_connector_t connector);
 void net_connector_disable(net_connector_t connector);
 
-void net_connector_set_monitor(
+int net_connector_add_monitor(
+    net_connector_t connector,
+    net_connector_state_monitor_fun_t fun, void * ctx);
+
+int net_connector_remove_monitor(
     net_connector_t connector,
     net_connector_state_monitor_fun_t fun, void * ctx);
 

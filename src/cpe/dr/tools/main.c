@@ -1,6 +1,7 @@
 #include "argtable2.h"
 #include "cpe/pal/pal_string.h"
 #include "cpe/pal/pal_strings.h"
+#include "cpe/pal/pal_stdio.h"
 #include "cpe/utils/buffer.h"
 #include "cpe/utils/file.h"
 #include "cpe/utils/stream_file.h"
@@ -15,6 +16,8 @@ struct arg_file * o_h;
 struct arg_file * o_lib_c;
 struct arg_str * o_lib_c_arg;
 struct arg_file * o_lib_bin;
+struct arg_file * i_group_root;
+struct arg_file * i_group;
 struct arg_lit * help;
 struct arg_str * o_validate;
 struct arg_end *end;
@@ -30,6 +33,50 @@ accept_input_file(const char * full, const char * base, void * ctx) {
 struct dir_visitor g_input_search_visitor = {
     NULL, NULL, accept_input_file
 };
+
+void prepare_input_group(dr_metalib_builder_t builder, error_monitor_t em) {
+    char path_buf[256];
+    size_t path_len = 0;
+    FILE * group_file;
+
+    if (i_group->count <= 0) return;
+
+    path_len = strlen(i_group_root->filename[0]);
+    if (path_len + 5 > sizeof(path_buf)) {
+        CPE_ERROR(em, "group input %s is too long!", i_group->filename[0]);
+    }
+
+    snprintf(path_buf, sizeof(path_buf), "%s", i_group_root->filename[0]);
+    if (path_buf[path_len - 1] != '/') {
+        ++path_len;
+        path_buf[path_len - 1] = '/';
+        path_buf[path_len] = 0;
+    }
+
+    group_file = file_stream_open(i_group->filename[0], "r", em);
+    if (group_file == NULL) {
+        CPE_ERROR(em, "group input %s not exist!", i_group->filename[0]);
+    }
+
+    while(fgets(path_buf + path_len, sizeof(path_buf) - path_len, group_file)) {
+        size_t total_len;
+        for(total_len = strlen(path_buf);
+            total_len > 0
+                && (path_buf[total_len - 1] == '\n'
+                    || path_buf[total_len - 1] == '\r');
+            --total_len)
+        {
+            path_buf[total_len - 1] = 0;
+        }
+
+        if (file_exist(path_buf, em)) {
+            dr_metalib_builder_add_file(builder, NULL, path_buf);
+        }
+        else {
+            CPE_ERROR(em, "input %s not exist!", path_buf);
+        }
+    }
+}
 
 void prepare_input(dr_metalib_builder_t builder, error_monitor_t em) {
     int i;
@@ -198,6 +245,7 @@ int tools_main(error_monitor_t em) {
     }
 
     prepare_input(ctx.m_builder, em);
+    prepare_input_group(ctx.m_builder, em);
 
     dr_metalib_builder_analize(ctx.m_builder);
 
@@ -234,6 +282,8 @@ int main(int argc, char * argv[]) {
         ,     o_lib_c = arg_file0(   NULL,  "output-lib-c",       "<string>",            "output c lib file")
         , o_lib_c_arg = arg_str0(   NULL,  "output-lib-c-arg",    "<string>",            "output c lib file")
         ,   o_lib_bin = arg_file0(   NULL,  "output-lib-bin",     "<string>",            "output c lib file")
+        , i_group_root = arg_file0(   NULL,  "input-group-root",     "<string>",            "root of input listed in group file")
+        , i_group = arg_file0(   NULL,  "input-group",     "<string>",            "a file defined a list of input fild")
         ,        help = arg_lit0(   NULL,  "help",                                   "print this help and exit")
         ,         end = arg_end(20)
     };

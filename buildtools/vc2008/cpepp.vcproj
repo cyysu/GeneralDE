@@ -309,6 +309,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\src\cpepp\cfg\NodePlacehold.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\..\src\cpepp\cfg\Tree.cpp"
 					>
 				</File>
