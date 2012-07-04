@@ -63,6 +63,7 @@
 			<Tool
 				Name="VCLibrarianTool"
 				AdditionalDependencies="Ws2_32.lib"
+				AdditionalLibraryDirectories="..\..\3rdTools\zlib\vc\lib"
 			/>
 			<Tool
 				Name="VCALinkTool"

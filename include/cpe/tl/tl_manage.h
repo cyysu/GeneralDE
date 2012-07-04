@@ -20,6 +20,10 @@ ptr_int_t tl_manage_tick(tl_manage_t tm, ptr_int_t count);
 int tl_manage_set_opt(tl_manage_t tm, tl_manage_option_t opt,...);
 tl_time_t tl_manage_time(tl_manage_t tm);
 
+tl_manage_state_t tl_manage_state(tl_manage_t tm);
+void tl_manage_pause(tl_manage_t tm);
+void tl_manage_resume(tl_manage_t tm);
+
 /*time line*/
 typedef enum tl_option {
     tl_set_event_dispatcher

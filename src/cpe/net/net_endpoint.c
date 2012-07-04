@@ -8,6 +8,7 @@
 #include "net_internal_ops.h"
 
 static void net_ep_cb(EV_P_ ev_io *w, int revents);
+static void net_ep_timeout_cb(EV_P_ ev_timer *w, int revents);
 
 net_ep_t
 net_ep_create(net_mgr_t nmgr) {
@@ -30,6 +31,9 @@ net_ep_create(net_mgr_t nmgr) {
 
     ep->m_watcher.data = ep;
     ev_init(&ep->m_watcher, net_ep_cb);
+    ep->m_timer.data = ep;
+    ev_init(&ep->m_timer, NULL);
+    ep->m_timer.repeat = 0;
 
     return ep;
 }
@@ -37,6 +41,11 @@ net_ep_create(net_mgr_t nmgr) {
 void net_ep_free(net_ep_t ep) {
     if (ep->m_connector) {
         net_connector_unbind(ep->m_connector);
+    }
+
+    if (ep->m_timer.repeat) {
+        ev_timer_stop(ep->m_mgr->m_ev_loop, &ep->m_timer);
+        ep->m_timer.repeat = 0;
     }
 
     if (net_ep_is_open(ep)) {
@@ -138,6 +147,47 @@ int net_ep_is_open(net_ep_t ep) {
     return ep->m_fd < 0 ? 0 : 1;
 }
 
+int net_ep_set_timeout(net_ep_t ep, tl_time_span_t span) {
+    if (span == 0) {
+        if (ev_cb(&ep->m_timer) == NULL) {
+            return 0;
+        }
+        else if (ev_cb(&ep->m_timer) == net_ep_timeout_cb) {
+            ev_timer_stop(ep->m_mgr->m_ev_loop, &ep->m_timer);
+            ev_init(&ep->m_timer, NULL);
+            ev_timer_set(&ep->m_timer, 0, 0);
+            return 0;
+        }
+        else {
+            return -1;
+        }
+    }
+    else {
+        ev_tstamp ev_span = (ev_tstamp)span / 1000.0;
+
+        if (ev_cb(&ep->m_timer) == NULL) {
+            ev_timer_init(&ep->m_timer, net_ep_timeout_cb, ev_span, ev_span);
+            ev_timer_start(ep->m_mgr->m_ev_loop, &ep->m_timer);
+            return 0;
+        }
+        else if (ev_cb(&ep->m_timer) == net_ep_timeout_cb) {
+            ev_timer_stop(ep->m_mgr->m_ev_loop, &ep->m_timer);
+            ev_timer_set(&ep->m_timer, ev_span, ev_span);
+            ev_timer_start(ep->m_mgr->m_ev_loop, &ep->m_timer);
+            return 0;
+        }
+        else {
+            return -1;
+        }
+    }
+}
+
+tl_time_span_t net_ep_timeout(net_ep_t ep) {
+    return ev_cb(&ep->m_timer) == net_ep_timeout_cb
+        ? (ep->m_timer.repeat * 1000)
+        : 0;
+}
+
 void net_ep_close_i(net_ep_t ep, net_ep_event_t ev) {
     assert(ep);
     assert(ev == net_ep_event_close_by_user
@@ -169,6 +219,10 @@ void net_ep_close_i(net_ep_t ep, net_ep_event_t ev) {
     }
 
     ep->m_fd = -1;
+
+    if (ep->m_connector) {
+        net_connector_on_disconnect(ep->m_connector);
+    }
 
     if (ep->m_process_fun) ep->m_process_fun(ep, ep->m_process_ctx, ev);
 }
@@ -256,6 +310,18 @@ void net_ep_erase(net_ep_t ep, size_t size) {
     net_ep_update_events(ep, old_events);
 }
 
+void net_ep_timeout_cb(EV_P_ ev_timer *w, int revents) {
+    net_ep_t ep  = (net_ep_t)w->data;
+    assert(ep);
+
+    CPE_ERROR(
+        ep->m_mgr->m_em,
+        "net_mgr: ep %d: connection timeout!",
+        ep->m_id);
+
+    net_ep_close(ep);
+}
+
 void net_ep_cb(EV_P_ ev_io *w, int revents) {
     net_ep_t ep;
     int old_events;
@@ -308,6 +374,16 @@ void net_ep_cb(EV_P_ ev_io *w, int revents) {
                 CPE_INFO(ep->m_mgr->m_em, "net_mgr: ep %d: send %d bytes data!", ep->m_id, (int)send_size);
             }
         }
+    }
+
+    if (ev_cb(&ep->m_timer) == net_ep_timeout_cb) {
+        ev_tstamp span = ep->m_timer.repeat;
+
+        assert(span > 0);
+
+        ev_timer_stop(ep->m_mgr->m_ev_loop, &ep->m_timer);
+        ev_timer_set(&ep->m_timer, span, span);
+        ev_timer_start(ep->m_mgr->m_ev_loop, &ep->m_timer);
     }
 
     net_ep_update_events(ep, old_events);

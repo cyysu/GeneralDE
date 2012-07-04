@@ -14,16 +14,6 @@ struct DRCtypeTypeFromStringOps {
     int (* set_from_string)(void * output, LPDRMETAENTRY entry, const char * input, error_monitor_t em);
 };
 
-static int dr_set_char_from_string(void * output, LPDRMETAENTRY entry, const char * input, error_monitor_t em) {
-    if (input[1] != 0 || input[0] == 0) {
-        return -1;
-    }
-    else {
-        *((char*)output) = input[0];
-        return 0;
-    }
-}
-
 static int dr_set_string_from_string(void * output, LPDRMETAENTRY entry, const char * input, error_monitor_t em) {
     size_t len;
     if (entry == NULL) {
@@ -267,8 +257,8 @@ static int dr_set_double_from_string(void * output, LPDRMETAENTRY entry, const c
 struct DRCtypeTypeFromStringOps g_dr_from_string_ops[] = {
     {/*CPE_DR_TYPE_UNION*/ NULL}
     , {/*CPE_DR_TYPE_STRUCT*/ NULL}
-    , {/*CPE_DR_TYPE_CHAR*/ dr_set_char_from_string}
-    , {/*CPE_DR_TYPE_UCHAR*/ dr_set_char_from_string}
+    , {/*CPE_DR_TYPE_CHAR*/ dr_set_int8_from_string}
+    , {/*CPE_DR_TYPE_UCHAR*/ dr_set_uint8_from_string}
     , {/*CPE_DR_TYPE_INT8*/ dr_set_int8_from_string}
     , {/*CPE_DR_TYPE_INT16*/ dr_set_int16_from_string}
     , {/*CPE_DR_TYPE_UINT16*/ dr_set_uint16_from_string}
@@ -285,7 +275,7 @@ struct DRCtypeTypeFromStringOps g_dr_from_string_ops[] = {
     , {/*CPE_DR_TYPE_FLOAT*/ dr_set_float_from_string}
     , {/*CPE_DR_TYPE_DOUBLE*/ dr_set_double_from_string}
     , {/*CPE_DR_TYPE_IP*/ NULL}
-    , {/*CPE_DR_TYPE_CHAR*/ dr_set_char_from_string}
+    , {/*CPE_DR_TYPE_WCHAR*/ NULL}
     , {/*CPE_DR_TYPE_STRING*/ dr_set_string_from_string}
     , {/*CPE_DR_TYPE_STRING*/ dr_set_string_from_string}
     , {/*CPE_DR_TYPE_VOID*/ NULL}

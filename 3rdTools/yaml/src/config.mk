@@ -3,7 +3,7 @@ $(product).type:=lib
 $(product).product.c.includes:=3rdTools/yaml/include
 $(product).c.sources:=$(wildcard $(product-base)/*.c)
 $(product).c.env-includes:=3rdTools/yaml/src
-$(product).c.flags.cpp:=-DHAVE_CONFIG_H
+$(product).c.flags.cpp:=-DHAVE_CONFIG_H -Wno-parentheses-equality
 $(product).c.flags.c:= -O2
 $(product).c.flags.ld:=
 

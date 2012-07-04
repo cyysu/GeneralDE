@@ -4,6 +4,7 @@
 #include "cpe/pal/pal_strings.h"
 #include "cpe/pal/pal_stackbuf.h"
 #include "cpe/utils/string_utils.h"
+#include "cpe/dr/dr_metalib_builder.h"
 #include "cpe/dr/dr_metalib_build.h"
 #include "cpe/dr/dr_metalib_xml.h"
 #include "cpe/dr/dr_error.h"
@@ -464,6 +465,58 @@ static void dr_build_xml_process_entry(
     }
 }
 
+static void dr_build_xml_process_include(
+    struct DRXmlParseCtx * ctx,
+    int nb_attributes,
+    const xmlChar** attributes)
+{
+    int indexAttribute = 0;
+    int index = 0;
+    const char * include_name = NULL;
+    const char * include_file = NULL;
+    dr_metalib_source_t include_source;
+
+    if (ctx->m_source == NULL) return;
+
+    for(index = 0, indexAttribute = 0;
+        indexAttribute < nb_attributes;
+        ++indexAttribute, index += 5)
+    {
+        const xmlChar *localname = attributes[index];
+        /*const xmlChar *prefix = attributes[index+1];*/
+        /*const xmlChar *nsURI = attributes[index+2];*/
+        const xmlChar *valueBegin = attributes[index+3];
+        const xmlChar *valueEnd = attributes[index+4];
+
+        int len = valueEnd - valueBegin;
+
+        if (strcmp((char const *)localname, "name") == 0) {
+            DR_DO_DUP_STR(include_name);
+        }
+        if (strcmp((char const *)localname, "file") == 0) {
+            DR_DO_DUP_STR(include_file);
+            (void)include_file;
+        }
+        else {
+        }
+    }
+
+    if (include_name) {
+        include_source = dr_metalib_source_find(ctx->m_source->m_builder, include_name);
+        if (include_source == NULL) {
+            CPE_ERROR_EX(
+                ctx->m_em, CPE_DR_ERROR_ENTRY_NO_TYPE, "include %s not exist!", include_name);
+        }
+        else {
+            if (dr_metalib_source_add_include(ctx->m_source, include_source) != 0) {
+                CPE_ERROR_EX(
+                    ctx->m_em, CPE_DR_ERROR_ENTRY_NO_TYPE, "add include %s fail!", include_name);
+            }
+        }
+    }
+}
+
+
 static void dr_build_xml_startElement(
         void* inputCtx,
         const xmlChar* localname,
@@ -491,6 +544,9 @@ static void dr_build_xml_startElement(
     }
     else if (strcmp((const char *)localname, CPE_DR_TAG_METALIB) == 0) {
         dr_build_xml_process_metalib(ctx, nb_attributes, attributes);
+    }
+    else if (strcmp((const char *)localname, "include") == 0) {
+        dr_build_xml_process_include(ctx, nb_attributes, attributes);
     }
     else {
         

@@ -6,6 +6,7 @@
 
 int dr_entry_set_from_ctype(void * output, const void * input, int input_type, LPDRMETAENTRY entry, error_monitor_t em) {
     switch(input_type) {
+    case CPE_DR_TYPE_CHAR:
     case CPE_DR_TYPE_INT8:
         return dr_entry_set_from_int8(output, *(const int8_t *)input, entry, em);
     case CPE_DR_TYPE_INT16:
@@ -20,6 +21,7 @@ int dr_entry_set_from_ctype(void * output, const void * input, int input_type, L
         return dr_entry_set_from_int64(output, *(const int64_t *)input, entry, em);
     case CPE_DR_TYPE_UINT64:
         return dr_entry_set_from_uint64(output, *(const uint64_t *)input, entry, em);
+    case CPE_DR_TYPE_UCHAR:
     case CPE_DR_TYPE_UINT8:
         return dr_entry_set_from_uint8(output, *(const uint8_t *)input, entry, em);
     case CPE_DR_TYPE_FLOAT:
