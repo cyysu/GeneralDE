@@ -27,12 +27,13 @@ RspManager & RspManager::instance(gd_app_context_t app, const char * name) {
 }
 
 RspOpContext &
-RspManager::createOp(const char * rspName) {
+RspManager::createOp(const char * rspName, logic_context_t from) {
     Cpe::Utils::ErrorCollector ec;
 
     logic_context_t context = 
         bpg_rsp_manage_create_op_by_name(
             *this,
+            from,
             rspName,
             ec);
 

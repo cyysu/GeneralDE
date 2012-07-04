@@ -156,7 +156,7 @@ int bpg_pkg_manage_app_init(gd_app_context_t app, gd_app_module_t module, cfg_t 
     bpg_pkg_manage_t bpg_pkg_manage;
     cfg_t child_cfg;
 
-    bpg_pkg_manage = bpg_pkg_manage_create(app, gd_app_module_name(module), NULL);
+    bpg_pkg_manage = bpg_pkg_manage_create(app, gd_app_module_name(module), gd_app_em(app));
     if (bpg_pkg_manage == NULL) {
         return -1;
     }
