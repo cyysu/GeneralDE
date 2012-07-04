@@ -35,7 +35,7 @@ do_rsp_execute_late(logic_context_t context, logic_stack_node_t stack_node, void
 
     late_context = 
         bpg_rsp_manage_create_op_by_name(
-            rsp_manage, rsp_name, gd_app_em(logic_context_app(context)));
+            rsp_manage, context, rsp_name, gd_app_em(logic_context_app(context)));
     if (late_context == NULL) {
         APP_CTX_ERROR(
             logic_context_app(context), "rsp_execute_late: create context for %s.%s not exist!",
