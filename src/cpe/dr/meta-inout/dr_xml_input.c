@@ -495,6 +495,7 @@ static void dr_build_xml_process_include(
         }
         if (strcmp((char const *)localname, "file") == 0) {
             DR_DO_DUP_STR(include_file);
+            (void)include_file;
         }
         else {
         }
