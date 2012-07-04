@@ -56,6 +56,44 @@ TEST_F(ReadTest, array_in32) {
         result());
 }
 
+TEST_F(ReadTest, array_uint8) {
+    installMeta(
+        "<metalib tagsetversion='1' name='net'  version='1'>"
+        "    <struct name='S' version='1'>"
+        "	     <entry name='a1' type='uint8' id='1' count='5'/>"
+        "    </struct>"
+        "</metalib>"
+        );
+
+    t_em_set_print();
+    EXPECT_EQ(5, read("S", "a1: [1, 2, 3, 4, 5]"));
+
+    EXPECT_CFG_EQ(
+        "a1: [1, 2, 3, 4, 5]"
+        ,
+        result());
+}
+
+TEST_F(ReadTest, array_with_refer_uint8) {
+    installMeta(
+        "<metalib tagsetversion='1' name='net'  version='1'>"
+        "    <struct name='S' version='1'>"
+        "        <entry name='count' type='uint8'/>"
+        "	     <entry name='a1' type='uint8' id='1' count='5' refer='count'/>"
+        "    </struct>"
+        "</metalib>"
+        );
+
+    t_em_set_print();
+    EXPECT_EQ(5, read("S", "a1: [1, 2, 3, 4]"));
+
+    EXPECT_CFG_EQ(
+        "count: 4\n"
+        "a1: [1, 2, 3, 4]"
+        ,
+        result());
+}
+
 TEST_F(ReadTest, array_float) {
     installMeta(
         "<metalib tagsetversion='1' name='net'  version='1'>"
