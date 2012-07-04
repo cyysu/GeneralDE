@@ -77,6 +77,22 @@ TEST_F(WriteTest, type_array_refer) {
         "0x22 0x06 0x03 0x8E 0x02 0x9E 0xA7 0x05", result());
 }
 
+TEST_F(WriteTest, type_array_refer_no_data) {
+    installMeta(
+        "<metalib tagsetversion='1' name='net'  version='1'>"
+        "    <struct name='S' version='1'>"
+        "	     <entry name='count' type='uint32'/>"
+        "	     <entry name='a1' type='uint32' id='4' count='0' refer='count'/>"
+        "    </struct>"
+        "</metalib>"
+        );
+
+    EXPECT_EQ(8, write("S", "a1: []"));
+
+    EXPECT_STREQ(
+        "0x22 0x06 0x03 0x8E 0x02 0x9E 0xA7 0x05", result());
+}
+
 TEST_F(WriteTest, type_array_string_basic) {
     installMeta(
         "<metalib tagsetversion='1' name='net'  version='1'>"
