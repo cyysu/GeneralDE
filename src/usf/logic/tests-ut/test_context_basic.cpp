@@ -6,7 +6,7 @@ class ContextBasicTest : public LogicTest {
 TEST_F(ContextBasicTest, defaults) {
     logic_context_t context = t_logic_context_create(123);
 
-    EXPECT_EQ((logic_context_id_t)0, logic_context_id(context));
+    EXPECT_EQ((logic_context_id_t)1, logic_context_id(context));
 
     EXPECT_EQ((uint32_t)0, logic_context_flags(context));
 
@@ -19,10 +19,10 @@ TEST_F(ContextBasicTest, defaults) {
 }
 
 TEST_F(ContextBasicTest, find) {
-    EXPECT_TRUE(NULL == t_logic_context_find(0));
+    EXPECT_TRUE(NULL == t_logic_context_find(1));
 
     logic_context_t context = t_logic_context_create();
-    EXPECT_TRUE(context == t_logic_context_find(0));
+    EXPECT_TRUE(context == t_logic_context_find(1));
 }
 
 TEST_F(ContextBasicTest, flags) {

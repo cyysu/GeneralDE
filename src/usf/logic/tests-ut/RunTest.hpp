@@ -9,13 +9,12 @@ public:
     virtual void SetUp();
     virtual void TearDown();
 
-    void expect_create_require(LogicOpMock & op);
-    void expect_return(LogicOpMock & op, int32_t rv);
+    void expect_create_require(LogicOpMock & op, logic_op_exec_result_t rv);
+    void expect_return(LogicOpMock & op, logic_op_exec_result_t rv);
     void expect_commit(void);
 
     void execute(const char * data);
     void execute_again(void);
-    void set_require_keep(void);
     void set_execute_immediately(void);
 
     void cancel(void);

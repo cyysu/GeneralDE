@@ -27,12 +27,6 @@ do {                                                                    \
     __action->m_event.m_tl = NULL;                                      \
 } while(0)
 
-#define tl_manage_update_time(tm) do { \
-    tl_time_t nextTime =  (tm)->m_time_get((tm)->m_time_ctx);    \
-    if (nextTime > (tm)->m_time_current) \
-        (tm)->m_time_current = nextTime; \
-    } while(0)
-
 static int tl_manage_dispatch_action(tl_manage_t tm, int maxCount) {
     int count = 0;
     int rv = 0;

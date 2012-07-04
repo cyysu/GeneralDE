@@ -63,7 +63,17 @@ void Package::setCmdAndData(int cmd, const void * data, size_t data_size, size_t
     setCmd(cmd);
     setMainData(data, data_size, write_size);
 }
+
+void Package::setCmdAndData(const char * meta_name, const void * data, size_t data_size, size_t * write_size) {
+    setCmd(cmdMeta().entry(meta_name).id());
+    setMainData(data, data_size, write_size);
+}
         
+void Package::setCmdAndData(LPDRMETA meta, const void * data, size_t data_size, size_t * write_size) {
+    setCmd(cmdMeta().entry(dr_meta_name(meta)).id());
+    setMainData(data, data_size, write_size);
+}
+
 void Package::setMainData(void const * data, size_t size, size_t * write_size) {
     Cpe::Utils::ErrorCollector em;
     if (bpg_pkg_set_main_data(*this, mainDataMeta(), data, size, write_size, em) != 0) {

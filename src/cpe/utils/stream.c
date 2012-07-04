@@ -1,3 +1,4 @@
+#include <ctype.h>
 #include <string.h>
 #include "cpe/utils/stream.h"
 #include "cpe/utils/stream_buffer.h"
@@ -84,4 +85,92 @@ int stream_putc_count(struct write_stream * stream, char c, size_t n) {
     }
 
     return rv;
+}
+
+int stream_tolower(struct write_stream * stream, const char * data) {
+    char buf[128];
+    int total;
+    int i;
+
+    total = 0;
+    do {
+        int rv;
+
+        for(i = 0; i < sizeof(buf) && data[total]; ++i, ++total) {
+            buf[i] = tolower(data[total]);
+        }
+
+        rv = stream_write(stream, buf, i);
+        if (rv < 0) return rv;
+
+        if (rv != i) return total - (i - rv);
+    } while(data[total]);
+
+    return total;
+}
+
+int stream_tolower_len(struct write_stream * stream, const char * data, size_t len) {
+    char buf[128];
+    int total;
+    int i;
+
+    total = 0;
+    do {
+        int rv;
+
+        for(i = 0; i < sizeof(buf) && total < len; ++i, ++total) {
+            buf[i] = tolower(data[total]);
+        }
+
+        rv = stream_write(stream, buf, i);
+        if (rv < 0) return rv;
+
+        if (rv != i) return total - (i - rv);
+    } while(total < len);
+
+    return total;
+}
+
+int stream_toupper(struct write_stream * stream, const char * data) {
+    char buf[128];
+    int total;
+    int i;
+
+    total = 0;
+    do {
+        int rv;
+
+        for(i = 0; i < sizeof(buf) && data[total]; ++i, ++total) {
+            buf[i] = toupper(data[total]);
+        }
+
+        rv = stream_write(stream, buf, i);
+        if (rv < 0) return rv;
+
+        if (rv != i) return total - (i - rv);
+    } while(data[total]);
+
+    return total;
+}
+
+int stream_toupper_len(struct write_stream * stream, const char * data, size_t len) {
+    char buf[128];
+    int total;
+    int i;
+
+    total = 0;
+    do {
+        int rv;
+
+        for(i = 0; i < sizeof(buf) && total < len; ++i, ++total) {
+            buf[i] = toupper(data[total]);
+        }
+
+        rv = stream_write(stream, buf, i);
+        if (rv < 0) return rv;
+
+        if (rv != i) return total - (i - rv);
+    } while(total < len);
+
+    return total;
 }

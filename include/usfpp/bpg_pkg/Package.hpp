@@ -36,6 +36,8 @@ public:
     void setCmdAndData(Cpe::Dr::ConstData const & data, size_t * write_size = NULL);
     void setCmdAndData(Cpe::Dr::ConstData const & data, size_t size, size_t * write_size = NULL);
     void setCmdAndData(int cmd, const void * data, size_t data_size, size_t * write_size = NULL);
+    void setCmdAndData(const char * meta_name, const void * data, size_t data_size, size_t * write_size = NULL);
+    void setCmdAndData(LPDRMETA meta, const void * data, size_t data_size, size_t * write_size = NULL);
 
     template<typename T>
     void setCmdAndData(int cmd, T const & data, size_t * write_size = NULL) { setCmdAndData(cmd, &data, sizeof(data), write_size); }

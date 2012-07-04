@@ -252,11 +252,29 @@ LPDRMETALIB bpg_pkg_manage_data_metalib(bpg_pkg_manage_t mgr) {
 }
 
 LPDRMETA bpg_pkg_manage_cmd_meta(bpg_pkg_manage_t mgr) {
-    if (mgr->m_cmd_meta == NULL && mgr->m_cmd_meta_name[0]) {
+    if (mgr->m_cmd_meta_name[0] == 0) {
+        CPE_ERROR(
+            mgr->m_em, "bpg_pkg_manage %s: cmd meta name not confitured!",
+            bpg_pkg_manage_name(mgr));
+        return NULL;
+    }
+
+    if (mgr->m_cmd_meta == NULL) {
         LPDRMETALIB metalib = bpg_pkg_manage_data_metalib(mgr);
-        if (metalib) {
-            mgr->m_cmd_meta = dr_lib_find_meta_by_name(metalib, mgr->m_cmd_meta_name);
+        if (metalib == NULL) {
+            CPE_ERROR(
+                mgr->m_em, "bpg_pkg_manage %s: cmd meta lib not exist!",
+                bpg_pkg_manage_name(mgr));
+            return NULL;
         }
+
+        mgr->m_cmd_meta = dr_lib_find_meta_by_name(metalib, mgr->m_cmd_meta_name);
+        if (mgr->m_cmd_meta == NULL) {
+            CPE_ERROR(
+                mgr->m_em, "bpg_pkg_manage %s: cmd meta %s not exist in metalib!",
+                bpg_pkg_manage_name(mgr), mgr->m_cmd_meta_name);
+            return NULL;
+        } 
     }
 
     return mgr->m_cmd_meta;
@@ -278,3 +296,25 @@ bpg_pkg_manage_cmd_meta_name(bpg_pkg_manage_t mgr) {
     return mgr->m_cmd_meta_name;
 }
 
+int bpg_pkg_find_cmd_from_meta_name(
+    uint32_t * cmd, bpg_pkg_manage_t mgr, const char * meta_name)
+{
+    int entry_count, i;
+    LPDRMETA cmd_meta;
+
+    cmd_meta = bpg_pkg_manage_cmd_meta(mgr);
+    if (cmd_meta == NULL) return -1;
+
+    entry_count = dr_meta_entry_num(cmd_meta);
+
+    for(i = 0; i < entry_count; ++i) {
+        LPDRMETAENTRY entry = dr_meta_entry_at(cmd_meta, i);
+        LPDRMETA entry_meta = dr_entry_ref_meta(entry);
+        if (strcmp(dr_meta_name(entry_meta), meta_name) == 0) {
+            *cmd = dr_entry_id(entry);
+            return 0;
+        }
+    }
+
+    return -1;
+}

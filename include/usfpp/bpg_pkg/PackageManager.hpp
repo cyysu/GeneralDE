@@ -19,7 +19,9 @@ public:
 
     Cpe::Dr::MetaLib const & dataMetaLib(void) const;
     Cpe::Dr::Meta const & cmdMeta(void) const;
-    
+
+    uint32_t cmdFromMetaName(const char * metaName) const;
+
     bpg_pkg_t createPackage(size_t capacity, LPDRMETA carry_data_meta = NULL, size_t carry_data_capacity = NULL);
 
     static PackageManager & _cast(bpg_pkg_manage_t pkg_mgr);

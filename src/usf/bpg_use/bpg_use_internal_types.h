@@ -1,5 +1,6 @@
 #ifndef USF_BPG_USE_INTERNAL_TYPES_H
 #define USF_BPG_USE_INTERNAL_TYPES_H
+#include "usf/logic/logic_types.h"
 #include "usf/bpg_use/bpg_use_types.h"
 
 #ifdef __cplusplus

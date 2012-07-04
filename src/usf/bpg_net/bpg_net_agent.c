@@ -47,8 +47,8 @@ bpg_net_agent_create(
     mgr->m_debug = 0;
     mgr->m_read_chanel_size = 2048;
     mgr->m_write_chanel_size = 2048;
-
     mgr->m_cmd_disconnect = 0;
+    mgr->m_conn_timeout = 0;
 
     mem_buffer_init(&mgr->m_rsp_buf, alloc);
 
@@ -180,6 +180,14 @@ bpg_net_agent_name_hs(bpg_net_agent_t mgr) {
 
 short bpg_net_agent_port(bpg_net_agent_t svr) {
     return net_listener_using_port(svr->m_listener);
+}
+
+void bpg_net_agent_set_conn_timeout(bpg_net_agent_t agent, tl_time_span_t span) {
+    agent->m_conn_timeout = span;
+}
+
+tl_time_span_t bpg_net_agent_conn_timeout(bpg_net_agent_t agent) {
+    return agent->m_conn_timeout;
 }
 
 bpg_pkg_t

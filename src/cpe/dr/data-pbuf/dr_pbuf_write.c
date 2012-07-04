@@ -163,10 +163,10 @@ int dr_pbuf_write(
                         nextStack->m_input_data = entryData;
                         nextStack->m_input_data_capacity = elementSize;
 
-                        nextStack->m_output_data = curStack->m_output_data + curStack->m_output_size + dr_pbuf_write_size_reserve;
                         nextStack->m_output_size = 0;
+                        nextStack->m_output_data = curStack->m_output_data + curStack->m_output_size;
                         nextStack->m_output_capacity = curStack->m_output_capacity - curStack->m_output_size;
-                        nextStack->m_array_begin_pos = 0;
+                        nextStack->m_array_begin_pos = nextStack->m_output_size;
 
                         nextStack->m_entry_pos = 0;
                         nextStack->m_entry_count = nextStack->m_meta->m_entry_count;
@@ -333,26 +333,30 @@ int dr_pbuf_write(
                     && curStack->m_entry->m_type != CPE_DR_TYPE_STRUCT
                     && curStack->m_entry->m_type != CPE_DR_TYPE_STRING))
             {
-                unsigned char size_buf[10];
-                size_t len;
-                size_t total;
-                int size_size;
+                if (curStack->m_array_pos > 0) {
+                    unsigned char size_buf[10];
+                    size_t len;
+                    size_t total;
+                    int size_size;
 
-                len = curStack->m_output_size - curStack->m_array_begin_pos - dr_pbuf_write_size_reserve;
-                size_size = cpe_dr_pbuf_encode32(len, size_buf);
-                total = curStack->m_array_begin_pos + size_size + len;
+                    len = curStack->m_output_size - curStack->m_array_begin_pos - dr_pbuf_write_size_reserve;
+                    size_size = cpe_dr_pbuf_encode32(len, size_buf);
+                    total = curStack->m_array_begin_pos + size_size + len;
 
-                memmove(
-                    curStack->m_output_data + curStack->m_array_begin_pos + size_size,
-                    curStack->m_output_data + curStack->m_array_begin_pos + dr_pbuf_write_size_reserve,
-                    len);
+                    memmove(
+                        curStack->m_output_data + curStack->m_array_begin_pos + size_size,
+                        curStack->m_output_data + curStack->m_array_begin_pos + dr_pbuf_write_size_reserve,
+                        len);
 
-                memcpy(curStack->m_output_data + curStack->m_array_begin_pos, size_buf, size_size);
+                    memcpy(curStack->m_output_data + curStack->m_array_begin_pos, size_buf, size_size);
 
-                curStack->m_output_size = total;
+                    curStack->m_output_size = total;
+                }
+                else {
+                    dr_pbuf_write_encode_id_and_type(CPE_PBUF_TYPE_LENGTH);
+                    dr_pbuf_write_encode_int32(0);
+                }
             }
-
-
         }
 
         if (--stackPos >= 0) {

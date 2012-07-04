@@ -7,9 +7,21 @@ namespace Usf { namespace Logic {
 
 class LogicOp : public Cpe::Nm::Object {
 public:
-    typedef void (LogicOp::*execute_fun)(LogicOpContext & context, Cpe::Cfg::Node const & cfg) const;
+    struct R {
+        R(bool v) : m_result(v ? logic_op_exec_result_true : logic_op_exec_result_false) {}
+        R(logic_op_exec_result_t v) : m_result(v) {}
 
-    LogicOp(execute_fun fun);
+        operator logic_op_exec_result_t () const { return m_result; };
+
+    private:
+        R();
+
+        logic_op_exec_result_t m_result;
+    };
+
+    typedef R (LogicOp::*execute_fun_t)(LogicOpContext & context, LogicOpStackNode & stackNode, Cpe::Cfg::Node const & cfg) const;
+
+    LogicOp(execute_fun_t fun);
 
     void regist_to(logic_executor_type_group_t group);
 
@@ -22,19 +34,22 @@ public:
         Gd::App::Module & module,
         Cpe::Cfg::Node & moduleCfg);
 
-private:
-    execute_fun m_exec_fun;
+    static R _null(void) { return logic_op_exec_result_null; }
 
-    static int32_t logic_op_adapter(logic_context_t ctx, logic_executor_t executor, void * user_data, cfg_t cfg);
+private:
+    execute_fun_t m_exec_fun;
+
+    static logic_op_exec_result_t logic_op_adapter(logic_context_t ctx, logic_stack_node_t stack_node, void * user_data, cfg_t cfg);
 };
 
 template<typename OutT, typename ContextT>
 class LogicOpDef : public LogicOp {
 public:
-    LogicOpDef() : LogicOp((execute_fun)&LogicOpDef::execute) {}
+    LogicOpDef() : LogicOp((execute_fun_t)&LogicOpDef::execute) {}
 
-    virtual void execute(
+    virtual R execute(
         ContextT & context,
+        LogicOpStackNode & stackNode,
         Cpe::Cfg::Node const & cfg) const = 0;
 };
 

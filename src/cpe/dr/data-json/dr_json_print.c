@@ -1,3 +1,4 @@
+#include <assert.h>
 #include "yajl/yajl_gen.h"
 #include "cpe/pal/pal_string.h"
 #include "cpe/pal/pal_stackbuf.h"
@@ -9,12 +10,15 @@
 #include "cpe/dr/dr_metalib_manage.h"
 #include "../dr_internal_types.h"
 #include "../dr_ctype_ops.h"
-#include <assert.h>
 
-static void dr_json_print_composite_type(
-    yajl_gen g,
-    LPDRMETA meta, LPDRMETAENTRY parentEntry, const void * data,
-    error_monitor_t em, int level);
+struct DrJsonPrintProcessStack {
+    LPDRMETA m_meta;
+    LPDRMETAENTRY m_entry;
+    int m_entry_pos;
+    int m_entry_count;
+    int m_array_pos;
+    const char * m_src_data;
+};
 
 static const char * yajl_errno_to_string(yajl_gen_status s) {
     static const char * s_errorMsgs[] = {
@@ -105,207 +109,146 @@ static void dr_print_print_basic_data(yajl_gen g, LPDRMETAENTRY entry, const voi
     }
 }
 
-static void dr_json_print_value(
-    yajl_gen g,
+void dr_json_print_i(
+    write_stream_t output,
+    const void * input,
     LPDRMETA meta,
-    LPDRMETAENTRY entry,
-    const void * data,
-    error_monitor_t em,
-    int level)
-{
-    if(entry->m_type <= CPE_DR_TYPE_COMPOSITE) {
-        dr_json_print_composite_type(g, dr_entry_ref_meta(entry), entry, data, em, level + 1);
-    }
-    else {
-        dr_print_print_basic_data(g, entry, data, em);
-    }
-}
-
-static size_t dr_json_print_get_element_size(LPDRMETA meta, LPDRMETAENTRY entry, error_monitor_t em) {
-    if (entry->m_type <= CPE_DR_TYPE_COMPOSITE) {
-        LPDRMETA refMeta = dr_entry_ref_meta(entry);
-        if (refMeta == NULL) {
-            CPE_ERROR(
-                em, "process %s.%s, ref meta not exist!",
-                dr_meta_name(meta), dr_entry_name(entry));
-            return 0;
-        }
-
-        return dr_meta_size(refMeta);
-    }
-    else {
-        const struct tagDRCTypeInfo * typeInfo;
-        typeInfo = dr_find_ctype_info_by_type(entry->m_type);
-        if (typeInfo == NULL) {
-            CPE_ERROR(
-                em, "process %s.%s, type "FMT_DR_INT_T" is unknown!",
-                dr_meta_name(meta), dr_entry_name(entry),
-                entry->m_type);
-            return 0;
-        }
-
-        if (typeInfo->m_size <= 0) {
-            CPE_ERROR(
-                em, "process %s.%s, type "FMT_DR_INT_T" size is invalid!",
-                dr_meta_name(meta), dr_entry_name(entry),
-                entry->m_type);
-            return 0;
-        }
-
-        return typeInfo->m_size;
-    }
-}
-
-static void dr_json_print_entry(
     yajl_gen g,
-    LPDRMETA meta,
-    LPDRMETAENTRY entry,
-    const char * alldata,
-    const void * data,
-    error_monitor_t em,
-    int level)
+    error_monitor_t em)
 {
-    JSON_PRINT_GEN_STRING(g, dr_entry_name(entry));
+    struct DrJsonPrintProcessStack processStack[CPE_DR_MAX_LEVEL];
+    int stackPos;
 
-    if (entry->m_array_count == 1) {
-        dr_json_print_value(g, meta, entry, data, em, level);
-    }
-    else {
-        LPDRMETAENTRY referEntry;
-        int32_t arrayCount;
-        int32_t i;
-        size_t elementSize;
-
-        referEntry = dr_entry_array_refer_entry(entry);
-        if (referEntry) {
-            if (dr_entry_try_read_int32(
-                    &arrayCount,
-                    (const char *)alldata + entry->m_array_refer_data_start_pos,
-                    referEntry,
-                    em) != 0)
-            {
-                arrayCount = 0;
-            }
-        }
-        else {
-            arrayCount = entry->m_array_count;
-        }
-
-        yajl_gen_array_open(g);
-
-        elementSize = dr_json_print_get_element_size(meta, entry, em);
-
-        if (elementSize > 0) {
-            for(i = 0; i < arrayCount; ++i) {
-                dr_json_print_value(
-                    g, meta, entry, (char *)data + elementSize * i, em, level);
-            }
-        }
-
-        yajl_gen_array_close(g);
-    }
-}
-
-static void dr_json_print_struct(yajl_gen g, LPDRMETA meta, const void * data, error_monitor_t em, int level) {
-    int entryPos = 0;
-    for(entryPos = 0; entryPos < meta->m_entry_count; ++entryPos) {
-        LPDRMETAENTRY curEntry = dr_meta_entry_at(meta, entryPos);
-        dr_json_print_entry(g, meta, curEntry, data, (const char *)data + curEntry->m_data_start_pos, em, level);
-    }
-}
-
-static void dr_json_print_union(yajl_gen g, LPDRMETA meta, LPDRMETAENTRY parentEntry, const void * data, error_monitor_t em, int level) {
-    LPDRMETAENTRY printEntry = NULL;
-
-    int entryPos = 0;
-    LPDRMETAENTRY selectEntry = dr_entry_select_entry(parentEntry);
-    if (selectEntry) {
-        int32_t selectValue;
-        if (dr_ctype_try_read_int32(
-                &selectValue,
-                ((const char*)data) + parentEntry->m_select_data_start_pos,
-                selectEntry->m_type,
-                em) == 0)
-        {
-            for(; entryPos < meta->m_entry_count; ++entryPos) {
-                LPDRMETAENTRY curEntry = dr_meta_entry_at(meta, entryPos);
-
-                if (curEntry->m_select_range_min <= selectValue && curEntry->m_select_range_max >= selectValue) {
-                    printEntry = curEntry;
-                    break;
-                }
-            }
-        }
-    }
-    else { /*have select entry*/
-        for(; entryPos < meta->m_entry_count; ++entryPos) {
-            LPDRMETAENTRY curEntry = dr_meta_entry_at(meta, entryPos);
-
-            if (curEntry->m_select_range_min > curEntry->m_select_range_max) {
-                printEntry = curEntry;
-                break;
-            }
-        }
-    }
-
-    if (printEntry) {
-        const void * curData = (const char *)data + printEntry->m_data_start_pos;
-        dr_json_print_entry(g, meta, printEntry, data, curData, em, level);
-    }
-}
-
-static void dr_json_print_composite_type(
-    yajl_gen g,
-    LPDRMETA meta, LPDRMETAENTRY parentEntry, const void * data,
-    error_monitor_t em, int level)
-{
-    if (level >= CPE_DR_MAX_LEVEL) {
-        CPE_ERROR_EX(em, CPE_DR_ERROR_TOO_COMPLIEX_META, "max level realched!");
-        return;
-    }
+    processStack[0].m_meta = meta;
+    processStack[0].m_entry = dr_meta_entry_at(meta, 0);
+    processStack[0].m_entry_pos = 0;
+    processStack[0].m_entry_count = meta->m_entry_count;
+    processStack[0].m_array_pos = 0;
+    processStack[0].m_src_data = (const char *)input;
 
     yajl_gen_map_open(g);
 
-    if (meta->m_type == CPE_DR_TYPE_STRUCT) {
-        dr_json_print_struct(g, meta, data, em, level);
-    }
-    else if (meta->m_type == CPE_DR_TYPE_UNION) {
-        dr_json_print_union(g, meta, parentEntry, data, em, level);
-    }
-    else {
-        CPE_ERROR(em, "unknown complex type "FMT_DR_INT_T"!", meta->m_type);
+    for(stackPos = 0; stackPos >= 0;) {
+        struct DrJsonPrintProcessStack * curStack;
+
+        assert(stackPos < CPE_DR_MAX_LEVEL);
+
+        curStack = &processStack[stackPos];
+        if (curStack->m_meta == NULL) {
+            --stackPos;
+            continue;
+        }
+
+        for(; curStack->m_entry_pos < curStack->m_entry_count
+                && curStack->m_entry
+                ;
+            ++curStack->m_entry_pos
+                , curStack->m_array_pos = 0
+                , curStack->m_entry = dr_meta_entry_at(curStack->m_meta, curStack->m_entry_pos)
+            )
+        {
+            size_t elementSize;
+            int32_t array_count;
+            LPDRMETAENTRY refer;
+
+        LOOPENTRY:
+
+            elementSize = dr_entry_element_size(curStack->m_entry);
+            if (elementSize == 0) continue;
+
+            if (curStack->m_array_pos == 0) {
+                JSON_PRINT_GEN_STRING(g, dr_entry_name(curStack->m_entry));
+            }
+
+            refer = NULL;
+            if (curStack->m_entry->m_array_count != 1) {
+                if (curStack->m_array_pos == 0) {
+                    yajl_gen_array_open(g);
+                }
+
+                refer = dr_entry_array_refer_entry(curStack->m_entry);
+            }
+
+            array_count = curStack->m_entry->m_array_count;
+            if (refer) {
+                dr_entry_try_read_int32(
+                    &array_count,
+                    curStack->m_src_data + curStack->m_entry->m_array_refer_data_start_pos,
+                    refer,
+                    em);
+            }
+
+            for(; curStack->m_array_pos < array_count; ++curStack->m_array_pos) {
+                const char * entryData = curStack->m_src_data + curStack->m_entry->m_data_start_pos + (elementSize * curStack->m_array_pos);
+
+                if (curStack->m_entry->m_type <= CPE_DR_TYPE_COMPOSITE) {
+                    if (stackPos + 1 < CPE_DR_MAX_LEVEL) {
+                        struct DrJsonPrintProcessStack * nextStack;
+                        nextStack = &processStack[stackPos + 1];
+
+                        yajl_gen_map_open(g);
+
+                        nextStack->m_meta = dr_entry_ref_meta(curStack->m_entry);
+                        if (nextStack->m_meta == 0) {
+                            yajl_gen_map_close(g);
+                            break;
+                        }
+
+                        nextStack->m_src_data = entryData;
+                        nextStack->m_entry_pos = 0;
+                        nextStack->m_entry_count = nextStack->m_meta->m_entry_count;
+
+                        if (curStack->m_entry->m_type == CPE_DR_TYPE_UNION) {
+                            LPDRMETAENTRY select_entry;
+                            select_entry = dr_entry_select_entry(curStack->m_entry);
+                            if (select_entry) {
+                                int32_t union_entry_id;
+                                dr_entry_try_read_int32(
+                                    &union_entry_id,
+                                    curStack->m_src_data + curStack->m_entry->m_select_data_start_pos,
+                                    select_entry,
+                                    em);
+                                
+                                nextStack->m_entry_pos =
+                                    dr_meta_find_entry_idx_by_id(nextStack->m_meta, union_entry_id);
+                                if (nextStack->m_entry_pos < 0) {
+                                    yajl_gen_map_close(g);
+                                    continue;
+                                }
+
+                                nextStack->m_entry_count = nextStack->m_entry_pos + 1;
+                            }
+                        }
+
+                        nextStack->m_entry = dr_meta_entry_at(nextStack->m_meta, nextStack->m_entry_pos);
+
+                        nextStack->m_array_pos = 0;
+
+                        ++curStack->m_array_pos;
+                        ++stackPos;
+                        curStack = nextStack;
+                        goto LOOPENTRY;
+                    }
+                }
+                else {
+                    dr_print_print_basic_data(
+                        g,
+                        curStack->m_entry,
+                        curStack->m_src_data + curStack->m_entry->m_data_start_pos + elementSize * curStack->m_array_pos,
+                        em);
+                }
+            }
+
+            if (curStack->m_entry->m_array_count != 1) {
+                yajl_gen_array_close(g);
+            }
+        }
+
+        yajl_gen_map_close(g);
+        --stackPos;
     }
 
     yajl_gen_map_close(g);
-}
-
-static void dr_json_print_i(
-    write_stream_t output,
-    const void * input,
-    LPDRMETA rootMeta,
-    int flag,
-    error_monitor_t em)
-{
-    yajl_gen g;
-
-    if (output == NULL || input == NULL || rootMeta == NULL) {
-        CPE_ERROR(em, "bad para");
-        return;
-    }
-
-    g = yajl_gen_alloc(NULL);
-    if (g == NULL) {
-        CPE_ERROR_EX(em, CPE_DR_ERROR_NO_MEMORY, "alloc yajl_gen fail!");
-        return;
-    }
-
-    yajl_gen_config(g, yajl_gen_beautify, flag & DR_JSON_PRINT_MINIMIZE ? 1 : 0);
-    //yajl_gen_config(g, yajl_gen_validate_utf8, flag & DR_JSON_PRINT_VALIDATE_UTF8 ? 1 : 0);
-    yajl_gen_config(g, yajl_gen_print_callback, stream_write, output);
-
-    dr_json_print_composite_type(g, rootMeta, NULL, input, em, 0);
-
-    yajl_gen_free(g);    
 }
 
 int dr_json_print(
@@ -316,16 +259,35 @@ int dr_json_print(
     error_monitor_t em)
 {
     int ret = 0;
+    yajl_gen g;
+
+    if (output == NULL || input == NULL || meta == NULL) {
+        CPE_ERROR(em, "dr_json_print: bad para!");
+        return -1;
+    }
+
+    g = yajl_gen_alloc(NULL);
+    if (g == NULL) {
+        CPE_ERROR_EX(em, CPE_DR_ERROR_NO_MEMORY, "alloc yajl_gen fail!");
+        return -1;
+    }
+
+    yajl_gen_config(g, yajl_gen_beautify, flag & DR_JSON_PRINT_MINIMIZE ? 1 : 0);
+    //yajl_gen_config(g, yajl_gen_validate_utf8, flag & DR_JSON_PRINT_VALIDATE_UTF8 ? 1 : 0);
+    yajl_gen_config(g, yajl_gen_print_callback, stream_write, output);
+
 
     if (em) {
         CPE_DEF_ERROR_MONITOR_ADD(logError, em, cpe_error_save_last_errno, &ret);
-        dr_json_print_i(output, input, meta, flag, em);
+        dr_json_print_i(output, input, meta, g, em);
         CPE_DEF_ERROR_MONITOR_REMOVE(logError, em);
     }
     else {
         CPE_DEF_ERROR_MONITOR(logError, cpe_error_save_last_errno, &ret);
-        dr_json_print_i(output, input, meta, flag, &logError);
+        dr_json_print_i(output, input, meta, g, &logError);
     }
+
+    yajl_gen_free(g);    
 
     return ret;
 }

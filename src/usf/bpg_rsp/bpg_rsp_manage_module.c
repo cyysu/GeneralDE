@@ -5,12 +5,13 @@
 #include "gd/app/app_module.h"
 #include "gd/app/app_library.h"
 #include "usf/logic/logic_manage.h"
+#include "usf/logic/logic_executor_mgr.h"
 #include "gd/dr_store/dr_store.h"
 #include "gd/dr_store/dr_store_manage.h"
 #include "usf/bpg_pkg/bpg_pkg_dsp.h"
 #include "usf/bpg_rsp/bpg_rsp_manage.h"
 #include "usf/bpg_rsp/bpg_rsp.h"
-#include "bpg_rsp_internal_types.h"
+#include "bpg_rsp_internal_ops.h"
 
 static int bpg_rsp_manage_load_commit_dsp(
     gd_app_context_t app, gd_app_module_t module, bpg_rsp_manage_t bpg_rsp_manage, cfg_t cfg)
@@ -35,6 +36,90 @@ static int bpg_rsp_manage_load_commit_dsp(
         }
 
         bpg_rsp_manage_set_commit_dsp(bpg_rsp_manage, dsp);
+    }
+
+    return 0;
+}
+
+static int bpg_rsp_manage_load_queue_infos(
+    gd_app_context_t app, gd_app_module_t module, bpg_rsp_manage_t bpg_rsp_manage, cfg_t cfg)
+{
+    struct cfg_it queue_it;
+    cfg_t queue_cfg;
+
+    cfg_it_init(&queue_it, cfg_find_cfg(cfg, "logic-queue"));
+
+    while((queue_cfg = cfg_it_next(&queue_it))) {
+        const char * name;
+        const char * scope_name;
+        bpg_rsp_queue_scope_t scope;
+        struct bpg_rsp_queue_info * queue;
+
+        name = cfg_get_string(queue_cfg, "name", NULL);
+        if (name == NULL) {
+            CPE_ERROR(
+                gd_app_em(app), "%s: create: create logic queue info: no name!",
+                gd_app_module_name(module));
+            return -1;
+        }
+
+        scope_name = cfg_get_string(queue_cfg, "scope", NULL);
+        if (scope_name == NULL) {
+            CPE_ERROR(
+                gd_app_em(app), "%s: create: create logic queue %s: scope not configured!",
+                gd_app_module_name(module), name);
+            return -1;
+        }
+
+        if (strcmp(scope_name, "global") == 0) {
+            scope = bpg_rsp_queue_scope_global;
+        }
+        else if (strcmp(scope_name, "client") == 0) {
+            scope = bpg_rsp_queue_scope_client;
+        }
+        else {
+            CPE_ERROR(
+                gd_app_em(app), "%s: create: create logic queue %s: scope not configured!",
+                gd_app_module_name(module), name);
+            return -1;
+        }
+
+        queue = bpg_rsp_queue_info_create(
+            bpg_rsp_manage, name, scope,
+            cfg_get_uint32(queue_cfg, "max-count", 0));
+        if (queue == NULL) {
+            CPE_ERROR(
+                gd_app_em(app), "%s: create: create logic queue %s: create fail!",
+                gd_app_module_name(module), name);
+            return -1;
+        }
+
+        if (cfg_get_int32(queue_cfg, "is-default", 0)) {
+            if (bpg_rsp_manage->m_default_queue_info != NULL) {
+                CPE_ERROR(
+                    gd_app_em(app), "%s: create: create logic queue %s: default queue info already exist, it is %s!",
+                    gd_app_module_name(module), name, bpg_rsp_queue_name(bpg_rsp_manage->m_default_queue_info));
+                return -1;
+            }
+            else {
+                bpg_rsp_manage->m_default_queue_info = queue;
+            }
+        }
+
+        if (bpg_rsp_manage->m_debug) {
+            CPE_INFO(
+                gd_app_em(app), "%s: create: create logic queue %s: scope=%s, max-count=%d!",
+                gd_app_module_name(module), cpe_hs_data(queue->m_name), scope_name, queue->m_max_count);
+        }
+    }
+
+    if (bpg_rsp_manage->m_debug) {
+        CPE_INFO(
+            gd_app_em(app), "%s: create: default queue %s!",
+            gd_app_module_name(module), 
+            bpg_rsp_manage->m_default_queue_info
+            ? cpe_hs_data(bpg_rsp_manage->m_default_queue_info->m_name)
+            : "none");
     }
 
     return 0;
@@ -69,7 +154,10 @@ EXPORT_DIRECTIVE
 int bpg_rsp_manage_app_init(gd_app_context_t app, gd_app_module_t module, cfg_t cfg) {
     bpg_rsp_manage_t bpg_rsp_manage;
     logic_manage_t logic_mgr;
+    logic_executor_mgr_t executor_mgr;
     cfg_t child_cfg;
+    const char * executor_mgr_name;
+    const char * load_from;
 
     logic_mgr = logic_manage_find_nc(app, cfg_get_string(cfg, "logic-manage", NULL));
     if (logic_mgr == NULL) {
@@ -80,10 +168,36 @@ int bpg_rsp_manage_app_init(gd_app_context_t app, gd_app_module_t module, cfg_t 
         return -1;
     }
 
-    bpg_rsp_manage = bpg_rsp_manage_create(app, gd_app_module_name(module), logic_mgr, NULL);
+    executor_mgr_name = cfg_get_string(cfg, "executor-manage", NULL);
+    if (executor_mgr_name == NULL) {
+        CPE_INFO(
+            gd_app_em(app),
+            "%s: create: executor-manage not configured",
+            gd_app_module_name(module));
+        return -1;
+    }
+
+    executor_mgr = logic_executor_mgr_find_nc(app, executor_mgr_name);
+    if (executor_mgr == NULL) {
+        CPE_INFO(
+            gd_app_em(app),
+            "%s: create: executor-manage %s not exist",
+            gd_app_module_name(module), executor_mgr_name);
+        return -1;
+    }
+
+    bpg_rsp_manage = 
+        bpg_rsp_manage_create(
+            app,
+            gd_app_module_name(module),
+            logic_mgr,
+            executor_mgr,
+            NULL);
     if (bpg_rsp_manage == NULL) {
         return -1;
     }
+
+    bpg_rsp_manage->m_debug = cfg_get_int32(cfg, "debug", 0);
 
     if (bpg_rsp_manage_load_commit_dsp(app, module, bpg_rsp_manage, cfg) != 0) {
         bpg_rsp_manage_free(bpg_rsp_manage);
@@ -95,9 +209,53 @@ int bpg_rsp_manage_app_init(gd_app_context_t app, gd_app_module_t module, cfg_t 
         return -1;
     }
 
-    child_cfg = cfg_find_cfg(cfg, "rsps");
+    if (bpg_rsp_manage_load_queue_infos(app, module, bpg_rsp_manage, cfg) != 0) {
+        bpg_rsp_manage_free(bpg_rsp_manage);
+        return -1;
+    }
+
+    if ((load_from = cfg_get_string(cfg, "rsps-load-from", NULL))) {
+        if (*load_from == '/') {
+            child_cfg = cfg_find_cfg(gd_app_cfg(app), load_from + 1);
+        }
+        else {
+            child_cfg = cfg_find_cfg(cfg, load_from);
+        }
+    }
+    else {
+        child_cfg = cfg_find_cfg(cfg, "rsps");
+    }
+
     if (child_cfg) {
-        if (bpg_rsp_build(bpg_rsp_manage, child_cfg, gd_app_em(app)) != 0) {
+        const char * rsps_metalib_name = cfg_get_string(cfg, "rsps-load-meta", NULL);
+        dr_store_t rsps_metalib = NULL;
+
+        if (rsps_metalib_name) {
+            const char * dr_store_manage_name= cfg_get_string(cfg, "rsp-load-meta-store-manage", NULL);
+            dr_store_manage_t dr_store_mgr = dr_store_manage_find_nc(app, dr_store_manage_name);
+            if (dr_store_mgr == NULL) {
+                CPE_ERROR(
+                    gd_app_em(app),
+                    "%s: create: respons-load-metalib-store-manage %s not exist",
+                    gd_app_module_name(module), dr_store_manage_name ? dr_store_manage_name : "default");
+                bpg_rsp_manage_free(bpg_rsp_manage);
+                return -1;
+            }
+
+            rsps_metalib = dr_store_find(dr_store_mgr, rsps_metalib_name);
+            if (rsps_metalib == NULL) {
+                CPE_ERROR(
+                    gd_app_em(app),
+                    "%s: create: metalib %s not exist in dr-store-manage %s",
+                    gd_app_module_name(module), 
+                    rsps_metalib_name,
+                    dr_store_manage_name ? dr_store_manage_name : "default");
+                bpg_rsp_manage_free(bpg_rsp_manage);
+                return -1;
+            }
+        }
+
+        if (bpg_rsp_build(bpg_rsp_manage, child_cfg, rsps_metalib ? dr_store_lib(rsps_metalib) : NULL, gd_app_em(app)) != 0) {
             bpg_rsp_manage_free(bpg_rsp_manage);
             return -1;
         }
@@ -105,8 +263,6 @@ int bpg_rsp_manage_app_init(gd_app_context_t app, gd_app_module_t module, cfg_t 
 
     bpg_rsp_manage->m_rsp_max_size =
         cfg_get_uint32(cfg, "rsp-max-size", bpg_rsp_manage->m_rsp_max_size);
-
-    bpg_rsp_manage->m_debug = cfg_get_int32(cfg, "debug", 0);
 
     if (bpg_rsp_manage->m_debug) {
         CPE_INFO(

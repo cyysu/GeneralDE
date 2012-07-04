@@ -10,6 +10,7 @@
 #include "cpe/nm/nm_manage.h"
 #include "usf/logic/logic_executor_build.h"
 #include "usf/logic/logic_executor_type.h"
+#include "usf/logic/logic_executor_mgr.h"
 #include "usf/logic/logic_data.h"
 #include "usf/logic/tests-env/with_logic.hpp"
 
@@ -44,6 +45,32 @@ with_logic::t_logic_manage(const char * name) {
     }
 
     return mgr;
+}
+
+logic_executor_mgr_t
+with_logic::t_logic_executor_mgr_create(const char * name) {
+    error_monitor_t em = NULL;
+    if (utils::testenv::with_em * with_em = tryEnvOf<utils::testenv::with_em>()) {
+        em = with_em->t_em();
+    }
+
+    logic_executor_mgr_t executor_mgr = 
+        logic_executor_mgr_create(
+            envOf<gd::app::testenv::with_app>().t_app(),
+            name, 
+            t_allocrator(),
+            em);
+
+    EXPECT_TRUE(executor_mgr) << "create executor mgr " << name << " fail!";
+
+    return executor_mgr;
+}
+
+logic_executor_mgr_t
+with_logic::t_logic_executor_mgr_find(const char * name) {
+    return logic_executor_mgr_find_nc(
+        envOf<gd::app::testenv::with_app>().t_app(),
+        name);
 }
 
 logic_context_t
@@ -83,7 +110,7 @@ void with_logic::t_logic_context_install_data(logic_context_t context, cfg_t cfg
         EXPECT_TRUE(meta) << "t_logic_context_install_data: meta " << cfg_name(child) << " not exist!";
         if (meta == 0) continue;
 
-        data = logic_data_get_or_create(context, meta, dr_meta_size(meta) + 1024);
+        data = logic_context_data_get_or_create(context, meta, dr_meta_size(meta) + 1024);
         EXPECT_TRUE(meta)
             << "t_logic_context_install_data: meta "
             << cfg_name(child) << ": data create fail, capacity is"
@@ -165,7 +192,7 @@ with_logic::t_logic_executor_build(const char * cfg, const char * group_name, er
 }
 
 logic_executor_t
-with_logic::t_logic_executor_basic_create(const char * name, cfg_t args, const char * group_name) {
+with_logic::t_logic_executor_action_create(const char * name, cfg_t args, const char * group_name) {
     logic_executor_type_t type = 
         logic_executor_type_find(
             t_logic_executor_type_group(group_name),
@@ -173,15 +200,15 @@ with_logic::t_logic_executor_basic_create(const char * name, cfg_t args, const c
     EXPECT_TRUE(type) << "logic op type " << name << " not exist in " << group_name;
 
     
-    return logic_executor_basic_create(
+    return logic_executor_action_create(
         t_logic_manage(),
         type,
         args);
 }
 
 logic_executor_t
-with_logic::t_logic_executor_basic_create(const char * name, const char * args, const char * group_name) {
-    return t_logic_executor_basic_create(name, envOf<cpe::cfg::testenv::with_cfg>().t_cfg_parse(args), group_name);
+with_logic::t_logic_executor_action_create(const char * name, const char * args, const char * group_name) {
+    return t_logic_executor_action_create(name, envOf<cpe::cfg::testenv::with_cfg>().t_cfg_parse(args), group_name);
 }
 
 const char *

@@ -14,7 +14,7 @@ int bpg_pkg_build_from_cfg(bpg_pkg_t req, cfg_t cfg, error_monitor_t em) {
     LPDRMETALIB data_metalib;
     LPDRMETA main_data_meta;
     LPDRMETA append_data_meta;
-    struct basepkg_head * head;
+    BASEPKG_HEAD * head;
     struct cfg_it cfg_it;
     cfg_t child_cfg;
     char buf[1024];
@@ -36,9 +36,9 @@ int bpg_pkg_build_from_cfg(bpg_pkg_t req, cfg_t cfg, error_monitor_t em) {
     }
 
     bpg_pkg_init(req);
-    head = (struct basepkg_head *)bpg_pkg_pkg_data(req);
+    head = (BASEPKG_HEAD *)bpg_pkg_pkg_data(req);
 
-    if (dr_cfg_read(head, sizeof(struct basepkg_head), cfg, head_meta, 0, NULL) < 0) {
+    if (dr_cfg_read(head, sizeof(BASEPKG_HEAD), cfg, head_meta, 0, NULL) < 0) {
         CPE_ERROR(
             em, "%s: build pkg from cfg: read head fail!",
             bpg_pkg_manage_name(req->m_mgr));

@@ -1,11 +1,15 @@
 #include <assert.h>
+#include "cpe/pal/pal_stdio.h"
 #include "cpe/cfg/cfg_manage.h"
 #include "cpe/dr/dr_metalib_manage.h"
 #include "cpe/dr/dr_cfg.h"
+#include "gd/app/app_log.h"
 #include "usf/logic/logic_context.h"
 #include "usf/logic/logic_require.h"
 #include "usf/logic/logic_data.h"
 #include "usf/logic/logic_executor.h"
+#include "usf/logic/logic_manage.h"
+#include "usf/logic/logic_queue.h"
 #include "logic_internal_ops.h"
 
 logic_context_t
@@ -53,16 +57,25 @@ logic_context_create(logic_manage_t mgr, logic_context_id_t id, size_t capacity)
     context->m_commit_op = NULL;
     context->m_commit_ctx = NULL;
     context->m_require_waiting_count = 0;
+    context->m_queue_state = logic_context_queue_none;
+    context->m_logic_queue = NULL;
 
     logic_stack_init(&context->m_stack);
     TAILQ_INIT(&context->m_datas);
+
+    logic_context_enqueue(context, logic_context_queue_pending);
+
+    if (context->m_mgr->m_debug >= 3) {
+        APP_CTX_INFO(
+            context->m_mgr->m_app, "%s: context "FMT_UINT32_T" create",
+            logic_manage_name(context->m_mgr), logic_context_id(context));
+    }
 
     return context;
 }
 
 void logic_context_free(logic_context_t context) {
     assert(context);
-
     while(!TAILQ_EMPTY(&context->m_requires)) {
         logic_require_free(TAILQ_FIRST(&context->m_requires));
     }
@@ -74,6 +87,19 @@ void logic_context_free(logic_context_t context) {
     logic_stack_fini(&context->m_stack, context);
 
     cpe_hash_table_remove_by_ins(&context->m_mgr->m_contexts, context);
+
+    if (context->m_logic_queue) {
+        logic_queue_dequeue(context->m_logic_queue, context);
+        assert(context->m_logic_queue == NULL);
+    }
+
+    logic_context_dequeue(context);
+
+    if (context->m_mgr->m_debug >= 3) {
+        APP_CTX_INFO(
+            context->m_mgr->m_app, "%s: context "FMT_UINT32_T" free",
+            logic_manage_name(context->m_mgr), logic_context_id(context));
+    }
 
     mem_free(context->m_mgr->m_alloc, context);
 }
@@ -184,11 +210,17 @@ void logic_context_data_dump_to_cfg(logic_context_t context, cfg_t cfg) {
     }
 }
 
+logic_queue_t logic_context_queue(logic_context_t context) {
+    return context->m_logic_queue;
+}
+
 void logic_context_execute(logic_context_t context) {
     logic_context_state_t old_state;
 
     if (context->m_state != logic_context_state_idle) return;
     assert(context->m_runing == 0);
+
+    logic_context_dequeue(context);
 
     old_state = logic_context_state_i(context);
 
@@ -197,19 +229,31 @@ void logic_context_execute(logic_context_t context) {
     context->m_runing = 0;
 
     if (context->m_errno == 0 && context->m_stack.m_item_pos == -1) {
-        context->m_state = logic_context_state_done; 
+        if (context->m_stack.m_inline_items[0].m_rv == logic_op_exec_result_true) {
+            context->m_state = logic_context_state_done; 
+        }
+        else {
+            context->m_errno = -1;
+            context->m_state = logic_context_state_error;
+        }
     }
 
     logic_context_do_state_change(context, old_state);
+
+    if (context->m_state == logic_context_state_waiting
+        && context->m_queue_state == logic_context_queue_none)
+    {
+        logic_context_enqueue(context, logic_context_queue_waiting);
+    }
 }
 
 int logic_context_bind(logic_context_t context, logic_executor_t executor) {
-   if (executor == NULL) return -1;
-   if (context->m_state != logic_context_state_init) return -1;
+    if (executor == NULL) return -1;
+    if (context->m_state != logic_context_state_init) return -1;
 
-   logic_stack_push(&context->m_stack, context, executor);
-   context->m_state = logic_context_state_idle;
-   return 0;
+    logic_stack_push(&context->m_stack, context, executor);
+    context->m_state = logic_context_state_idle;
+    return 0;
 }
 
 void logic_context_cancel(logic_context_t context) {
@@ -244,10 +288,49 @@ void logic_context_do_state_change(logic_context_t context, logic_context_state_
         if (context->m_flags & logic_context_flag_execute_immediately) {
             logic_context_execute(context);
         }
+        else {
+            logic_context_enqueue(context, logic_context_queue_pending);
+        }
     }
     else {
         if (context->m_commit_op) {
             context->m_commit_op(context, context->m_commit_ctx);
         }
+    }
+}
+
+void logic_context_dequeue(logic_context_t context) {
+    switch(context->m_queue_state) {
+    case logic_context_queue_waiting:
+        TAILQ_REMOVE(&context->m_mgr->m_waiting_contexts, context, m_next);
+        context->m_queue_state = logic_context_queue_none;
+        --context->m_mgr->m_waiting_count;
+        break;
+    case logic_context_queue_pending:
+        TAILQ_REMOVE(&context->m_mgr->m_pending_contexts, context, m_next);
+        context->m_queue_state = logic_context_queue_none;
+        --context->m_mgr->m_pending_count;
+        break;
+    case logic_context_queue_none:
+        break;
+    }
+}
+
+void logic_context_enqueue(logic_context_t context, enum logic_context_queue_state queue_type) {
+    logic_context_dequeue(context);
+
+    switch(queue_type) {
+    case logic_context_queue_waiting:
+        TAILQ_INSERT_TAIL(&context->m_mgr->m_waiting_contexts, context, m_next);
+        context->m_queue_state = queue_type;
+        ++context->m_mgr->m_waiting_count;
+        break;
+    case logic_context_queue_pending:
+        TAILQ_INSERT_TAIL(&context->m_mgr->m_pending_contexts, context, m_next);
+        context->m_queue_state = queue_type;
+        ++context->m_mgr->m_pending_count;
+        break;
+    case logic_context_queue_none:
+        break;
     }
 }

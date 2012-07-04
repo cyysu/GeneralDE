@@ -6,6 +6,22 @@
 #include "usf/logic/logic_executor.h"
 #include "logic_internal_ops.h"
 
+static logic_executor_t
+logic_executor_create_composite(
+    logic_manage_t mgr,
+    cfg_t cfg,
+    logic_executor_composite_type_t composite_type,
+    logic_executor_type_group_t type_group,
+    error_monitor_t em);
+
+static logic_executor_t
+logic_executor_create_decorator(
+    logic_manage_t mgr,
+    cfg_t cfg,
+    logic_executor_decorator_type_t decorator_type,
+    logic_executor_type_group_t type_group,
+    error_monitor_t em);
+
 logic_executor_t
 logic_executor_build(
     logic_manage_t mgr,
@@ -25,6 +41,7 @@ logic_executor_build(
 
     if (cfg_type(cfg) == CPE_CFG_TYPE_STRUCT) {
         cfg_t child;
+        const char * name;
 
         child = cfg_child_only(cfg);
         if (child == 0) {
@@ -32,84 +49,131 @@ logic_executor_build(
             return NULL;
         }
 
-        type = logic_executor_type_find(type_group, cfg_name(child));
-        if (type == 0) {
-            CPE_ERROR(em, "not support logic_executor type %s", cfg_name(child));
-            return NULL;
+        name = cfg_name(child);
+        if (strcmp(name, "protect") == 0) {
+            return logic_executor_create_decorator(
+                mgr,
+                child,
+                logic_executor_decorator_protect,
+                type_group,
+                em);
         }
-
-        switch(type->m_category) {
-        case logic_executor_category_basic: {
-            return logic_executor_basic_create(mgr, type, child);
+        else if (strcmp(name, "not") == 0) {
+            return logic_executor_create_decorator(
+                mgr,
+                child,
+                logic_executor_decorator_not,
+                type_group,
+                em);
         }
-        case logic_executor_category_group: {
-            struct cfg_it childIt;
-            cfg_t child;
-            logic_executor_t group = logic_executor_group_create(mgr, type);
-            if (group == NULL) {
-                CPE_ERROR(em, "create logic_executor_group fail!");
-                return NULL;
-            }
+        else if (strcmp(name, "sequence") == 0) {
+            return logic_executor_create_composite(
+                mgr,
+                child,
+                logic_executor_composite_sequence,
+                type_group,
+                em);
+        }
+        else if (strcmp(name, "selector") == 0) {
+            return logic_executor_create_composite(
+                mgr,
+                child,
+                logic_executor_composite_selector,
+                type_group,
+                em);
+        }
+        else if (strcmp(name, "parallel") == 0) {
+            if (cfg_type(child) == CPE_CFG_TYPE_STRUCT) {
+                const char * policy_str;
+                logic_executor_t executor;
 
-            cfg_it_init(&childIt, cfg);
-            while((child = cfg_it_next(&childIt))) {
-                logic_executor_t member = logic_executor_build(mgr, child, type_group, em);
-                if (member == NULL) {
-                    logic_executor_free(group);
+                executor = logic_executor_create_composite(
+                    mgr,
+                    cfg_find_cfg(child, "childs"),
+                    logic_executor_composite_parallel,
+                    type_group,
+                    em);
+                if (executor == NULL) return NULL;
+
+                policy_str = cfg_get_string(child, "policy", "SUCCESS_ON_ALL");
+                if (strcmp(policy_str, "SUCCESS_ON_ALL") == 0) {
+                    logic_executor_composite_parallel_set_policy(executor, logic_executor_parallel_success_on_all);
+                }
+                else if (strcmp(policy_str, "SUCCESS_ON_ONE") == 0) {
+                    logic_executor_composite_parallel_set_policy(executor, logic_executor_parallel_success_on_one);
+                }
+                else {
+                    CPE_ERROR(em, "not support parallel policy %s", policy_str);
+                    logic_executor_free(executor);
                     return NULL;
                 }
 
-                logic_executor_group_add(group, member);
+                return executor;
             }
+            else {
+                return logic_executor_create_composite(
+                    mgr,
+                    child,
+                    logic_executor_composite_parallel,
+                    type_group,
+                    em);
+            }
+        }
+        else if (strcmp(name, "condition") == 0) {
+            logic_executor_t executor;
+            cfg_t if_cfg;
+            cfg_t do_cfg;
+            cfg_t else_cfg;
 
-            return group;
-        }
-        case logic_executor_category_decorate: {
-            logic_executor_t inner;
-            logic_executor_t protect;
-            inner = logic_executor_build(mgr, child, type_group, em);
-            if (inner == NULL) return NULL;
+            if_cfg = cfg_find_cfg(child, "if");
+            do_cfg = cfg_find_cfg(child, "do");
+            else_cfg = cfg_find_cfg(child, "else");
 
-            protect = logic_executor_protect_create(mgr, type, inner);
-            if (protect == NULL) logic_executor_free(inner);
-            return protect;
-        }
-        default: {
-            CPE_ERROR(em, "%s: not support logic_executor category %d", cfg_name(child), type->m_category);
-            return NULL;
-        }
-        }
-    }
-    else if (cfg_type(cfg) == CPE_CFG_TYPE_SEQUENCE) {
-        struct cfg_it childIt;
-        cfg_t child;
-        logic_executor_t group;
+            if (if_cfg == NULL || do_cfg == NULL) return NULL;
 
-        type = logic_executor_type_find(type_group, "group");
-        if (type == 0) {
-            CPE_ERROR(em, "not support logic_executor type group");
-            return NULL;
-        }
+            executor = logic_executor_condition_create(mgr);
+            if (executor == NULL) return NULL;
 
-        group = logic_executor_group_create(mgr, type);
-        if (group == NULL) {
-            CPE_ERROR(em, "create logic_executor_group fail!");
-            return NULL;
-        }
+            logic_executor_condition_set_if(
+                executor,
+                logic_executor_build(mgr, if_cfg, type_group, em));
 
-        cfg_it_init(&childIt, cfg);
-        while((child = cfg_it_next(&childIt))) {
-            logic_executor_t member =
-                logic_executor_build(mgr, child, type_group, em);
-            if (member == NULL) {
-                logic_executor_free(group);
+            logic_executor_condition_set_do(
+                executor,
+                logic_executor_build(mgr, do_cfg, type_group, em));
+
+            if (logic_executor_condition_if(executor) == NULL
+                || logic_executor_condition_do(executor) == NULL)
+            {
+                logic_executor_free(executor);
                 return NULL;
             }
 
-            logic_executor_group_add(group, member);
-        }
+            if (else_cfg) {
+                logic_executor_condition_set_else(
+                    executor,
+                    logic_executor_build(mgr, else_cfg, type_group, em));
+            }
 
-        return group;
+            return executor;
+        }
+        else {
+            type = logic_executor_type_find(type_group, name);
+            if (type == 0) {
+                CPE_ERROR(em, "not support logic_executor type %s", name);
+                return NULL;
+            }
+
+            return logic_executor_action_create(mgr, type, child);
+        }
+    }
+    else if (cfg_type(cfg) == CPE_CFG_TYPE_SEQUENCE) {
+        return logic_executor_create_composite(
+            mgr,
+            cfg,
+            logic_executor_composite_sequence,
+            type_group,
+            em);
     }
     else if (cfg_type(cfg) == CPE_CFG_TYPE_STRING) {
         const char * name = cfg_as_string(cfg, "unknown-string-type-name");
@@ -119,12 +183,7 @@ logic_executor_build(
             return NULL;
         }
 
-        if (type->m_category != logic_executor_category_basic) {
-            CPE_ERROR(em, "logic_executor type %s is not basic, input format error!", name);
-            return NULL;
-        }
-
-        return logic_executor_basic_create(mgr, type, NULL);
+        return logic_executor_action_create(mgr, type, NULL);
     }
     else {
         CPE_ERROR(em, "not support create logic_executor from cfg type %d!", cfg_type(cfg));
@@ -133,3 +192,50 @@ logic_executor_build(
     return NULL;
 }
 
+logic_executor_t
+logic_executor_create_decorator(
+    logic_manage_t mgr,
+    cfg_t cfg,
+    logic_executor_decorator_type_t decorator_type,
+    logic_executor_type_group_t type_group,
+    error_monitor_t em)
+{
+    logic_executor_t inner;
+    logic_executor_t protect;
+    inner = logic_executor_build(mgr, cfg, type_group, em);
+    if (inner == NULL) return NULL;
+
+    protect = logic_executor_decorator_create(mgr, decorator_type, inner);
+    if (protect == NULL) logic_executor_free(inner);
+    return protect;
+}
+
+logic_executor_t
+logic_executor_create_composite(
+    logic_manage_t mgr,
+    cfg_t cfg,
+    logic_executor_composite_type_t composite_type,
+    logic_executor_type_group_t type_group,
+    error_monitor_t em)
+{
+    struct cfg_it childIt;
+    cfg_t child;
+    logic_executor_t composite = logic_executor_composite_create(mgr, composite_type);
+    if (composite == NULL) {
+        CPE_ERROR(em, "create logic_executor_composite fail!");
+        return NULL;
+    }
+
+    cfg_it_init(&childIt, cfg);
+    while((child = cfg_it_next(&childIt))) {
+        logic_executor_t member = logic_executor_build(mgr, child, type_group, em);
+        if (member == NULL) {
+            logic_executor_free(composite);
+            return NULL;
+        }
+
+        logic_executor_composite_add(composite, member);
+    }
+
+    return composite;
+}

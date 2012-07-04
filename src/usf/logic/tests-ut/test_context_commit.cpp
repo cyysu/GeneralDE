@@ -8,7 +8,7 @@ TEST_F(ContextCommitTest, commit_on_done) {
     LogicOpMock & op1 = installOp("Op1");
 
     EXPECT_CALL(op1, execute(::testing::_))
-        .WillOnce(::testing::Return(0));
+        .WillOnce(::testing::Return(logic_op_exec_result_true));
 
     CommitMock commitMock;
     EXPECT_CALL(commitMock, commit(::testing::_));
@@ -30,7 +30,7 @@ TEST_F(ContextCommitTest, commit_on_error) {
     LogicOpMock & op1 = installOp("Op1");
 
     EXPECT_CALL(op1, execute(::testing::_))
-        .WillOnce(::testing::Return(123));
+        .WillOnce(::testing::Return(logic_op_exec_result_false));
 
     CommitMock commitMock;
     EXPECT_CALL(commitMock, commit(::testing::_));
@@ -43,7 +43,7 @@ TEST_F(ContextCommitTest, commit_on_error) {
     t_logic_execute(context, executor);
 
     EXPECT_EQ(logic_context_state_error, logic_context_state(context));
-    EXPECT_EQ((int32_t)123, logic_context_errno(context));
+    EXPECT_EQ((int32_t)-1, logic_context_errno(context));
 
     logic_executor_free(executor);
 }

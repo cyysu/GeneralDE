@@ -66,4 +66,17 @@ PackageManager & PackageManager::instance(gd_app_context_t app, const char * nam
     return *(PackageManager*)pkg_manage;
 }
 
+uint32_t PackageManager::cmdFromMetaName(const char * metaName) const {
+    uint32_t r;
+
+    if (bpg_pkg_find_cmd_from_meta_name(&r, *this, metaName) != 0) {
+        APP_CTX_THROW_EXCEPTION(
+            app(),
+            ::std::runtime_error,
+            "bpg_pkg_manage %s: find cmd of meta %s fail!", name().c_str(), metaName);
+    }
+
+    return r;
+}
+
 }}

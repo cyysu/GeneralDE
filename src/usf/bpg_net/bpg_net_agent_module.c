@@ -108,14 +108,18 @@ int bpg_net_agent_app_init(gd_app_context_t app, gd_app_module_t module, cfg_t c
         return -1;
     }
 
+    bpg_net_agent_set_conn_timeout(
+        bpg_net_agent, cfg_get_uint32(cfg, "conn-timeout", 0) * 1000);
+
     if (bpg_net_agent->m_debug) {
         CPE_INFO(
             gd_app_em(app),
-            "%s: create: done. ip=%s, port=%u, accept-queue-size=%d, req-max-size=%d, pkg-manage=%s",
+            "%s: create: done. ip=%s, port=%u, accept-queue-size=%d, req-max-size=%d, pkg-manage=%s, timeout=%d(ms)",
             gd_app_module_name(module),
             ip, bpg_net_agent_port(bpg_net_agent),
             accept_queue_size, (int)bpg_net_agent->m_req_max_size,
-            bpg_pkg_manage_name(pkg_manage));
+            bpg_pkg_manage_name(pkg_manage),
+            (int)bpg_net_agent->m_conn_timeout);
     }
 
     return 0;

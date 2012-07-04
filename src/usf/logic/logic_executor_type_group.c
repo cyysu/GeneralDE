@@ -47,8 +47,6 @@ logic_executor_type_group_create(
         return NULL;
     }
 
-    logic_executor_type_init_defaults(group);
-
     return group;
 }
 

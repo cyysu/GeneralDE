@@ -1,4 +1,5 @@
 #include <assert.h>
+#include "cpe/pal/pal_platform.h"
 #include "cpe/pal/pal_socket.h"
 #include "cpe/pal/pal_string.h"
 #include "cpe/utils/error.h"
@@ -10,6 +11,16 @@ static void net_connector_cb_clear(net_connector_t connector);
 static void net_connector_cb_prepaire(net_connector_t connector);
 static void net_connector_on_connected(net_connector_t connector);
 
+#define net_connector_notify_state_change(__c, __o)                 \
+    if ((__c)->m_state != (__o)) {                                  \
+        struct net_connector_monitor * monitor;                     \
+        monitor = (__c)->m_monitors;                                \
+        while(monitor) {                                            \
+            monitor->m_monitor_fun((__c), monitor->m_monitor_ctx);  \
+            monitor = monitor->m_next;                              \
+        }                                                           \
+    }
+
 net_connector_t
 net_connector_create(
     net_mgr_t nmgr,
@@ -20,20 +31,21 @@ net_connector_create(
     net_connector_t connector;
     char * buf;
     size_t nameLen;
+    size_t baseLen;
+    baseLen = strlen(name) + 1;
 
-    nameLen = CPE_PAL_ALIGN_8(strlen(name) + 1);
+    nameLen = CPE_PAL_ALIGN_8(baseLen);
 
     buf = mem_alloc(nmgr->m_alloc, sizeof(struct net_connector) + nameLen);
     if (buf == NULL) return NULL;
 
-    memcpy(buf, name, nameLen);
+    memcpy(buf, name, baseLen);
     connector = (net_connector_t)(buf + nameLen);
 
     connector->m_mgr = nmgr;
     connector->m_name = buf;
     connector->m_state = net_connector_state_disable;
-    connector->m_monitor_fun = NULL;
-    connector->m_monitor_ctx = NULL;
+    connector->m_monitors = NULL;
 
     connector->m_ep = NULL;
     cpe_hash_entry_init(&connector->m_hh);
@@ -50,12 +62,21 @@ net_connector_create(
 }
 
 void net_connector_free(net_connector_t connector) {
+    struct net_connector_monitor ** monitor;
+
     assert(connector);
     assert(connector->m_mgr);
-
     if (connector->m_ep) {
         net_ep_free(connector->m_ep);
         assert(connector->m_ep == NULL);
+    }
+
+    monitor = &connector->m_monitors;
+    while(*monitor) {
+        struct net_connector_monitor * cur = *monitor;
+        *monitor = cur->m_next;
+        cur->m_next = NULL;
+        mem_free(connector->m_mgr->m_alloc, cur);
     }
 
     cpe_hash_table_remove_by_ins(&connector->m_mgr->m_connectors, connector);
@@ -119,12 +140,54 @@ net_connector_state_t net_connector_state(net_connector_t connector) {
     return connector->m_state;
 }
 
-void net_connector_set_monitor(
+int net_connector_add_monitor(
     net_connector_t connector,
     net_connector_state_monitor_fun_t fun, void * ctx)
 {
-    connector->m_monitor_fun = fun;
-    connector->m_monitor_ctx = ctx;
+    struct net_connector_monitor * new_monitor;
+    struct net_connector_monitor * * monitors = &connector->m_monitors;
+
+    while(*monitors) {
+        if ((*monitors)->m_monitor_fun == fun && (*monitors)->m_monitor_ctx == ctx) {
+            return 0;
+        }
+        monitors = &(*monitors)->m_next;
+    }
+
+    new_monitor = (struct net_connector_monitor *)mem_alloc(connector->m_mgr->m_alloc, sizeof(struct net_connector_monitor));
+    if (new_monitor == NULL) return -1;
+ 
+    new_monitor->m_monitor_fun = fun;
+    new_monitor->m_monitor_ctx = ctx;
+    new_monitor->m_next = NULL;
+
+    *monitors = new_monitor;
+
+    return 0;
+}
+
+int net_connector_remove_monitor(
+    net_connector_t connector,
+    net_connector_state_monitor_fun_t fun, void * ctx)
+{
+    int rv;
+    struct net_connector_monitor * * monitors = &connector->m_monitors;
+
+    rv = 0;
+    while(*monitors) {
+        struct net_connector_monitor * cur = *monitors;
+        
+        if (cur->m_monitor_fun == fun && cur->m_monitor_ctx == ctx) {
+            *monitors = cur->m_next;
+            mem_free(connector->m_mgr->m_alloc, cur);
+            ++rv;
+        }
+        else {
+            monitors = &cur->m_next;
+        }
+    }
+
+    return rv;
 }
 
 int net_connector_bind(net_connector_t connector, net_ep_t ep) {
@@ -165,6 +228,17 @@ int net_connector_unbind(net_connector_t connector) {
     connector->m_state = net_connector_state_disable;
 
     return 0;
+}
+
+void net_connector_on_disconnect(net_connector_t connector) {
+    net_connector_state_t old_state;
+
+    old_state = connector->m_state;
+
+    connector->m_state = net_connector_state_error;
+
+    net_connector_notify_state_change(connector, old_state);
+
 }
 
 uint32_t net_connector_hash(net_connector_t connector) {
@@ -265,6 +339,7 @@ static void net_connector_check_connect_result(net_connector_t connector) {
             connector->m_mgr->m_em,
             "connector %s: check state, getsockopt error, errno=%d (%s)",
             connector->m_name, cpe_sock_errno(), cpe_sock_errstr(cpe_sock_errno()));
+        net_socket_close(&connector->m_ep->m_fd, connector->m_mgr->m_em);
         connector->m_state = net_connector_state_error;
     }
     else {
@@ -280,18 +355,22 @@ static void net_connector_check_connect_result(net_connector_t connector) {
                 connector->m_mgr->m_em,
                 "connector %s: connect error, errno=%d (%s)",
                 connector->m_name, err, cpe_sock_errstr(err));
+            net_socket_close(&connector->m_ep->m_fd, connector->m_mgr->m_em);
             connector->m_state = net_connector_state_error;
         }
     }
 }
 
 static void net_connector_io_cb_connect(EV_P_ ev_io *w, int revents) {
+    net_connector_state_t old_state;
     net_connector_t connector;
 
     ev_io_stop(EV_A_ w);
 
     connector = (net_connector_t)w->data;
     assert(connector);
+
+    old_state = connector->m_state;
 
     net_connector_check_connect_result(connector);
 
@@ -302,12 +381,11 @@ static void net_connector_io_cb_connect(EV_P_ ev_io *w, int revents) {
         net_connector_cb_prepaire(connector);
     }
 
-    if (connector->m_monitor_fun) {
-        connector->m_monitor_fun(connector, connector->m_monitor_ctx);
-    }
+    net_connector_notify_state_change(connector, old_state);
 }
 
 static void net_connector_timer_cb_reconnect(EV_P_ ev_timer *w, int revents) {
+    net_connector_state_t old_state;
     net_connector_t connector;
 
     ev_timer_stop(EV_A_ w);
@@ -315,6 +393,7 @@ static void net_connector_timer_cb_reconnect(EV_P_ ev_timer *w, int revents) {
     connector = (net_connector_t)w->data;
     assert(connector);
 
+    old_state = connector->m_state;
     connector->m_state = net_connector_state_idle;
     
     net_connector_do_connect_i(connector);
@@ -326,9 +405,7 @@ static void net_connector_timer_cb_reconnect(EV_P_ ev_timer *w, int revents) {
         net_connector_cb_prepaire(connector);
     }
 
-    if (connector->m_monitor_fun) {
-        connector->m_monitor_fun(connector, connector->m_monitor_ctx);
-    }
+    net_connector_notify_state_change(connector, old_state);
 }
 
 static void net_connector_cb_clear(net_connector_t connector) {
@@ -356,7 +433,11 @@ static void net_connector_cb_prepaire(net_connector_t connector) {
 }
 
 static void net_connector_do_connect(net_connector_t connector) {
+    net_connector_state_t old_state;
+
     assert(connector->m_state != net_connector_state_connected);
+
+    old_state = connector->m_state;
 
     net_connector_cb_clear(connector);
     net_connector_do_connect_i(connector);
@@ -368,9 +449,7 @@ static void net_connector_do_connect(net_connector_t connector) {
         net_connector_cb_prepaire(connector);
     }
 
-    if (connector->m_monitor_fun) {
-        connector->m_monitor_fun(connector, connector->m_monitor_ctx);
-    }
+    net_connector_notify_state_change(connector, old_state);
 }
 
 int net_connector_enable(net_connector_t connector) {
@@ -398,18 +477,18 @@ int net_connector_enable(net_connector_t connector) {
 }
 
 void net_connector_disable(net_connector_t connector) {
+    net_connector_state_t old_state;
+
     if (connector->m_state == net_connector_state_disable) return;
 
     assert(connector->m_ep);
+    old_state = connector->m_state;
 
     if (net_ep_is_open(connector->m_ep)) {
         net_ep_close_i(connector->m_ep, net_ep_event_close_by_user);
     }
 
-    connector->m_state = net_connector_state_disable;
-    if (connector->m_monitor_fun) {
-        connector->m_monitor_fun(connector, connector->m_monitor_ctx);
-    }
+    net_connector_notify_state_change(connector, old_state);
 }
 
 net_ep_t net_connector_ep(net_connector_t connector) {

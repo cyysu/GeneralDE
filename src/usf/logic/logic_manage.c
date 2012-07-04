@@ -6,9 +6,11 @@
 #include "gd/app/app_context.h"
 #include "gd/app/app_module.h"
 #include "usf/logic/logic_manage.h"
+#include "usf/logic/logic_context.h"
 #include "logic_internal_ops.h"
 
 static void logic_manage_clear(nm_node_t node);
+static ptr_int_t logic_manage_tick(void * ctx, ptr_int_t arg);
 
 static cpe_hash_string_buf s_logic_manage_default_name = CPE_HS_BUF_MAKE("logic_manage");
 
@@ -16,6 +18,7 @@ struct nm_node_type s_nm_node_type_logic_manage = {
     "usf_logic_manage",
     logic_manage_clear
 };
+
 
 logic_manage_t
 logic_manage_create(
@@ -34,21 +37,13 @@ logic_manage_create(
     mgr = (logic_manage_t)nm_node_data(mgr_node);
     mgr->m_alloc = alloc;
     mgr->m_app = app;
-    mgr->m_context_id = 0;
-    mgr->m_require_id = 0;
+    mgr->m_context_id = 1;
+    mgr->m_require_id = 1;
     mgr->m_debug = 0;
-
-    if (cpe_hash_table_init(
-            &mgr->m_require_types,
-            alloc,
-            (cpe_hash_fun_t) logic_require_type_hash,
-            (cpe_hash_cmp_t) logic_require_type_cmp,
-            CPE_HASH_OBJ2ENTRY(logic_require_type, m_hh),
-            -1) != 0)
-    {
-        nm_node_free(mgr_node);
-        return NULL;
-    }
+    mgr->m_waiting_count = 0;
+    TAILQ_INIT(&mgr->m_waiting_contexts);
+    mgr->m_pending_count = 0;
+    TAILQ_INIT(&mgr->m_pending_contexts);
 
     if (cpe_hash_table_init(
             &mgr->m_requires,
@@ -58,7 +53,6 @@ logic_manage_create(
             CPE_HASH_OBJ2ENTRY(logic_require, m_hh),
             -1) != 0)
     {
-        cpe_hash_table_fini(&mgr->m_require_types);
         nm_node_free(mgr_node);
         return NULL;
     }
@@ -71,7 +65,6 @@ logic_manage_create(
             CPE_HASH_OBJ2ENTRY(logic_data, m_hh),
             -1) != 0)
     {
-        cpe_hash_table_fini(&mgr->m_require_types);
         cpe_hash_table_fini(&mgr->m_requires);
         nm_node_free(mgr_node);
         return NULL;
@@ -85,11 +78,33 @@ logic_manage_create(
             CPE_HASH_OBJ2ENTRY(logic_context, m_hh),
             -1) != 0)
     {
-        cpe_hash_table_fini(&mgr->m_require_types);
         cpe_hash_table_fini(&mgr->m_requires);
         cpe_hash_table_fini(&mgr->m_datas);
         nm_node_free(mgr_node);
         return NULL;
+    }
+
+    if (cpe_hash_table_init(
+            &mgr->m_queues,
+            alloc,
+            (cpe_hash_fun_t) logic_queue_hash,
+            (cpe_hash_cmp_t) logic_queue_cmp,
+            CPE_HASH_OBJ2ENTRY(logic_queue, m_hh),
+            -1) != 0)
+    {
+        cpe_hash_table_fini(&mgr->m_requires);
+        cpe_hash_table_fini(&mgr->m_datas);
+        cpe_hash_table_fini(&mgr->m_contexts);
+        nm_node_free(mgr_node);
+        return NULL;
+    }
+
+    if (gd_app_tick_add(app, logic_manage_tick, mgr, (ptr_int_t)500) != 0) {
+        cpe_hash_table_fini(&mgr->m_requires);
+        cpe_hash_table_fini(&mgr->m_datas);
+        cpe_hash_table_fini(&mgr->m_contexts);
+        cpe_hash_table_fini(&mgr->m_queues);
+        nm_node_free(mgr_node);
     }
 
     nm_node_set_type(mgr_node, &s_nm_node_type_logic_manage);
@@ -101,15 +116,23 @@ static void logic_manage_clear(nm_node_t node) {
     logic_manage_t mgr;
     mgr = (logic_manage_t)nm_node_data(node);
 
+    gd_app_tick_remove(mgr->m_app, logic_manage_tick, mgr);
+
     logic_context_free_all(mgr);
     logic_require_free_all(mgr);
     logic_data_free_all(mgr);
-    logic_require_type_free_all(mgr);
+    logic_queue_free_all(mgr);
+
+    assert(TAILQ_EMPTY(&mgr->m_waiting_contexts));
+    assert(TAILQ_EMPTY(&mgr->m_pending_contexts));
+
+    assert(TAILQ_EMPTY(&mgr->m_waiting_contexts));
+    assert(TAILQ_EMPTY(&mgr->m_pending_contexts));
 
     cpe_hash_table_fini(&mgr->m_contexts);
     cpe_hash_table_fini(&mgr->m_requires);
     cpe_hash_table_fini(&mgr->m_datas);
-    cpe_hash_table_fini(&mgr->m_require_types);
+    cpe_hash_table_fini(&mgr->m_queues);
 }
 
 void logic_manage_free(logic_manage_t mgr) {
@@ -166,6 +189,33 @@ const char * logic_manage_name(logic_manage_t mgr) {
 cpe_hash_string_t
 logic_manage_name_hs(logic_manage_t mgr) {
     return nm_node_name_hs(nm_node_from_data(mgr));
+}
+
+ptr_int_t logic_manage_tick(void * ctx, ptr_int_t max_process_count) {
+    logic_manage_t mgr;
+    ptr_int_t processed_count = 0;
+    uint32_t queue_process_count;
+    uint32_t i;
+
+    mgr = (logic_manage_t)ctx;
+
+    if (mgr->m_debug >= 4) {
+        CPE_INFO(
+            gd_app_em(mgr->m_app), "%s: tick: waiting-count=%d, pending-count=%d",
+            logic_manage_name(mgr), mgr->m_waiting_count, mgr->m_pending_count);
+    }
+
+    queue_process_count = mgr->m_pending_count;
+    if (queue_process_count > max_process_count) {
+        queue_process_count = (uint32_t)max_process_count;
+    }
+
+    for(i = 0; i < queue_process_count; ++i, ++processed_count) {
+        logic_context_t context = TAILQ_FIRST(&mgr->m_pending_contexts);
+        logic_context_execute(context); /*dequeue in context !!!*/
+    }
+
+    return processed_count;
 }
 
 EXPORT_DIRECTIVE

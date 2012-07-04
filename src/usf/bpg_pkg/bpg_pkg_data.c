@@ -6,7 +6,7 @@
 #include "bpg_pkg_internal_types.h"
 
 int bpg_pkg_set_main_data(bpg_pkg_t pkg, LPDRMETA meta, void const * buf, size_t capacity, size_t * size, error_monitor_t em) {
-    struct basepkg_head * head;
+    BASEPKG_HEAD * head;
     size_t cur_size;
     size_t use_size;
     size_t input_size;
@@ -15,14 +15,14 @@ int bpg_pkg_set_main_data(bpg_pkg_t pkg, LPDRMETA meta, void const * buf, size_t
     assert(meta);
     assert(buf);
 
-    head = (struct basepkg_head *)bpg_pkg_pkg_data(pkg);
+    head = (BASEPKG_HEAD *)bpg_pkg_pkg_data(pkg);
 
     if (head->appendInfoCount > 0) {
         CPE_ERROR(em, "bpg_pkg_set_data: already have append info!");
         return -1;
     }
 
-    cur_size = sizeof(struct basepkg_head);
+    cur_size = sizeof(BASEPKG_HEAD);
 
     use_size = bpg_pkg_pkg_capacity(pkg) - cur_size;
     input_size = capacity;
@@ -73,15 +73,15 @@ int bpg_pkg_get_main_data(bpg_pkg_t pkg, LPDRMETA meta, void * buf, size_t * cap
 }
 
 int bpg_pkg_add_append_data(bpg_pkg_t pkg, LPDRMETA meta, const void * buf, size_t capacity, size_t * size, error_monitor_t em) {
-    struct basepkg * basepkg;
-    struct AppendInfo * appendInfo;
+    BASEPKG * basepkg;
+    APPENDINFO * appendInfo;
     size_t cur_size;
     size_t use_size;
     size_t input_size;
 
     assert(pkg);
 
-    basepkg = (struct basepkg *)bpg_pkg_pkg_data(pkg);
+    basepkg = (BASEPKG *)bpg_pkg_pkg_data(pkg);
 
     if (basepkg->head.appendInfoCount >= APPEND_INFO_MAX_COUNT) {
         CPE_ERROR(em, "bpg_pkg_pkg_data: max append info reached!");

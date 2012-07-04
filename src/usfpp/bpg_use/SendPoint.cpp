@@ -51,6 +51,22 @@ void SendPoint::send(Cpe::Dr::Data const & data) {
     send(pkg);
 }
 
+void SendPoint::send(LPDRMETA meta, void const * data, size_t size) {
+    Usf::Bpg::Package & pkg = pkgBuf() ;
+    pkg.clearData();
+    pkg.setErrCode(0);
+    pkg.setCmdAndData(meta, data, size);
+    send(pkg);
+}
+
+void SendPoint::send(const char * metaName, void const * data, size_t size) {
+    Usf::Bpg::Package & pkg = pkgBuf() ;
+    pkg.clearData();
+    pkg.setErrCode(0);
+    pkg.setCmdAndData(metaName, data, size);
+    send(pkg);
+}
+
 Cpe::Dr::MetaLib const & SendPoint::metaLib(void) const {
     LPDRMETALIB metalib = bpg_use_sp_metalib(m_sp);
     if (metalib == NULL) {

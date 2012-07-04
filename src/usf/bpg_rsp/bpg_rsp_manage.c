@@ -29,6 +29,7 @@ bpg_rsp_manage_create(
     gd_app_context_t app,
     const char * name,
     logic_manage_t logic_mgr,
+    logic_executor_mgr_t executor_mgr,
     error_monitor_t em)
 {
     bpg_rsp_manage_t mgr;
@@ -36,6 +37,7 @@ bpg_rsp_manage_create(
 
     assert(app);
     assert(logic_mgr);
+    assert(executor_mgr);
 
     if (name == 0) name = cpe_hs_data((cpe_hash_string_t)&s_bpg_rsp_manage_default_name);
     if (em == 0) em = gd_app_em(app);
@@ -53,6 +55,7 @@ bpg_rsp_manage_create(
     mgr->m_app = app;
     mgr->m_alloc = gd_app_alloc(app);
     mgr->m_logic_mgr = logic_mgr;
+    mgr->m_executor_mgr = executor_mgr;
     mgr->m_em = em;
     mgr->m_flags = 0;
 
@@ -71,7 +74,33 @@ bpg_rsp_manage_create(
     mgr->m_forward_dsp = NULL;
 
     TAILQ_INIT(&mgr->m_pkg_builders);
-    TAILQ_INIT(&mgr->m_rsps);
+
+    if (cpe_hash_table_init(
+            &mgr->m_rsps,
+            mgr->m_alloc,
+            (cpe_hash_fun_t) bpg_rsp_hash,
+            (cpe_hash_cmp_t) bpg_rsp_cmp,
+            CPE_HASH_OBJ2ENTRY(bpg_rsp, m_hh),
+            -1) != 0)
+    {
+        nm_node_free(mgr_node);
+        return NULL;
+    }
+
+    mgr->m_default_queue_info = NULL;
+    if (cpe_hash_table_init(
+            &mgr->m_queue_infos,
+            mgr->m_alloc,
+            (cpe_hash_fun_t) bpg_rsp_queue_info_hash,
+            (cpe_hash_cmp_t) bpg_rsp_queue_info_cmp,
+            CPE_HASH_OBJ2ENTRY(bpg_rsp_queue_info, m_hh),
+            -1) != 0)
+    {
+        cpe_hash_table_fini(&mgr->m_rsps);
+        nm_node_free(mgr_node);
+        return NULL;
+    }
+
 
     nm_node_set_type(mgr_node, &s_nm_node_type_bpg_rsp_manage);
 
@@ -82,9 +111,7 @@ static void bpg_rsp_manage_clear(nm_node_t node) {
     bpg_rsp_manage_t mgr;
     mgr = (bpg_rsp_manage_t)nm_node_data(node);
 
-    while(!TAILQ_EMPTY(&mgr->m_rsps)) {
-        bpg_rsp_free(TAILQ_FIRST(&mgr->m_rsps));
-    }
+    bpg_rsp_free_all(mgr);
 
     while(!TAILQ_EMPTY(&mgr->m_pkg_builders)) {
         bpg_rsp_pkg_builder_free(TAILQ_FIRST(&mgr->m_pkg_builders));
@@ -104,6 +131,11 @@ static void bpg_rsp_manage_clear(nm_node_t node) {
         bpg_pkg_dsp_free(mgr->m_forward_dsp);
         mgr->m_forward_dsp = NULL;
     }
+
+    mgr->m_default_queue_info = NULL;
+    bpg_rsp_queue_info_free_all(mgr);
+    cpe_hash_table_fini(&mgr->m_rsps);
+    cpe_hash_table_fini(&mgr->m_queue_infos);
 }
 
 void bpg_rsp_manage_free(bpg_rsp_manage_t mgr) {
@@ -153,6 +185,10 @@ const char * bpg_rsp_manage_name(bpg_rsp_manage_t mgr) {
 cpe_hash_string_t
 bpg_rsp_manage_name_hs(bpg_rsp_manage_t mgr) {
     return nm_node_name_hs(nm_node_from_data(mgr));
+}
+
+logic_manage_t bpg_rsp_manage_logic(bpg_rsp_manage_t mgr) {
+    return mgr->m_logic_mgr;
 }
 
 bpg_pkg_dsp_t bpg_rsp_manage_commit_dsp(bpg_rsp_manage_t mgr) {

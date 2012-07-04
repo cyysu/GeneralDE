@@ -12,16 +12,17 @@ extern "C" {
 #endif
 
 typedef TAILQ_HEAD(bpg_rsp_pkg_builder_list, bpg_rsp_pkg_builder) * bpg_rsp_pkg_builder_list_t;
-typedef TAILQ_HEAD(bpg_rsp_list, bpg_rsp) * bpg_rsp_list_t;
+struct bpg_rsp_queue_info;
 
 struct bpg_rsp_manage {
     gd_app_context_t m_app;
     mem_allocrator_t m_alloc;
     logic_manage_t m_logic_mgr;
+    logic_executor_mgr_t m_executor_mgr;
     error_monitor_t m_em;
     uint32_t m_flags;
 
-    struct bpg_rsp_list m_rsps;
+    struct cpe_hash_table m_rsps;
 
     size_t m_ctx_capacity;
     bpg_logic_ctx_init_fun_t m_ctx_init;
@@ -33,6 +34,9 @@ struct bpg_rsp_manage {
     bpg_pkg_t m_rsp_buf;
 
     struct bpg_rsp_pkg_builder_list m_pkg_builders;
+
+    struct bpg_rsp_queue_info * m_default_queue_info;
+    struct cpe_hash_table m_queue_infos;
 
     int m_debug;
 
@@ -46,11 +50,28 @@ struct bpg_rsp_copy_info {
 
 typedef TAILQ_HEAD(bpg_rsp_copy_info_list, bpg_rsp_copy_info) * bpg_rsp_copy_info_list_t;
 
+typedef enum bpg_rsp_queue_scope {
+    bpg_rsp_queue_scope_global
+    , bpg_rsp_queue_scope_client
+} bpg_rsp_queue_scope_t;
+
+struct bpg_rsp_queue_info {
+    cpe_hash_string_t m_name;
+    bpg_rsp_queue_scope_t m_scope;
+    uint32_t m_max_count;
+    char m_name_buf[128];
+    struct cpe_hash_entry m_hh;
+};
+
 struct bpg_rsp {
     bpg_rsp_manage_t m_mgr;
-    logic_executor_t m_executor;
+    const char * m_name;
+
+    logic_executor_ref_t m_executor_ref;
     uint32_t m_flags;
-    TAILQ_ENTRY(bpg_rsp) m_next;
+    struct bpg_rsp_queue_info *  m_queue_info;
+
+    struct cpe_hash_entry m_hh;
 
     struct bpg_rsp_copy_info_list m_ctx_to_pdu;
 };

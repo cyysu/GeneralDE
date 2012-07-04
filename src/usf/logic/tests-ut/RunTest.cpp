@@ -1,4 +1,3 @@
-#include "usf/logic/logic_require_type.h"
 #include "usf/logic/logic_require.h"
 #include "RunTest.hpp"
 
@@ -10,7 +9,6 @@ RunTest::RunTest()
 
 void RunTest::SetUp() {
     LogicTest::SetUp();
-    logic_require_type_create(t_logic_manage(), "r1");
     m_context = t_logic_context_create();
     set_commit(m_context, m_commitMock);
 }
@@ -24,20 +22,19 @@ void RunTest::TearDown() {
     LogicTest::TearDown();
 }
 
-static void create_rquire(logic_context_t context) {
-    char name[] = CPE_HS_BUF_MAKE("r1");
-    logic_require_create(context, (cpe_hash_string_t)name, 0);
+static void create_rquire(logic_stack_node_t stack) {
+    logic_require_create(stack, "r1");
 }
 
-void RunTest::expect_create_require(LogicOpMock & op) {
+void RunTest::expect_create_require(LogicOpMock & op, logic_op_exec_result_t rv) {
     EXPECT_CALL(op, execute(::testing::_))
         .WillOnce(
             ::testing::DoAll(
                 ::testing::Invoke(create_rquire),
-                ::testing::Return(0)));
+                ::testing::Return(rv)));
 }
 
-void RunTest::expect_return(LogicOpMock & op, int32_t rv) {
+void RunTest::expect_return(LogicOpMock & op, logic_op_exec_result_t rv) {
     EXPECT_CALL(op, execute(::testing::_))
         .WillOnce(::testing::Return(rv));
 }
@@ -54,10 +51,6 @@ void RunTest::execute_again(void) {
 
 void RunTest::expect_commit(void) {
     EXPECT_CALL(m_commitMock, commit(::testing::_));
-}
-
-void RunTest::set_require_keep(void) {
-    logic_context_flag_enable(m_context, logic_context_flag_require_keep);
 }
 
 void RunTest::set_execute_immediately(void) {

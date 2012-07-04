@@ -11,6 +11,7 @@ bpg_rsp_manage_create(
     gd_app_context_t app,
     const char * name,
     logic_manage_t logic_mgr,
+    logic_executor_mgr_t executor_mgr,
     error_monitor_t em);
 
 void bpg_rsp_manage_free(bpg_rsp_manage_t mgr);
@@ -27,6 +28,8 @@ bpg_rsp_manage_default(gd_app_context_t app);
 gd_app_context_t bpg_rsp_manage_app(bpg_rsp_manage_t mgr);
 const char * bpg_rsp_manage_name(bpg_rsp_manage_t mgr);
 cpe_hash_string_t bpg_rsp_manage_name_hs(bpg_rsp_manage_t mgr);
+
+logic_manage_t bpg_rsp_manage_logic(bpg_rsp_manage_t mgr);
 
 void bpg_rsp_manage_set_context_op(
     bpg_rsp_manage_t mgr,
@@ -48,6 +51,15 @@ void bpg_rsp_manage_flag_disable(bpg_rsp_manage_t mgr, bpg_rsp_manage_flag_t fla
 int bpg_rsp_manage_flag_is_enable(bpg_rsp_manage_t mgr, bpg_rsp_manage_flag_t flag);
 
 logic_context_t bpg_rsp_manage_create_context(bpg_rsp_manage_t mgr, bpg_pkg_t pkg, error_monitor_t em);
+
+logic_context_t
+bpg_rsp_manage_create_follow_op_by_name(
+    bpg_rsp_manage_t mgr, logic_context_t ctx, const char * rsp_name, error_monitor_t em);
+
+logic_context_t
+bpg_rsp_manage_create_op_by_name(
+    bpg_rsp_manage_t mgr, logic_context_t ctx/*can be null*/, const char * rsp_name, error_monitor_t em);
+
 void bpg_rsp_manage_free_context(bpg_rsp_manage_t mgr, logic_context_t op_context);
 
 #ifdef __cplusplus

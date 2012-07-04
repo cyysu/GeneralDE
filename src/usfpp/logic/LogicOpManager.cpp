@@ -5,6 +5,46 @@
 
 namespace Usf { namespace Logic {
 
+LogicOpContext &
+LogicOpManager::context(logic_context_id_t id) {
+    LogicOpContext * r = findContext(id);
+    if (r == NULL) {
+        APP_CTX_THROW_EXCEPTION(
+            app(), ::std::runtime_error, "%s: LogicOpContext %d not exist!", name(), id);
+    }
+    return *r;
+}
+
+LogicOpContext const &
+LogicOpManager::context(logic_context_id_t id) const {
+    LogicOpContext const * r = findContext(id);
+    if (r == NULL) {
+        APP_CTX_THROW_EXCEPTION(
+            app(), ::std::runtime_error, "%s: LogicOpContext %d not exist!", name(), id);
+    }
+    return *r;
+}
+
+LogicOpRequire &
+LogicOpManager::require(logic_require_id_t id) {
+    LogicOpRequire * r = findRequire(id);
+    if (r == NULL) {
+        APP_CTX_THROW_EXCEPTION(
+            app(), ::std::runtime_error, "%s: LogicOpRequire %d not exist!", name(), id);
+    }
+    return *r;
+}
+
+LogicOpRequire const &
+LogicOpManager::require(logic_require_id_t id) const {
+    LogicOpRequire const * r = findRequire(id);
+    if (r == NULL) {
+        APP_CTX_THROW_EXCEPTION(
+            app(), ::std::runtime_error, "%s: LogicOpRequire %d not exist!", name(), id);
+    }
+    return *r;
+}
+
 LogicOpManager &
 LogicOpManager::instance(gd_app_context_t app, cpe_hash_string_t name) {
     if (LogicOpManager * r = find(app, name)) {

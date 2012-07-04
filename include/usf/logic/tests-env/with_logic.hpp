@@ -17,6 +17,9 @@ public:
 
     logic_manage_t t_logic_manage(const char * name = NULL);
 
+    logic_executor_mgr_t t_logic_executor_mgr_create(const char * name);
+    logic_executor_mgr_t t_logic_executor_mgr_find(const char * name);
+
     logic_context_t t_logic_context_create(
         size_t capacity = 0, logic_require_id_t id = INVALID_LOGIC_CONTEXT_ID);
 
@@ -41,8 +44,8 @@ public:
     logic_executor_t t_logic_executor_build(cfg_t cfg, const char * group_name = 0, error_monitor_t em = 0);
     logic_executor_t t_logic_executor_build(const char * cfg, const char * group_name = 0, error_monitor_t em = 0);
 
-    logic_executor_t t_logic_executor_basic_create(const char * name, cfg_t args = 0, const char * group_name = 0);
-    logic_executor_t t_logic_executor_basic_create(const char * name, const char * args, const char * group_name = 0);
+    logic_executor_t t_logic_executor_action_create(const char * name, cfg_t args = 0, const char * group_name = 0);
+    logic_executor_t t_logic_executor_action_create(const char * name, const char * args, const char * group_name = 0);
 
     const char * t_logic_executor_dump(logic_executor_t executor);
 };

@@ -234,7 +234,7 @@ int tools_main(gd_app_context_t app) {
         bpg_net_client_find_nc(app, "bpg_net_client"));
     assert(connector);
 
-    net_connector_set_monitor(connector, net_connector_state_monitor, app);
+    net_connector_add_monitor(connector, net_connector_state_monitor, app);
 
     net_connector_enable(connector);
 

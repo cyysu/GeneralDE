@@ -3,6 +3,8 @@
 #include "cpepp/utils/ClassCategory.hpp"
 #include "gdpp/app/Application.hpp"
 #include "usf/logic/logic_manage.h"
+#include "usf/logic/logic_context.h"
+#include "usf/logic/logic_require.h"
 #include "System.hpp"
 
 namespace Usf { namespace Logic {
@@ -30,6 +32,16 @@ public:
     {
         return createContext(sizeof(data), &data, id);
     }
+
+    LogicOpContext & context(logic_context_id_t id);
+    LogicOpContext const & context(logic_context_id_t id) const;
+    LogicOpContext * findContext(logic_context_id_t id) { return (LogicOpContext *)logic_context_find(*this, id); }
+    LogicOpContext const * findContext(logic_context_id_t id) const { return (LogicOpContext *)logic_context_find(*this, id); }
+
+    LogicOpRequire & require(logic_require_id_t id);
+    LogicOpRequire const & require(logic_require_id_t id) const;
+    LogicOpRequire * findRequire(logic_require_id_t id) { return (LogicOpRequire *)logic_require_find(*this, id); }
+    LogicOpRequire const * findRequire(logic_require_id_t id) const { return (LogicOpRequire *)logic_require_find(*this, id); }
 
     void destory(void) { logic_manage_free(*this); }
 

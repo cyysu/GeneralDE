@@ -34,13 +34,26 @@ LogicOpData const & LogicOpContext::data(const char * name) const {
 
 LogicOpData &
 LogicOpContext::checkCreateData(LPDRMETA meta, size_t capacity) {
-    logic_data_t data = logic_data_get_or_create(*this, meta, capacity);
+    logic_data_t data = logic_context_data_get_or_create(*this, meta, capacity);
     if (data == 0) {
         APP_CTX_THROW_EXCEPTION(
             app(),
             ::std::runtime_error,
             "data %s create in context fail!",
             dr_meta_name(meta));
+    }
+    return *(LogicOpData*)data;
+}
+
+LogicOpData &
+LogicOpContext::copy(logic_data_t input) {
+    logic_data_t data = logic_context_data_copy(*this, input);
+    if (data == 0) {
+        APP_CTX_THROW_EXCEPTION(
+            app(),
+            ::std::runtime_error,
+            "data %s copy to context fail!",
+            logic_data_name(input));
     }
     return *(LogicOpData*)data;
 }

@@ -11,6 +11,8 @@ extern "C" {
 #endif
 
 typedef uint32_t bpg_req_sn_t;
+typedef struct bpg_req_manage * bpg_req_manage_t;
+typedef struct bpg_req_runing * bpg_req_runing_t;
 
 #ifdef __cplusplus
 }

@@ -267,7 +267,29 @@ int dp_rsp_unbind_string(dp_rsp_t rsp, const char * cmd) {
     return count;
 }
 
+int dp_binding_numeric(uint32_t * value,  dp_binding_t binding) {
+    if (binding->m_kt != dp_key_numeric) return -1;
+
+    *value = ((struct dp_binding_numeric *)binding)->m_value;
+    return 0;
+}
+
+int dp_binding_string(char const * * cmd,  dp_binding_t binding) {
+    if (binding->m_kt != dp_key_string) return -1;
+
+    *cmd = ((struct dp_binding_string *)binding)->m_value;
+    return 0;
+}
+
 int dp_rsp_bind_by_cfg(dp_rsp_t dp_rsp, cfg_t cfg_respons, error_monitor_t em) {
+    return dp_rsp_bind_by_cfg_ex(dp_rsp, cfg_respons, NULL, NULL, em);
+}
+
+int dp_rsp_bind_by_cfg_ex(
+    dp_rsp_t dp_rsp, cfg_t cfg_respons,
+    dp_str_cmd_cvt_t cmd_cvt, void * cmd_cvt_ctx,
+    error_monitor_t em)
+{
     int rv = 0;
 
     if (cfg_respons == NULL) return 0;
@@ -278,7 +300,7 @@ int dp_rsp_bind_by_cfg(dp_rsp_t dp_rsp, cfg_t cfg_respons, error_monitor_t em) {
         cfg_t cfg_sub;
         cfg_it_init(&cfg_it, cfg_respons);
         while((cfg_sub = cfg_it_next(&cfg_it))) {
-            if (dp_rsp_bind_by_cfg(dp_rsp, cfg_sub, em) != 0) {
+            if (dp_rsp_bind_by_cfg_ex(dp_rsp, cfg_sub, cmd_cvt, cmd_cvt_ctx, em) != 0) {
                 rv = -1;
             }
         }
@@ -294,12 +316,29 @@ int dp_rsp_bind_by_cfg(dp_rsp_t dp_rsp, cfg_t cfg_respons, error_monitor_t em) {
             return -1;
         }
 
-        if (dp_rsp_bind_string(dp_rsp, cmd, em) != 0) {
-            CPE_ERROR(
-                em,
-                "%s: dp_rsp_bind_by_cfg: not support bind to str cmd %s fail!",
-                dp_rsp_name(dp_rsp), cmd);
-            return -1;
+        if (cmd_cvt) {
+            int32_t numeric_cmd;
+            if (cmd_cvt(&numeric_cmd, cmd, cmd_cvt_ctx, em) == 0) {
+                if (dp_rsp_bind_numeric(dp_rsp, numeric_cmd, em) != 0) {
+                    CPE_ERROR(
+                        em,
+                        "%s: dp_rsp_bind_by_cfg: bind numeric cmd %s(%d) fail!",
+                        dp_rsp_name(dp_rsp), cmd, numeric_cmd);
+                    return -1;
+                }
+
+                cmd = NULL;
+            }
+        }
+
+        if (cmd) {
+            if (dp_rsp_bind_string(dp_rsp, cmd, em) != 0) {
+                CPE_ERROR(
+                    em,
+                    "%s: dp_rsp_bind_by_cfg: not support bind to str cmd %s fail!",
+                    dp_rsp_name(dp_rsp), cmd);
+                return -1;
+            }
         }
 
         break;

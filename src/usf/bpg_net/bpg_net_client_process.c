@@ -3,6 +3,7 @@
 #include "cpe/net/net_chanel.h"
 #include "cpe/net/net_endpoint.h"
 #include "cpe/dp/dp_manage.h"
+#include "cpe/dr/dr_metalib_manage.h"
 #include "gd/app/app_context.h"
 #include "usf/bpg_pkg/bpg_pkg.h"
 #include "usf/bpg_pkg/bpg_pkg_dsp.h"
@@ -87,11 +88,54 @@ static void bpg_net_client_on_read(bpg_net_client_t client, net_ep_t ep) {
             break;
         }
 
-        if(client->m_debug) {
-            CPE_ERROR(
-                client->m_em, "%s: ep %d: read one request, cmd=%d, input-size=%d, output-size=%d!",
-                bpg_net_client_name(client), (int)net_ep_id(ep),
-                bpg_pkg_cmd(req_buf), (int)input_size, (int)output_size);
+        if (client->m_debug) {
+            LPDRMETA main_meta = bpg_pkg_main_data_meta(req_buf, NULL);
+
+            switch (bpg_pkg_debug_level(req_buf)) {
+            case bpg_pkg_debug_summary: {
+                if (main_meta) {
+                    CPE_ERROR(
+                        client->m_em,
+                        "%s: <== client=%d, ep=%d, cmd=%s(%d), input-size=%d, output-size=%d",
+                        bpg_net_client_name(client), (int)bpg_pkg_client_id(req_buf), (int)net_ep_id(ep),
+                        dr_meta_name(main_meta), bpg_pkg_cmd(req_buf), (int)input_size, (int)output_size);
+                }
+                else {
+                    CPE_ERROR(
+                        client->m_em,
+                        "%s: <== client=%d, ep=%d, cmd=%d, input-size=%d, output-size=%d",
+                        bpg_net_client_name(client), (int)bpg_pkg_client_id(req_buf), (int)net_ep_id(ep),
+                        bpg_pkg_cmd(req_buf), (int)input_size, (int)output_size);
+                }
+                break;
+            }
+            case bpg_pkg_debug_detail: {
+                struct mem_buffer buffer;
+                mem_buffer_init(&buffer, NULL);
+
+                if (main_meta) {
+                    CPE_ERROR(
+                        client->m_em,
+                        "\n\n%s: <== client=%d, ep=%d, cmd=%s(%d), input-size=%d, output-size=%d\n%s",
+                        bpg_net_client_name(client), (int)bpg_pkg_client_id(req_buf), (int)net_ep_id(ep),
+                        dr_meta_name(main_meta), bpg_pkg_cmd(req_buf), (int)input_size, (int)output_size,
+                        bpg_pkg_dump(req_buf, &buffer));
+                }
+                else {
+                    CPE_ERROR(
+                        client->m_em,
+                        "\n\n%s: <== client=%d, ep=%d, cmd=%d, input-size=%d, output-size=%d\n%s",
+                        bpg_net_client_name(client), (int)bpg_pkg_client_id(req_buf), (int)net_ep_id(ep),
+                        bpg_pkg_cmd(req_buf), (int)input_size, (int)output_size,
+                        bpg_pkg_dump(req_buf, &buffer));
+                }
+
+                mem_buffer_clear(&buffer);
+                break;
+            }
+            default:
+                break;
+            }
         }
 
         if (bpg_pkg_dsp_dispatch(client->m_rsp_dsp, req_buf, client->m_em) != 0) {

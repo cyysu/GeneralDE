@@ -177,6 +177,14 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\include\usfpp\logic\LogicOpRequire.hpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\include\usfpp\logic\LogicOpStack.hpp"
+					>
+				</File>
+				<File
 					RelativePath="..\..\include\usfpp\logic\LogicOpType.hpp"
 					>
 				</File>
@@ -253,6 +261,18 @@
 					>
 				</File>
 			</Filter>
+			<Filter
+				Name="bpg_cli"
+				>
+				<File
+					RelativePath="..\..\include\usfpp\bpg_cli\CliProxy.hpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\include\usfpp\bpg_cli\System.hpp"
+					>
+				</File>
+			</Filter>
 		</Filter>
 		<Filter
 			Name="src"
@@ -269,11 +289,23 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\src\usfpp\logic\LogicOpData.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\..\src\usfpp\logic\LogicOpExecutor.cpp"
 					>
 				</File>
 				<File
 					RelativePath="..\..\src\usfpp\logic\LogicOpManager.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\usfpp\logic\LogicOpRequire.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\usfpp\logic\LogicOpStack.cpp"
 					>
 				</File>
 				<File
@@ -318,6 +350,14 @@
 				>
 				<File
 					RelativePath="..\..\src\usfpp\bpg_use\SendPoint.cpp"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="bpg_cli"
+				>
+				<File
+					RelativePath="..\..\src\usfpp\bpg_cli\CliProxy.cpp"
 					>
 				</File>
 			</Filter>

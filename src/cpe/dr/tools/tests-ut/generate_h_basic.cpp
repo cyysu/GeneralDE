@@ -15,6 +15,8 @@ TEST_F(GenerateTest, h_basic) {
         "#define DR_GENERATED_H_net_a_INCLEDED\n"
         "#include \"cpe/pal/pal_types.h\"\n"
         "\n"
+        "\n"
+        "\n"
         "#ifdef __cplusplus\n"
         "extern \"C\" {\n"
         "#endif\n"

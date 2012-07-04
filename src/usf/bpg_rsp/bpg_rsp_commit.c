@@ -22,7 +22,7 @@ void bpg_rsp_commit(logic_context_t op_context, void * user_data) {
     bpg_pkg_t response_buf;
     error_monitor_t em;
     logic_data_t bpg_private_data;
-    struct bpg_carry_info * bpg_private;
+    BPG_CARRY_INFO * bpg_private;
     logic_data_t bpg_carry_data;
 
     bpg_rsp = (bpg_rsp_t)user_data;
@@ -41,7 +41,7 @@ void bpg_rsp_commit(logic_context_t op_context, void * user_data) {
         return;
     }
 
-    bpg_private_data = logic_data_find(op_context, "bpg_carry_info");
+    bpg_private_data = logic_context_data_find(op_context, "bpg_carry_info");
     if (bpg_private_data == NULL) {
         CPE_ERROR(
             em, "%s.%s: bpg_rsp_commit: no bpg_carry_info in context!",
@@ -50,7 +50,7 @@ void bpg_rsp_commit(logic_context_t op_context, void * user_data) {
         return;
     }
 
-    bpg_private = (struct bpg_carry_info *)logic_data_data(bpg_private_data);
+    bpg_private = (BPG_CARRY_INFO *)logic_data_data(bpg_private_data);
     if (bpg_private->no_response) {
         if (bpg_rsp_pkg_need_debug_detail(bpg_rsp, NULL)) {
             CPE_INFO(
@@ -63,7 +63,7 @@ void bpg_rsp_commit(logic_context_t op_context, void * user_data) {
 
     bpg_carry_data = NULL;
     if (bpg_private->carry_meta_name[0] != 0) {
-        bpg_carry_data = logic_data_find(op_context, bpg_private->carry_meta_name);
+        bpg_carry_data = logic_context_data_find(op_context, bpg_private->carry_meta_name);
         if (bpg_carry_data == NULL) {
             CPE_ERROR(
                 em, "%s.%s: bpg_rsp_commit: no carry data %s in context!",
@@ -86,7 +86,7 @@ void bpg_rsp_commit(logic_context_t op_context, void * user_data) {
     }
 
     bpg_pkg_init(response_buf);
-    bpg_pkg_set_sn(response_buf, logic_context_id(op_context));
+    bpg_pkg_set_sn(response_buf, bpg_private->sn);
     bpg_pkg_set_client_id(response_buf, bpg_private->clientId);
     bpg_pkg_set_errno(response_buf, logic_context_errno(op_context));
     bpg_pkg_set_cmd(response_buf, bpg_private->cmd);
@@ -115,7 +115,7 @@ void bpg_rsp_commit(logic_context_t op_context, void * user_data) {
 
 SEND_ERROR_RESPONSE:
     bpg_pkg_init(response_buf);
-    bpg_pkg_set_sn(response_buf, logic_context_id(op_context));
+    bpg_pkg_set_sn(response_buf, bpg_private->sn);
     bpg_pkg_set_client_id(response_buf, bpg_private->clientId);
     bpg_pkg_set_errno(response_buf, -1);
     bpg_pkg_set_cmd(response_buf, bpg_private->cmd);
@@ -137,7 +137,9 @@ static int bpg_rsp_commit_build_pkg_append_info_from_ctx(
     logic_data_t data;
     size_t size;
 
-    data = logic_data_find(op_context, dr_meta_name(data_meta));
+    if (bpg_rsp_flag_is_enable(rsp, bpg_rsp_flag_append_info_manual)) return 0;
+
+    data = logic_context_data_find(op_context, dr_meta_name(data_meta));
     if (data == NULL) return -1;
 
     if (bpg_pkg_add_append_data(
@@ -241,6 +243,8 @@ static void bpg_rsp_commit_build_pkg_append_info_for_copy_info(
             continue;
         }
 
+        if (bpg_rsp_addition_data_exist(op_context, dr_meta_id(data_meta))) continue;
+
         if (bpg_rsp_commit_build_pkg_append_info_from_ctx(rsp, op_context, pkg, data_meta, em) == 0) {
             continue;
         }
@@ -281,7 +285,7 @@ static int bpg_rsp_commit_build_pkg_main_info(bpg_rsp_t rsp, logic_context_t op_
     meta = bpg_pkg_main_data_meta(pkg, NULL);
     if (meta == NULL) return 0;
 
-    data = logic_data_find(op_context, dr_meta_name(meta));
+    data = logic_context_data_find(op_context, dr_meta_name(meta));
     if (data == NULL) {
         CPE_ERROR(
             em, "%s.%s: copy_ctx_to_pdu: main: can`t find %s from ctx!",
