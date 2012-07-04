@@ -93,7 +93,7 @@ dr_cvt_fun_pbuf_len_decode(
 
     if (debug) {
         CPE_INFO(
-            em, "decode %s: pbuf-len: ok, %d data to output, data-size=%d, input-size="FMT_SIZE_T,
+            em, "decode %s: pbuf-len: ok, %d data to output, data-size="FMT_SIZE_T", input-size="FMT_SIZE_T,
             dr_meta_name(meta), r, data_size, *input_capacity);
     }
 
