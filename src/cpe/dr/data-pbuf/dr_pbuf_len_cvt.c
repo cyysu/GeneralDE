@@ -89,6 +89,8 @@ dr_cvt_fun_pbuf_len_decode(
         return dr_cvt_result_error;
     }
 
+    *output_capacity = r;
+
     if (debug) {
         CPE_INFO(
             em, "decode %s: pbuf-len: ok, %d data to output, data-size=%d, input-size="FMT_SIZE_T,
