@@ -87,23 +87,3 @@ logic_op_exec_result_t logic_use_op_dump(logic_context_t context, logic_stack_no
     return logic_op_exec_result_true;
 
 };
-
-EXPORT_DIRECTIVE
-int logic_op_dump_app_init(gd_app_context_t app, gd_app_module_t module, cfg_t cfg) {
-    logic_executor_type_t type;
-
-    type = logic_executor_type_create_global(
-        app,
-        cfg_get_string(cfg, "type-group", NULL),
-        gd_app_module_name(module),
-        logic_use_op_dump,
-        NULL,
-        NULL,
-        gd_app_em(app));
-
-    return type ? 0 : -1;
-}
-
-EXPORT_DIRECTIVE
-void logic_op_dump_app_fini(gd_app_context_t app, gd_app_module_t module) {
-}
