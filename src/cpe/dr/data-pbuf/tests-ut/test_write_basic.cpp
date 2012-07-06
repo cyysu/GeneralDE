@@ -87,10 +87,10 @@ TEST_F(WriteTest, type_array_refer_no_data) {
         "</metalib>"
         );
 
-    EXPECT_EQ(8, write("S", "a1: []"));
+    EXPECT_EQ(2, write("S", "a1: []"));
 
     EXPECT_STREQ(
-        "0x22 0x06 0x03 0x8E 0x02 0x9E 0xA7 0x05", result());
+        "0x22 0x00", result());
 }
 
 TEST_F(WriteTest, type_array_string_basic) {
