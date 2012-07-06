@@ -33,7 +33,7 @@ public:
     void send(Usf::Logic::LogicOpRequire & requrest, LPDRMETA meta, void const * data, size_t size);
 
     template<typename T>
-    void send(Usf::Logic::LogicOpRequire & requrest, const char * metaName, T const & data) {
+    void send(Usf::Logic::LogicOpRequire & requrest, T const & data, const char * metaName = Cpe::Dr::MetaTraits<T>::NAME) {
         send(requrest, metaName, &data, sizeof(data));
     }
 
