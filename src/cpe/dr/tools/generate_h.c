@@ -125,7 +125,46 @@ static void cpe_dr_generate_h_metas(write_stream_t stream, dr_metalib_source_t s
     }
 }
 
-int cpe_dr_generate_h(write_stream_t stream, dr_metalib_source_t source, cpe_dr_generate_ctx_t ctx) {
+static void cpe_dr_generate_h_traits(write_stream_t stream, dr_metalib_source_t source, cpe_dr_generate_ctx_t ctx) {
+    struct dr_metalib_source_element_it element_it;
+    dr_metalib_source_element_t element;
+
+    stream_printf(stream, "\n#ifdef __cplusplus\n\n");
+
+    stream_printf(stream, "namespace Cpe { namespace Dr {\n");
+    stream_printf(stream, "\n");
+    stream_printf(stream, "template<class T> struct MetaTraits;\n");
+    stream_printf(stream, "\n");
+    stream_printf(stream, "class Meta;\n");
+
+    dr_metalib_source_elements(&element_it, source);
+    while((element = dr_metalib_source_element_next(&element_it))) {
+        LPDRMETA meta;
+        const char * meta_name;
+
+        if (dr_metalib_source_element_type(element) != dr_metalib_source_element_type_meta) continue;
+
+        meta = dr_lib_find_meta_by_name(ctx->m_metalib, dr_metalib_source_element_name(element));
+        if (meta == NULL) continue;
+
+        
+        meta_name = dr_meta_name(meta);
+        stream_printf(stream, "template<> struct MetaTraits<");
+        stream_toupper(stream, meta_name);
+        stream_printf(stream, "> {\n");
+        if (dr_meta_id(meta) != -1) {
+            stream_printf(stream, "    static const int ID = %d;\n", dr_meta_id(meta));
+        }
+        stream_printf(stream, "    static Meta const & META;\n");
+        stream_printf(stream, "    static const char * const NAME;\n");
+        stream_printf(stream, "};\n\n");
+    }
+
+    stream_printf(stream, "}}\n");
+    stream_printf(stream, "\n#endif\n");
+}
+
+int cpe_dr_generate_h(write_stream_t stream, dr_metalib_source_t source, int with_traits, cpe_dr_generate_ctx_t ctx) {
     const char * lib_name;
 
     assert(source);
@@ -157,10 +196,13 @@ int cpe_dr_generate_h(write_stream_t stream, dr_metalib_source_t source, cpe_dr_
         stream, 
         "#ifdef __cplusplus\n"
         "}\n"
-        "#endif\n"
-        "\n");
+        "#endif\n");
 
-    stream_printf(stream, "#endif\n");
+    if (with_traits) {
+        cpe_dr_generate_h_traits(stream, source, ctx);
+    }
+
+    stream_printf(stream, "\n#endif\n");
 
     return 0;
 }

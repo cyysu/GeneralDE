@@ -16,6 +16,8 @@ class Data;
 /*exceptions*/
 class type_convert_error;
 
+template<class T> struct MetaTraits;
+
 }}
 
 #endif
