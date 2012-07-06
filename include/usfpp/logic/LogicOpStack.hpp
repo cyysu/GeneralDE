@@ -3,7 +3,7 @@
 #include "cpepp/utils/ClassCategory.hpp"
 #include "usf/logic/logic_data.h"
 #include "usf/logic/logic_stack.h"
-#include "System.hpp"
+#include "LogicOpData.hpp"
 
 namespace Usf { namespace Logic {
 
@@ -27,6 +27,17 @@ public:
 
     LogicOpData & checkCreateData(LPDRMETA meta, size_t capacity = 0);
     LogicOpData & copy(logic_data_t input);
+
+    template<typename T>
+    T & data(const char * name = Cpe::Dr::MetaTraits<T>::NAME) { return data(name).as<T>(); }
+
+    template<typename T>
+    T const & data(const char * name = Cpe::Dr::MetaTraits<T>::NAME) const { return data(name).as<T>(); }
+
+    template<typename T>
+    T & checkCreateData(size_t capacity = 0, LPDRMETA meta = Cpe::Dr::MetaTraits<T>::META) {
+        return checkCreateData(meta, capacity).as<T>();
+    }
 };
 
 }}

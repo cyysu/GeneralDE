@@ -19,9 +19,9 @@ public:
 
     logic_context_state_t state(void) const { return logic_context_state(*this); }
 
-    size_t capacity(void) const { return logic_context_capacity(*this); }
-    void * data(void) { return logic_context_data(*this); }
-    const void * data(void) const { return logic_context_data(*this); }
+    size_t contextCapacity(void) const { return logic_context_capacity(*this); }
+    void * contextData(void) { return logic_context_data(*this); }
+    const void * contextData(void) const { return logic_context_data(*this); }
 
     uint32_t flags(void) const { return logic_context_flags(*this); }
     void setFlags(uint32_t flag) { logic_context_flags_set(*this, flag); }
@@ -57,16 +57,21 @@ public:
     LogicOpData & copy(logic_data_t input);
 
     template<typename T>
-    T & data(void) { return *(T*)data(); }
+    T & contextData(void) { return *(T*)contextData(); }
 
     template<typename T>
-    T const & data(void) const { return *(T const *)data(); }
+    T const & contextData(void) const { return *(T const *)contextData(); }
 
     template<typename T>
-    T & data(const char * name) { return data(name).as<T>(); }
+    T & data(const char * name = Cpe::Dr::MetaTraits<T>::NAME) { return data(name).as<T>(); }
 
     template<typename T>
-    T const & data(const char * name) const { return data(name).as<T>(); }
+    T const & data(const char * name = Cpe::Dr::MetaTraits<T>::NAME) const { return data(name).as<T>(); }
+
+    template<typename T>
+    T & checkCreateData(size_t capacity = 0, LPDRMETA meta = Cpe::Dr::MetaTraits<T>::META) {
+        return checkCreateData(meta, capacity).as<T>();
+    }
 
     void dump_data(cfg_t cfg) const { logic_context_data_dump_to_cfg(*this, cfg); }
 
