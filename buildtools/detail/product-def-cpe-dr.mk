@@ -23,6 +23,19 @@ define product-def-rule-cpe-dr-c-module-validate
 
 endef
 
+define product-def-rule-cpe-dr-c-module-traits-cpp
+  $(eval r.$1.$3.cpe-dr.$2.generated.traits.cpp:=$(r.$1.$3.cpe-dr.$2.h.output-dir)/$($1.cpe-dr.$2.h.with-traits))
+
+  $(eval r.$1.$3.c.sources += $(r.$1.$3.cpe-dr.$2.generated.traits.cpp))
+
+  $(r.$1.$3.cpe-dr.$2.generated.traits.cpp): $(r.$1.$3.cpe-dr.$2.source) $(cpe-dr-tool)
+	$$(call with_message,cpe-dr generaing traits-cpp to $(subst $(CPDE_ROOT)/,,$(r.$1.$3.cpe-dr.$2.generated.traits.cpp)) ...) \
+	LD_LIBRARY_PATH=$(CPDE_OUTPUT_ROOT)/$(tools.output)/lib:$$$$LD_LIBRARY_PATH \
+	$(cpe-dr-tool) $(addprefix -i ,$(r.$1.$3.cpe-dr.$2.source)) \
+                   --output-traits-cpp $$@ --output-lib-c-arg $($1.cpe-dr.$2.c.arg-name)
+
+endef
+
 define product-def-rule-cpe-dr-c-module-h
   $(call assert-not-null,$1.cpe-dr.$2.h.output)
 
@@ -46,7 +59,9 @@ define product-def-rule-cpe-dr-c-module-h
 	$$(call with_message,cpe-dr generaing h to $(subst $(CPDE_ROOT)/,,$(r.$1.$3.cpe-dr.$2.h.output-dir)) ...) \
 	LD_LIBRARY_PATH=$(CPDE_OUTPUT_ROOT)/$(tools.output)/lib:$$$$LD_LIBRARY_PATH \
 	$(cpe-dr-tool) $(addprefix -i ,$(r.$1.$3.cpe-dr.$2.source)) \
-                   --output-h $(r.$1.$3.cpe-dr.$2.h.output-dir)
+                   --output-h $(r.$1.$3.cpe-dr.$2.h.output-dir) $(if $($1.cpe-dr.$2.h.with-traits),--with-traits)
+
+  $(if $($1.cpe-dr.$2.h.with-traits),$(call product-def-rule-cpe-dr-c-module-traits-cpp,$1,$2,$3,$4,$5),)
 
 endef
 
