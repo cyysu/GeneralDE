@@ -46,6 +46,8 @@ public:
 
     template<typename T>
     T const & as(void) const { return *(T const *)data(); }
+
+    void destory(void) { logic_data_free(*this); }
 };
 
 }}

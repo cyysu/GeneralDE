@@ -21,6 +21,7 @@ public:
     Gd::App::Application & app(void) { return Gd::App::Application::_cast(bpg_rsp_manage_app(*this)); }
     Gd::App::Application const & app(void) const { return Gd::App::Application::_cast(bpg_rsp_manage_app(*this)); }
 
+    bool hasOp(const char * rspName) const;
     RspOpContext & createOp(const char * rspName, logic_context_t from = NULL);
     RspOpContext & createFollowOp(logic_context_t context, const char * rspName);
 

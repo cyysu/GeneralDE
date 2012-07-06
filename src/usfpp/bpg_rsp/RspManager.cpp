@@ -26,6 +26,10 @@ RspManager & RspManager::instance(gd_app_context_t app, const char * name) {
     return *(RspManager*)rsp_manage;
 }
 
+bool RspManager::hasOp(const char * rspName) const {
+    return bpg_rsp_find(*this, rspName);
+}
+
 RspOpContext &
 RspManager::createOp(const char * rspName, logic_context_t from) {
     Cpe::Utils::ErrorCollector ec;
