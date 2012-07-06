@@ -21,6 +21,8 @@ struct arg_file * i_group;
 struct arg_lit * help;
 struct arg_str * o_validate;
 struct arg_end *end;
+struct arg_lit * o_traits;
+struct arg_file * o_traits_cpp;
 
 dir_visit_next_op_t
 accept_input_file(const char * full, const char * base, void * ctx) {
@@ -158,6 +160,37 @@ static int do_generate_lib_c(cpe_dr_generate_ctx_t ctx) {
     return rv;
 }
 
+static int do_generate_traits_cpp(cpe_dr_generate_ctx_t ctx) {
+    struct write_stream_file stream;
+    int i;
+    int rv;
+
+    rv = 0;
+
+    for(i = 0; i < o_traits_cpp->count; ++i) {
+        FILE * fp;
+
+        if (o_lib_c_arg->count == 0) {
+            CPE_ERROR(ctx->m_em, "not arg name setted!");
+            return -1;
+        }
+
+        fp = file_stream_open(o_traits_cpp->filename[i], "w", ctx->m_em);
+        if (fp == NULL) {
+            rv = -1;
+            continue;
+        }
+
+        write_stream_file_init(&stream, fp, ctx->m_em);
+
+        cpe_dr_generate_traits_cpp((write_stream_t)&stream, o_lib_c_arg->sval[0], ctx);
+
+        file_stream_close(fp, ctx->m_em);
+    }
+
+    return rv;
+}
+
 static int do_generate_h(cpe_dr_generate_ctx_t ctx) {
     struct dr_metalib_source_it source_it;
     dr_metalib_source_t source;
@@ -193,7 +226,7 @@ static int do_generate_h(cpe_dr_generate_ctx_t ctx) {
             }
 
             write_stream_file_init(&stream, fp, ctx->m_em);
-            cpe_dr_generate_h((write_stream_t)&stream, source, ctx);
+            cpe_dr_generate_h((write_stream_t)&stream, source, o_traits->count > 0 ? 1 : 0, ctx);
             file_stream_close(fp, ctx->m_em);
         }
     }
@@ -262,6 +295,7 @@ int tools_main(error_monitor_t em) {
             if (do_generate_h(&ctx) != 0) rv = -1;
             if (do_generate_lib_bin(&ctx) != 0) rv = -1;
             if (do_generate_lib_c(&ctx) != 0) rv = -1;
+            if (do_generate_traits_cpp(&ctx) != 0) rv = -1;
         }
     }
     else {
@@ -285,6 +319,8 @@ int main(int argc, char * argv[]) {
         , i_group_root = arg_file0(   NULL,  "input-group-root",     "<string>",            "root of input listed in group file")
         , i_group = arg_file0(   NULL,  "input-group",     "<string>",            "a file defined a list of input fild")
         ,        help = arg_lit0(   NULL,  "help",                                   "print this help and exit")
+        ,    o_traits = arg_lit0(   NULL,  "with-traits",                         "generate traits in .h")
+        , o_traits_cpp = arg_file0(   NULL,  "output-traits-cpp",       "<string>",            "output traits cpp file")
         ,         end = arg_end(20)
     };
 
