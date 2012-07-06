@@ -229,12 +229,12 @@ void logic_context_execute(logic_context_t context) {
     context->m_runing = 0;
 
     if (context->m_errno == 0 && context->m_stack.m_item_pos == -1) {
-        if (context->m_stack.m_inline_items[0].m_rv == logic_op_exec_result_true) {
-            context->m_state = logic_context_state_done; 
-        }
-        else {
+        if (context->m_stack.m_inline_items[0].m_rv == logic_op_exec_result_null) {
             context->m_errno = -1;
             context->m_state = logic_context_state_error;
+        }
+        else {
+            context->m_state = logic_context_state_done; 
         }
     }
 
