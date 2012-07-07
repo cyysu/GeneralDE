@@ -24,8 +24,8 @@ DEF_PRINT_TYPED_TEST(int16, int16_t, 12, "12")
 DEF_PRINT_TYPED_TEST(uint16, uint16_t, 12, "12")
 DEF_PRINT_TYPED_TEST(int32, int32_t, 12, "12")
 DEF_PRINT_TYPED_TEST(uint32, uint32_t, 12, "12")
-DEF_PRINT_TYPED_TEST(char, char, 'a', "\"a\"")
-DEF_PRINT_TYPED_TEST(uchar, unsigned char, 'a', "\"a\"")
+DEF_PRINT_TYPED_TEST(char, char, 'a', "97")
+DEF_PRINT_TYPED_TEST(uchar, unsigned char, 'a', "97")
 
 TEST_F(PrintTest, print_string) {
     installMeta(
