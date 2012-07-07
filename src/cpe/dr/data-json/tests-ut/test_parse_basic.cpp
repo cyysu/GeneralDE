@@ -25,8 +25,8 @@ DEF_PARSE_TYPED_TEST(int16, int16_t, "12", 12)
 DEF_PARSE_TYPED_TEST(uint16, uint16_t, "12", 12)
 DEF_PARSE_TYPED_TEST(int32, int32_t, "12", 12)
 DEF_PARSE_TYPED_TEST(uint32, uint32_t, "12", 12)
-DEF_PARSE_TYPED_TEST(char, char, "\"a\"", 'a')
-DEF_PARSE_TYPED_TEST(uchar, unsigned char, "\"a\"", 'a')
+DEF_PARSE_TYPED_TEST(char, char, "97", 'a')
+DEF_PARSE_TYPED_TEST(uchar, unsigned char, "97", 'a')
 
 TEST_F(ParseTest, type_string) {
     installMeta(
