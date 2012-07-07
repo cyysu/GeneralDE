@@ -26,8 +26,8 @@ TEST_F(ContextRunSelectorTest, basic_false) {
         "selector:\n"
         "  - Op1");
 
-    EXPECT_EQ(logic_context_state_error, state());
-    EXPECT_EQ((int32_t)-1, rv());
+    EXPECT_EQ(logic_context_state_done, state());
+    EXPECT_EQ((int32_t)0, rv());
 }
 
 TEST_F(ContextRunSelectorTest, multi) {

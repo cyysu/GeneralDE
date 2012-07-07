@@ -46,8 +46,8 @@ TEST_F(ContextRunSequenceTest, multi_error_break) {
         "- Op2"
         );
 
-    EXPECT_EQ(logic_context_state_error, state());
-    EXPECT_EQ((int32_t)-1, rv());
+    EXPECT_EQ(logic_context_state_done, state());
+    EXPECT_EQ((int32_t)0, rv());
 }
 
 TEST_F(ContextRunSequenceTest, multi_level_error_break) {
@@ -68,8 +68,8 @@ TEST_F(ContextRunSequenceTest, multi_level_error_break) {
         "- Op4"
         );
 
-    EXPECT_EQ(logic_context_state_error, state());
-    EXPECT_EQ((int32_t)-1, rv());
+    EXPECT_EQ(logic_context_state_done, state());
+    EXPECT_EQ((int32_t)0, rv());
 }
 
 TEST_F(ContextRunSequenceTest, multi_level_null_break) {

@@ -22,8 +22,8 @@ TEST_F(ContextRunTest, basic_fail) {
     expect_commit();
     execute("Op1");
 
-    EXPECT_EQ(logic_context_state_error, state());
-    EXPECT_EQ((int32_t)-1, rv());
+    EXPECT_EQ(logic_context_state_done, state());
+    EXPECT_EQ((int32_t)0, rv());
 }
 
 TEST_F(ContextRunTest, protected_basic) {
@@ -61,7 +61,7 @@ TEST_F(ContextRunTest, waiting_basic) {
 
 TEST_F(ContextRunTest, waiting_multi_require) {
     LogicOpMock & op1 = installOp("Op1");
-    LogicOpMock & op2 = installOp("Op2");
+    installOp("Op2");
 
     expect_create_require(op1, logic_op_exec_result_true);
 
@@ -77,7 +77,8 @@ TEST_F(ContextRunTest, waiting_multi_require) {
     logic_require_set_done(logic_require_find(t_logic_manage(), 1));
     execute_again();
 
-    expect_return(op2, logic_op_exec_result_false);
+    expect_return(op1, logic_op_exec_result_false);
+    logic_require_set_done(logic_require_find(t_logic_manage(), 2));
     expect_commit();
     execute_again();
 }

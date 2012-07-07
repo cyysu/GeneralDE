@@ -49,7 +49,7 @@ TEST_F(ContextRunConditionTest, condition_do_false) {
         "  else: Op3\n"
         );
 
-    EXPECT_EQ(logic_context_state_error, state());
+    EXPECT_EQ(logic_context_state_done, state());
 }
 
 TEST_F(ContextRunConditionTest, condition_do_null) {
@@ -97,7 +97,7 @@ TEST_F(ContextRunConditionTest, condition_else_false) {
         "  else: Op3\n"
         );
 
-    EXPECT_EQ(logic_context_state_error, state());
+    EXPECT_EQ(logic_context_state_done, state());
 }
 
 TEST_F(ContextRunConditionTest, condition_else_null) {

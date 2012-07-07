@@ -40,7 +40,7 @@ TEST_F(ContextRunParallelTest, success_on_all_t_f) {
         "    - Op2\n"
         );
 
-    EXPECT_EQ(logic_context_state_error, state());
+    EXPECT_EQ(logic_context_state_done, state());
 }
 
 TEST_F(ContextRunParallelTest, success_on_all_f_t) {
@@ -59,7 +59,7 @@ TEST_F(ContextRunParallelTest, success_on_all_f_t) {
         "    - Op2\n"
         );
 
-    EXPECT_EQ(logic_context_state_error, state());
+    EXPECT_EQ(logic_context_state_done, state());
 }
 
 TEST_F(ContextRunParallelTest, success_on_all_f_f) {
@@ -78,7 +78,7 @@ TEST_F(ContextRunParallelTest, success_on_all_f_f) {
         "    - Op2\n"
         );
 
-    EXPECT_EQ(logic_context_state_error, state());
+    EXPECT_EQ(logic_context_state_done, state());
 }
 
 TEST_F(ContextRunParallelTest, success_on_all_t_null) {
@@ -184,7 +184,7 @@ TEST_F(ContextRunParallelTest, success_on_one_f_f) {
         "    - Op2\n"
         );
 
-    EXPECT_EQ(logic_context_state_error, state());
+    EXPECT_EQ(logic_context_state_done, state());
 }
 
 TEST_F(ContextRunParallelTest, success_on_one_empty) {
@@ -195,6 +195,6 @@ TEST_F(ContextRunParallelTest, success_on_one_empty) {
         "  policy: SUCCESS_ON_ONE\n"
         );
 
-    EXPECT_EQ(logic_context_state_error, state());
+    EXPECT_EQ(logic_context_state_done, state());
 }
 
