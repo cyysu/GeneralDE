@@ -84,13 +84,13 @@ public:
     void addAppendData(LPDRMETA meta, void const * data, size_t size, size_t * write_size = NULL);
 
     template<typename T>
-    void addAppendData(const char * metaName, T const & data, size_t capacity = sizeof(T)) {
-        addAppendData(metaName, (void const *)&data, capacity);
+    void addAppendData(const char * metaName, T const & data) {
+        addAppendData(metaName, (void const *)&data, sizeof(data));
     }
 
     template<typename T>
-    void addAppendData(int metaId, T const & data, size_t capacity = sizeof(T)) {
-        addAppendData(metaId, (void const *)&data, capacity);
+    void addAppendData(int metaId, T const & data) {
+        addAppendData(metaId, (void const *)&data, sizeof(data));
     }
 
     /*other op*/
