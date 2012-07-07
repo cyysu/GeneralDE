@@ -39,7 +39,7 @@ dr_cvt_result_t dr_cvt_fun_pbuf_len_encode(
     }
 
     if (size_size != reserve_size_size) {
-        memmove(((char *)output) + reserve_size_size, ((char *)output) + size_size, r);
+        memmove(((char *)output) + size_size, ((char *)output) + reserve_size_size, r);
     }
     memcpy(output, size_buffer, size_size);
 
