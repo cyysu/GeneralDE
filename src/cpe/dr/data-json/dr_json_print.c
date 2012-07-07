@@ -94,7 +94,7 @@ static void dr_print_print_basic_data(yajl_gen g, LPDRMETAENTRY entry, const voi
         break;
     case CPE_DR_TYPE_CHAR:
     case CPE_DR_TYPE_UCHAR:
-        dr_print_print_string(g, entry->m_type, 1, data, em);
+        dr_print_print_numeric(g, entry->m_type, data, em);
         break;
     case CPE_DR_TYPE_STRING:
     case (CPE_DR_TYPE_STRING + 1):
