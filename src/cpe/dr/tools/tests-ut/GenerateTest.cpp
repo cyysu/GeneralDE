@@ -69,7 +69,7 @@ const char * GenerateTest::generate_h(const char * name) {
 
     write_stream_buffer stream = CPE_WRITE_STREAM_BUFFER_INITIALIZER(&buffer);
 
-    EXPECT_EQ(0, cpe_dr_generate_h((write_stream_t)&stream, source(name), &m_ctx));
+    EXPECT_EQ(0, cpe_dr_generate_h((write_stream_t)&stream, source(name), 0, &m_ctx));
     stream_putc((write_stream_t)&stream, 0);
     
     char * r = t_tmp_strdup((char *)mem_buffer_make_continuous(&buffer, 0));
