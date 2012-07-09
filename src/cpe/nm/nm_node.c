@@ -1,9 +1,9 @@
 #include <assert.h>
 #include <string.h>
+#include "cpe/pal/pal_platform.h"
 #include "cpe/nm/nm_manage.h"
 #include "cpe/nm/nm_read.h"
 #include "nm_internal_ops.h"
-//#include "nm_internal_types.h"
 
 nm_node_t
 nm_node_alloc(
@@ -22,12 +22,12 @@ nm_node_alloc(
 
     nameLen = cpe_hs_len_to_binary_len(strlen(name));
 
-    buf = mem_alloc(nmm->m_alloc, nameLen + bodyLen + capacity);
+    buf = mem_alloc(nmm->m_alloc, CPE_PAL_ALIGN(nameLen) + bodyLen + capacity);
     if (buf == NULL) return NULL;
 
     cpe_hs_init((cpe_hash_string_t)buf, nameLen, name);
 
-    node = (nm_node_t)(buf + nameLen + bodyLen - sizeof(struct nm_node));
+    node = (nm_node_t)(buf + CPE_PAL_ALIGN(nameLen) + bodyLen - sizeof(struct nm_node));
 
     node->m_mgr = nmm;
     node->m_category = category;
