@@ -104,6 +104,10 @@ static bpg_rsp_t bpg_rsp_build_one(bpg_rsp_manage_t mgr, cfg_t cfg, LPDRMETALIB 
         return NULL;
     }
     rsp = bpg_rsp_create(mgr, name);
+    if (rsp == NULL) {
+        CPE_ERROR(mgr->m_em, "%s: create rsp: create %s fail", bpg_rsp_manage_name(mgr), name) ;
+        return NULL;
+    }
 
     group_name = cfg_get_string(cfg, "operations-from", NULL);
     type_group = logic_executor_type_group_find_nc(mgr->m_app, group_name);
