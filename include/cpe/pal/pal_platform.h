@@ -12,6 +12,12 @@
 #define CPE_PAL_ALIGN_4(__value) ((((__value) >> 2) + 1) << 2)
 #define CPE_PAL_ALIGN_2(__value) ((((__value) >> 1) + 1) << 1)
 
+#if (__WORDSIZE == 64)
+#define CPE_PAL_ALIGN CPE_PAL_ALIGN_8
+#else
+#define CPE_PAL_ALIGN CPE_PAL_ALIGN_4
+#endif
+
 #define CPE_SWAP_ENDIAN64(outp, inp) do {           \
         const char * __in = (const char *)(inp);    \
         char *__out = (char *)(outp);               \
