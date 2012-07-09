@@ -235,7 +235,11 @@ void net_connector_on_disconnect(net_connector_t connector) {
 
     old_state = connector->m_state;
 
+    net_connector_cb_clear(connector);
+
     connector->m_state = net_connector_state_error;
+
+    net_connector_cb_prepaire(connector);
 
     net_connector_notify_state_change(connector, old_state);
 
@@ -484,9 +488,13 @@ void net_connector_disable(net_connector_t connector) {
     assert(connector->m_ep);
     old_state = connector->m_state;
 
+    net_connector_cb_clear(connector);
+
     if (net_ep_is_open(connector->m_ep)) {
         net_ep_close_i(connector->m_ep, net_ep_event_close_by_user);
     }
+
+    connector->m_state = net_connector_state_disable;
 
     net_connector_notify_state_change(connector, old_state);
 }
