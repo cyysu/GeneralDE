@@ -112,6 +112,24 @@ TEST_F(WriteTest, type_array_string_basic) {
         result());
 }
 
+TEST_F(WriteTest, type_array_string_empty) {
+    installMeta(
+        "<metalib tagsetversion='1' name='net'  version='1'>"
+        "    <struct name='S' version='1'>"
+        "        <entry name='count' type='uint8'/>"
+        "	     <entry name='a1' type='string' id='2' size='128' count='0' refer='count'/>"
+        "    </struct>"
+        "</metalib>"
+        );
+
+    EXPECT_EQ(0, write("S", "a1: []"));
+    
+    EXPECT_STREQ(
+        ""
+        ,
+        result());
+}
+
 TEST_F(WriteTest, type_array_struct_basic) {
     installMeta(
         "<metalib tagsetversion='1' name='net'  version='1'>"
@@ -130,5 +148,25 @@ TEST_F(WriteTest, type_array_struct_basic) {
         "0x1A 0x03 0x08 0x96 0x01"
         " 0x1A 0x03 0x08 0x97 0x01"
         " 0x1A 0x03 0x08 0x98 0x01"
+        , result());
+}
+
+TEST_F(WriteTest, type_array_struct_no_data) {
+    installMeta(
+        "<metalib tagsetversion='1' name='net'  version='1'>"
+        "    <struct name='S1' version='1'>"
+        "	     <entry name='a1' type='uint32' id='1'/>"
+        "    </struct>"
+        "    <struct name='S2' version='1'>"
+        "	     <entry name='count' type='uint8'/>"
+        "	     <entry name='b1' type='S1' id='3' count='0' refer='count'/>"
+        "    </struct>"
+        "</metalib>"
+        );
+
+    EXPECT_EQ(0, write("S2", "b1: []"));
+    
+    EXPECT_STREQ(
+        ""
         , result());
 }

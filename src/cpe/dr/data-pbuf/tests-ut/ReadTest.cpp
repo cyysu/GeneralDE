@@ -54,7 +54,9 @@ int ReadTest::read(const char * decodeTypeName, const void * data, size_t data_s
 
     char buf[1024];
     int len = dr_pbuf_write(buf, sizeof(buf), data, data_size, meta, t_em());
-    EXPECT_GT(len, 0);
+    EXPECT_GE(len, 0);
+
+    bzero(m_result_buffer, sizeof(m_result_buffer));
 
     int r = dr_pbuf_read(m_result_buffer, sizeof(m_result_buffer), buf, len, meta, t_em());
     m_result_bufffer_len = r;
