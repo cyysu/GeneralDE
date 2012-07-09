@@ -386,7 +386,7 @@ static int dr_pbuf_read_i(
                         nextStack = &processStack[stackPos + 1];
 
                         dr_pbuf_read_stack_init(
-                            nextStack, entry, dr_pbuf_read_start_pos(),
+                            nextStack, entry, curStack->m_output_start_pos + dr_pbuf_read_start_pos(),
                             dr_entry_ref_meta(entry),
                             curStack->m_input_data + curStack->m_input_size - len, len);
 
