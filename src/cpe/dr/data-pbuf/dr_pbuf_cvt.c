@@ -42,6 +42,8 @@ dr_cvt_fun_pbuf_decode(
 {
     int r;
 
+    bzero(output, *output_capacity);
+
     r = dr_pbuf_read(output, *output_capacity, input, *input_capacity, meta, em);
     if (r < 0) {
         CPE_ERROR(

@@ -184,7 +184,10 @@ int dr_pbuf_write(
                                 
                                 nextStack->m_entry_pos =
                                     dr_meta_find_entry_idx_by_id(nextStack->m_meta, union_entry_id);
-                                if (nextStack->m_entry_pos < 0) continue;
+                                if (nextStack->m_entry_pos < 0) {
+                                    dr_pbuf_write_encode_uint32(0);
+                                    continue;
+                                }
 
                                 nextStack->m_entry_count = nextStack->m_entry_pos + 1;
                             }
@@ -328,33 +331,34 @@ int dr_pbuf_write(
                 }
             }
 
-            if (curStack->m_entry->m_array_count != 1
-                && (curStack->m_entry->m_type != CPE_DR_TYPE_UNION
+            if (curStack->m_entry->m_array_count != 1) {
+                if (curStack->m_entry->m_type != CPE_DR_TYPE_UNION
                     && curStack->m_entry->m_type != CPE_DR_TYPE_STRUCT
-                    && curStack->m_entry->m_type != CPE_DR_TYPE_STRING))
-            {
-                if (curStack->m_array_pos > 0) {
-                    unsigned char size_buf[10];
-                    size_t len;
-                    size_t total;
-                    int size_size;
+                    && curStack->m_entry->m_type != CPE_DR_TYPE_STRING)
+                {
+                    if (curStack->m_array_pos > 0) {
+                        unsigned char size_buf[10];
+                        size_t len;
+                        size_t total;
+                        int size_size;
 
-                    len = curStack->m_output_size - curStack->m_array_begin_pos - dr_pbuf_write_size_reserve;
-                    size_size = cpe_dr_pbuf_encode32(len, size_buf);
-                    total = curStack->m_array_begin_pos + size_size + len;
+                        len = curStack->m_output_size - curStack->m_array_begin_pos - dr_pbuf_write_size_reserve;
+                        size_size = cpe_dr_pbuf_encode32(len, size_buf);
+                        total = curStack->m_array_begin_pos + size_size + len;
 
-                    memmove(
-                        curStack->m_output_data + curStack->m_array_begin_pos + size_size,
-                        curStack->m_output_data + curStack->m_array_begin_pos + dr_pbuf_write_size_reserve,
-                        len);
+                        memmove(
+                            curStack->m_output_data + curStack->m_array_begin_pos + size_size,
+                            curStack->m_output_data + curStack->m_array_begin_pos + dr_pbuf_write_size_reserve,
+                            len);
 
-                    memcpy(curStack->m_output_data + curStack->m_array_begin_pos, size_buf, size_size);
+                        memcpy(curStack->m_output_data + curStack->m_array_begin_pos, size_buf, size_size);
 
-                    curStack->m_output_size = total;
-                }
-                else {
-                    dr_pbuf_write_encode_id_and_type(CPE_PBUF_TYPE_LENGTH);
-                    dr_pbuf_write_encode_int32(0);
+                        curStack->m_output_size = total;
+                    }
+                    else {
+                        dr_pbuf_write_encode_id_and_type(CPE_PBUF_TYPE_LENGTH);
+                        dr_pbuf_write_encode_int32(0);
+                    }
                 }
             }
         }

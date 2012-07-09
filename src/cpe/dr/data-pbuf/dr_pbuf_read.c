@@ -377,6 +377,7 @@ static int dr_pbuf_read_i(
                     dr_pbuf_read_decode_varint(len_buf);
 
                     len = len_buf.low;
+
                     dr_pbuf_read_check_capacity(len);
                     curStack->m_input_size += len;
 
