@@ -3,6 +3,7 @@
 #include "cpe/utils/hash.h"
 #include "cpe/net/net_types.h"
 #include "usf/bpg_net/bpg_net_types.h"
+#include "usf/logic/logic_types.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -44,6 +45,7 @@ struct bpg_net_agent_binding {
 struct bpg_net_client {
     gd_app_context_t m_app;
     bpg_pkg_manage_t m_pkg_manage;
+    logic_manage_t m_logic_mgr;
     mem_allocrator_t m_alloc;
     error_monitor_t m_em;
     net_connector_t m_connector;
@@ -52,11 +54,17 @@ struct bpg_net_client {
     bpg_pkg_t m_req_buf;
     struct mem_buffer m_send_encode_buf;
 
+    uint32_t m_runing_require_capacity;
+    uint32_t m_runing_require_count;
+    uint32_t m_runing_require_op_count;
+    uint32_t m_runing_require_check_span;
+    logic_require_id_t * m_runing_requires;
+
     bpg_pkg_dsp_t m_rsp_dsp;
 
     dp_rsp_t m_send_rsp;
 
-    int m_debug;
+    int8_t m_debug;
 };
 
 typedef enum bpg_net_pkg_next_step {

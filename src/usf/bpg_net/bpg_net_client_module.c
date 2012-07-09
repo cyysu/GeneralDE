@@ -5,6 +5,7 @@
 #include "cpe/dp/dp_manage.h"
 #include "gd/app/app_context.h"
 #include "gd/app/app_module.h"
+#include "usf/logic/logic_manage.h"
 #include "usf/bpg_net/bpg_net_client.h"
 #include "usf/bpg_pkg/bpg_pkg_dsp.h"
 #include "usf/bpg_pkg/bpg_pkg_manage.h"
@@ -16,6 +17,7 @@ int bpg_net_client_app_init(gd_app_context_t app, gd_app_module_t module, cfg_t 
     const char * ip;
     short port;
     bpg_pkg_manage_t pkg_manage;
+    logic_manage_t logic_manage;
     cfg_t req_recv_cfg;
     cfg_t rsp_send_cfg;
 
@@ -25,6 +27,15 @@ int bpg_net_client_app_init(gd_app_context_t app, gd_app_module_t module, cfg_t 
             gd_app_em(app), "%s: create: pkg-manage %s not exist!",
             gd_app_module_name(module),
             cfg_get_string(cfg, "pkg-manage", "default"));
+        return -1;
+    }
+
+    logic_manage = logic_manage_find_nc(app, cfg_get_string(cfg, "logic-manage", NULL));
+    if (logic_manage == NULL) {
+        CPE_ERROR(
+            gd_app_em(app), "%s: create: logic-manage %s not exist!",
+            gd_app_module_name(module),
+            cfg_get_string(cfg, "logic-manage", "default"));
         return -1;
     }
 
@@ -49,7 +60,7 @@ int bpg_net_client_app_init(gd_app_context_t app, gd_app_module_t module, cfg_t 
 
     bpg_net_client =
         bpg_net_client_create(
-            app, pkg_manage, gd_app_module_name(module),
+            app, pkg_manage, logic_manage, gd_app_module_name(module),
             ip, port,
             gd_app_alloc(app), gd_app_em(app));
     if (bpg_net_client == NULL) return -1;
@@ -73,7 +84,10 @@ int bpg_net_client_app_init(gd_app_context_t app, gd_app_module_t module, cfg_t 
         return -1;
     }
 
-    bpg_net_client->m_debug = cfg_get_int32(cfg, "debug", 0);
+    bpg_net_client->m_runing_require_check_span = 
+        cfg_get_uint32(cfg, "runing-require-check-span", bpg_net_client->m_runing_require_check_span);
+
+    bpg_net_client->m_debug = cfg_get_int8(cfg, "debug", bpg_net_client->m_debug);
 
     if (bpg_net_client->m_debug) {
         CPE_INFO(

@@ -1,8 +1,10 @@
+#include <assert.h>
 #include "cpe/pal/pal_stdio.h"
 #include "cpe/dr/dr_cvt.h"
 #include "cpe/utils/buffer.h"
 #include "cpe/net/net_endpoint.h"
 #include "cpe/net/net_connector.h"
+#include "usf/logic/logic_require.h"
 #include "usf/bpg_pkg/bpg_pkg.h"
 #include "usf/bpg_net/bpg_net_client.h"
 #include "bpg_net_internal_ops.h"
@@ -14,7 +16,7 @@ int bpg_net_client_send(dp_req_t req, void * ctx, error_monitor_t em) {
     size_t write_size;
     net_ep_t ep;
     dr_cvt_result_t cvt_result;
-    
+
     client = (bpg_net_client_t)ctx;
     pkg = bpg_pkg_from_dp_req(req);
 
@@ -38,7 +40,39 @@ int bpg_net_client_send(dp_req_t req, void * ctx, error_monitor_t em) {
 
         mem_buffer_clear(&buffer);
     }
-    
+
+    assert(client->m_logic_mgr);
+
+    if (net_connector_state(client->m_connector) != net_connector_state_connected) {
+        CPE_ERROR(
+            client->m_em,
+            "%s: bpg_net_client_send: network not connected, state=%d!\n",
+            bpg_net_client_name(client),
+            net_connector_state(client->m_connector));
+        if (bpg_pkg_sn(pkg) != INVALID_LOGIC_REQUIRE_ID) {
+            logic_require_t require = logic_require_find(client->m_logic_mgr, bpg_pkg_sn(pkg));
+            if (require == NULL) {
+                if (client->m_debug) {
+                    CPE_ERROR(
+                        client->m_em,
+                        "%s: bpg_net_client_send: network not connected, notify require %u fail, require not exist!\n",
+                        bpg_net_client_name(client), bpg_pkg_sn(pkg));
+                }
+            }
+            else {
+                logic_require_set_error(require);
+                if (client->m_debug) {
+                    CPE_INFO(
+                        client->m_em,
+                        "%s: bpg_net_client_send: network not connected, notify require %u error complete!\n",
+                        bpg_net_client_name(client), bpg_pkg_sn(pkg));
+                }
+            }
+        }
+
+        return 0;
+    }
+
     ep = net_connector_ep(client->m_connector);
 
     mem_buffer_set_size(&client->m_send_encode_buf, client->m_req_max_size);
@@ -67,7 +101,15 @@ int bpg_net_client_send(dp_req_t req, void * ctx, error_monitor_t em) {
         net_ep_close(ep);
         return 0;
     }
-    
+
+    if (bpg_pkg_sn(pkg) != INVALID_LOGIC_REQUIRE_ID) {
+        if (bpg_net_client_save_require_id(client, bpg_pkg_sn(pkg)) != 0) {
+            CPE_INFO(
+                client->m_em, "%s: bpg_net_client_send: save require id fail!",
+                bpg_net_client_name(client));
+        }
+    }
+
     if (client->m_debug) {
         CPE_ERROR(
             client->m_em,
@@ -77,3 +119,4 @@ int bpg_net_client_send(dp_req_t req, void * ctx, error_monitor_t em) {
 
     return 0;
 }
+

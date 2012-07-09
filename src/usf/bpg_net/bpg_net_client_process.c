@@ -138,6 +138,14 @@ static void bpg_net_client_on_read(bpg_net_client_t client, net_ep_t ep) {
             }
         }
 
+        if (bpg_pkg_sn(req_buf) != INVALID_LOGIC_REQUIRE_ID) {
+            if (bpg_net_client_remove_require_id(client, bpg_pkg_sn(req_buf)) != 0) {
+                CPE_INFO(
+                    client->m_em, "%s: ep %d: remove require id fail!",
+                    bpg_net_client_name(client), (int)net_ep_id(ep));
+            }
+        }
+
         if (bpg_pkg_dsp_dispatch(client->m_rsp_dsp, req_buf, client->m_em) != 0) {
             CPE_ERROR(
                 client->m_em, "%s: ep %d: dispatch cmd %d error!",
@@ -161,6 +169,8 @@ static void bpg_net_client_on_close(bpg_net_client_t client, net_ep_t ep, net_ep
             client->m_em, "%s: ep %d: on close, event=%d",
             bpg_net_client_name(client), (int)net_ep_id(ep), event);
     }
+
+    bpg_net_client_notify_all_require_disconnect(client);
 }
 
 static void bpg_net_client_process(net_ep_t ep, void * ctx, net_ep_event_t event) {

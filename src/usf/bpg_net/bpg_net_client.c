@@ -19,6 +19,7 @@ bpg_net_client_t
 bpg_net_client_create(
     gd_app_context_t app,
     bpg_pkg_manage_t pkg_manage,
+    logic_manage_t logic_manage,
     const char * name,
     const char * ip,
     short port,
@@ -41,10 +42,15 @@ bpg_net_client_create(
     mgr->m_alloc = alloc;
     mgr->m_app = app;
     mgr->m_pkg_manage = pkg_manage;
+    mgr->m_logic_mgr = logic_manage;
     mgr->m_em = em;
     mgr->m_req_max_size = 4 * 1024;
     mgr->m_req_buf = NULL;
-
+    mgr->m_runing_require_capacity = 0;
+    mgr->m_runing_require_count = 0;
+    mgr->m_runing_require_op_count = 0;
+    mgr->m_runing_require_check_span = 20000;
+    mgr->m_runing_requires = NULL;
     mgr->m_debug = 0;
 
     mem_buffer_init(&mgr->m_send_encode_buf, alloc);
@@ -111,6 +117,11 @@ static void bpg_net_client_clear(nm_node_t node) {
     if (mgr->m_send_rsp) {
         dp_rsp_free(mgr->m_send_rsp);
         mgr->m_send_rsp = NULL;
+    }
+
+    if (mgr->m_runing_requires) {
+        mem_free(mgr->m_alloc, mgr->m_runing_requires);
+        mgr->m_runing_requires = NULL;
     }
 
     mem_buffer_clear(&mgr->m_send_encode_buf);

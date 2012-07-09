@@ -1,5 +1,6 @@
 #ifndef USF_BPG_NET_CLIENT_TCP_H
 #define USF_BPG_NET_CLIENT_TCP_H
+#include "usf/logic/logic_types.h"
 #include "bpg_net_types.h"
 
 #ifdef __cplusplus
@@ -10,6 +11,7 @@ bpg_net_client_t
 bpg_net_client_create(
     gd_app_context_t app,
     bpg_pkg_manage_t pkg_manage,
+    logic_manage_t logic_manage,
     const char * name,
     const char * ip,
     short port,
