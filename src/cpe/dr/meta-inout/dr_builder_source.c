@@ -1,4 +1,5 @@
 #include <assert.h>
+#include "cpe/pal/pal_platform.h"
 #include "cpe/pal/pal_string.h"
 #include "cpe/utils/file.h"
 #include "cpe/utils/buffer.h"
@@ -33,12 +34,12 @@ dr_metalib_source_create(
 
     name_len = strlen(name) + 1;
 
-    buf = mem_alloc(builder->m_alloc, name_len + sizeof(struct dr_metalib_source) + capacity);
+    buf = mem_alloc(builder->m_alloc, CPE_PAL_ALIGN(name_len) + sizeof(struct dr_metalib_source) + capacity);
     if (buf == NULL) return NULL;
 
     memcpy(buf, name, name_len);
 
-    source = (dr_metalib_source_t)(buf + name_len);
+    source = (dr_metalib_source_t)(buf + CPE_PAL_ALIGN(name_len));
     source->m_builder = builder;
     source->m_name = buf;
     source->m_type = type;
