@@ -25,7 +25,7 @@ public:
 
         Cpe::Cfg::NodeConstIterator configNodes = configNode.childs();
         while(Cpe::Cfg::Node const * boxCfg = configNodes.next()) {
-            if (!BaseT::META.try_load_from_cfg(m_elements[writeCount], *boxCfg)) {
+            if (!Cpe::Dr::MetaTraits<ElementT>::META.try_load_from_cfg(m_elements[writeCount], *boxCfg)) {
                 APP_ERROR("load %s fail, index="FMT_SIZE_T"!", typeid(ElementT).name(), readCount);
             }
             else {
@@ -47,7 +47,7 @@ public:
         {
             stream_putc_count(stream, ' ', level << 2);
 
-            BaseT::META.dump_data(stream, (void const *)&*it);
+            Cpe::Dr::MetaTraits<ElementT>::META.dump_data(stream, (void const *)&*it);
 
             stream_putc(stream, '\n');
         }
