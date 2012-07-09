@@ -43,9 +43,10 @@ void net_ep_free(net_ep_t ep) {
         net_connector_unbind(ep->m_connector);
     }
 
-    if (ep->m_timer.repeat) {
+    if (ev_cb(&ep->m_timer) == net_ep_timeout_cb) {
         ev_timer_stop(ep->m_mgr->m_ev_loop, &ep->m_timer);
-        ep->m_timer.repeat = 0;
+        ev_init(&ep->m_timer, NULL);
+        ev_timer_set(&ep->m_timer, 0, 0);
     }
 
     if (net_ep_is_open(ep)) {
