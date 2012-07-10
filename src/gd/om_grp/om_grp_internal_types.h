@@ -5,22 +5,7 @@
 #include "cpe/utils/hash.h"
 #include "gd/om_grp/om_grp_types.h"
 
-#define OM_GRP_OBJ_CONTROL_MAGIC (38438u)
-
 TAILQ_HEAD(om_grp_entry_meta_list, om_grp_entry_meta);
-
-struct om_grp_obj_control_data {
-    uint16_t m_magic;
-    uint16_t m_head_version;
-    uint16_t m_page_size;
-    uint16_t m_buffer_size;
-    uint16_t m_objmeta_start;
-    uint16_t m_objmeta_size;
-    uint16_t m_metalib_start;
-    uint16_t m_metalib_size;
-    uint32_t m_data_start;
-    uint32_t m_data_size;
-};
 
 struct om_grp_obj_mgr {
     mem_allocrator_t m_alloc;

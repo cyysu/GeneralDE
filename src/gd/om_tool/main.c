@@ -128,16 +128,16 @@ int tools_main(error_monitor_t em) {
         prepare_input_meta_file(builder, em);
         prepare_input_meta_group(builder, em);
 
-        dr_metalib_builder_free(builder);
-
         if (dr_inbuild_build_lib(
                 &input_meta_buffer,
                 dr_metalib_bilder_lib(builder),
                 em) == 0)
         {
+            dr_metalib_builder_free(builder);
             env.m_input_metalib = (LPDRMETALIB)mem_buffer_size(&input_meta_buffer);
         }
         else {
+            dr_metalib_builder_free(builder);
             printf("build meta lib fail!\n");
             goto ERROR;
         }

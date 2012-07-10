@@ -1,12 +1,14 @@
 #include "cpe/pal/pal_platform.h"
 #include "cpe/pal/pal_stdio.h"
 #include "cpe/dr/dr_metalib_manage.h"
+#include "cpe/dr/dr_metalib_init.h"
 #include "gd/om_grp/om_grp_obj_mgr.h"
 #include "gd/om_grp/om_grp_meta.h"
 #include "om_grp_internal_ops.h"
+#include "om_grp_data.h"
 
 int om_grp_obj_mgr_buf_init(
-    LPDRMETA metalib,
+    LPDRMETALIB metalib,
     om_grp_meta_t meta,
     uint16_t page_size,
     uint16_t buffer_size,
@@ -20,7 +22,7 @@ int om_grp_obj_mgr_buf_init(
     total_head_size
         = sizeof(struct om_grp_obj_control_data)
         + CPE_PAL_ALIGN(om_grp_entry_meta_calc_bin_size(meta))
-        + CPE_PAL_ALIGN(dr_meta_size(metalib));
+        + CPE_PAL_ALIGN(dr_lib_size(metalib));
 
     if (total_head_size >= data_capacity) {
         CPE_ERROR(
@@ -29,7 +31,7 @@ int om_grp_obj_mgr_buf_init(
             total_head_size, data_capacity,
             sizeof(struct om_grp_obj_control_data),
             CPE_PAL_ALIGN(om_grp_entry_meta_calc_bin_size(meta)),
-            CPE_PAL_ALIGN(dr_meta_size(metalib)));
+            CPE_PAL_ALIGN(dr_lib_size(metalib)));
         return -1;
     }
 
@@ -44,7 +46,7 @@ int om_grp_obj_mgr_buf_init(
     control->m_objmeta_size = om_grp_entry_meta_calc_bin_size(meta);
 
     control->m_metalib_start = control->m_objmeta_start + CPE_PAL_ALIGN(control->m_objmeta_size);
-    control->m_metalib_size = dr_meta_size(metalib);
+    control->m_metalib_size = dr_lib_size(metalib);
 
     control->m_data_start = control->m_metalib_start + CPE_PAL_ALIGN(control->m_metalib_size);
     control->m_data_size = data_capacity - control->m_data_start;

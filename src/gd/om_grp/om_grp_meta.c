@@ -1,7 +1,9 @@
+#include <assert.h>
 #include "cpe/pal/pal_platform.h"
 #include "cpe/dr/dr_metalib_manage.h"
 #include "gd/om_grp/om_grp_meta.h"
 #include "om_grp_internal_ops.h"
+#include "om_grp_data.h"
 
 om_grp_meta_t om_grp_meta_create(mem_allocrator_t alloc, const char * name) {
     char * buf;
@@ -47,6 +49,59 @@ void om_grp_meta_free(om_grp_meta_t meta) {
 
 const char * om_grp_meta_name(om_grp_meta_t meta) {
     return meta->m_name;
+}
+
+size_t om_grp_entry_meta_calc_bin_size(om_grp_meta_t meta) {
+    om_grp_entry_meta_t entry;
+    size_t size;
+
+    size = sizeof(struct om_grp_meta_data) 
+        + cpe_hash_table_count(&meta->m_entry_ht) * sizeof(struct om_grp_entry_meta_data);
+
+    TAILQ_FOREACH(entry, &meta->m_entry_list, m_next) {
+        size += strlen(entry->m_name) + 1;
+    }
+
+    return size;
+}
+
+om_grp_meta_t
+om_grp_entry_meta_build_from_bin(mem_allocrator_t alloc, void const * data, size_t data_capacity) {
+    return NULL;
+}
+
+void om_grp_entry_meta_write_to_bin(void * data, size_t capacity, om_grp_meta_t meta) {
+    om_grp_entry_meta_t entry;
+    struct om_grp_meta_data * meta_data;
+    struct om_grp_entry_meta_data * entry_meta_data;
+    uint32_t string_write_pos;
+    size_t string_len;
+
+    assert(om_grp_entry_meta_calc_bin_size(meta) <= capacity);
+
+    meta_data = (struct om_grp_meta_data *)data;
+
+    string_write_pos = 
+        sizeof(struct om_grp_meta_data) 
+        + cpe_hash_table_count(&meta->m_entry_ht) * sizeof(struct om_grp_entry_meta_data);
+
+    string_len = strlen(meta->m_name) + 1;
+    memcpy(((char*)data) + string_write_pos, meta->m_name, string_len);
+    meta_data->m_name_pos = string_write_pos;
+    string_write_pos += string_len;
+
+    meta_data->m_entry_count = cpe_hash_table_count(&meta->m_entry_ht);
+
+    entry_meta_data = (struct om_grp_entry_meta_data *)(meta_data + 1);
+
+    TAILQ_FOREACH(entry, &meta->m_entry_list, m_next) {
+        string_len = strlen(entry->m_name) + 1;
+        memcpy(((char*)data) + string_write_pos, entry->m_name, string_len);
+        entry_meta_data->m_name_pos = string_write_pos;
+        string_write_pos += string_len;
+
+        entry_meta_data += 1;
+    }
 }
 
 void om_grp_meta_dump(write_stream_t stream, om_grp_meta_t meta, int ident) {

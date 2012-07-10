@@ -4,6 +4,7 @@
 #include "gd/om_grp/om_grp_obj_mgr.h"
 #include "gd/om_grp/om_grp_meta.h"
 #include "om_grp_internal_ops.h"
+#include "om_grp_data.h"
 
 om_grp_obj_mgr_t
 om_grp_obj_mgr_create(
