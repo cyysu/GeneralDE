@@ -44,9 +44,11 @@ int om_grp_obj_mgr_buf_init(
 
     control->m_objmeta_start = sizeof(struct om_grp_obj_control_data);
     control->m_objmeta_size = om_grp_entry_meta_calc_bin_size(meta);
+    om_grp_entry_meta_write_to_bin(((char *)data) + control->m_objmeta_start, control->m_objmeta_size, meta);
 
     control->m_metalib_start = control->m_objmeta_start + CPE_PAL_ALIGN(control->m_objmeta_size);
     control->m_metalib_size = dr_lib_size(metalib);
+    memcpy(((char *)data) + control->m_metalib_start, metalib, control->m_metalib_size);
 
     control->m_data_start = control->m_metalib_start + CPE_PAL_ALIGN(control->m_metalib_size);
     control->m_data_size = data_capacity - control->m_data_start;

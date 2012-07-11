@@ -5,11 +5,12 @@ public:
     virtual void SetUp() {
         OmGrpObjMgrTest::SetUp();
         
+        t_em_set_print();
 
         install(
             "TestObj:\n"
-            "  - entry1 { entry-type: normal, data-type: AttrGroup1 }\n"
-            "  - entry2 { entry-type: list, data-type: AttrGroup2, capacity: 3 }\n"
+            "  - entry1: { entry-type: normal, data-type: AttrGroup1 }\n"
+            "  - entry2: { entry-type: list, data-type: AttrGroup2, capacity: 3 }\n"
             ,
             "<metalib tagsetversion='1' name='net'  version='1'>"
             "    <struct name='AttrGroup1' version='1'>"

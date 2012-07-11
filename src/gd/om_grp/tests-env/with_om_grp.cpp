@@ -43,9 +43,14 @@ with_om_grp::t_om_grp_obj_mgr_create(
     EXPECT_TRUE(om_meta) << "parse om_meta fail!";
     if (om_meta == NULL) return NULL;
 
+    om_meta = cfg_child_only(om_meta);
+    EXPECT_TRUE(om_meta) << "om_meta format error, get child only fail!";
+    if (om_meta == NULL) return NULL;
+
     om_grp_meta_t meta =
         om_grp_meta_build_from_cfg(t_tmp_allocrator(), om_meta, metalib, em);
     EXPECT_TRUE(meta) << "create om_grp_meta fail!"; 
+    if (meta == NULL) return NULL;
 
     int rv = om_grp_obj_mgr_buf_init(
             metalib,

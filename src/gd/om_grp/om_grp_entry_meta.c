@@ -31,6 +31,8 @@ om_grp_entry_meta_create_i(
         return NULL;
     }
 
+    TAILQ_INSERT_TAIL(&meta->m_entry_list, entry_meta, m_next);
+
     return entry_meta;
 }
 

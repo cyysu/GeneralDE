@@ -70,14 +70,15 @@ om_grp_obj_mgr_create(
     obj_mgr->m_alloc = alloc;
     obj_mgr->m_full_base = (char *)data;
     obj_mgr->m_full_capacity = data_capacity;
+    obj_mgr->m_metalib = (LPDRMETALIB)(obj_mgr->m_full_base + control->m_metalib_start);
 
     obj_mgr->m_meta =
         om_grp_entry_meta_build_from_bin(
             alloc,
             obj_mgr->m_full_base + control->m_objmeta_start,
-            control->m_objmeta_size);
-
-    obj_mgr->m_metalib = (LPDRMETALIB)(obj_mgr->m_full_base + control->m_metalib_start);
+            control->m_objmeta_size,
+            obj_mgr->m_metalib,
+            em);
 
     obj_mgr->m_data_base = obj_mgr->m_full_base + control->m_data_start;
     obj_mgr->m_data_capacity = control->m_data_size;

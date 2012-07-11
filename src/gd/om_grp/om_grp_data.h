@@ -17,13 +17,4 @@ struct om_grp_obj_control_data {
     uint32_t m_data_size;
 };
 
-struct om_grp_meta_data {
-    uint16_t m_name_pos;
-    uint8_t m_entry_count;
-};
-
-struct om_grp_entry_meta_data {
-    uint16_t m_name_pos;
-};
-
 #endif
