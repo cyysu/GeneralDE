@@ -8,7 +8,13 @@ extern "C" {
 #endif
 
 om_grp_meta_t
-om_grp_meta_build_from_cfg(mem_allocrator_t alloc, cfg_t cfg, LPDRMETALIB metalib, error_monitor_t em);
+om_grp_meta_build_from_cfg(
+    mem_allocrator_t alloc,
+    uint16_t omm_page_size,
+    uint16_t omm_buffer_size,
+    cfg_t cfg,
+    LPDRMETALIB metalib,
+    error_monitor_t em);
 
 #ifdef __cplusplus
 }

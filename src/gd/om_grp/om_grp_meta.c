@@ -5,7 +5,13 @@
 #include "om_grp_internal_ops.h"
 #include "om_grp_data.h"
 
-om_grp_meta_t om_grp_meta_create(mem_allocrator_t alloc, const char * name) {
+om_grp_meta_t
+om_grp_meta_create(
+    mem_allocrator_t alloc,
+    const char * name,
+    uint16_t omm_page_size,
+    uint16_t omm_buffer_size)
+{
     char * buf;
     size_t name_len;
     om_grp_meta_t meta;
@@ -20,6 +26,9 @@ om_grp_meta_t om_grp_meta_create(mem_allocrator_t alloc, const char * name) {
     meta = (om_grp_meta_t)(buf + CPE_PAL_ALIGN(name_len));
     meta->m_alloc = alloc;
     meta->m_name = buf;
+    meta->m_omm_page_size = omm_page_size;
+    meta->m_omm_buffer_size = omm_buffer_size;
+    meta->m_omm_control_class_id = 1;
 
     TAILQ_INIT(&meta->m_entry_list);
 

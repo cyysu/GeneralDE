@@ -21,8 +21,6 @@ gd_om_mgr_t om_grp_obj_mgr_omm(om_grp_obj_mgr_t mgr);
 int om_grp_obj_mgr_buf_init(
     LPDRMETALIB metalib,
     om_grp_meta_t grp_meta,
-    uint16_t page_size,
-    uint16_t buffer_size,
     void * data, size_t data_capacity,
     error_monitor_t em);
 
