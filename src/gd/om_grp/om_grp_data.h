@@ -7,8 +7,6 @@
 struct om_grp_obj_control_data {
     uint16_t m_magic;
     uint16_t m_head_version;
-    uint16_t m_page_size;
-    uint16_t m_buffer_size;
     uint16_t m_objmeta_start;
     uint16_t m_objmeta_size;
     uint16_t m_metalib_start;

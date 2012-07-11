@@ -68,6 +68,7 @@ om_grp_obj_mgr_create(
     }
 
     obj_mgr->m_alloc = alloc;
+    obj_mgr->m_em = em;
     obj_mgr->m_full_base = (char *)data;
     obj_mgr->m_full_capacity = data_capacity;
     obj_mgr->m_metalib = (LPDRMETALIB)(obj_mgr->m_full_base + control->m_metalib_start);
@@ -92,8 +93,8 @@ om_grp_obj_mgr_create(
     obj_mgr->m_omm =
         gd_om_mgr_create(
             alloc,
-            control->m_page_size,
-            control->m_buffer_size);
+            obj_mgr->m_meta->m_omm_page_size,
+            obj_mgr->m_meta->m_omm_buffer_size);
     if (obj_mgr->m_omm == NULL) {
         CPE_ERROR(em, "om_grp_obj_mgr_create_by_attach: create omm fail!");
         om_grp_meta_free(obj_mgr->m_meta);
@@ -113,3 +114,5 @@ void om_grp_obj_mgr_free(om_grp_obj_mgr_t mgr) {
 gd_om_mgr_t om_grp_obj_mgr_omm(om_grp_obj_mgr_t mgr) {
     return mgr->m_omm;
 }
+
+CPE_HS_DEF_VAR(om_grp_control_class_name, "om_grp_control");
