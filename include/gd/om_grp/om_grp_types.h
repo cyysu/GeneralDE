@@ -6,9 +6,8 @@
 extern "C" {
 #endif
 
-typedef struct om_grp_object {
-    void * m_control_page;
-} om_grp_object_t;
+typedef struct om_grp_obj * om_grp_obj_t;
+typedef struct om_grp_obj_mgr * om_grp_obj_mgr_t;
 
 typedef enum om_grp_entry_type {
     om_grp_entry_type_normal

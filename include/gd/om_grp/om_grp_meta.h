@@ -13,6 +13,8 @@ void om_grp_meta_free(om_grp_meta_t);
 
 const char * om_grp_meta_name(om_grp_meta_t meta);
 
+void om_grp_meta_dump(write_stream_t stream, om_grp_meta_t meta, int ident);
+
 /*entry operations*/
 om_grp_entry_meta_t
 om_grp_entry_meta_normal_create(
