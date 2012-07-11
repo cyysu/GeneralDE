@@ -8,7 +8,12 @@ extern "C" {
 #endif
 
 /*meta operations*/
-om_grp_meta_t om_grp_meta_create(mem_allocrator_t alloc, const char * name);
+om_grp_meta_t om_grp_meta_create(
+    mem_allocrator_t alloc,
+    const char * name,
+    uint16_t omm_page_size,
+    uint16_t omm_buffer_size);
+
 void om_grp_meta_free(om_grp_meta_t);
 
 const char * om_grp_meta_name(om_grp_meta_t meta);
@@ -20,25 +25,29 @@ om_grp_entry_meta_t
 om_grp_entry_meta_normal_create(
     om_grp_meta_t meta,
     const char * entry_name,
-    LPDRMETA entry_meta);
+    LPDRMETA entry_meta,
+    error_monitor_t em);
 
 om_grp_entry_meta_t
 om_grp_entry_meta_list_create(
     om_grp_meta_t meta,
     const char * entry_name,
-    LPDRMETA entry_meta, uint32_t capacity);
+    LPDRMETA entry_meta, uint32_t count_per_page, uint32_t capacity,
+    error_monitor_t em);
 
 om_grp_entry_meta_t
 om_grp_entry_meta_ba_create(
     om_grp_meta_t meta,
     const char * entry_name,
-    uint32_t capacity);
+    uint32_t capacity,
+    error_monitor_t em);
 
 om_grp_entry_meta_t
 om_grp_entry_meta_binary_create(
     om_grp_meta_t meta,
     const char * entry_name,
-    uint32_t capacity);
+    uint32_t capacity,
+    error_monitor_t em);
 
 void om_grp_entry_meta_free(om_grp_entry_meta_t entry_meta);
 

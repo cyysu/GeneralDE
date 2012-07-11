@@ -10,8 +10,6 @@
 int om_grp_obj_mgr_buf_init(
     LPDRMETALIB metalib,
     om_grp_meta_t meta,
-    uint16_t page_size,
-    uint16_t buffer_size,
     void * data, size_t data_capacity,
     error_monitor_t em)
 {
@@ -39,8 +37,6 @@ int om_grp_obj_mgr_buf_init(
 
     control->m_magic = OM_GRP_OBJ_CONTROL_MAGIC;
     control->m_head_version = 1;
-    control->m_page_size = page_size;
-    control->m_buffer_size = buffer_size;
 
     control->m_objmeta_start = sizeof(struct om_grp_obj_control_data);
     control->m_objmeta_size = om_grp_entry_meta_calc_bin_size(meta);

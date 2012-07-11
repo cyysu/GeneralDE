@@ -6,6 +6,9 @@
 
 struct om_grp_meta_data {
     uint16_t m_name_pos;
+    uint16_t m_omm_page_size;
+    uint16_t m_omm_buffer_size;
+    gd_om_class_id_t m_omm_control_class_id;
     uint8_t m_entry_count;
 };
 
@@ -14,6 +17,9 @@ struct om_grp_entry_meta_data {
     uint16_t m_meta_name_pos;
     uint16_t m_capacity;
     uint16_t m_type;
+    uint16_t m_obj_size;
+    uint16_t m_obj_align;
+    gd_om_class_id_t m_class_id;
 };
 
 size_t om_grp_entry_meta_calc_bin_size(om_grp_meta_t meta) {
@@ -78,9 +84,19 @@ om_grp_entry_meta_build_from_bin(mem_allocrator_t alloc, void const * data, size
         return NULL;
     }
 
-    meta = om_grp_meta_create(alloc, ((const char *)data) + meta_data->m_name_pos);
+    meta = om_grp_meta_create(alloc, ((const char *)data) + meta_data->m_name_pos, meta_data->m_omm_page_size, meta_data->m_omm_buffer_size);
     if (meta == NULL) {
         CPE_ERROR(em, "om_grp_entry_meta_build_from_bin: create meta fail!");
+        return NULL;
+    }
+    assert(meta->m_omm_page_size == meta_data->m_omm_page_size);
+    assert(meta->m_omm_buffer_size == meta_data->m_omm_buffer_size);
+
+    if (meta->m_omm_control_class_id != meta_data->m_omm_control_class_id) {
+        CPE_ERROR(
+            em, "om_grp_entry_meta_build_from_bin: entry %d class id mismatch! %d and %d", i,
+            meta->m_omm_control_class_id, meta_data->m_omm_control_class_id);
+        om_grp_meta_free(meta);
         return NULL;
     }
 
@@ -89,6 +105,7 @@ om_grp_entry_meta_build_from_bin(mem_allocrator_t alloc, void const * data, size
         const char * entry_name = NULL;
         const char * data_meta_name = NULL;
         LPDRMETA data_meta = NULL;
+        om_grp_entry_meta_t entry_meta = NULL;
 
         if (entry_meta_data->m_name_pos == 0) {
             CPE_ERROR(em, "om_grp_entry_meta_build_from_bin: entry %d no name!", i);
@@ -125,15 +142,70 @@ om_grp_entry_meta_build_from_bin(mem_allocrator_t alloc, void const * data, size
 
         switch(entry_meta_data->m_type) {
         case om_grp_entry_type_normal:
+            if (data_meta == NULL) {
+                CPE_ERROR(em, "om_grp_entry_meta_build_from_bin: entry %d(%s): no meta configured!", i, entry_name)
+                om_grp_meta_free(meta);
+                return NULL;
+            }
+            entry_meta = om_grp_entry_meta_normal_create(meta, entry_name, data_meta, em);
             break;
         case om_grp_entry_type_list:
+            if (data_meta == NULL) {
+                CPE_ERROR(em, "om_grp_entry_meta_build_from_bin: entry %d(%s): no meta configured!", i, entry_name)
+                om_grp_meta_free(meta);
+                return NULL;
+            }
+
+            entry_meta = om_grp_entry_meta_list_create(
+                meta, entry_name, data_meta,
+                entry_meta_data->m_obj_size / dr_meta_size(data_meta),
+                entry_meta_data->m_capacity,
+                em);
             break;
         case om_grp_entry_type_ba:
+            entry_meta = om_grp_entry_meta_ba_create(
+                meta, entry_name,
+                entry_meta_data->m_capacity,
+                em);
             break;
         case om_grp_entry_type_binary:
+            entry_meta = om_grp_entry_meta_binary_create(
+                meta, entry_name,
+                entry_meta_data->m_capacity,
+                em);
             break;
         default:
             CPE_ERROR(em, "om_grp_entry_meta_build_from_bin: not support entry type %d!", entry_meta_data->m_type);
+            om_grp_meta_free(meta);
+            return NULL;
+        }
+
+        if (entry_meta == NULL) {
+            CPE_ERROR(em, "om_grp_entry_meta_build_from_bin: create entry %s fail!", entry_name);
+            om_grp_meta_free(meta);
+            return NULL;
+        }
+
+        if (entry_meta->m_obj_size != entry_meta_data->m_obj_size) {
+            CPE_ERROR(
+                em, "om_grp_entry_meta_build_from_bin: create entry %s: obj-size mismatch! %d and %d"
+                , entry_name, entry_meta->m_obj_size, entry_meta_data->m_obj_size);
+            om_grp_meta_free(meta);
+            return NULL;
+        }
+
+        if (entry_meta->m_obj_align != entry_meta_data->m_obj_align) {
+            CPE_ERROR(
+                em, "om_grp_entry_meta_build_from_bin: create entry %s: obj-align mismatch! %d and %d"
+                , entry_name, entry_meta->m_obj_align, entry_meta_data->m_obj_align);
+            om_grp_meta_free(meta);
+            return NULL;
+        }
+
+        if (entry_meta->m_class_id != entry_meta_data->m_class_id) {
+            CPE_ERROR(
+                em, "om_grp_entry_meta_build_from_bin: create entry %s: class-id mismatch! %d and %d"
+                , entry_name, entry_meta->m_class_id, entry_meta_data->m_class_id);
             om_grp_meta_free(meta);
             return NULL;
         }
@@ -170,6 +242,9 @@ void om_grp_entry_meta_write_to_bin(void * data, size_t capacity, om_grp_meta_t 
     meta_data->m_name_pos = 
         om_grp_entry_meta_build_to_bin_write_string(&string_write_pos, data, capacity, meta->m_name);
     meta_data->m_entry_count = cpe_hash_table_count(&meta->m_entry_ht);
+    meta_data->m_omm_page_size = meta->m_omm_page_size;
+    meta_data->m_omm_buffer_size = meta->m_omm_buffer_size;
+    meta_data->m_omm_control_class_id = meta->m_omm_control_class_id;
 
     entry_meta_data = (struct om_grp_entry_meta_data *)(meta_data + 1);
 
@@ -179,6 +254,9 @@ void om_grp_entry_meta_write_to_bin(void * data, size_t capacity, om_grp_meta_t 
         entry_meta_data->m_type = entry->m_type;
         entry_meta_data->m_meta_name_pos = 0;
         entry_meta_data->m_capacity = 0;
+        entry_meta_data->m_class_id = entry->m_class_id;
+        entry_meta_data->m_obj_size = entry->m_obj_size;
+        entry_meta_data->m_obj_align = entry->m_obj_align;
 
         switch(entry->m_type) {
         case om_grp_entry_type_normal:

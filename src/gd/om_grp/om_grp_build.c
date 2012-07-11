@@ -26,7 +26,7 @@ static int om_grp_meta_build_from_cfg_entry_normal(
         return -1;
     }
 
-    if (om_grp_entry_meta_normal_create(meta, cfg_name(entry_cfg), data_meta) == NULL) {
+    if (om_grp_entry_meta_normal_create(meta, cfg_name(entry_cfg), data_meta, em) == NULL) {
         CPE_ERROR(
             em, "om_grp_meta_build_from_cfg: entry %s: create normal entry fail!",
             cfg_name(entry_cfg));
@@ -43,6 +43,7 @@ static int om_grp_meta_build_from_cfg_entry_list(
     LPDRMETA data_meta;
     const char * data_capacity;
     int list_count;
+    int group_count;
 
     data_type  = cfg_get_string(entry_cfg, "data-type", NULL);
     if (data_type == NULL) {
@@ -78,6 +79,24 @@ static int om_grp_meta_build_from_cfg_entry_list(
         }
     }
 
+    group_count = cfg_get_int32(entry_cfg, "group-count", -1);
+    if (group_count == -1) {
+        data_capacity = cfg_get_string(entry_cfg, "group-count", NULL);
+        if (data_capacity == NULL) {
+            CPE_ERROR(
+                em, "om_grp_meta_build_from_cfg: entry %s: entry-list not configure group-count!",
+                cfg_name(entry_cfg));
+            return -1;
+        }
+
+        if (dr_lib_find_macro_value(&list_count, metalib, data_capacity) != 0) {
+            CPE_ERROR(
+                em, "om_grp_meta_build_from_cfg: entry %s: entry-list group-count %s not exist in metalib!",
+                cfg_name(entry_cfg), data_capacity);
+            return -1;
+        }
+    }
+
     if (list_count <= 0) {
         CPE_ERROR(
             em, "om_grp_meta_build_from_cfg: entry %s: entry-list capacity %d error!",
@@ -85,7 +104,14 @@ static int om_grp_meta_build_from_cfg_entry_list(
         return -1;
     }
 
-    if (om_grp_entry_meta_list_create(meta, cfg_name(entry_cfg), data_meta, list_count) == NULL) {
+    if (group_count <= 0) {
+        CPE_ERROR(
+            em, "om_grp_meta_build_from_cfg: entry %s: entry-list group-count %d error!",
+            cfg_name(entry_cfg), group_count);
+        return -1;
+    }
+
+    if (om_grp_entry_meta_list_create(meta, cfg_name(entry_cfg), data_meta, group_count, list_count, em) == NULL) {
         CPE_ERROR(
             em, "om_grp_meta_build_from_cfg: entry %s: create list entry fail!",
             cfg_name(entry_cfg));
@@ -126,7 +152,7 @@ static int om_grp_meta_build_from_cfg_entry_ba(
         return -1;
     }
 
-    if (om_grp_entry_meta_ba_create(meta, cfg_name(entry_cfg), ba_count) == NULL) {
+    if (om_grp_entry_meta_ba_create(meta, cfg_name(entry_cfg), ba_count, em) == NULL) {
         CPE_ERROR(
             em, "om_grp_meta_build_from_cfg: entry %s: create ba entry fail!",
             cfg_name(entry_cfg));
@@ -167,7 +193,7 @@ static int om_grp_meta_build_from_cfg_entry_binary(
         return -1;
     }
 
-    if (om_grp_entry_meta_binary_create(meta, cfg_name(entry_cfg), binary_count) == NULL) {
+    if (om_grp_entry_meta_binary_create(meta, cfg_name(entry_cfg), binary_count, em) == NULL) {
         CPE_ERROR(
             em, "om_grp_meta_build_from_cfg: entry %s: create binary entry fail!",
             cfg_name(entry_cfg));
@@ -178,13 +204,18 @@ static int om_grp_meta_build_from_cfg_entry_binary(
 }
  
 om_grp_meta_t
-om_grp_meta_build_from_cfg(mem_allocrator_t alloc, cfg_t cfg, LPDRMETALIB metalib, error_monitor_t em) {
+om_grp_meta_build_from_cfg(
+    mem_allocrator_t alloc, 
+    uint16_t omm_page_size,
+    uint16_t omm_buffer_size,
+    cfg_t cfg, LPDRMETALIB metalib, error_monitor_t em)
+{
     om_grp_meta_t meta;
     struct cfg_it entry_it;
     cfg_t entry_cfg;
     int rv;
 
-    meta = om_grp_meta_create(alloc, cfg_name(cfg));
+    meta = om_grp_meta_create(alloc, cfg_name(cfg), omm_page_size, omm_buffer_size);
     if (meta == NULL) {
         CPE_ERROR(em, "om_grp_meta_build_from_cfg: create om_grp_meta fail!");
         return NULL;
