@@ -1,9 +1,11 @@
 #ifndef GD_OM_GRP_INTERNAL_TYPES_H
 #define GD_OM_GRP_INTERNAL_TYPES_H
-#include "cpe/dr/dr_types.h"
 #include "cpe/pal/pal_queue.h"
 #include "cpe/utils/hash.h"
+#include "cpe/utils/bitarry.h"
+#include "cpe/dr/dr_types.h"
 #include "gd/om_grp/om_grp_types.h"
+#include "cpe/utils/range.h"
 
 #define OM_GRP_OBJ_CONTROL_MAGIC (38438u)
 
@@ -17,6 +19,11 @@ struct om_grp_obj_mgr {
     LPDRMETALIB m_metalib;
     char * m_full_base;
     uint32_t m_full_capacity;
+
+    cpe_ba_t m_alloc_ba;
+    uint32_t m_alloc_ba_capacity;
+    struct cpe_range_mgr m_alloc_range;
+
     char * m_data_base;
     uint32_t m_data_capacity;
 };

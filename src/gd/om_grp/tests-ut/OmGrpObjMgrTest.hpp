@@ -5,6 +5,7 @@
 #include "cpe/cfg/tests-env/with_cfg.hpp"
 #include "cpe/dr/tests-env/with_dr.hpp"
 #include "gd/om_grp/tests-env/with_om_grp.hpp"
+#include "gd/om_grp/om_grp_obj.h"
 
 typedef LOKI_TYPELIST_4(
     utils::testenv::with_em,

@@ -17,19 +17,23 @@ int om_grp_obj_mgr_buf_init(
 
     size_t total_head_size;
 
+    size_t buf_count = data_capacity / meta->m_omm_buffer_size;
+    
     total_head_size
         = sizeof(struct om_grp_obj_control_data)
         + CPE_PAL_ALIGN(om_grp_entry_meta_calc_bin_size(meta))
+        + CPE_PAL_ALIGN(cpe_ba_bytes_from_bits(buf_count))
         + CPE_PAL_ALIGN(dr_lib_size(metalib));
 
     if (total_head_size >= data_capacity) {
         CPE_ERROR(
             em, "om_grp_obj_mgr_create_by_init: data buf too small! require "FMT_SIZE_T", but only "FMT_SIZE_T""
-            "control size "FMT_SIZE_T", om-meta size "FMT_SIZE_T", metalib size "FMT_SIZE_T"",
+            ": control size "FMT_SIZE_T", om-meta size "FMT_SIZE_T", metalib size "FMT_SIZE_T", alloc-ba size "FMT_SIZE_T"",
             total_head_size, data_capacity,
             sizeof(struct om_grp_obj_control_data),
             CPE_PAL_ALIGN(om_grp_entry_meta_calc_bin_size(meta)),
-            CPE_PAL_ALIGN(dr_lib_size(metalib)));
+            CPE_PAL_ALIGN(dr_lib_size(metalib)),
+            CPE_PAL_ALIGN(cpe_ba_bytes_from_bits(buf_count)));
         return -1;
     }
 
@@ -46,7 +50,11 @@ int om_grp_obj_mgr_buf_init(
     control->m_metalib_size = dr_lib_size(metalib);
     memcpy(((char *)data) + control->m_metalib_start, metalib, control->m_metalib_size);
 
-    control->m_data_start = control->m_metalib_start + CPE_PAL_ALIGN(control->m_metalib_size);
+    control->m_alloc_ba_start = control->m_metalib_start + control->m_metalib_start + CPE_PAL_ALIGN(control->m_metalib_size);
+    control->m_alloc_ba_size = cpe_ba_bytes_from_bits(buf_count);
+    bzero(((char *)data) + control->m_alloc_ba_start, control->m_alloc_ba_size);
+
+    control->m_data_start = control->m_alloc_ba_start + CPE_PAL_ALIGN(control->m_alloc_ba_size);
     control->m_data_size = data_capacity - control->m_data_start;
 
     return 0;

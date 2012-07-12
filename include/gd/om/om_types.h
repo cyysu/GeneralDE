@@ -13,7 +13,7 @@ extern "C" {
 
 #define GD_OM_INVALID_CLASSID ((gd_om_class_id_t)0)
 #define GD_OM_INVALID_OID ((gd_om_oid_t)0)
-#define GD_OM_INVALID_BUFFER_ID ((gd_om_oid_t)0)
+#define GD_OM_INVALID_BUFFER_ID ((gd_om_buffer_id_t)0)
 
 typedef uint8_t gd_om_class_id_t;
 typedef uint32_t gd_om_oid_t;

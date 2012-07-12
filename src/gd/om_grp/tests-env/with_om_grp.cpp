@@ -87,8 +87,7 @@ with_om_grp::t_om_grp_obj_mgr_create(
 om_grp_obj_mgr_t
 with_om_grp::t_om_grp_obj_mgr_create(
     const char * om_meta,
-    LPDRMETALIB metalib,
-    size_t capacity, uint16_t page_size, size_t buffer_size)
+    LPDRMETALIB metalib, size_t capacity, uint16_t page_size, size_t buffer_size)
 {
     error_monitor_t em = NULL;
     if (tryEnvOf<utils::testenv::with_em>()) {

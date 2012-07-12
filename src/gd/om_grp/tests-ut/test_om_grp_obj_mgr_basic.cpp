@@ -26,4 +26,6 @@ public:
 };
 
 TEST_F(OmGrpObjMgrBasicTest, basic_basic) {
+    om_grp_obj_t obj = om_mgr_obj_alloc(m_mgr);
+    ASSERT_TRUE(obj);
 }
