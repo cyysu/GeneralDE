@@ -36,7 +36,11 @@ struct om_grp_meta {
     uint16_t m_omm_buffer_size;
 
     gd_om_class_id_t m_control_class_id;
+    uint16_t m_control_obj_size;
+
     uint16_t m_page_count;
+    uint16_t m_size_buf_start;
+    uint16_t m_size_buf_count;
 
     struct om_grp_entry_meta_list m_entry_list;
     struct cpe_hash_table m_entry_ht;
@@ -49,6 +53,7 @@ struct om_grp_entry_data_normal {
 struct om_grp_entry_data_list {
     LPDRMETA m_data_meta;
     uint32_t m_capacity;
+    uint16_t m_size_idx;
 };
 
 struct om_grp_entry_data_ba {

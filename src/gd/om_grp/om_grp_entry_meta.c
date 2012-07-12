@@ -56,6 +56,8 @@ om_grp_entry_meta_create_i(
     TAILQ_INSERT_TAIL(&meta->m_entry_list, entry_meta, m_next);
 
     meta->m_page_count += page_count;
+    meta->m_control_obj_size += page_count * sizeof(gd_om_oid_t);
+    meta->m_size_buf_start += page_count * sizeof(gd_om_oid_t);
 
     return entry_meta;
 }
@@ -101,6 +103,9 @@ om_grp_entry_meta_list_create(
     if (r) {
         r->m_data.m_list.m_data_meta = entry_meta;
         r->m_data.m_list.m_capacity = capacity;
+        r->m_data.m_list.m_size_idx = meta->m_size_buf_count;
+        meta->m_size_buf_count += 1;
+        meta->m_control_obj_size += sizeof(uint16_t);
     }
 
     return r;

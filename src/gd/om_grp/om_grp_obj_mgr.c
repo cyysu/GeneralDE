@@ -172,8 +172,8 @@ int om_grp_meta_init_omm(gd_om_mgr_t omm, om_grp_meta_t meta, error_monitor_t em
             omm,
             meta->m_control_class_id,
             cpe_hs_data(om_grp_control_class_name),
-            meta->m_page_count * sizeof(gd_om_oid_t),
-            sizeof(gd_om_oid_t),
+            meta->m_control_obj_size,
+            2,
             em) != 0)
     {
         CPE_ERROR(em, "om_grp_meta_init_omm: register control page fail!");

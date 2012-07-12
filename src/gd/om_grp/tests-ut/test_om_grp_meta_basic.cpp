@@ -16,7 +16,7 @@ TEST_F(OmGrpMetaTest, normal_basic) {
 
 
     EXPECT_STREQ(
-        "om_grp_meta: name=TestObj, page-size=256, buf-size=512, class-id=1, page-count=1\n"
+        "om_grp_meta: name=TestObj, page-size=256, buf-size=512, class-id=1, obj-size=4, page-count=1, size-buf-start=4, size-buf-count=0\n"
         "    entry1: entry-type=normal, data=type=AttrGroup1, page-begin=0, page-count=1, class-id=2, obj-size=4, obj-align=1"
         ,
         t_om_grp_meta_dump(m_meta));
@@ -38,8 +38,8 @@ TEST_F(OmGrpMetaTest, list_basic) {
 
 
     EXPECT_STREQ(
-        "om_grp_meta: name=TestObj, page-size=256, buf-size=512, class-id=1, page-count=1\n"
-        "    entry1: entry-type=list, data=type=AttrGroup1, capacity=3, page-begin=0, page-count=1, class-id=2, obj-size=12, obj-align=1"
+        "om_grp_meta: name=TestObj, page-size=256, buf-size=512, class-id=1, obj-size=6, page-count=1, size-buf-start=4, size-buf-count=1\n"
+        "    entry1: entry-type=list, data=type=AttrGroup1, capacity=3, size-idx=0, page-begin=0, page-count=1, class-id=2, obj-size=12, obj-align=1"
         ,
         t_om_grp_meta_dump(m_meta));
 }
@@ -64,9 +64,9 @@ TEST_F(OmGrpMetaTest, basic_multi) {
 
 
     EXPECT_STREQ(
-        "om_grp_meta: name=TestObj, page-size=256, buf-size=512, class-id=1, page-count=2\n"
+        "om_grp_meta: name=TestObj, page-size=256, buf-size=512, class-id=1, obj-size=10, page-count=2, size-buf-start=8, size-buf-count=1\n"
         "    entry1: entry-type=normal, data=type=AttrGroup1, page-begin=0, page-count=1, class-id=2, obj-size=4, obj-align=1\n"
-        "    entry2: entry-type=list, data=type=AttrGroup2, capacity=3, page-begin=1, page-count=1, class-id=3, obj-size=15, obj-align=1"
+        "    entry2: entry-type=list, data=type=AttrGroup2, capacity=3, size-idx=0, page-begin=1, page-count=1, class-id=3, obj-size=15, obj-align=1"
         ,
         t_om_grp_meta_dump(m_meta));
 }
