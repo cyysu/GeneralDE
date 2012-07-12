@@ -53,5 +53,11 @@
 #define CPE_COPY_NTOH32(outp, inp) do { memcpy(outp, inp, 4); } while(0)
 #endif
 
+#ifdef __GNUC__
+#define INLINE inline
+#else
+#define INLINE
+#endif
+
 #endif
 

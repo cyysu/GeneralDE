@@ -19,13 +19,6 @@ struct om_grp_obj_mgr {
     LPDRMETALIB m_metalib;
     char * m_full_base;
     uint32_t m_full_capacity;
-
-    cpe_ba_t m_alloc_ba;
-    uint32_t m_alloc_ba_capacity;
-    struct cpe_range_mgr m_alloc_range;
-
-    char * m_data_base;
-    uint32_t m_data_capacity;
 };
 
 struct om_grp_meta {
@@ -33,7 +26,6 @@ struct om_grp_meta {
     const char * m_name;
 
     uint16_t m_omm_page_size;
-    uint16_t m_omm_buffer_size;
 
     gd_om_class_id_t m_control_class_id;
     uint16_t m_control_obj_size;

@@ -9,8 +9,7 @@ om_grp_meta_t
 om_grp_meta_create(
     mem_allocrator_t alloc,
     const char * name,
-    uint16_t omm_page_size,
-    uint16_t omm_buffer_size)
+    uint16_t omm_page_size)
 {
     char * buf;
     size_t name_len;
@@ -27,7 +26,6 @@ om_grp_meta_create(
     meta->m_alloc = alloc;
     meta->m_name = buf;
     meta->m_omm_page_size = omm_page_size;
-    meta->m_omm_buffer_size = omm_buffer_size;
     meta->m_control_class_id = 1;
     meta->m_control_obj_size = 0;
     meta->m_page_count = 0;
@@ -71,8 +69,19 @@ om_grp_entry_meta_find(om_grp_meta_t meta, const char * name) {
     return (om_grp_entry_meta_t)cpe_hash_table_find(&meta->m_entry_ht, &key);
 }
 
-void om_grp_entry_meta_it_init(om_grp_entry_meta_it_t it, om_grp_meta_t meta);
+static om_grp_entry_meta_t om_grp_entry_meta_it_next(struct om_grp_entry_meta_it * it) {
+    om_grp_entry_meta_t r;
+    if (it->m_data == NULL) return NULL;
 
+    r = it->m_data;
+    it->m_data = TAILQ_NEXT((om_grp_entry_meta_t)it->m_data, m_next);
+    return r;
+}
+
+void om_grp_entry_meta_it_init(om_grp_meta_t meta, om_grp_entry_meta_it_t it) {
+    it->m_data = TAILQ_FIRST(&meta->m_entry_list);
+    it->next = om_grp_entry_meta_it_next;
+}
 
 void om_grp_meta_dump(write_stream_t stream, om_grp_meta_t meta, int ident) {
     om_grp_entry_meta_t entry;
@@ -81,8 +90,8 @@ void om_grp_meta_dump(write_stream_t stream, om_grp_meta_t meta, int ident) {
     stream_printf(stream, "om_grp_meta: name=%s", meta->m_name);
 
     stream_printf(
-        stream, ", page-size=%d, buf-size=%d, class-id=%d, obj-size=%d, page-count=%d, size-buf-start=%d, size-buf-count=%d",
-        meta->m_omm_page_size, meta->m_omm_buffer_size, (int)meta->m_control_class_id,
+        stream, ", page-size=%d, class-id=%d, obj-size=%d, page-count=%d, size-buf-start=%d, size-buf-count=%d",
+        meta->m_omm_page_size, (int)meta->m_control_class_id,
         meta->m_control_obj_size, meta->m_page_count, meta->m_size_buf_start, meta->m_size_buf_count);
 
     TAILQ_FOREACH(entry, &meta->m_entry_list, m_next) {

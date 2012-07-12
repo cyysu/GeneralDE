@@ -16,11 +16,11 @@ void OmGrpMetaTest::TearDown() {
     Base::TearDown();
 }
 
-void OmGrpMetaTest::install(const char * om_meta, const char * metalib, uint16_t page_size, size_t buffer_size) {
+void OmGrpMetaTest::install(const char * om_meta, const char * metalib, uint16_t page_size) {
     if (m_meta) {
         om_grp_meta_free(m_meta);
         m_meta = NULL;
     }
 
-    m_meta = t_om_grp_meta_create(om_meta, metalib, page_size, buffer_size);
+    m_meta = t_om_grp_meta_create(om_meta, metalib, page_size);
 }

@@ -28,26 +28,18 @@ with_om_grp::t_om_grp_meta_dump(om_grp_meta_t meta) {
 }
 
 om_grp_meta_t
-with_om_grp::t_om_grp_meta_create(
-    const char * om_meta,
-    const char * str_metalib, 
-    uint16_t page_size, size_t buffer_size)
-{
+with_om_grp::t_om_grp_meta_create(const char * om_meta, const char * str_metalib, uint16_t page_size) {
     LPDRMETALIB metalib = 
         envOf<cpe::dr::testenv::with_dr>().t_create_metalib(
             str_metalib);
     EXPECT_TRUE(metalib) << "create metalib fail!";
     if (metalib == NULL) return NULL;
 
-    return t_om_grp_meta_create(om_meta, metalib, page_size, buffer_size);
+    return t_om_grp_meta_create(om_meta, metalib, page_size);
 }
 
 om_grp_meta_t
-with_om_grp::t_om_grp_meta_create(
-    const char * str_om_meta,
-    LPDRMETALIB metalib, 
-    uint16_t page_size, size_t buffer_size)
-{
+with_om_grp::t_om_grp_meta_create(const char * str_om_meta, LPDRMETALIB metalib, uint16_t page_size) {
     error_monitor_t em = NULL;
     if (tryEnvOf<utils::testenv::with_em>()) {
         em = envOf<utils::testenv::with_em>().t_em();
@@ -62,7 +54,7 @@ with_om_grp::t_om_grp_meta_create(
     if (om_meta == NULL) return NULL;
 
     om_grp_meta_t meta =
-        om_grp_meta_build_from_cfg(t_tmp_allocrator(), page_size, buffer_size, om_meta, metalib, em);
+        om_grp_meta_build_from_cfg(t_tmp_allocrator(), page_size, om_meta, metalib, em);
     EXPECT_TRUE(meta) << "create om_grp_meta fail!"; 
     if (meta == NULL) return NULL;
 
@@ -70,24 +62,20 @@ with_om_grp::t_om_grp_meta_create(
 }
 
 om_grp_obj_mgr_t
-with_om_grp::t_om_grp_obj_mgr_create(
-    const char * om_meta,
-    const char * str_metalib, 
-    size_t capacity, uint16_t page_size, size_t buffer_size)
-{
+with_om_grp::t_om_grp_obj_mgr_create(const char * om_meta, const char * str_metalib, size_t capacity, uint16_t page_size) {
     LPDRMETALIB metalib = 
         envOf<cpe::dr::testenv::with_dr>().t_create_metalib(
             str_metalib);
     EXPECT_TRUE(metalib) << "create metalib fail!";
     if (metalib == NULL) return NULL;
 
-    return t_om_grp_obj_mgr_create(om_meta, metalib, capacity, page_size, buffer_size);
+    return t_om_grp_obj_mgr_create(om_meta, metalib, capacity, page_size);
 }
 
 om_grp_obj_mgr_t
 with_om_grp::t_om_grp_obj_mgr_create(
     const char * om_meta,
-    LPDRMETALIB metalib, size_t capacity, uint16_t page_size, size_t buffer_size)
+    LPDRMETALIB metalib, size_t capacity, uint16_t page_size)
 {
     error_monitor_t em = NULL;
     if (tryEnvOf<utils::testenv::with_em>()) {
@@ -98,7 +86,7 @@ with_om_grp::t_om_grp_obj_mgr_create(
     EXPECT_TRUE(buf) << "malloc buf fail!";
     if (buf == NULL) return NULL;
 
-    om_grp_meta_t meta = t_om_grp_meta_create(om_meta, metalib, page_size, buffer_size);
+    om_grp_meta_t meta = t_om_grp_meta_create(om_meta, metalib, page_size);
     if (meta == NULL) return NULL;
 
     int rv = om_grp_obj_mgr_buf_init(

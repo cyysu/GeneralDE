@@ -60,7 +60,7 @@ void * om_grp_obj_normal_check_or_create_ex(om_grp_obj_mgr_t mgr, om_grp_obj_t o
     oid = ((gd_om_oid_t *)obj)[entry->m_page_begin];
 
     if (oid == GD_OM_INVALID_OID) {
-        oid = gd_om_obj_alloc(mgr->m_omm, om_grp_control_class_name, mgr->m_em);
+        oid = gd_om_obj_alloc(mgr->m_omm, om_grp_entry_meta_name_hs(entry), mgr->m_em);
         if (oid == GD_OM_INVALID_OID) {
             CPE_ERROR(mgr->m_em, "om_mgr_obj_normal_check_or_create_ex: alloc %s buf fail!", entry->m_name);
             return NULL;
@@ -81,7 +81,7 @@ int om_grp_obj_normal_set_ex(om_grp_obj_mgr_t mgr, om_grp_obj_t obj, om_grp_entr
     oid = ((gd_om_oid_t *)obj)[entry->m_page_begin];
 
     if (oid == GD_OM_INVALID_OID) {
-        oid = gd_om_obj_alloc(mgr->m_omm, om_grp_control_class_name, mgr->m_em);
+        oid = gd_om_obj_alloc(mgr->m_omm, om_grp_entry_meta_name_hs(entry), mgr->m_em);
         if (oid == GD_OM_INVALID_OID) {
             CPE_ERROR(mgr->m_em, "om_mgr_obj_normal_set: alloc %s buf fail!", entry->m_name);
             return -1;

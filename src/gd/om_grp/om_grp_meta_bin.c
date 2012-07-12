@@ -7,7 +7,6 @@
 struct om_grp_meta_data {
     uint16_t m_name_pos;
     uint16_t m_omm_page_size;
-    uint16_t m_omm_buffer_size;
     gd_om_class_id_t m_omm_control_class_id;
     uint8_t m_entry_count;
 };
@@ -84,13 +83,12 @@ om_grp_entry_meta_build_from_bin(mem_allocrator_t alloc, void const * data, size
         return NULL;
     }
 
-    meta = om_grp_meta_create(alloc, ((const char *)data) + meta_data->m_name_pos, meta_data->m_omm_page_size, meta_data->m_omm_buffer_size);
+    meta = om_grp_meta_create(alloc, ((const char *)data) + meta_data->m_name_pos, meta_data->m_omm_page_size);
     if (meta == NULL) {
         CPE_ERROR(em, "om_grp_entry_meta_build_from_bin: create meta fail!");
         return NULL;
     }
     assert(meta->m_omm_page_size == meta_data->m_omm_page_size);
-    assert(meta->m_omm_buffer_size == meta_data->m_omm_buffer_size);
 
     if (meta->m_control_class_id != meta_data->m_omm_control_class_id) {
         CPE_ERROR(
@@ -243,7 +241,6 @@ void om_grp_entry_meta_write_to_bin(void * data, size_t capacity, om_grp_meta_t 
         om_grp_entry_meta_build_to_bin_write_string(&string_write_pos, data, capacity, meta->m_name);
     meta_data->m_entry_count = cpe_hash_table_count(&meta->m_entry_ht);
     meta_data->m_omm_page_size = meta->m_omm_page_size;
-    meta_data->m_omm_buffer_size = meta->m_omm_buffer_size;
     meta_data->m_omm_control_class_id = meta->m_control_class_id;
 
     entry_meta_data = (struct om_grp_entry_meta_data *)(meta_data + 1);

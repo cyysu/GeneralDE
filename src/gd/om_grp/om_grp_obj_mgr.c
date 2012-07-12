@@ -8,7 +8,6 @@
 #include "om_grp_data.h"
 
 static int om_grp_meta_init_omm(gd_om_mgr_t omm, om_grp_meta_t meta, error_monitor_t em);
-struct gd_om_backend g_om_grp_backend;
 
 om_grp_obj_mgr_t
 om_grp_obj_mgr_create(
@@ -58,13 +57,6 @@ om_grp_obj_mgr_create(
         return NULL;
     }
 
-    if (data_capacity < (control->m_alloc_ba_start + control->m_alloc_ba_size)) {
-        CPE_ERROR(
-            em, "om_grp_obj_mgr_create: not enouth size, size="FMT_SIZE_T", alloc-ba end at %u!",
-            data_capacity, control->m_alloc_ba_start + control->m_alloc_ba_size)
-        return NULL;
-    }
-
     if (data_capacity < (control->m_data_start + control->m_data_size)) {
         CPE_ERROR(
             em, "om_grp_obj_mgr_create: not enouth size, size="FMT_SIZE_T", data end at %u!",
@@ -92,12 +84,6 @@ om_grp_obj_mgr_create(
             obj_mgr->m_metalib,
             em);
 
-    obj_mgr->m_alloc_ba = (cpe_ba_t)(obj_mgr->m_full_base + control->m_alloc_ba_start);
-    obj_mgr->m_alloc_ba_capacity = control->m_alloc_ba_size << 3;
-
-    obj_mgr->m_data_base = obj_mgr->m_full_base + control->m_data_start;
-    obj_mgr->m_data_capacity = control->m_data_size;
-
     if (obj_mgr->m_meta == NULL) {
         CPE_ERROR(em, "om_grp_obj_mgr_create: create meta fail!");
         mem_free(alloc, obj_mgr);
@@ -108,7 +94,7 @@ om_grp_obj_mgr_create(
         gd_om_mgr_create(
             alloc,
             obj_mgr->m_meta->m_omm_page_size,
-            obj_mgr->m_meta->m_omm_buffer_size);
+            control->m_data_size);
     if (obj_mgr->m_omm == NULL) {
         CPE_ERROR(em, "om_grp_obj_mgr_create: create omm fail!");
         om_grp_meta_free(obj_mgr->m_meta);
@@ -123,27 +109,13 @@ om_grp_obj_mgr_create(
         return NULL;
     }
 
-    if (gd_om_mgr_set_backend(obj_mgr->m_omm, &g_om_grp_backend, obj_mgr) != 0) {
-        CPE_ERROR(em, "om_grp_obj_mgr_create: omm set backend fail!");
-        gd_om_mgr_free(obj_mgr->m_omm);
-        om_grp_meta_free(obj_mgr->m_meta);
-        mem_free(alloc, obj_mgr);
-        return NULL;
-    }
 
-    if (cpe_range_mgr_init(&obj_mgr->m_alloc_range, alloc) != 0) {
-        CPE_ERROR(em, "om_grp_obj_mgr_create: init alloc range fail!");
-        gd_om_mgr_free(obj_mgr->m_omm);
-        om_grp_meta_free(obj_mgr->m_meta);
-        mem_free(alloc, obj_mgr);
-        return NULL;
-    }
-
-    if (cpe_range_put_range(&obj_mgr->m_alloc_range, 0, obj_mgr->m_alloc_ba_capacity) != 0
-        || cpe_range_free_from_bitarray(&obj_mgr->m_alloc_range, obj_mgr->m_alloc_ba, 0, obj_mgr->m_alloc_ba_capacity) != 0)
+    if (gd_om_mgr_attach_old_buffer(
+            obj_mgr->m_omm, 
+            (gd_om_buffer_id_t)(obj_mgr->m_full_base + control->m_data_start),
+            em) != 0)
     {
         CPE_ERROR(em, "om_grp_obj_mgr_create: prepaire alloc range fail!");
-        cpe_range_mgr_fini(&obj_mgr->m_alloc_range);
         gd_om_mgr_free(obj_mgr->m_omm);
         om_grp_meta_free(obj_mgr->m_meta);
         mem_free(alloc, obj_mgr);
@@ -154,7 +126,6 @@ om_grp_obj_mgr_create(
 }
 
 void om_grp_obj_mgr_free(om_grp_obj_mgr_t mgr) {
-    cpe_range_mgr_fini(&mgr->m_alloc_range);
     gd_om_mgr_free(mgr->m_omm);
     om_grp_meta_free(mgr->m_meta);
     mem_free(mgr->m_alloc, mgr);

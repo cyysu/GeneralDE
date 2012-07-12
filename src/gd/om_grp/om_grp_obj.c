@@ -47,3 +47,4 @@ void om_grp_obj_free(om_grp_obj_mgr_t mgr, om_grp_obj_t obj) {
 
     gd_om_obj_free(mgr->m_omm, control_oid, mgr->m_em);
 }
+

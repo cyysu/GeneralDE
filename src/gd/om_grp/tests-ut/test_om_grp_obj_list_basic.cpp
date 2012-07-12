@@ -1,14 +1,14 @@
 #include "gd/om_grp/om_grp_obj.h"
 #include "OmGrpObjMgrTest.hpp" 
 
-class OmGrpObjNormalTest : public OmGrpObjMgrTest {
+class OmGrpObjListTest : public OmGrpObjMgrTest {
 public:
     virtual void SetUp() {
         OmGrpObjMgrTest::SetUp();
         
         install(
             "TestObj:\n"
-            "  - entry1: { entry-type: normal, data-type: AttrGroup1 }\n"
+            "  - entry1: { entry-type: list, data-type: AttrGroup1, group-count: 3, capacity: 5 }\n"
             ,
             "<metalib tagsetversion='1' name='net'  version='1'>"
             "    <struct name='AttrGroup1' version='1'>"
@@ -29,11 +29,8 @@ public:
     om_grp_obj_t m_obj;
 };
 
-TEST_F(OmGrpObjNormalTest, empty) {
-    EXPECT_TRUE(om_grp_obj_normal(m_mgr, m_obj, "entry1") == NULL);
-}
-
-TEST_F(OmGrpObjNormalTest, check_or_create) {
-    t_em_set_print();
-    EXPECT_TRUE(om_grp_obj_normal_check_or_create(m_mgr, m_obj, "entry1") != NULL);
+TEST_F(OmGrpObjListTest, count_empty) {
+    EXPECT_EQ(
+        0,
+        om_grp_obj_list_count(m_mgr, m_obj, "entry1"));
 }

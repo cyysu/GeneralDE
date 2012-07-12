@@ -207,7 +207,6 @@ om_grp_meta_t
 om_grp_meta_build_from_cfg(
     mem_allocrator_t alloc, 
     uint16_t omm_page_size,
-    uint16_t omm_buffer_size,
     cfg_t cfg, LPDRMETALIB metalib, error_monitor_t em)
 {
     om_grp_meta_t meta;
@@ -215,7 +214,7 @@ om_grp_meta_build_from_cfg(
     cfg_t entry_cfg;
     int rv;
 
-    meta = om_grp_meta_create(alloc, cfg_name(cfg), omm_page_size, omm_buffer_size);
+    meta = om_grp_meta_create(alloc, cfg_name(cfg), omm_page_size);
     if (meta == NULL) {
         CPE_ERROR(em, "om_grp_meta_build_from_cfg: create om_grp_meta fail!");
         return NULL;

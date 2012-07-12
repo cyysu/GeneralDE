@@ -21,8 +21,17 @@ void * om_grp_obj_normal_check_or_create_ex(om_grp_obj_mgr_t mgr, om_grp_obj_t o
 int om_grp_obj_normal_set_ex(om_grp_obj_mgr_t mgr, om_grp_obj_t obj, om_grp_entry_meta_t entry, void * data);
 
 /*normal data ops*/
-uint16_t om_grp_obj_list_count(om_grp_obj_mgr_t mgr, om_grp_obj_t obj, om_grp_entry_meta_t entry);
-void * om_grp_obj_list_at(om_grp_obj_mgr_t mgr, om_grp_obj_t obj, om_grp_entry_meta_t entry, uint16_t pos);
+uint16_t om_grp_obj_list_count(om_grp_obj_mgr_t mgr, om_grp_obj_t obj, const char * entry);
+void * om_grp_obj_list_at(om_grp_obj_mgr_t mgr, om_grp_obj_t obj, const char * entry, uint16_t pos);
+int om_grp_obj_list_append(om_grp_obj_mgr_t mgr, om_grp_obj_t obj, const char * entry, void * data);
+int om_grp_obj_list_insert(om_grp_obj_mgr_t mgr, om_grp_obj_t obj, const char * entry, uint16_t pos, void * data);
+int om_grp_obj_list_remove(om_grp_obj_mgr_t mgr, om_grp_obj_t obj, const char * entry, uint16_t pos);
+
+uint16_t om_grp_obj_list_count_ex(om_grp_obj_mgr_t mgr, om_grp_obj_t obj, om_grp_entry_meta_t entry);
+void * om_grp_obj_list_at_ex(om_grp_obj_mgr_t mgr, om_grp_obj_t obj, om_grp_entry_meta_t entry, uint16_t pos);
+int om_grp_obj_list_append_ex(om_grp_obj_mgr_t mgr, om_grp_obj_t obj, om_grp_entry_meta_t entry, void * data);
+int om_grp_obj_list_insert_ex(om_grp_obj_mgr_t mgr, om_grp_obj_t obj, om_grp_entry_meta_t entry, uint16_t pos, void * data);
+int om_grp_obj_list_remove_ex(om_grp_obj_mgr_t mgr, om_grp_obj_t obj, om_grp_entry_meta_t entry, uint16_t pos);
 
 #ifdef __cplusplus
 }

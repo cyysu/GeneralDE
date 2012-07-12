@@ -19,18 +19,18 @@ om_grp_entry_meta_create_i(
     om_grp_entry_meta_t entry_meta;
     om_grp_entry_meta_t pre_entry_meta;
 
-    name_len = strlen(entry_name) + 1;
+    name_len = cpe_hs_len_to_binary_len(strlen(entry_name));
 
     buf = mem_alloc(meta->m_alloc, CPE_PAL_ALIGN(name_len) + sizeof(struct om_grp_entry_meta));
     if (buf == NULL) return NULL;
 
-    memcpy(buf, entry_name, name_len);
+    cpe_hs_init((cpe_hash_string_t)buf, name_len, entry_name);
 
     pre_entry_meta = TAILQ_FIRST(&meta->m_entry_list);
 
     entry_meta = (om_grp_entry_meta_t)(buf + CPE_PAL_ALIGN(name_len));
     entry_meta->m_meta = meta;
-    entry_meta->m_name = buf;
+    entry_meta->m_name = cpe_hs_data((cpe_hash_string_t)buf);
     entry_meta->m_type = type;
     entry_meta->m_obj_size = obj_size;
     entry_meta->m_obj_align = obj_align;
@@ -151,11 +151,15 @@ void om_grp_entry_meta_free(om_grp_entry_meta_t entry_meta) {
     TAILQ_REMOVE(&meta->m_entry_list, entry_meta, m_next);
     cpe_hash_table_remove_by_ins(&meta->m_entry_ht, meta);
 
-    mem_free(meta->m_alloc, (void*)entry_meta->m_name);
+    mem_free(meta->m_alloc, (void*)cpe_hs_from_str(entry_meta->m_name));
 }
 
 const char * om_grp_entry_meta_name(om_grp_entry_meta_t entry_meta) {
     return entry_meta->m_name;
+}
+
+cpe_hash_string_t om_grp_entry_meta_name_hs(om_grp_entry_meta_t entry_meta) {
+    return cpe_hs_from_str(entry_meta->m_name);
 }
 
 om_grp_entry_type_t om_grp_entry_meta_type(om_grp_entry_meta_t entry_meta) {
