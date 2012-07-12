@@ -75,31 +75,36 @@ void * om_grp_obj_list_at_ex(om_grp_obj_mgr_t mgr, om_grp_obj_t obj, om_grp_entr
     uint16_t page_pos;
     uint16_t pos_in_page;
     gd_om_oid_t oid;
+    uint16_t * count;
+    char * page_buf;
 
     assert(entry);
     assert(obj);
     assert(entry->m_type == om_grp_entry_type_list);
-    assert(pos < om_grp_obj_list_count_ex(mgr, obj, entry));
-    assert(pos < entry->m_data.m_list.m_capacity);
-    
+
+    if (pos >= entry->m_data.m_list.m_capacity) return NULL;
+
+    count = om_grp_obj_list_count_buf(mgr, obj, entry);
+    if (pos >= *count) return NULL;
+
     element_size = dr_meta_size(entry->m_data.m_list.m_data_meta);
     assert(element_size > 0);
-
     assert(entry->m_obj_size % element_size == 0);
 
-    count_in_page = entry->m_obj_size / dr_meta_size(entry->m_data.m_list.m_data_meta);
+    count_in_page = entry->m_obj_size / element_size;
     assert(count_in_page > 0);
 
     page_pos = pos / count_in_page;
     pos_in_page = pos % count_in_page;
-
     assert(page_pos < entry->m_page_count);
 
     oid = ((gd_om_oid_t *)obj)[entry->m_page_begin + page_pos];
     assert(oid != GD_OM_INVALID_OID);
 
-    return ((char*)gd_om_obj_get(mgr->m_omm, oid, mgr->m_em))
-        + pos_in_page * element_size;
+    page_buf = ((char*)gd_om_obj_get(mgr->m_omm, oid, mgr->m_em));
+    assert(page_buf);
+
+    return page_buf + pos_in_page * element_size;
 }
 
 int om_grp_obj_list_append_ex(om_grp_obj_mgr_t mgr, om_grp_obj_t obj, om_grp_entry_meta_t entry, void * data) {
@@ -108,7 +113,7 @@ int om_grp_obj_list_append_ex(om_grp_obj_mgr_t mgr, om_grp_obj_t obj, om_grp_ent
     uint16_t count_in_page;
     uint16_t page_pos;
     uint16_t pos_in_page;
-    gd_om_oid_t oid;
+    gd_om_oid_t * oid;
     uint16_t * count;
     char * page_buf;
 
@@ -138,23 +143,22 @@ int om_grp_obj_list_append_ex(om_grp_obj_mgr_t mgr, om_grp_obj_t obj, om_grp_ent
 
     assert(page_pos < entry->m_page_count);
 
-    oid = ((gd_om_oid_t *)obj)[entry->m_page_begin + page_pos];
-    if (oid == GD_OM_INVALID_OID) {
-        oid = gd_om_obj_alloc(mgr->m_omm, om_grp_entry_meta_name_hs(entry), mgr->m_em);
-        if (oid == GD_OM_INVALID_OID) {
+    oid = ((gd_om_oid_t *)obj) + entry->m_page_begin + page_pos;
+    if (*oid == GD_OM_INVALID_OID) {
+        *oid = gd_om_obj_alloc(mgr->m_omm, om_grp_entry_meta_name_hs(entry), mgr->m_em);
+        if (*oid == GD_OM_INVALID_OID) {
             CPE_ERROR(mgr->m_em, "om_grp_obj_list_append_ex: alloc %s buf fail!", entry->m_name);
             return -1;
         }
     }
 
-    page_buf = ((char*)gd_om_obj_get(mgr->m_omm, oid, mgr->m_em))
-        + pos_in_page * element_size;
+    page_buf = ((char*)gd_om_obj_get(mgr->m_omm, *oid, mgr->m_em));
     if (page_buf == NULL) {
         CPE_ERROR(mgr->m_em, "om_grp_obj_list_append_ex: get buf fail!");
         return -1;
     }
 
-    memcpy(page_buf, data, element_size);
+    memcpy(page_buf + pos_in_page * element_size, data, element_size);
     (*count)++;
     return 0;
 }
