@@ -27,7 +27,9 @@ struct om_grp_meta {
 
     uint16_t m_omm_page_size;
     uint16_t m_omm_buffer_size;
-    gd_om_class_id_t m_omm_control_class_id;
+
+    gd_om_class_id_t m_control_class_id;
+    uint16_t m_page_count;
 
     struct om_grp_entry_meta_list m_entry_list;
     struct cpe_hash_table m_entry_ht;

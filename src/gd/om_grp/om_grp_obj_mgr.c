@@ -6,6 +6,8 @@
 #include "om_grp_internal_ops.h"
 #include "om_grp_data.h"
 
+static int om_grp_meta_init_omm(gd_om_mgr_t omm, om_grp_meta_t meta, error_monitor_t em);
+
 om_grp_obj_mgr_t
 om_grp_obj_mgr_create(
     mem_allocrator_t alloc,
@@ -102,6 +104,13 @@ om_grp_obj_mgr_create(
         return NULL;
     }
 
+    if (om_grp_meta_init_omm(obj_mgr->m_omm, obj_mgr->m_meta, em) != 0) {
+        gd_om_mgr_free(obj_mgr->m_omm);
+        om_grp_meta_free(obj_mgr->m_meta);
+        mem_free(alloc, obj_mgr);
+        return NULL;
+    }
+
     return obj_mgr;
 }
 
@@ -113,6 +122,41 @@ void om_grp_obj_mgr_free(om_grp_obj_mgr_t mgr) {
 
 gd_om_mgr_t om_grp_obj_mgr_omm(om_grp_obj_mgr_t mgr) {
     return mgr->m_omm;
+}
+
+
+int om_grp_meta_init_omm(gd_om_mgr_t omm, om_grp_meta_t meta, error_monitor_t em) {
+    om_grp_entry_meta_t entry;
+
+    if (gd_om_mgr_add_class_with_id(
+            omm,
+            meta->m_control_class_id,
+            cpe_hs_data(om_grp_control_class_name),
+            meta->m_page_count * sizeof(gd_om_oid_t),
+            sizeof(gd_om_oid_t),
+            em) != 0)
+    {
+        CPE_ERROR(em, "om_grp_meta_init_omm: register control page fail!");
+        return -1;
+    }
+
+    TAILQ_FOREACH(entry, &meta->m_entry_list, m_next) {
+        if (gd_om_mgr_add_class_with_id(
+                omm,
+                entry->m_class_id,
+                entry->m_name,
+                entry->m_obj_size,
+                entry->m_obj_align,
+                em) != 0)
+        {
+            CPE_ERROR(
+                em, "om_grp_meta_init_omm: register page for %s(id=%d, obj-size=%d, obj-align=%d) fail!",
+                entry->m_name, entry->m_class_id, entry->m_obj_size, entry->m_obj_align);
+            return -1;
+        }
+    }
+
+    return 0;
 }
 
 CPE_HS_DEF_VAR(om_grp_control_class_name, "om_grp_control");

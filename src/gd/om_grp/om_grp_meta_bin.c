@@ -92,10 +92,10 @@ om_grp_entry_meta_build_from_bin(mem_allocrator_t alloc, void const * data, size
     assert(meta->m_omm_page_size == meta_data->m_omm_page_size);
     assert(meta->m_omm_buffer_size == meta_data->m_omm_buffer_size);
 
-    if (meta->m_omm_control_class_id != meta_data->m_omm_control_class_id) {
+    if (meta->m_control_class_id != meta_data->m_omm_control_class_id) {
         CPE_ERROR(
             em, "om_grp_entry_meta_build_from_bin: entry %d class id mismatch! %d and %d", i,
-            meta->m_omm_control_class_id, meta_data->m_omm_control_class_id);
+            meta->m_control_class_id, meta_data->m_omm_control_class_id);
         om_grp_meta_free(meta);
         return NULL;
     }
@@ -244,7 +244,7 @@ void om_grp_entry_meta_write_to_bin(void * data, size_t capacity, om_grp_meta_t 
     meta_data->m_entry_count = cpe_hash_table_count(&meta->m_entry_ht);
     meta_data->m_omm_page_size = meta->m_omm_page_size;
     meta_data->m_omm_buffer_size = meta->m_omm_buffer_size;
-    meta_data->m_omm_control_class_id = meta->m_omm_control_class_id;
+    meta_data->m_omm_control_class_id = meta->m_control_class_id;
 
     entry_meta_data = (struct om_grp_entry_meta_data *)(meta_data + 1);
 

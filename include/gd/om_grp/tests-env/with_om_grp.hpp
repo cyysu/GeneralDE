@@ -10,6 +10,8 @@ class with_om_grp : public ::testenv::env<> {
 public:
     with_om_grp();
 
+    const char * t_om_grp_meta_dump(om_grp_meta_t meta);
+
     om_grp_meta_t t_om_grp_meta_create(
         const char * om_meta,
         const char * metalib, 

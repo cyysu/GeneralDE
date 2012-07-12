@@ -9,6 +9,7 @@ om_grp_entry_meta_create_i(
     om_grp_meta_t meta,
     const char * entry_name,
     om_grp_entry_type_t type,
+    uint16_t page_count,
     uint16_t obj_size,
     uint16_t obj_align,
     error_monitor_t em)
@@ -39,16 +40,12 @@ om_grp_entry_meta_create_i(
         ? pre_entry_meta->m_page_begin + pre_entry_meta->m_page_count
         : 0;
 
-    entry_meta->m_page_count = meta->m_omm_page_size / obj_size;
-
-    if (entry_meta->m_page_count < 0) {
-        
-    }
+    entry_meta->m_page_count = page_count;
 
     entry_meta->m_class_id = 
         pre_entry_meta
         ? pre_entry_meta->m_class_id + 1
-        : meta->m_omm_control_class_id + 1;
+        : meta->m_control_class_id + 1;
 
     cpe_hash_entry_init(&entry_meta->m_hh);
     if (cpe_hash_table_insert_unique(&meta->m_entry_ht, entry_meta) != 0) {
@@ -57,6 +54,8 @@ om_grp_entry_meta_create_i(
     }
 
     TAILQ_INSERT_TAIL(&meta->m_entry_list, entry_meta, m_next);
+
+    meta->m_page_count += page_count;
 
     return entry_meta;
 }
@@ -73,6 +72,7 @@ om_grp_entry_meta_normal_create(
             meta,
             entry_name,
             om_grp_entry_type_normal,
+            1,
             dr_meta_size(entry_meta),
             dr_meta_align(entry_meta), em);
     if (r) r->m_data.m_normal.m_data_meta = entry_meta;
@@ -86,9 +86,15 @@ om_grp_entry_meta_list_create(
     LPDRMETA entry_meta, uint32_t count_per_page, uint32_t capacity,
     error_monitor_t em)
 {
-    om_grp_entry_meta_t r =
+    om_grp_entry_meta_t r;
+    
+    uint16_t page_count = capacity / count_per_page;
+    if (capacity % count_per_page) page_count += 1;
+
+    r =
         om_grp_entry_meta_create_i(
             meta, entry_name, om_grp_entry_type_list,
+            page_count,
             count_per_page * dr_meta_size(entry_meta), dr_meta_align(entry_meta),
             em);
 
@@ -110,7 +116,7 @@ om_grp_entry_meta_ba_create(
     om_grp_entry_meta_t r =
         om_grp_entry_meta_create_i(
             meta, entry_name, om_grp_entry_type_ba,
-            cpe_ba_bytes_from_bits(capacity), 1, em);
+            1, cpe_ba_bytes_from_bits(capacity), 1, em);
 
     if (r) r->m_data.m_ba.m_capacity = capacity;
 
@@ -124,9 +130,10 @@ om_grp_entry_meta_binary_create(
     uint32_t capacity,
     error_monitor_t em)
 {
-    om_grp_entry_meta_t r =
-        om_grp_entry_meta_create_i(
-            meta, entry_name, om_grp_entry_type_binary, capacity, 1, em);
+    om_grp_entry_meta_t r;
+
+    r = om_grp_entry_meta_create_i(
+        meta, entry_name, om_grp_entry_type_binary, 1, capacity, 1, em);
 
     if (r) r->m_data.m_ba.m_capacity = capacity;
 

@@ -28,7 +28,8 @@ om_grp_meta_create(
     meta->m_name = buf;
     meta->m_omm_page_size = omm_page_size;
     meta->m_omm_buffer_size = omm_buffer_size;
-    meta->m_omm_control_class_id = 1;
+    meta->m_control_class_id = 1;
+    meta->m_page_count = 0;
 
     TAILQ_INIT(&meta->m_entry_list);
 
@@ -65,10 +66,14 @@ void om_grp_meta_dump(write_stream_t stream, om_grp_meta_t meta, int ident) {
     stream_putc_count(stream, ' ', ident);
     stream_printf(stream, "om_grp_meta: name=%s", meta->m_name);
 
+    stream_printf(
+        stream, ", page-size=%d, buf-size=%d, class-id=%d, page-count=%d",
+        meta->m_omm_page_size, meta->m_omm_buffer_size, (int)meta->m_control_class_id, meta->m_page_count);
+
     TAILQ_FOREACH(entry, &meta->m_entry_list, m_next) {
         stream_printf(stream, "\n");
-        stream_putc_count(stream, ' ', ident >> 2);
-        stream_printf(stream, "%s:", entry->m_name);
+        stream_putc_count(stream, ' ', ident ? (ident << 2) : 4);
+        stream_printf(stream, "%s: ", entry->m_name);
 
         switch(entry->m_type) {
         case om_grp_entry_type_normal:
@@ -92,5 +97,9 @@ void om_grp_meta_dump(write_stream_t stream, om_grp_meta_t meta, int ident) {
             stream_printf(stream, "entry-type=unknown");
             break;
         }
+
+        stream_printf(
+            stream, ", page-begin=%d, page-count=%d, class-id=%d, obj-size=%d, obj-align=%d",
+            entry->m_page_begin, entry->m_page_count, entry->m_class_id, entry->m_obj_size, entry->m_obj_align);
     }
 }

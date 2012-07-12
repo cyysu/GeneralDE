@@ -24,6 +24,7 @@ om_mgr_obj_alloc(om_grp_obj_mgr_t mgr) {
         return NULL;
     }
 
+    return obj;
 }
 
 void om_grp_obj_free(om_grp_obj_mgr_t mgr, om_grp_obj_t obj) {

@@ -1,3 +1,5 @@
+#include "cpe/utils/buffer.h"
+#include "cpe/utils/stream_buffer.h"
 #include "cpe/utils/tests-env/with_em.hpp"
 #include "cpe/cfg/tests-env/with_cfg.hpp"
 #include "cpe/dr/tests-env/with_dr.hpp"
@@ -7,6 +9,22 @@
 namespace gd { namespace om_grp { namespace testenv {
 
 with_om_grp::with_om_grp() {
+}
+
+const char *
+with_om_grp::t_om_grp_meta_dump(om_grp_meta_t meta) {
+    mem_buffer buffer;
+    mem_buffer_init(&buffer, 0);
+
+    write_stream_buffer stream = CPE_WRITE_STREAM_BUFFER_INITIALIZER(&buffer);
+    om_grp_meta_dump((write_stream_t)&stream, meta, 0);
+    stream_putc((write_stream_t)&stream, 0);
+
+    const char * r = t_tmp_strdup((char *)mem_buffer_make_continuous(&buffer, 0));
+
+    mem_buffer_clear(&buffer);
+
+    return r;
 }
 
 om_grp_meta_t
