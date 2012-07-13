@@ -259,5 +259,89 @@ int om_grp_obj_list_insert_ex(om_grp_obj_mgr_t mgr, om_grp_obj_t obj, om_grp_ent
 }
 
 int om_grp_obj_list_remove_ex(om_grp_obj_mgr_t mgr, om_grp_obj_t obj, om_grp_entry_meta_t entry, uint16_t pos) {
-    return -1;
+    uint16_t element_size;
+    uint16_t count_in_page;
+    uint16_t remove_page_pos;
+    uint16_t remove_pos_in_page;
+    uint16_t last_page_pos;
+    uint16_t last_pos_in_page;
+    gd_om_oid_t * oid;
+    uint16_t * count;
+    char * page_buf;
+    uint16_t last_page_left_count;
+
+    assert(entry);
+    assert(obj);
+    assert(entry->m_type == om_grp_entry_type_list);
+
+    count = om_grp_obj_list_count_buf(mgr, obj, entry);
+    if (pos >= *count) return -1;
+
+    element_size = dr_meta_size(entry->m_data.m_list.m_data_meta);
+    assert(element_size > 0);
+    assert(entry->m_obj_size % element_size == 0);
+
+    count_in_page = entry->m_obj_size / element_size;
+    assert(count_in_page > 0);
+
+    remove_page_pos = pos / count_in_page;
+    remove_pos_in_page = pos % count_in_page;
+    assert(remove_page_pos < entry->m_page_count);
+
+    assert(*count > 0);
+
+    last_page_pos = ((*count) - 1) / count_in_page;
+    last_pos_in_page = ((*count) - 1) % count_in_page;
+    assert(last_page_pos < entry->m_page_count);
+
+    oid = ((gd_om_oid_t *)obj) + entry->m_page_begin + remove_page_pos;
+    assert(*oid != GD_OM_INVALID_OID);
+
+    page_buf = ((char*)gd_om_obj_get(mgr->m_omm, *oid, mgr->m_em));
+    assert(page_buf);
+
+    while(remove_page_pos < last_page_pos) {
+        char * next_page_buf;
+
+        if (remove_pos_in_page + 1 < count_in_page) {
+            memmove(
+                page_buf + element_size * remove_pos_in_page,
+                page_buf + element_size * (remove_pos_in_page + 1),
+                element_size * (count_in_page - remove_pos_in_page - 1));
+        }
+
+        ++oid;
+        assert(*oid != GD_OM_INVALID_OID);
+
+        next_page_buf = ((char*)gd_om_obj_get(mgr->m_omm, *oid, mgr->m_em));
+        assert(next_page_buf);
+
+        memmove(page_buf + element_size * (count_in_page - 1), next_page_buf, element_size);
+
+        page_buf = next_page_buf;
+        ++remove_page_pos;
+        remove_pos_in_page = 0;
+    };
+
+    last_page_left_count =
+        (*count)
+        - (count_in_page * remove_page_pos)
+        - remove_pos_in_page
+        - 1;
+
+    if (last_page_left_count > 0) {
+        memmove(
+            page_buf + element_size * remove_pos_in_page,
+            page_buf + element_size * (remove_pos_in_page + 1),
+            element_size * last_page_left_count);
+    }
+    else {
+        if (remove_pos_in_page == 0) {
+            gd_om_obj_free(mgr->m_omm, *oid, mgr->m_em);
+            *oid = GD_OM_INVALID_OID;
+        }
+    }
+    
+    --(*count);
+    return 0;
 }

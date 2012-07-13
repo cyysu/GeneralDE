@@ -43,6 +43,10 @@ public:
         ASSERT_EQ(0, om_grp_obj_list_insert(m_mgr, m_obj, "entry1", pos, &t));
     }
 
+    void remove(uint32_t pos) {
+        ASSERT_EQ(0, om_grp_obj_list_remove(m_mgr, m_obj, "entry1", pos));
+    }
+
     uint32_t at(uint32_t pos) {
         AttrGroup1 * r = (AttrGroup1 *)om_grp_obj_list_at(m_mgr, m_obj, "entry1", pos);
         EXPECT_TRUE(r) << "value at " << pos << " not exist!";
@@ -150,4 +154,59 @@ TEST_F(OmGrpObjListTest, insert_to_page_first) {
     insert(0, 1);
 
     EXPECT_STREQ("1:2:3:4", dump());
+}
+
+TEST_F(OmGrpObjListTest, remote_empty) {
+    EXPECT_NE(0, om_grp_obj_list_remove(m_mgr, m_obj, "entry1", 0));
+}
+
+TEST_F(OmGrpObjListTest, remote_page_first) {
+    append(1);
+    append(2);
+    append(3);
+    append(4);
+
+    remove(0);
+    EXPECT_STREQ("2:3:4", dump());
+}
+
+TEST_F(OmGrpObjListTest, remote_page_middle) {
+    append(1);
+    append(2);
+    append(3);
+    append(4);
+
+    remove(1);
+    EXPECT_STREQ("1:3:4", dump());
+}
+
+TEST_F(OmGrpObjListTest, remote_page_last) {
+    append(1);
+    append(2);
+    append(3);
+    append(4);
+
+    remove(2);
+    EXPECT_STREQ("1:2:4", dump());
+}
+
+TEST_F(OmGrpObjListTest, remote_last_page) {
+    append(1);
+    append(2);
+    append(3);
+    append(4);
+
+    remove(3);
+    EXPECT_STREQ("1:2:3", dump());
+}
+
+TEST_F(OmGrpObjListTest, remote_last_page_left) {
+    append(1);
+    append(2);
+    append(3);
+    append(4);
+    append(5);
+
+    remove(3);
+    EXPECT_STREQ("1:2:3:5", dump());
 }
