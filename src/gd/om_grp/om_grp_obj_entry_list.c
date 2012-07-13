@@ -153,10 +153,7 @@ int om_grp_obj_list_append_ex(om_grp_obj_mgr_t mgr, om_grp_obj_t obj, om_grp_ent
     }
 
     page_buf = ((char*)gd_om_obj_get(mgr->m_omm, *oid, mgr->m_em));
-    if (page_buf == NULL) {
-        CPE_ERROR(mgr->m_em, "om_grp_obj_list_append_ex: get buf fail!");
-        return -1;
-    }
+    assert(page_buf);
 
     memcpy(page_buf + pos_in_page * element_size, data, element_size);
     (*count)++;
@@ -164,7 +161,101 @@ int om_grp_obj_list_append_ex(om_grp_obj_mgr_t mgr, om_grp_obj_t obj, om_grp_ent
 }
 
 int om_grp_obj_list_insert_ex(om_grp_obj_mgr_t mgr, om_grp_obj_t obj, om_grp_entry_meta_t entry, uint16_t pos, void * data) {
-    return -1;
+    uint16_t element_size;
+    uint16_t count_in_page;
+    uint16_t insert_page_pos;
+    uint16_t insert_pos_in_page;
+    uint16_t last_page_pos;
+    uint16_t last_pos_in_page;
+    gd_om_oid_t * oid;
+    uint16_t * count;
+    char * page_buf;
+
+    assert(entry);
+    assert(obj);
+    assert(entry->m_type == om_grp_entry_type_list);
+
+    count = om_grp_obj_list_count_buf(mgr, obj, entry);
+    if (*count == pos) return om_grp_obj_list_append_ex(mgr, obj, entry, data);
+
+    if (pos > *count) {
+        CPE_ERROR(
+            mgr->m_em, "om_grp_obj_list_append_ex: entry %s: insert pos invalid, count=%d!",
+            entry->m_name, *count);
+        return -1;
+    }
+
+    if (*count >= entry->m_data.m_list.m_capacity) {
+        CPE_ERROR(
+            mgr->m_em, "om_grp_obj_list_insert_ex: entry %s: insert overflow, capacity=%d!",
+            entry->m_name, entry->m_data.m_list.m_capacity);
+        return -1;
+    }
+
+    element_size = dr_meta_size(entry->m_data.m_list.m_data_meta);
+    assert(element_size > 0);
+    assert(entry->m_obj_size % element_size == 0);
+
+    count_in_page = entry->m_obj_size / element_size;
+    assert(count_in_page > 0);
+
+    insert_page_pos = pos / count_in_page;
+    insert_pos_in_page = pos % count_in_page;
+    assert(insert_page_pos < entry->m_page_count);
+
+    last_page_pos = (*count) / count_in_page;
+    last_pos_in_page = (*count) % count_in_page;
+    assert(last_page_pos < entry->m_page_count);
+
+    oid = ((gd_om_oid_t *)obj) + entry->m_page_begin + last_page_pos;
+    if (*oid == GD_OM_INVALID_OID) {
+        *oid = gd_om_obj_alloc(mgr->m_omm, om_grp_entry_meta_name_hs(entry), mgr->m_em);
+        if (*oid == GD_OM_INVALID_OID) {
+            CPE_ERROR(mgr->m_em, "om_grp_obj_list_insert_ex: alloc %s buf fail!", entry->m_name);
+            return -1;
+        }
+    }
+
+    page_buf = ((char*)gd_om_obj_get(mgr->m_omm, *oid, mgr->m_em));
+    assert(page_buf);
+
+    while(last_page_pos > insert_page_pos) {
+        char * pre_page_buf;
+
+        if (last_pos_in_page > 0) {
+            memmove(page_buf + element_size, page_buf, element_size * (last_pos_in_page - 1));
+        }
+
+        --oid;
+        assert(*oid != GD_OM_INVALID_OID);
+
+        pre_page_buf = ((char*)gd_om_obj_get(mgr->m_omm, *oid, mgr->m_em));
+        assert(pre_page_buf);
+
+        memmove(page_buf, pre_page_buf + element_size * (count_in_page - 1), element_size);
+
+        page_buf = pre_page_buf;
+        --last_page_pos;
+        last_pos_in_page = count_in_page - 1;
+    }
+
+    
+    assert(*oid != GD_OM_INVALID_OID);
+    assert(page_buf);
+
+    assert(*oid == *(((gd_om_oid_t *)obj) + entry->m_page_begin + insert_page_pos));
+    assert(page_buf == gd_om_obj_get(mgr->m_omm, *oid, mgr->m_em));
+
+    if (insert_pos_in_page + 1 < count_in_page) {
+        memmove(
+            page_buf + element_size * (insert_pos_in_page + 1),
+            page_buf + element_size * insert_pos_in_page,
+            element_size * (count_in_page - (insert_pos_in_page + 1)));
+    }
+
+    memcpy(page_buf + element_size * insert_pos_in_page, data, element_size);
+    ++(*count);
+    return 0;
 }
 
 int om_grp_obj_list_remove_ex(om_grp_obj_mgr_t mgr, om_grp_obj_t obj, om_grp_entry_meta_t entry, uint16_t pos) {

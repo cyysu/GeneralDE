@@ -1,3 +1,4 @@
+#include <sstream>
 #include "gd/om_grp/om_grp_obj.h"
 #include "OmGrpObjMgrTest.hpp" 
 
@@ -30,13 +31,44 @@ public:
         OmGrpObjMgrTest::TearDown();
     }
 
+    void append(uint32_t value) {
+        AttrGroup1 t;
+        t.a1 = value;
+        EXPECT_EQ(0, om_grp_obj_list_append(m_mgr, m_obj, "entry1", &t));
+    }
+
+    void insert(uint32_t pos, uint32_t value) {
+        AttrGroup1 t;
+        t.a1 = value;
+        ASSERT_EQ(0, om_grp_obj_list_insert(m_mgr, m_obj, "entry1", pos, &t));
+    }
+
+    uint32_t at(uint32_t pos) {
+        AttrGroup1 * r = (AttrGroup1 *)om_grp_obj_list_at(m_mgr, m_obj, "entry1", pos);
+        EXPECT_TRUE(r) << "value at " << pos << " not exist!";
+        return r ? r->a1 : (uint32_t)-1;
+    }
+
+    uint16_t count(void) {
+        return om_grp_obj_list_count(m_mgr, m_obj, "entry1");
+    }
+
+    const char * dump(void) {
+        ::std::ostringstream ss;
+
+        for (uint16_t i = 0; i < count(); ++i) {
+            if (i) ss << ":";
+            ss << at(i);
+        }
+
+        return t_tmp_strdup(ss.str().c_str());
+    }
+
     om_grp_obj_t m_obj;
 };
 
 TEST_F(OmGrpObjListTest, count_empty) {
-    EXPECT_EQ(
-        0,
-        om_grp_obj_list_count(m_mgr, m_obj, "entry1"));
+    EXPECT_EQ(0, count());
 }
 
 TEST_F(OmGrpObjListTest, at_overflow_capacity) {
@@ -48,27 +80,74 @@ TEST_F(OmGrpObjListTest, at_overflow_count) {
 }
 
 TEST_F(OmGrpObjListTest, at_overflow_count_not_empty) {
-    AttrGroup1 v1;
-    v1.a1 = 1;
-    EXPECT_EQ(
-        0,
-        om_grp_obj_list_append(m_mgr, m_obj, "entry1", &v1));
-
+    append(1);
     EXPECT_TRUE(om_grp_obj_list_at(m_mgr, m_obj, "entry1", 1) == NULL);
 }
 
 TEST_F(OmGrpObjListTest, append_basic) {
+    append(1);
+    EXPECT_EQ(1, at(0));
+}
+
+TEST_F(OmGrpObjListTest, append_all) {
+    append(1);
+    append(2);
+    append(3);
+    append(4);
+    append(5);
+
+    EXPECT_STREQ("1:2:3:4:5", dump());
+}
+
+TEST_F(OmGrpObjListTest, append_overflow) {
+    append(1);
+    append(2);
+    append(3);
+    append(4);
+    append(5);
+
+    AttrGroup1 t;
+    t.a1 = 6;
+    EXPECT_NE(0, om_grp_obj_list_append(m_mgr, m_obj, "entry1", &t));
+
+    EXPECT_STREQ("1:2:3:4:5", dump());
+}
+
+TEST_F(OmGrpObjListTest, insert_to_empty) {
     AttrGroup1 v1;
     v1.a1 = 1;
-    EXPECT_EQ(
-        0,
-        om_grp_obj_list_append(m_mgr, m_obj, "entry1", &v1));
+    EXPECT_EQ(0, om_grp_obj_list_insert(m_mgr, m_obj, "entry1", 0, &v1));
 
-    EXPECT_EQ(
-        1,
-        om_grp_obj_list_count(m_mgr, m_obj, "entry1"));
+    EXPECT_EQ(1, count());
+    EXPECT_EQ(1, at(0));
+}
 
-    AttrGroup1 * r = (AttrGroup1 *)om_grp_obj_list_at(m_mgr, m_obj, "entry1", 0);
-    ASSERT_TRUE(r);
-    EXPECT_EQ(1, r->a1);
+TEST_F(OmGrpObjListTest, insert_to_page_last) {
+    append(1);
+    append(2);
+    append(4);
+
+    insert(2, 3);
+
+    EXPECT_STREQ("1:2:3:4", dump());
+}
+
+TEST_F(OmGrpObjListTest, insert_to_page_middle) {
+    append(1);
+    append(3);
+    append(4);
+
+    insert(1, 2);
+
+    EXPECT_STREQ("1:2:3:4", dump());
+}
+
+TEST_F(OmGrpObjListTest, insert_to_page_first) {
+    append(2);
+    append(3);
+    append(4);
+
+    insert(0, 1);
+
+    EXPECT_STREQ("1:2:3:4", dump());
 }
