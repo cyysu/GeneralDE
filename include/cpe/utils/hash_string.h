@@ -24,6 +24,7 @@ void cpe_hs_strcat(cpe_hash_string_t target, size_t capacity, const char * data)
 void cpe_hs_printf(cpe_hash_string_t target, size_t capacity, const char * fmt, ...);
 
 #define cpe_hs_data(hs) (((const char *)(hs)) + 8)
+#define cpe_hs_from_str(str) ((cpe_hash_string_t)((((const char *)(str)) - 8)))
 
 #define cpe_hs_cmp(__l, __r)                                    \
     ( cpe_hs_value(__l) == cpe_hs_value(__r)                    \
