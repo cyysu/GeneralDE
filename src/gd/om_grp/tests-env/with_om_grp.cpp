@@ -99,7 +99,7 @@ with_om_grp::t_om_grp_obj_mgr_create(
     if (rv != 0) return NULL;
 
     om_grp_obj_mgr_t mgr = om_grp_obj_mgr_create(t_allocrator(), buf, capacity, em);
-    EXPECT_TRUE(mgr) << "om_mgr_obj_gr create fail!";
+    EXPECT_TRUE(mgr) << "om_mgr_obj_mgr create fail!";
     return mgr;
 }
 

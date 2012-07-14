@@ -58,6 +58,26 @@ int om_grp_obj_list_remove(om_grp_obj_mgr_t mgr, om_grp_obj_t obj, const char * 
     return om_grp_obj_list_remove_ex(mgr, obj, entry_meta, pos);
 }
 
+int om_grp_obj_list_sort(om_grp_obj_mgr_t mgr, om_grp_obj_t obj, const char * entry, int (*cmp)(void const *, void const *)) {
+    om_grp_entry_meta_t entry_meta = om_grp_entry_meta_find(mgr->m_meta, entry);
+    if (entry_meta == NULL) {
+        CPE_ERROR(mgr->m_em, "om_grp_obj_list_sort: entry %s not exist!", entry);
+        return -1;
+    }
+
+    return om_grp_obj_list_sort_ex(mgr, obj, entry_meta, cmp);
+}
+
+void * om_grp_obj_list_bsearch(om_grp_obj_mgr_t mgr, om_grp_obj_t obj, const char * entry, void const * key, int (*cmp)(void const *, void const *)) {
+    om_grp_entry_meta_t entry_meta = om_grp_entry_meta_find(mgr->m_meta, entry);
+    if (entry_meta == NULL) {
+        CPE_ERROR(mgr->m_em, "om_grp_obj_list_bsearch: entry %s not exist!", entry);
+        return NULL;
+    }
+
+    return om_grp_obj_list_bsearch_ex(mgr, obj, entry_meta, key, cmp);
+}
+
 uint16_t * om_grp_obj_list_count_buf(om_grp_obj_mgr_t mgr, om_grp_obj_t obj, om_grp_entry_meta_t entry) {
     return ((uint16_t *)(((char *)obj) + mgr->m_meta->m_size_buf_start)) + entry->m_data.m_list.m_size_idx;
 }
@@ -344,4 +364,12 @@ int om_grp_obj_list_remove_ex(om_grp_obj_mgr_t mgr, om_grp_obj_t obj, om_grp_ent
     
     --(*count);
     return 0;
+}
+
+int om_grp_obj_list_sort_ex(om_grp_obj_mgr_t mgr, om_grp_obj_t obj, om_grp_entry_meta_t entry, int (*cmp)(void const *, void const *)) {
+    return 0;
+}
+
+void * om_grp_obj_list_bsearch_ex(om_grp_obj_mgr_t mgr, om_grp_obj_t obj, om_grp_entry_meta_t entry, const void * key, int (*cmp)(void const *, void const *)) {
+    return NULL;
 }

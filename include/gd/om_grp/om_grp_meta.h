@@ -38,7 +38,7 @@ om_grp_entry_meta_t
 om_grp_entry_meta_ba_create(
     om_grp_meta_t meta,
     const char * entry_name,
-    uint32_t capacity,
+    uint16_t byte_per_page, uint16_t bit_capacity,
     error_monitor_t em);
 
 om_grp_entry_meta_t

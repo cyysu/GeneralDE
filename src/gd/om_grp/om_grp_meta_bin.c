@@ -163,7 +163,7 @@ om_grp_entry_meta_build_from_bin(mem_allocrator_t alloc, void const * data, size
         case om_grp_entry_type_ba:
             entry_meta = om_grp_entry_meta_ba_create(
                 meta, entry_name,
-                entry_meta_data->m_capacity,
+                entry_meta_data->m_obj_size, entry_meta_data->m_capacity,
                 em);
             break;
         case om_grp_entry_type_binary:
@@ -271,7 +271,7 @@ void om_grp_entry_meta_write_to_bin(void * data, size_t capacity, om_grp_meta_t 
             entry_meta_data->m_capacity = entry->m_data.m_list.m_capacity;
             break;
         case om_grp_entry_type_ba:
-            entry_meta_data->m_capacity = entry->m_data.m_ba.m_capacity;
+            entry_meta_data->m_capacity = entry->m_data.m_ba.m_bit_capacity;
             break;
         case om_grp_entry_type_binary:
             entry_meta_data->m_capacity = entry->m_data.m_binary.m_capacity;

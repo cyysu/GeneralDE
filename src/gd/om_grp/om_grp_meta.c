@@ -114,10 +114,14 @@ void om_grp_meta_dump(write_stream_t stream, om_grp_meta_t meta, int ident) {
             break;
         case om_grp_entry_type_ba:
             stream_printf(
-                stream, "entry-type=ba, capacity=%d",
-                (int)entry->m_data.m_ba.m_capacity);
+                stream, "entry-type=ba, bit-capacity=%d",
+                (int)entry->m_data.m_ba.m_bit_capacity);
             break;
         case om_grp_entry_type_binary:
+            stream_printf(
+                stream, "entry-type=binary, capacity=%d",
+                (int)entry->m_data.m_binary.m_capacity);
+            break;
         default:
             stream_printf(stream, "entry-type=unknown");
             break;

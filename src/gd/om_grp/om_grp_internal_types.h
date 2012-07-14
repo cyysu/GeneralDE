@@ -49,7 +49,7 @@ struct om_grp_entry_data_list {
 };
 
 struct om_grp_entry_data_ba {
-    uint32_t m_capacity;
+    uint32_t m_bit_capacity;
 };
 
 struct om_grp_entry_data_binary {

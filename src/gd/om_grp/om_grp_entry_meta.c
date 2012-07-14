@@ -26,7 +26,7 @@ om_grp_entry_meta_create_i(
 
     cpe_hs_init((cpe_hash_string_t)buf, name_len, entry_name);
 
-    pre_entry_meta = TAILQ_FIRST(&meta->m_entry_list);
+    pre_entry_meta = TAILQ_EMPTY(&meta->m_entry_list) ? NULL : TAILQ_LAST(&meta->m_entry_list, om_grp_entry_meta_list);
 
     entry_meta = (om_grp_entry_meta_t)(buf + CPE_PAL_ALIGN(name_len));
     entry_meta->m_meta = meta;
@@ -115,15 +115,24 @@ om_grp_entry_meta_t
 om_grp_entry_meta_ba_create(
     om_grp_meta_t meta,
     const char * entry_name,
-    uint32_t capacity,
+    uint16_t byte_per_page, uint16_t bit_capacity,
     error_monitor_t em)
 {
-    om_grp_entry_meta_t r =
+    uint16_t byte_capacity = cpe_ba_bytes_from_bits(bit_capacity);
+    om_grp_entry_meta_t r;
+    uint16_t page_count;
+
+    page_count = byte_capacity / byte_per_page;
+    if (byte_capacity % byte_per_page) page_count += 1;
+
+    r =
         om_grp_entry_meta_create_i(
             meta, entry_name, om_grp_entry_type_ba,
-            1, cpe_ba_bytes_from_bits(capacity), 1, em);
+            1, byte_capacity, page_count, em);
 
-    if (r) r->m_data.m_ba.m_capacity = capacity;
+    if (r) {
+        r->m_data.m_ba.m_bit_capacity = bit_capacity;
+    }
 
     return r;
 }
@@ -140,7 +149,7 @@ om_grp_entry_meta_binary_create(
     r = om_grp_entry_meta_create_i(
         meta, entry_name, om_grp_entry_type_binary, 1, capacity, 1, em);
 
-    if (r) r->m_data.m_ba.m_capacity = capacity;
+    if (r) r->m_data.m_binary.m_capacity = capacity;
 
     return r;
 }
