@@ -58,6 +58,10 @@ void pom_grp_meta_free(pom_grp_meta_t meta) {
         mem_free(meta->m_alloc, meta->m_entry_buf);
     }
 
+    if (meta->m_entry_buf) {
+        mem_free(meta->m_alloc, meta->m_entry_buf);
+    }
+
     cpe_hash_table_fini(&meta->m_entry_ht);
 
     mem_free(meta->m_alloc, (void*)meta->m_name);

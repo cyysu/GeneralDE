@@ -28,7 +28,6 @@ pom_grp_meta_t
 pom_grp_entry_meta_build_from_bin(
     mem_allocrator_t alloc, 
     void const * data,
-    size_t data_capacity,
     LPDRMETALIB metalib,
     error_monitor_t em);
 
