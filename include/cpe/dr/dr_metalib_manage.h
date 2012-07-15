@@ -28,6 +28,7 @@ int dr_meta_find_entry_idx_by_id(LPDRMETA meta, int id);
 char *dr_meta_off_to_path(LPDRMETA meta, int off, char * buf, size_t bufSize);
 int dr_meta_path_to_off(LPDRMETA meta, const char * path, LPDRMETAENTRY * entry);
 LPDRMETAENTRY dr_meta_find_entry_by_name(LPDRMETA meta, const char* name);
+LPDRMETAENTRY dr_meta_find_entry_by_id(LPDRMETA meta, int id);
 LPDRMETAENTRY dr_meta_find_entry_by_path(LPDRMETA meta, const char* entryPath);
 LPDRMETALIB dr_meta_owner_lib(LPDRMETA meta);
 

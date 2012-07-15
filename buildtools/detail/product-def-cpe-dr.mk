@@ -28,7 +28,7 @@ define product-def-rule-cpe-dr-c-module-traits-cpp
 
   $(eval r.$1.$3.c.sources += $(r.$1.$3.cpe-dr.$2.generated.traits.cpp))
 
-  $(r.$1.$3.cpe-dr.$2.generated.traits.cpp): $(r.$1.$3.cpe-dr.$2.source) $(cpe-dr-tool)
+  $(r.$1.$3.cpe-dr.$2.generated.traits.cpp): $(r.$1.$3.cpe-dr.$2.source) $(cpe-dr-tool) $(r.$1.$3.cpe-dr.$2.generated.h)
 	$$(call with_message,cpe-dr generaing traits-cpp to $(subst $(CPDE_ROOT)/,,$(r.$1.$3.cpe-dr.$2.generated.traits.cpp)) ...) \
 	LD_LIBRARY_PATH=$(CPDE_OUTPUT_ROOT)/$(tools.output)/lib:$$$$LD_LIBRARY_PATH \
 	$(cpe-dr-tool) $(addprefix -i ,$(r.$1.$3.cpe-dr.$2.source)) \

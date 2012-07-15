@@ -94,8 +94,10 @@ ssize_t dr_cvt_fun_cpoy_encode(
 }
 
 extern struct dr_cvt_type s_cvt_type_copy;
+extern struct dr_cvt_type s_cvt_type_noop;
 
 void dr_cvt_types_init(void) {
     TAILQ_INSERT_TAIL(&s_cvt_types, &s_cvt_type_copy, m_next);
+    TAILQ_INSERT_TAIL(&s_cvt_types, &s_cvt_type_noop, m_next);
 }
 

@@ -79,6 +79,7 @@ public:
 class ConstData {
 public:
     ConstData(const void * data, LPDRMETA meta = 0, size_t capacity = 0);
+    ConstData(ConstDataElement const & e);
 
     Meta const & meta(void) const { return *((Meta*)m_meta); }
     const void * data(void) const { return m_data; }
@@ -99,6 +100,7 @@ class Data : public ConstData {
 public:
     Data(void * data, LPDRMETA meta, size_t capacity = 0);
     Data(void * data, size_t capacity = 0);
+    Data(DataElement const & element);
 
     using ConstData::data;
     void * data(void)  { return const_cast<void*>(m_data); }
