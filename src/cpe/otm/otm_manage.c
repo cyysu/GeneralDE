@@ -1,4 +1,5 @@
 #include <assert.h>
+#include "cpe/pal/pal_stdio.h"
 #include "cpe/pal/pal_stdlib.h"
 #include "cpe/otm/otm_manage.h"
 #include "cpe/otm/otm_timer.h"
@@ -76,6 +77,7 @@ error_monitor_t otm_manage_em(otm_manage_t mgr) {
 
 void otm_manage_tick(otm_manage_t mgr, tl_time_t cur_time, void * obj_ctx, otm_memo_t memo_buf, size_t memo_capacity) {
     size_t i;
+    int repeat_count;
     for(i = 0; i < memo_capacity; ++i) {
         otm_memo_t memo = memo_buf + i;
 
@@ -85,11 +87,36 @@ void otm_manage_tick(otm_manage_t mgr, tl_time_t cur_time, void * obj_ctx, otm_m
         otm_timer_t timer = otm_timer_find(mgr, memo->m_id);
         if (timer == NULL) continue;
 
-        while(memo->m_next_action_time > 0 && memo->m_next_action_time <= cur_time) {
+        repeat_count = 0;
+        while(memo->m_next_action_time > 0 && timer->m_span && memo->m_next_action_time <= cur_time) {
+            if (++repeat_count > 2048) {
+                CPE_INFO(
+                    mgr->m_em, "otm_timer_tick: repeat max reached, span="FMT_UINT64_T", next_action_time="FMT_UINT64_T", cur_time="FMT_UINT64_T"",
+                    timer->m_span, memo->m_next_action_time, cur_time);
+                break;
+            }
+
             tl_time_t cur_next_action_time = memo->m_next_action_time;
             timer->m_process(timer, memo, cur_next_action_time, obj_ctx);
+            if (timer->m_span == 0) {
+                if (memo->m_next_action_time != 0) {
+                    CPE_ERROR(
+                        mgr->m_em, "otm_timer_tick: error span is zero, but next_action_time is "FMT_UINT64_T,
+                        memo->m_next_action_time);
+                    memo->m_next_action_time = 0;
+                    break;
+                }
+            }
+
             if (memo->m_next_action_time == cur_next_action_time) {
                 memo->m_next_action_time += timer->m_span;
+            }
+            else if (memo->m_next_action_time && memo->m_next_action_time < cur_next_action_time) {
+                CPE_ERROR(
+                    mgr->m_em, "otm_timer_tick: error next_action_time "FMT_UINT64_T", cur_next_action_time="FMT_UINT64_T"",
+                    memo->m_next_action_time, cur_next_action_time);
+                memo->m_next_action_time = cur_next_action_time + timer->m_span;
+                break;
             }
         }
     }

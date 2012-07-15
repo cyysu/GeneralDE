@@ -79,7 +79,7 @@ struct DRCtypeTypePrintOps g_dr_print_ops[] = {
     , {/*CPE_DR_TYPE_UINT8*/ dr_printf_uint8_to_stream}
 };
 
-int dr_print_to_stream(write_stream_t output, const void * input, LPDRMETAENTRY entry, error_monitor_t em) {
+int dr_entry_print_to_stream(write_stream_t output, const void * input, LPDRMETAENTRY entry, error_monitor_t em) {
     if (entry == NULL) {
         return -1;
     }
