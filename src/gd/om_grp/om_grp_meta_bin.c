@@ -23,6 +23,7 @@ struct om_grp_entry_meta_data {
 
 size_t om_grp_entry_meta_calc_bin_size(om_grp_meta_t meta) {
     om_grp_entry_meta_t entry;
+    uint16_t i;
     size_t size;
 
     size = sizeof(struct om_grp_meta_data) 
@@ -30,7 +31,9 @@ size_t om_grp_entry_meta_calc_bin_size(om_grp_meta_t meta) {
 
     size += strlen(meta->m_name) + 1;
 
-    TAILQ_FOREACH(entry, &meta->m_entry_list, m_next) {
+    for(i = 0; i < meta->m_entry_count; ++i) {
+        entry = meta->m_entry_buf[i];
+
         size += strlen(entry->m_name) + 1;
 
         switch(entry->m_type) {
@@ -225,6 +228,7 @@ static uint32_t om_grp_entry_meta_build_to_bin_write_string(uint32_t * string_wr
 
 void om_grp_entry_meta_write_to_bin(void * data, size_t capacity, om_grp_meta_t meta) {
     om_grp_entry_meta_t entry;
+    uint32_t i;
     struct om_grp_meta_data * meta_data;
     struct om_grp_entry_meta_data * entry_meta_data;
     uint32_t string_write_pos;
@@ -245,7 +249,9 @@ void om_grp_entry_meta_write_to_bin(void * data, size_t capacity, om_grp_meta_t 
 
     entry_meta_data = (struct om_grp_entry_meta_data *)(meta_data + 1);
 
-    TAILQ_FOREACH(entry, &meta->m_entry_list, m_next) {
+    for(i = 0; i < meta->m_entry_count; ++i) {
+        entry = meta->m_entry_buf[i];
+
         entry_meta_data->m_name_pos = 
             om_grp_entry_meta_build_to_bin_write_string(&string_write_pos, data, capacity, entry->m_name);
         entry_meta_data->m_type = entry->m_type;

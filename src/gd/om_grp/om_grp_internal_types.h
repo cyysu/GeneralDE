@@ -9,8 +9,6 @@
 
 #define OM_GRP_OBJ_CONTROL_MAGIC (38438u)
 
-TAILQ_HEAD(om_grp_entry_meta_list, om_grp_entry_meta);
-
 struct om_grp_obj_mgr {
     mem_allocrator_t m_alloc;
     error_monitor_t m_em;
@@ -34,7 +32,10 @@ struct om_grp_meta {
     uint16_t m_size_buf_start;
     uint16_t m_size_buf_count;
 
-    struct om_grp_entry_meta_list m_entry_list;
+    uint16_t m_entry_count;
+    uint16_t m_entry_capacity;
+    struct om_grp_entry_meta * * m_entry_buf;
+
     struct cpe_hash_table m_entry_ht;
 };
 
@@ -65,6 +66,7 @@ union om_grp_entry_data {
 
 struct om_grp_entry_meta {
     om_grp_meta_t m_meta;
+    uint16_t m_index;
     const char * m_name;
     om_grp_entry_type_t m_type;
     union om_grp_entry_data m_data;
@@ -75,7 +77,6 @@ struct om_grp_entry_meta {
     uint16_t m_obj_size;
     uint16_t m_obj_align;
 
-    TAILQ_ENTRY(om_grp_entry_meta) m_next;
     struct cpe_hash_entry m_hh;
 };
 

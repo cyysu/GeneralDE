@@ -138,6 +138,7 @@ gd_om_mgr_t om_grp_obj_mgr_omm(om_grp_obj_mgr_t mgr) {
 
 int om_grp_meta_init_omm(gd_om_mgr_t omm, om_grp_meta_t meta, error_monitor_t em) {
     om_grp_entry_meta_t entry;
+    uint16_t i;
 
     if (gd_om_mgr_add_class_with_id(
             omm,
@@ -151,7 +152,9 @@ int om_grp_meta_init_omm(gd_om_mgr_t omm, om_grp_meta_t meta, error_monitor_t em
         return -1;
     }
 
-    TAILQ_FOREACH(entry, &meta->m_entry_list, m_next) {
+    for(i = 0; i < meta->m_entry_count; ++i) {
+        entry = meta->m_entry_buf[i];
+
         if (gd_om_mgr_add_class_with_id(
                 omm,
                 entry->m_class_id,

@@ -32,7 +32,9 @@ om_grp_meta_create(
     meta->m_size_buf_start = 0;
     meta->m_size_buf_count = 0;
 
-    TAILQ_INIT(&meta->m_entry_list);
+    meta->m_entry_count = 0;
+    meta->m_entry_capacity = 0;
+    meta->m_entry_buf = NULL; 
 
     if (cpe_hash_table_init(
             &meta->m_entry_ht,
@@ -52,9 +54,22 @@ om_grp_meta_create(
 void om_grp_meta_free(om_grp_meta_t meta) {
     om_grp_entry_meta_free_all(meta);
 
+    if (meta->m_entry_buf) {
+        mem_free(meta->m_alloc, meta->m_entry_buf);
+    }
+
     cpe_hash_table_fini(&meta->m_entry_ht);
 
     mem_free(meta->m_alloc, (void*)meta->m_name);
+}
+
+uint16_t om_grp_meta_entry_count(om_grp_meta_t meta) {
+    return meta->m_entry_count;
+}
+
+om_grp_entry_meta_t om_grp_meta_entry_at(om_grp_meta_t meta, uint16_t pos) {
+    assert(pos < meta->m_entry_count);
+    return meta->m_entry_buf[pos];
 }
 
 const char * om_grp_meta_name(om_grp_meta_t meta) {
@@ -63,7 +78,7 @@ const char * om_grp_meta_name(om_grp_meta_t meta) {
 
 om_grp_entry_meta_t
 om_grp_entry_meta_find(om_grp_meta_t meta, const char * name) {
-    struct om_grp_meta key;
+    struct om_grp_entry_meta key;
     key.m_name = name;
 
     return (om_grp_entry_meta_t)cpe_hash_table_find(&meta->m_entry_ht, &key);
@@ -74,17 +89,23 @@ static om_grp_entry_meta_t om_grp_entry_meta_it_next(struct om_grp_entry_meta_it
     if (it->m_data == NULL) return NULL;
 
     r = it->m_data;
-    it->m_data = TAILQ_NEXT((om_grp_entry_meta_t)it->m_data, m_next);
+
+    it->m_data =
+        (r->m_index + 1) < r->m_meta->m_entry_count
+        ? r->m_meta->m_entry_buf[r->m_index + 1]
+        : NULL;
+
     return r;
 }
 
 void om_grp_entry_meta_it_init(om_grp_meta_t meta, om_grp_entry_meta_it_t it) {
-    it->m_data = TAILQ_FIRST(&meta->m_entry_list);
+    it->m_data = meta->m_entry_count > 0 ? meta->m_entry_buf[0] : NULL;
     it->next = om_grp_entry_meta_it_next;
 }
 
 void om_grp_meta_dump(write_stream_t stream, om_grp_meta_t meta, int ident) {
     om_grp_entry_meta_t entry;
+    uint16_t i;
 
     stream_putc_count(stream, ' ', ident);
     stream_printf(stream, "om_grp_meta: name=%s", meta->m_name);
@@ -94,7 +115,9 @@ void om_grp_meta_dump(write_stream_t stream, om_grp_meta_t meta, int ident) {
         meta->m_omm_page_size, (int)meta->m_control_class_id,
         meta->m_control_obj_size, meta->m_page_count, meta->m_size_buf_start, meta->m_size_buf_count);
 
-    TAILQ_FOREACH(entry, &meta->m_entry_list, m_next) {
+    for(i = 0; i < meta->m_entry_count; ++i) {
+        entry = meta->m_entry_buf[i];
+
         stream_printf(stream, "\n");
         stream_putc_count(stream, ' ', ident ? (ident << 2) : 4);
         stream_printf(stream, "%s: ", entry->m_name);

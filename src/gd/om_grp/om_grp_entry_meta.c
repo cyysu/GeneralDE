@@ -1,3 +1,4 @@
+#include <assert.h>
 #include "cpe/utils/bitarry.h"
 #include "cpe/pal/pal_platform.h"
 #include "cpe/dr/dr_metalib_manage.h"
@@ -19,6 +20,27 @@ om_grp_entry_meta_create_i(
     om_grp_entry_meta_t entry_meta;
     om_grp_entry_meta_t pre_entry_meta;
 
+    if (meta->m_entry_count >= meta->m_entry_capacity) {
+        uint16_t new_capacity = meta->m_entry_capacity < 16 ? 16 : meta->m_entry_capacity * 2;
+        om_grp_entry_meta_t * new_buffer = 
+            (om_grp_entry_meta_t *)mem_alloc(meta->m_alloc, new_capacity * sizeof(om_grp_entry_meta_t));
+        if (new_buffer == NULL) {
+            CPE_ERROR(em, "alloc new om_grp_entry_meta array fail!");
+            return NULL;
+        }
+
+        if (meta->m_entry_count) {
+            assert(meta->m_entry_buf);
+            memcpy(new_buffer, meta->m_entry_buf, sizeof(om_grp_entry_meta_t) * meta->m_entry_count);
+        }
+
+        if (meta->m_entry_buf) mem_free(meta->m_alloc, meta->m_entry_buf);
+        meta->m_entry_buf = new_buffer;
+        meta->m_entry_capacity = new_capacity;
+    }
+
+    assert(meta->m_entry_count < meta->m_entry_capacity);
+
     name_len = cpe_hs_len_to_binary_len(strlen(entry_name));
 
     buf = mem_alloc(meta->m_alloc, CPE_PAL_ALIGN(name_len) + sizeof(struct om_grp_entry_meta));
@@ -26,11 +48,12 @@ om_grp_entry_meta_create_i(
 
     cpe_hs_init((cpe_hash_string_t)buf, name_len, entry_name);
 
-    pre_entry_meta = TAILQ_EMPTY(&meta->m_entry_list) ? NULL : TAILQ_LAST(&meta->m_entry_list, om_grp_entry_meta_list);
+    pre_entry_meta = meta->m_entry_count > 0 ? meta->m_entry_buf[meta->m_entry_count - 1] : NULL;
 
     entry_meta = (om_grp_entry_meta_t)(buf + CPE_PAL_ALIGN(name_len));
     entry_meta->m_meta = meta;
     entry_meta->m_name = cpe_hs_data((cpe_hash_string_t)buf);
+    entry_meta->m_index = meta->m_entry_count;
     entry_meta->m_type = type;
     entry_meta->m_obj_size = obj_size;
     entry_meta->m_obj_align = obj_align;
@@ -53,7 +76,8 @@ om_grp_entry_meta_create_i(
         return NULL;
     }
 
-    TAILQ_INSERT_TAIL(&meta->m_entry_list, entry_meta, m_next);
+    meta->m_entry_buf[meta->m_entry_count] = entry_meta;
+    ++(meta->m_entry_count);
 
     meta->m_page_count += page_count;
     meta->m_control_obj_size += page_count * sizeof(gd_om_oid_t);
@@ -155,10 +179,27 @@ om_grp_entry_meta_binary_create(
 }
 
 void om_grp_entry_meta_free(om_grp_entry_meta_t entry_meta) {
+    uint16_t i;
     om_grp_meta_t meta = entry_meta->m_meta;
 
-    TAILQ_REMOVE(&meta->m_entry_list, entry_meta, m_next);
-    cpe_hash_table_remove_by_ins(&meta->m_entry_ht, meta);
+    assert(meta->m_entry_buf);
+    assert(entry_meta->m_index < meta->m_entry_count);
+    assert(meta->m_entry_buf[entry_meta->m_index] == entry_meta);
+
+    if (entry_meta->m_index + 1 < meta->m_entry_count) {
+        memmove(
+            meta->m_entry_buf + entry_meta->m_index,
+            meta->m_entry_buf + entry_meta->m_index + 1,
+            sizeof(om_grp_entry_meta_t) * meta->m_entry_count - entry_meta->m_index - 1);
+    }        
+    -- meta->m_entry_count;
+
+    for(i = entry_meta->m_index; i < meta->m_entry_count; ++i) {
+        assert(meta->m_entry_buf[i]);
+        -- meta->m_entry_buf[i]->m_index;
+    }
+
+    cpe_hash_table_remove_by_ins(&meta->m_entry_ht, entry_meta);
 
     mem_free(meta->m_alloc, (void*)cpe_hs_from_str(entry_meta->m_name));
 }
@@ -184,15 +225,7 @@ int om_grp_entry_meta_cmp(const struct om_grp_entry_meta * l, const struct om_gr
 }
 
 void om_grp_entry_meta_free_all(om_grp_meta_t meta) {
-    struct cpe_hash_it entry_meta_it;
-    om_grp_entry_meta_t entry_meta;
-
-    cpe_hash_it_init(&entry_meta_it, &meta->m_entry_ht);
-
-    entry_meta = cpe_hash_it_next(&entry_meta_it);
-    while (entry_meta) {
-        om_grp_entry_meta_t next = cpe_hash_it_next(&entry_meta_it);
-        om_grp_entry_meta_free(entry_meta);
-        entry_meta = next;
+    while(meta->m_entry_count > 0) {
+        om_grp_entry_meta_free(meta->m_entry_buf[0]);
     }
 }
