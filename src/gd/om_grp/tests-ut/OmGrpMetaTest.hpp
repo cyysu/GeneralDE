@@ -22,7 +22,7 @@ public:
     void install(
         const char * om_meta,
         const char * metalib, 
-        uint16_t page_size = 256, size_t buffer_size = 512);
+        uint16_t page_size = 256);
 
     om_grp_meta_t m_meta;
 };

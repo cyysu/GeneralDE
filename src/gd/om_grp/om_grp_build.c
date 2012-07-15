@@ -125,34 +125,40 @@ static int om_grp_meta_build_from_cfg_entry_ba(
     om_grp_meta_t meta, cfg_t entry_cfg, LPDRMETALIB metalib, error_monitor_t em)
 {
     const char * data_capacity;
-    int ba_count;
+    int bit_capacity;
+    int byte_per_page;
 
-    ba_count = cfg_get_int32(entry_cfg, "capacity", -1);
-    if (ba_count == -1) {
-        data_capacity = cfg_get_string(entry_cfg, "capacity", NULL);
+    bit_capacity = cfg_get_int32(entry_cfg, "bit-capacity", -1);
+    if (bit_capacity == -1) {
+        data_capacity = cfg_get_string(entry_cfg, "bit-capacity", NULL);
         if (data_capacity == NULL) {
             CPE_ERROR(
-                em, "om_grp_meta_build_from_cfg: entry %s: entry-ba not configure capacity!",
+                em, "om_grp_meta_build_from_cfg: entry %s: entry-ba not configure bit-capacity!",
                 cfg_name(entry_cfg));
             return -1;
         }
 
-        if (dr_lib_find_macro_value(&ba_count, metalib, data_capacity) != 0) {
+        if (dr_lib_find_macro_value(&bit_capacity, metalib, data_capacity) != 0) {
             CPE_ERROR(
-                em, "om_grp_meta_build_from_cfg: entry %s: entry-ba capacity %s not exist in metalib!",
+                em, "om_grp_meta_build_from_cfg: entry %s: entry-ba bit-capacity %s not exist in metalib!",
                 cfg_name(entry_cfg), data_capacity);
             return -1;
         }
     }
 
-    if (ba_count <= 0) {
+    if (bit_capacity <= 0) {
         CPE_ERROR(
             em, "om_grp_meta_build_from_cfg: entry %s: entry-ba capacity %d error!",
-            cfg_name(entry_cfg), ba_count);
+            cfg_name(entry_cfg), bit_capacity);
         return -1;
     }
 
-    if (om_grp_entry_meta_ba_create(meta, cfg_name(entry_cfg), ba_count, em) == NULL) {
+    byte_per_page = cfg_get_int32(entry_cfg, "byte-per-page", -1);
+    if (byte_per_page == -1) {
+        byte_per_page = cpe_ba_bytes_from_bits(bit_capacity);
+    }
+
+    if (om_grp_entry_meta_ba_create(meta, cfg_name(entry_cfg), byte_per_page, bit_capacity, em) == NULL) {
         CPE_ERROR(
             em, "om_grp_meta_build_from_cfg: entry %s: create ba entry fail!",
             cfg_name(entry_cfg));
@@ -207,7 +213,6 @@ om_grp_meta_t
 om_grp_meta_build_from_cfg(
     mem_allocrator_t alloc, 
     uint16_t omm_page_size,
-    uint16_t omm_buffer_size,
     cfg_t cfg, LPDRMETALIB metalib, error_monitor_t em)
 {
     om_grp_meta_t meta;
@@ -215,7 +220,7 @@ om_grp_meta_build_from_cfg(
     cfg_t entry_cfg;
     int rv;
 
-    meta = om_grp_meta_create(alloc, cfg_name(cfg), omm_page_size, omm_buffer_size);
+    meta = om_grp_meta_create(alloc, cfg_name(cfg), omm_page_size);
     if (meta == NULL) {
         CPE_ERROR(em, "om_grp_meta_build_from_cfg: create om_grp_meta fail!");
         return NULL;

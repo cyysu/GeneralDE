@@ -11,8 +11,7 @@ extern "C" {
 om_grp_meta_t om_grp_meta_create(
     mem_allocrator_t alloc,
     const char * name,
-    uint16_t omm_page_size,
-    uint16_t omm_buffer_size);
+    uint16_t omm_page_size);
 
 void om_grp_meta_free(om_grp_meta_t);
 
@@ -39,7 +38,7 @@ om_grp_entry_meta_t
 om_grp_entry_meta_ba_create(
     om_grp_meta_t meta,
     const char * entry_name,
-    uint32_t capacity,
+    uint16_t byte_per_page, uint16_t bit_capacity,
     error_monitor_t em);
 
 om_grp_entry_meta_t
@@ -51,8 +50,16 @@ om_grp_entry_meta_binary_create(
 
 void om_grp_entry_meta_free(om_grp_entry_meta_t entry_meta);
 
+om_grp_entry_meta_t
+om_grp_entry_meta_find(om_grp_meta_t meta, const char * name);
+
+void om_grp_entry_meta_it_init(om_grp_meta_t meta, om_grp_entry_meta_it_t it);
+
 const char * om_grp_entry_meta_name(om_grp_entry_meta_t entry_meta);
+cpe_hash_string_t om_grp_entry_meta_name_hs(om_grp_entry_meta_t entry_meta);
 om_grp_entry_type_t om_grp_entry_meta_type(om_grp_entry_meta_t entry_meta);
+
+#define om_grp_entry_meta_next(it) ((it)->next ? (it)->next(it) : NULL)
 
 #ifdef __cplusplus
 }

@@ -9,6 +9,7 @@ om_grp_entry_meta_create_i(
     om_grp_meta_t meta,
     const char * entry_name,
     om_grp_entry_type_t type,
+    uint16_t page_count,
     uint16_t obj_size,
     uint16_t obj_align,
     error_monitor_t em)
@@ -18,18 +19,18 @@ om_grp_entry_meta_create_i(
     om_grp_entry_meta_t entry_meta;
     om_grp_entry_meta_t pre_entry_meta;
 
-    name_len = strlen(entry_name) + 1;
+    name_len = cpe_hs_len_to_binary_len(strlen(entry_name));
 
     buf = mem_alloc(meta->m_alloc, CPE_PAL_ALIGN(name_len) + sizeof(struct om_grp_entry_meta));
     if (buf == NULL) return NULL;
 
-    memcpy(buf, entry_name, name_len);
+    cpe_hs_init((cpe_hash_string_t)buf, name_len, entry_name);
 
-    pre_entry_meta = TAILQ_FIRST(&meta->m_entry_list);
+    pre_entry_meta = TAILQ_EMPTY(&meta->m_entry_list) ? NULL : TAILQ_LAST(&meta->m_entry_list, om_grp_entry_meta_list);
 
     entry_meta = (om_grp_entry_meta_t)(buf + CPE_PAL_ALIGN(name_len));
     entry_meta->m_meta = meta;
-    entry_meta->m_name = buf;
+    entry_meta->m_name = cpe_hs_data((cpe_hash_string_t)buf);
     entry_meta->m_type = type;
     entry_meta->m_obj_size = obj_size;
     entry_meta->m_obj_align = obj_align;
@@ -39,16 +40,12 @@ om_grp_entry_meta_create_i(
         ? pre_entry_meta->m_page_begin + pre_entry_meta->m_page_count
         : 0;
 
-    entry_meta->m_page_count = meta->m_omm_page_size / obj_size;
-
-    if (entry_meta->m_page_count < 0) {
-        
-    }
+    entry_meta->m_page_count = page_count;
 
     entry_meta->m_class_id = 
         pre_entry_meta
         ? pre_entry_meta->m_class_id + 1
-        : meta->m_omm_control_class_id + 1;
+        : meta->m_control_class_id + 1;
 
     cpe_hash_entry_init(&entry_meta->m_hh);
     if (cpe_hash_table_insert_unique(&meta->m_entry_ht, entry_meta) != 0) {
@@ -57,6 +54,10 @@ om_grp_entry_meta_create_i(
     }
 
     TAILQ_INSERT_TAIL(&meta->m_entry_list, entry_meta, m_next);
+
+    meta->m_page_count += page_count;
+    meta->m_control_obj_size += page_count * sizeof(gd_om_oid_t);
+    meta->m_size_buf_start += page_count * sizeof(gd_om_oid_t);
 
     return entry_meta;
 }
@@ -73,6 +74,7 @@ om_grp_entry_meta_normal_create(
             meta,
             entry_name,
             om_grp_entry_type_normal,
+            1,
             dr_meta_size(entry_meta),
             dr_meta_align(entry_meta), em);
     if (r) r->m_data.m_normal.m_data_meta = entry_meta;
@@ -86,15 +88,24 @@ om_grp_entry_meta_list_create(
     LPDRMETA entry_meta, uint32_t count_per_page, uint32_t capacity,
     error_monitor_t em)
 {
-    om_grp_entry_meta_t r =
+    om_grp_entry_meta_t r;
+    
+    uint16_t page_count = capacity / count_per_page;
+    if (capacity % count_per_page) page_count += 1;
+
+    r =
         om_grp_entry_meta_create_i(
             meta, entry_name, om_grp_entry_type_list,
+            page_count,
             count_per_page * dr_meta_size(entry_meta), dr_meta_align(entry_meta),
             em);
 
     if (r) {
         r->m_data.m_list.m_data_meta = entry_meta;
         r->m_data.m_list.m_capacity = capacity;
+        r->m_data.m_list.m_size_idx = meta->m_size_buf_count;
+        meta->m_size_buf_count += 1;
+        meta->m_control_obj_size += sizeof(uint16_t);
     }
 
     return r;
@@ -104,15 +115,24 @@ om_grp_entry_meta_t
 om_grp_entry_meta_ba_create(
     om_grp_meta_t meta,
     const char * entry_name,
-    uint32_t capacity,
+    uint16_t byte_per_page, uint16_t bit_capacity,
     error_monitor_t em)
 {
-    om_grp_entry_meta_t r =
+    uint16_t byte_capacity = cpe_ba_bytes_from_bits(bit_capacity);
+    om_grp_entry_meta_t r;
+    uint16_t page_count;
+
+    page_count = byte_capacity / byte_per_page;
+    if (byte_capacity % byte_per_page) page_count += 1;
+
+    r =
         om_grp_entry_meta_create_i(
             meta, entry_name, om_grp_entry_type_ba,
-            cpe_ba_bytes_from_bits(capacity), 1, em);
+            1, byte_capacity, page_count, em);
 
-    if (r) r->m_data.m_ba.m_capacity = capacity;
+    if (r) {
+        r->m_data.m_ba.m_bit_capacity = bit_capacity;
+    }
 
     return r;
 }
@@ -124,11 +144,12 @@ om_grp_entry_meta_binary_create(
     uint32_t capacity,
     error_monitor_t em)
 {
-    om_grp_entry_meta_t r =
-        om_grp_entry_meta_create_i(
-            meta, entry_name, om_grp_entry_type_binary, capacity, 1, em);
+    om_grp_entry_meta_t r;
 
-    if (r) r->m_data.m_ba.m_capacity = capacity;
+    r = om_grp_entry_meta_create_i(
+        meta, entry_name, om_grp_entry_type_binary, 1, capacity, 1, em);
+
+    if (r) r->m_data.m_binary.m_capacity = capacity;
 
     return r;
 }
@@ -139,11 +160,15 @@ void om_grp_entry_meta_free(om_grp_entry_meta_t entry_meta) {
     TAILQ_REMOVE(&meta->m_entry_list, entry_meta, m_next);
     cpe_hash_table_remove_by_ins(&meta->m_entry_ht, meta);
 
-    mem_free(meta->m_alloc, (void*)entry_meta->m_name);
+    mem_free(meta->m_alloc, (void*)cpe_hs_from_str(entry_meta->m_name));
 }
 
 const char * om_grp_entry_meta_name(om_grp_entry_meta_t entry_meta) {
     return entry_meta->m_name;
+}
+
+cpe_hash_string_t om_grp_entry_meta_name_hs(om_grp_entry_meta_t entry_meta) {
+    return cpe_hs_from_str(entry_meta->m_name);
 }
 
 om_grp_entry_type_t om_grp_entry_meta_type(om_grp_entry_meta_t entry_meta) {

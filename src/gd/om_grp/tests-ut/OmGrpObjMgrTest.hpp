@@ -5,6 +5,7 @@
 #include "cpe/cfg/tests-env/with_cfg.hpp"
 #include "cpe/dr/tests-env/with_dr.hpp"
 #include "gd/om_grp/tests-env/with_om_grp.hpp"
+#include "gd/om_grp/om_grp_obj.h"
 
 typedef LOKI_TYPELIST_4(
     utils::testenv::with_em,
@@ -22,7 +23,7 @@ public:
     void install(
         const char * om_meta,
         const char * metalib, 
-        size_t capacity = 2048, uint16_t page_size = 256, size_t buffer_size = 512);
+        size_t capacity = 2048, uint16_t page_size = 256);
 
     om_grp_obj_mgr_t m_mgr;
 };

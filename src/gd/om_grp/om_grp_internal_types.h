@@ -1,9 +1,11 @@
 #ifndef GD_OM_GRP_INTERNAL_TYPES_H
 #define GD_OM_GRP_INTERNAL_TYPES_H
-#include "cpe/dr/dr_types.h"
 #include "cpe/pal/pal_queue.h"
 #include "cpe/utils/hash.h"
+#include "cpe/utils/bitarry.h"
+#include "cpe/dr/dr_types.h"
 #include "gd/om_grp/om_grp_types.h"
+#include "cpe/utils/range.h"
 
 #define OM_GRP_OBJ_CONTROL_MAGIC (38438u)
 
@@ -17,8 +19,6 @@ struct om_grp_obj_mgr {
     LPDRMETALIB m_metalib;
     char * m_full_base;
     uint32_t m_full_capacity;
-    char * m_data_base;
-    uint32_t m_data_capacity;
 };
 
 struct om_grp_meta {
@@ -26,8 +26,13 @@ struct om_grp_meta {
     const char * m_name;
 
     uint16_t m_omm_page_size;
-    uint16_t m_omm_buffer_size;
-    gd_om_class_id_t m_omm_control_class_id;
+
+    gd_om_class_id_t m_control_class_id;
+    uint16_t m_control_obj_size;
+
+    uint16_t m_page_count;
+    uint16_t m_size_buf_start;
+    uint16_t m_size_buf_count;
 
     struct om_grp_entry_meta_list m_entry_list;
     struct cpe_hash_table m_entry_ht;
@@ -40,10 +45,11 @@ struct om_grp_entry_data_normal {
 struct om_grp_entry_data_list {
     LPDRMETA m_data_meta;
     uint32_t m_capacity;
+    uint16_t m_size_idx;
 };
 
 struct om_grp_entry_data_ba {
-    uint32_t m_capacity;
+    uint32_t m_bit_capacity;
 };
 
 struct om_grp_entry_data_binary {

@@ -164,3 +164,11 @@ gd_om_next_buffer_id(struct gd_om_buffer_id_it * it) {
 
     return r;
 }
+
+int gd_om_mgr_add_new_buffer(gd_om_mgr_t omm, gd_om_buffer_id_t buf_id, error_monitor_t em) {
+    return gd_om_buffer_mgr_add_new_buffer(&omm->m_bufMgr, buf_id, em);
+}
+
+int gd_om_mgr_attach_old_buffer(gd_om_mgr_t omm, gd_om_buffer_id_t buf_id, error_monitor_t em) {
+    return gd_om_buffer_mgr_attach_old_buffer(&omm->m_bufMgr, buf_id, em);
+}
