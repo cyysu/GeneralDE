@@ -258,6 +258,25 @@ LPDRMETAENTRY dr_meta_find_entry_by_name(LPDRMETA meta, const char* name) {
     return NULL;
 }
 
+LPDRMETAENTRY dr_meta_find_entry_by_id(LPDRMETA meta, int a_iId) {
+    int i;
+    LPDRMETAENTRY pstEntryBegin = (LPDRMETAENTRY)(meta + 1);
+
+    if (a_iId < 0) {
+        return NULL;
+    }
+
+    for(i = 0; i < meta->m_entry_count; ++i) {
+        LPDRMETAENTRY pstCurEntry = pstEntryBegin + i;
+
+        if (pstCurEntry->m_id == a_iId) {
+            return pstCurEntry;
+        }
+    }
+
+    return NULL;
+}
+
 int dr_meta_find_entry_idx_by_name(LPDRMETA meta, const char* name) {
     int i;
     char * base = (char *)(meta) - meta->m_self_pos;
