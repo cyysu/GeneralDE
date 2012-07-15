@@ -141,6 +141,9 @@ LPDRMETA bpg_use_sp_meta(bpg_use_sp_t sp, const char * name) {
 }
 
 void * bpg_use_sp_data_buf(bpg_use_sp_t sp) {
+    void * r;
     mem_buffer_set_size(&sp->m_data_buf, sp->m_pkg_buf_size);
-    return mem_buffer_make_continuous(&sp->m_data_buf, 0);
+    r = mem_buffer_make_continuous(&sp->m_data_buf, 0);
+    bzero(r, sp->m_pkg_buf_size);
+    return r;
 }
