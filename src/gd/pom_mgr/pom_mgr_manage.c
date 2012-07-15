@@ -4,6 +4,7 @@
 #include "cpe/nm/nm_types.h"
 #include "cpe/nm/nm_manage.h"
 #include "cpe/nm/nm_read.h"
+#include "cpe/pom_grp/pom_grp_obj_mgr.h"
 #include "gd/app/app_context.h"
 #include "gd/app/app_module.h"
 #include "gd/pom_mgr/pom_mgr_manage.h"
@@ -30,6 +31,8 @@ pom_manage_create(
     mgr->m_alloc = alloc;
     mgr->m_em = em;
     mgr->m_debug = 0;
+    mgr->m_obj_mgr = NULL;
+    mgr->m_fini = NULL;
 
     nm_node_set_type(mgr_node, &s_nm_node_type_pom_manage);
 
@@ -39,6 +42,8 @@ pom_manage_create(
 static void pom_manage_clear(nm_node_t node) {
     pom_manage_t mgr;
     mgr = (pom_manage_t)nm_node_data(node);
+
+    pom_manage_obj_mgr_clear(mgr);
 }
 
 void pom_manage_free(pom_manage_t mgr) {
@@ -85,6 +90,15 @@ const char * pom_manage_name(pom_manage_t mgr) {
 cpe_hash_string_t
 pom_manage_name_hs(pom_manage_t mgr) {
     return nm_node_name_hs(nm_node_from_data(mgr));
+}
+
+void pom_manage_obj_mgr_clear(pom_manage_t mgr) {
+    if (mgr->m_obj_mgr) {
+        if (mgr->m_fini) mgr->m_fini(mgr->m_obj_mgr);
+        pom_grp_obj_mgr_free(mgr->m_obj_mgr);
+        mgr->m_obj_mgr = NULL;
+        mgr->m_fini = NULL;
+    }
 }
 
 struct nm_node_type s_nm_node_type_pom_manage = {
