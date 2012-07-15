@@ -80,7 +80,6 @@ pom_grp_obj_mgr_create(
         pom_grp_entry_meta_build_from_bin(
             alloc,
             obj_mgr->m_full_base + control->m_objmeta_start,
-            control->m_objmeta_size,
             obj_mgr->m_metalib,
             em);
 

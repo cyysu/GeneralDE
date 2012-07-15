@@ -5,6 +5,8 @@
 #include "pom_grp_internal_ops.h"
 
 struct pom_grp_meta_data {
+    uint16_t m_magic;
+    uint16_t m_size;
     uint16_t m_name_pos;
     uint16_t m_omm_page_size;
     pom_class_id_t m_omm_control_class_id;
@@ -54,25 +56,22 @@ size_t pom_grp_entry_meta_calc_bin_size(pom_grp_meta_t meta) {
 }
 
 pom_grp_meta_t
-pom_grp_entry_meta_build_from_bin(mem_allocrator_t alloc, void const * data, size_t data_capacity, LPDRMETALIB metalib, error_monitor_t em) {
+pom_grp_entry_meta_build_from_bin(mem_allocrator_t alloc, void const * data, LPDRMETALIB metalib, error_monitor_t em) {
     struct pom_grp_meta_data * meta_data;
     struct pom_grp_entry_meta_data * entry_meta_data;
     pom_grp_meta_t meta;
     int i = 0;
 
-    if (data_capacity < sizeof(struct pom_grp_meta_data)) {
-        CPE_ERROR(
-            em, "pom_grp_entry_meta_build_from_bin: not enough input, data_capacity=%d, pom_grp_meta_data len=%d\n",
-            (int)data_capacity, (int)sizeof(struct pom_grp_meta_data));
+    meta_data = (struct pom_grp_meta_data *)data;
+    if (meta_data->m_magic != 5346) {
+        CPE_ERROR(em, "pom_grp_entry_meta_build_from_bin: magic error\n");
         return NULL;
     }
 
-    meta_data = (struct pom_grp_meta_data *)data;
-
-    if (data_capacity < sizeof(struct pom_grp_meta_data) + meta_data->m_entry_count * sizeof(struct pom_grp_entry_meta_data)) {
+    if (meta_data->m_size < sizeof(struct pom_grp_meta_data) + meta_data->m_entry_count * sizeof(struct pom_grp_entry_meta_data)) {
         CPE_ERROR(
-            em, "pom_grp_entry_meta_build_from_bin: not enough input, data_capacity=%d, with entry len=%d\n",
-            (int)data_capacity, (int)(sizeof(struct pom_grp_meta_data) + meta_data->m_entry_count * sizeof(struct pom_grp_entry_meta_data)));
+            em, "pom_grp_entry_meta_build_from_bin: not enough input, size=%d, with entry len=%d\n",
+            (int)meta_data->m_size, (int)(sizeof(struct pom_grp_meta_data) + meta_data->m_entry_count * sizeof(struct pom_grp_entry_meta_data)));
         return NULL;
     }
 
@@ -81,7 +80,7 @@ pom_grp_entry_meta_build_from_bin(mem_allocrator_t alloc, void const * data, siz
         return NULL;
     }
 
-    if (meta_data->m_name_pos > data_capacity) {
+    if (meta_data->m_name_pos > meta_data->m_size) {
         CPE_ERROR(em, "pom_grp_entry_meta_build_from_bin: meta name pos overflow!");
         return NULL;
     }
@@ -114,7 +113,7 @@ pom_grp_entry_meta_build_from_bin(mem_allocrator_t alloc, void const * data, siz
             return NULL;
         }
 
-        if (entry_meta_data->m_name_pos > data_capacity) {
+        if (entry_meta_data->m_name_pos > meta_data->m_size) {
             CPE_ERROR(em, "pom_grp_entry_meta_build_from_bin: entry %d name pos overflow!", i);
             pom_grp_meta_free(meta);
             return NULL;
@@ -122,7 +121,7 @@ pom_grp_entry_meta_build_from_bin(mem_allocrator_t alloc, void const * data, siz
         entry_name = ((const char *)data) + entry_meta_data->m_name_pos;
 
         if (entry_meta_data->m_meta_name_pos) {
-            if (entry_meta_data->m_meta_name_pos >= data_capacity) {
+            if (entry_meta_data->m_meta_name_pos >= meta_data->m_size) {
                 CPE_ERROR(em, "pom_grp_entry_meta_build_from_bin: entry %d(%s) meta name pos overflow!", i, entry_name);
                 pom_grp_meta_free(meta);
                 return NULL;
@@ -232,8 +231,12 @@ void pom_grp_entry_meta_write_to_bin(void * data, size_t capacity, pom_grp_meta_
     struct pom_grp_meta_data * meta_data;
     struct pom_grp_entry_meta_data * entry_meta_data;
     uint32_t string_write_pos;
+    size_t data_size;
 
     assert(pom_grp_entry_meta_calc_bin_size(meta) <= capacity);
+
+    data_size = pom_grp_entry_meta_calc_bin_size(meta);
+    assert(data_size <= capacity);
 
     meta_data = (struct pom_grp_meta_data *)data;
 
@@ -241,6 +244,8 @@ void pom_grp_entry_meta_write_to_bin(void * data, size_t capacity, pom_grp_meta_
         sizeof(struct pom_grp_meta_data) 
         + cpe_hash_table_count(&meta->m_entry_ht) * sizeof(struct pom_grp_entry_meta_data);
 
+    meta_data->m_magic = 5346;
+    meta_data->m_size = data_size;
     meta_data->m_name_pos = 
         pom_grp_entry_meta_build_to_bin_write_string(&string_write_pos, data, capacity, meta->m_name);
     meta_data->m_entry_count = cpe_hash_table_count(&meta->m_entry_ht);
