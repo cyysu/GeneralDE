@@ -48,6 +48,9 @@ gd_om_buffer_id_t gd_om_next_buffer_id(struct gd_om_buffer_id_it * it);
 
 int gd_om_mgr_set_backend_memory(gd_om_mgr_t omm, mem_allocrator_t alloc);
 
+int gd_om_mgr_add_new_buffer(gd_om_mgr_t omm, gd_om_buffer_id_t buf_id, error_monitor_t em);
+int gd_om_mgr_attach_old_buffer(gd_om_mgr_t omm, gd_om_buffer_id_t buf_id, error_monitor_t em);
+
 #ifdef __cplusplus
 }
 #endif

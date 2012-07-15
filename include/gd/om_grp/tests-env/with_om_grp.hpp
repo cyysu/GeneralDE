@@ -10,25 +10,27 @@ class with_om_grp : public ::testenv::env<> {
 public:
     with_om_grp();
 
+    const char * t_om_grp_meta_dump(om_grp_meta_t meta);
+
     om_grp_meta_t t_om_grp_meta_create(
         const char * om_meta,
         const char * metalib, 
-        uint16_t page_size = 256, size_t buffer_size = 512);
+        uint16_t page_size = 256);
 
     om_grp_meta_t t_om_grp_meta_create(
         const char * om_meta,
         LPDRMETALIB metalib,
-        uint16_t page_size = 256, size_t buffer_size = 512);
+        uint16_t page_size = 256);
 
     om_grp_obj_mgr_t t_om_grp_obj_mgr_create(
         const char * om_meta,
         const char * metalib, 
-        size_t capacity = 2048, uint16_t page_size = 256, size_t buffer_size = 512);
+        size_t capacity = 2048, uint16_t page_size = 256);
 
     om_grp_obj_mgr_t t_om_grp_obj_mgr_create(
         const char * om_meta,
         LPDRMETALIB metalib, 
-        size_t capacity = 2048, uint16_t page_size = 256, size_t buffer_size = 512);
+        size_t capacity = 2048, uint16_t page_size = 256);
 };
 
 }}}

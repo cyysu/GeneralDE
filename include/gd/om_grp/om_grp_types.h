@@ -16,12 +16,17 @@ typedef enum om_grp_entry_type {
     , om_grp_entry_type_binary
 } om_grp_entry_type_t;
 
+struct om_grp_range {
+    void * begin;
+    void * end;
+};
+
 typedef struct om_grp_entry_meta * om_grp_entry_meta_t;
 typedef struct om_grp_meta * om_grp_meta_t;
 
 typedef struct om_grp_entry_meta_it {
     om_grp_entry_meta_t (*next)(struct om_grp_entry_meta_it * it);
-    om_grp_entry_meta_t m_buf;
+    om_grp_entry_meta_t m_data;
 } * om_grp_entry_meta_it_t;
 
 #ifdef __cplusplus

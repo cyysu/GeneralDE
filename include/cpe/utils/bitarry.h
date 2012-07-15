@@ -30,6 +30,7 @@ ssize_t cpe_ba_next_pos(cpe_ba_t ba, size_t bit_capacity);
 /*
   size_t cpe_ba_bytes_from_bits(size_t bit_capacity); */
 #define cpe_ba_bytes_from_bits(nbits) ((size_t)((nbits + 7) >> 3))
+#define cpe_ba_bits_from_bytes(nbits) ((size_t)(nbits << 3))
 
 /*
   cpe_ba_value_t cpe_ba_get(cpe_ba_t ba, size_t pos); */

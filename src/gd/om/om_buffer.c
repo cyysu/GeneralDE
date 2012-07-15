@@ -91,7 +91,7 @@ gd_om_buffer_mgr_init_pages(struct gd_om_buffer_mgr * pgm, void * buf) {
     int leftSize = pgm->m_buf_size;
     char * b = (char *)buf;
 
-    while(leftSize > (int)pgm->m_page_size) {
+    while(leftSize >= (int)pgm->m_page_size) {
         gd_om_data_page_head_init(b);
         b += pgm->m_page_size;
         leftSize -= pgm->m_page_size;

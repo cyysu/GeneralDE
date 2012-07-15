@@ -34,6 +34,9 @@ gd_om_oid_t gd_om_obj_alloc(
         }
 
         if (gd_om_class_add_page(theClass, newPage, em) != 0) {
+            CPE_ERROR_EX(
+                em, gd_om_no_memory,
+                "object of theClass %s add page fail!", cpe_hs_data(className));
             return GD_OM_INVALID_OID;
         }
 
