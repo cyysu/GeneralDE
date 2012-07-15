@@ -358,6 +358,13 @@ ConstData::ConstData(const void * data, LPDRMETA meta, size_t capacity)
 {
 }
 
+ConstData::ConstData(ConstDataElement const & element)
+    : m_data(element.data())
+    , m_capacity(element.capacity())
+    , m_meta(element.meta())
+{
+}
+
 ConstDataElement ConstData::operator[](const char * name) const {
     if (m_meta == NULL) throw ::std::runtime_error("Data::operator[]: meta not exist!");
 
@@ -392,6 +399,11 @@ Data::Data(void * data, LPDRMETA meta, size_t capacity)
 
 Data::Data(void * data, size_t capacity)
     : ConstData(data, NULL, capacity)
+{
+}
+
+Data::Data(DataElement const & element)
+    : ConstData(element)
 {
 }
 
