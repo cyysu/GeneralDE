@@ -9,8 +9,6 @@ dr_cvt_result_t dr_cvt_fun_noop_encode(
     void * ctx,
     error_monitor_t em, int debug)
 {
-    int32_t size;
-
     if (*output_capacity < *input_capacity) {
         CPE_ERROR(
             em, "encode %s: noop: not enought output buf, require %d, but only %d!",

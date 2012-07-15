@@ -91,7 +91,7 @@ void otm_manage_tick(otm_manage_t mgr, tl_time_t cur_time, void * obj_ctx, otm_m
         while(memo->m_next_action_time > 0 && timer->m_span && memo->m_next_action_time <= cur_time) {
             if (++repeat_count > 2048) {
                 CPE_INFO(
-                    mgr->m_em, "otm_timer_tick: repeat max reached, span="FMT_UINT64_T", next_action_time="FMT_UINT64_T", cur_time="FMT_UINT64_T"",
+                    mgr->m_em, "otm_timer_tick: repeat max reached, span="FMT_INT64_T", next_action_time="FMT_UINT64_T", cur_time="FMT_UINT64_T"",
                     timer->m_span, memo->m_next_action_time, cur_time);
                 break;
             }
