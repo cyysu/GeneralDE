@@ -559,12 +559,12 @@ int dr_bson_read(
     int size = 0;
 
     if (em) {
-        CPE_DEF_ERROR_MONITOR_ADD(logError, em, cpe_error_save_last_errno, &ret);
+        //CPE_DEF_ERROR_MONITOR_ADD(logError, em, cpe_error_save_last_errno, &ret);
         //size = dr_bson_read_i(output, output_capacity, NULL, input, input_capacity, meta, em);
-        CPE_DEF_ERROR_MONITOR_REMOVE(logError, em);
+        //CPE_DEF_ERROR_MONITOR_REMOVE(logError, em);
     }
     else {
-        CPE_DEF_ERROR_MONITOR(logError, cpe_error_save_last_errno, &ret);
+        //CPE_DEF_ERROR_MONITOR(logError, cpe_error_save_last_errno, &ret);
         //size = dr_bson_read_i(output, output_capacity, NULL, input, input_capacity, meta, &logError);
     }
 
@@ -582,12 +582,12 @@ int dr_bson_read_to_buffer(
     int size = 0;
 
     if (em) {
-        CPE_DEF_ERROR_MONITOR_ADD(logError, em, cpe_error_save_last_errno, &ret);
+        //CPE_DEF_ERROR_MONITOR_ADD(logError, em, cpe_error_save_last_errno, &ret);
         //size = dr_bson_read_i(NULL, 0, result, input, input_capacity, meta, em);
-        CPE_DEF_ERROR_MONITOR_REMOVE(logError, em);
+        //CPE_DEF_ERROR_MONITOR_REMOVE(logError, em);
     }
     else {
-        CPE_DEF_ERROR_MONITOR(logError, cpe_error_save_last_errno, &ret);
+        //CPE_DEF_ERROR_MONITOR(logError, cpe_error_save_last_errno, &ret);
         //size = dr_bson_read_i(NULL, 0, result, input, input_capacity, meta, &logError);
     }
 
