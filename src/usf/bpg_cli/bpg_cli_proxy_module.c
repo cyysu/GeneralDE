@@ -42,7 +42,7 @@ int bpg_cli_proxy_app_init(gd_app_context_t app, gd_app_module_t module, cfg_t c
     }
 
     recv_at = cfg_get_string(cfg, "recv-at", NULL);
-    if (logic_manage == NULL) {
+    if (recv_at == NULL) {
         CPE_ERROR(
             gd_app_em(app), "%s: create: recv-at not configured!",
             gd_app_module_name(module));
