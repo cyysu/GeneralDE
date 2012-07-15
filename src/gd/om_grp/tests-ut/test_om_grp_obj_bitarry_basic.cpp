@@ -23,10 +23,41 @@ public:
         OmGrpObjMgrTest::TearDown();
     }
 
+    uint16_t ba_bit(void) {
+        return om_grp_obj_ba_bit_count(m_mgr, m_obj, "entry1");
+    }
+
+    void ba_set_all(cpe_ba_value_t value) {
+        EXPECT_EQ(0, om_grp_obj_ba_set_all(m_mgr, m_obj, "entry1", value));
+    }
+
+    void ba_set(uint16_t pos, cpe_ba_value_t value) {
+        EXPECT_EQ(0, om_grp_obj_ba_set(m_mgr, m_obj, "entry1", pos, value));
+    }
+
+    cpe_ba_value_t ba_get(uint16_t pos) {
+        return om_grp_obj_ba_get(m_mgr, m_obj, "entry1", pos);
+    }
+
     om_grp_obj_t m_obj;
 };
 
-TEST_F(OmGrpObjBitarryyTest, capacity) {
+TEST_F(OmGrpObjBitarryyTest, basic) {
     EXPECT_EQ(30, om_grp_obj_ba_bit_capacity(m_mgr, m_obj, "entry1"));
+    EXPECT_EQ(4, om_grp_obj_ba_byte_capacity(m_mgr, m_obj, "entry1"));
+}
+
+TEST_F(OmGrpObjBitarryyTest, get_empty) {
+    EXPECT_EQ(cpe_ba_false, ba_get(12));
+}
+
+TEST_F(OmGrpObjBitarryyTest, get_overflow) {
+    EXPECT_EQ(cpe_ba_false, ba_get(120));
+}
+
+TEST_F(OmGrpObjBitarryyTest, set_first) {
+    ba_set(0, cpe_ba_true);
+
+    EXPECT_EQ(cpe_ba_true, ba_get(0));
 }
 

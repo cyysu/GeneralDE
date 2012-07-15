@@ -48,3 +48,16 @@ void om_grp_obj_free(om_grp_obj_mgr_t mgr, om_grp_obj_t obj) {
     gd_om_obj_free(mgr->m_omm, control_oid, mgr->m_em);
 }
 
+uint16_t om_grp_obj_page_count(om_grp_obj_mgr_t mgr, om_grp_obj_t obj) {
+    uint16_t r;
+    int i;
+    gd_om_oid_t * oids = (gd_om_oid_t *)obj;
+
+    r = 0;
+
+    for(i = 0; i < mgr->m_meta->m_page_count; ++i) {
+        if (oids[i] != GD_OM_INVALID_OID) ++r;
+    }
+
+    return r;
+}

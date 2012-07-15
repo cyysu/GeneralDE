@@ -12,6 +12,8 @@ om_mgr_obj_alloc(om_grp_obj_mgr_t mgr);
 
 void om_grp_obj_free(om_grp_obj_mgr_t mgr, om_grp_obj_t obj);
 
+uint16_t om_grp_obj_page_count(om_grp_obj_mgr_t mgr, om_grp_obj_t obj);
+
 /*normal data ops*/
 uint16_t om_grp_obj_nromal_capacity(om_grp_obj_mgr_t mgr, om_grp_obj_t obj, const char * entry);
 void * om_grp_obj_normal(om_grp_obj_mgr_t mgr, om_grp_obj_t obj, const char * entry);

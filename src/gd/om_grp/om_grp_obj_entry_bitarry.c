@@ -151,9 +151,11 @@ int om_grp_obj_ba_set_ex(om_grp_obj_mgr_t mgr, om_grp_obj_t obj, om_grp_entry_me
     assert(obj);
     assert(entry->m_type == om_grp_entry_type_ba);
 
+    if (pos >= entry->m_data.m_ba.m_bit_capacity) return -1;
+
     set_page_pos = cpe_ba_bytes_from_bits(pos) / entry->m_obj_size;
     assert(set_page_pos < entry->m_page_count);
-    assert(cpe_ba_bits_from_bytes(set_page_pos * entry->m_obj_size) < pos);
+    assert(cpe_ba_bits_from_bytes(set_page_pos * entry->m_obj_size) <= pos);
     set_pos_in_page = pos - cpe_ba_bits_from_bytes(set_page_pos * entry->m_obj_size);
 
     oid = ((gd_om_oid_t *)obj) + entry->m_page_begin + set_page_pos;
@@ -187,9 +189,11 @@ cpe_ba_value_t om_grp_obj_ba_get_ex(om_grp_obj_mgr_t mgr, om_grp_obj_t obj, om_g
     assert(obj);
     assert(entry->m_type == om_grp_entry_type_ba);
 
+    if (pos >= entry->m_data.m_ba.m_bit_capacity) return cpe_ba_false;
+
     get_page_pos = cpe_ba_bytes_from_bits(pos) / entry->m_obj_size;
     assert(get_page_pos < entry->m_page_count);
-    assert(cpe_ba_bits_from_bytes(get_page_pos * entry->m_obj_size) < pos);
+    assert(cpe_ba_bits_from_bytes(get_page_pos * entry->m_obj_size) <= pos);
     get_pos_in_page = pos - cpe_ba_bits_from_bytes(get_page_pos * entry->m_obj_size);
 
     oid = ((gd_om_oid_t *)obj) + entry->m_page_begin + get_page_pos;
