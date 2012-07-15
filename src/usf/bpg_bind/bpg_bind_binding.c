@@ -1,6 +1,6 @@
 //#include "cpe/net/net_endpoint.h"
 #include "gd/app/app_context.h"
-//#include "usf/bpg_net/bpg_bind.h"
+#include "usf/bpg_bind/bpg_bind_manage.h"
 #include "bpg_bind_internal_ops.h"
 
 bpg_net_pkg_next_step_t
