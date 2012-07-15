@@ -49,41 +49,13 @@ bpg_net_agent_create(
     mgr->m_write_chanel_size = 2048;
     mgr->m_cmd_disconnect = 0;
     mgr->m_conn_timeout = 0;
+    mgr->m_dispatch_to = NULL;
 
     mem_buffer_init(&mgr->m_rsp_buf, alloc);
-
-    if (cpe_hash_table_init(
-            &mgr->m_cliensts,
-            alloc,
-            (cpe_hash_fun_t) bpg_net_agent_binding_client_id_hash,
-            (cpe_hash_cmp_t) bpg_net_agent_binding_client_id_cmp,
-            CPE_HASH_OBJ2ENTRY(bpg_net_agent_binding, m_hh_client),
-            -1) != 0)
-    {
-        mem_buffer_clear(&mgr->m_rsp_buf);
-        nm_node_free(mgr_node);
-        return NULL;
-    }
-
-    if (cpe_hash_table_init(
-            &mgr->m_connections,
-            alloc,
-            (cpe_hash_fun_t) bpg_net_agent_binding_connection_id_hash,
-            (cpe_hash_cmp_t) bpg_net_agent_binding_connection_id_cmp,
-            CPE_HASH_OBJ2ENTRY(bpg_net_agent_binding, m_hh_connection),
-            -1) != 0)
-    {
-        cpe_hash_table_fini(&mgr->m_cliensts);
-        mem_buffer_clear(&mgr->m_rsp_buf);
-        nm_node_free(mgr_node);
-        return NULL;
-    }
 
     snprintf(name_buf, sizeof(name_buf), "%s.reply-rsp", name);
     mgr->m_reply_rsp = dp_rsp_create(gd_app_dp_mgr(app), name_buf);
     if (mgr->m_reply_rsp == NULL) {
-        cpe_hash_table_fini(&mgr->m_cliensts);
-        cpe_hash_table_fini(&mgr->m_connections);
         mem_buffer_clear(&mgr->m_rsp_buf);
         nm_node_free(mgr_node);
         return NULL;
@@ -100,8 +72,6 @@ bpg_net_agent_create(
             bpg_net_agent_accept,
             mgr);
     if (mgr->m_listener == NULL) {
-        cpe_hash_table_fini(&mgr->m_cliensts);
-        cpe_hash_table_fini(&mgr->m_connections);
         mem_buffer_clear(&mgr->m_rsp_buf);
         dp_rsp_free(mgr->m_reply_rsp);
         nm_node_free(mgr_node);
@@ -117,11 +87,7 @@ static void bpg_net_agent_clear(nm_node_t node) {
     bpg_net_agent_t mgr;
     mgr = (bpg_net_agent_t)nm_node_data(node);
 
-    bpg_net_agent_binding_free_all(mgr);
-
     mem_buffer_clear(&mgr->m_rsp_buf);
-    cpe_hash_table_fini(&mgr->m_cliensts);
-    cpe_hash_table_fini(&mgr->m_connections);
 
     dp_rsp_free(mgr->m_reply_rsp);
     mgr->m_reply_rsp = NULL;
@@ -129,6 +95,11 @@ static void bpg_net_agent_clear(nm_node_t node) {
     if (mgr->m_req_buf) {
         bpg_pkg_free(mgr->m_req_buf);
         mgr->m_req_buf = NULL;
+    }
+
+    if (mgr->m_dispatch_to) {
+        mem_free(mgr->m_alloc, mgr->m_dispatch_to);
+        mgr->m_dispatch_to = NULL;
     }
 
     net_listener_free(mgr->m_listener);
@@ -180,6 +151,25 @@ bpg_net_agent_name_hs(bpg_net_agent_t mgr) {
 
 short bpg_net_agent_port(bpg_net_agent_t svr) {
     return net_listener_using_port(svr->m_listener);
+}
+
+int bpg_net_agent_set_dispatch_to(bpg_net_agent_t agent, const char * dispatch_to) {
+    size_t name_len;
+
+    if (agent->m_dispatch_to) {
+        mem_free(agent->m_alloc, agent->m_dispatch_to);
+        agent->m_dispatch_to = NULL;
+    }
+
+    if (dispatch_to) {
+        name_len = cpe_hs_len_to_binary_len(strlen(dispatch_to));
+        agent->m_dispatch_to = (cpe_hash_string_t)mem_alloc(agent->m_alloc, name_len);
+        if (agent->m_dispatch_to == NULL) return -1;
+
+        cpe_hs_init(agent->m_dispatch_to, name_len, dispatch_to);
+    }
+
+    return 0;
 }
 
 void bpg_net_agent_set_conn_timeout(bpg_net_agent_t agent, tl_time_span_t span) {

@@ -79,14 +79,11 @@ int bpg_net_agent_reply(dp_req_t req, void * ctx, error_monitor_t em) {
         }
     }
     
-    ep = bpg_net_agent_process_reply(
-        agent,
-        bpg_pkg_client_id(pkg),
-        bpg_pkg_connection_id(pkg));
+    ep = net_ep_find(gd_app_net_mgr(agent->m_app), bpg_pkg_connection_id(pkg));
     if (ep == NULL) {
         CPE_ERROR(
-            em, "%s: bpg_net_agent_reply: can`t detect ep from req!",
-            bpg_net_agent_name(agent));
+            em, "%s: bpg_net_agent_reply: no connection associate with %d!",
+            bpg_net_agent_name(agent), bpg_pkg_connection_id(pkg));
         return 0;
     }
 

@@ -141,11 +141,18 @@ static void bpg_net_agent_on_read(bpg_net_agent_t agent, net_ep_t ep) {
             }
         }
 
-        switch(bpg_net_agent_process_recv(agent, bpg_pkg_client_id(req_buf), net_ep_id(ep))) {
-        case bpg_net_pkg_next_go_with_connection_id:
-            bpg_pkg_set_connection_id(req_buf, net_ep_id(ep));
-            //got to next!!!
-        case bpg_net_pkg_next_go_without_connection_id:
+        bpg_pkg_set_connection_id(req_buf, net_ep_id(ep));
+        if (agent->m_dispatch_to) {
+            if (dp_dispatch_by_string(agent->m_dispatch_to, bpg_pkg_to_dp_req(req_buf), agent->m_em) != 0) {
+                CPE_ERROR(
+                    agent->m_em, "%s: ep %d: dispatch to %s error!",
+                    bpg_net_agent_name(agent), (int)net_ep_id(ep), cpe_hs_data(agent->m_dispatch_to));
+
+                bpg_pkg_set_errno(req_buf, -1);
+                bpg_net_agent_reply(bpg_pkg_to_dp_req(req_buf), agent, agent->m_em);
+            }
+        }
+        else {
             if (dp_dispatch_by_numeric(bpg_pkg_cmd(req_buf), bpg_pkg_to_dp_req(req_buf), agent->m_em) != 0) {
                 CPE_ERROR(
                     agent->m_em, "%s: ep %d: dispatch cmd %d error!",
@@ -154,86 +161,23 @@ static void bpg_net_agent_on_read(bpg_net_agent_t agent, net_ep_t ep) {
                 bpg_pkg_set_errno(req_buf, -1);
                 bpg_net_agent_reply(bpg_pkg_to_dp_req(req_buf), agent, agent->m_em);
             }
-            break;
-        case bpg_net_pkg_next_ignore:
-            break;
-        case bpg_net_pkg_next_close:
-            net_ep_close(ep);
-            return;
         }
     }
 }
 
 static void bpg_net_agent_on_open(bpg_net_agent_t agent, net_ep_t ep) {
-    struct bpg_net_agent_binding * binding;
-
-    binding = bpg_net_agent_binding_find_by_connection_id(agent, net_ep_id(ep));
-    if (binding) {
-        if(agent->m_debug) {
-            CPE_INFO(
-                agent->m_em, "%s: ep %d: on open, remove old binding of client %d",
-                bpg_net_agent_name(agent), (int)net_ep_id(ep), (int)binding->m_client_id);
-        }
-
-        bpg_net_agent_binding_free(agent, binding);
-    }
-    else {
-        if(agent->m_debug) {
-            CPE_INFO(
-                agent->m_em, "%s: ep %d: on open",
-                bpg_net_agent_name(agent), (int)net_ep_id(ep));
-        }
-    }
-}
-
-static void bpg_net_agent_notify_disconnect(bpg_net_agent_t agent, net_ep_t ep, uint64_t clientId, net_ep_event_t event) {
-    bpg_pkg_t req_buf;
-
-    req_buf = bpg_net_agent_req_buf(agent);
-    if (req_buf == NULL) {
-        CPE_ERROR(
-            agent->m_em, "%s: ep %d: notify disconnect: get req buf fail!",
-            bpg_net_agent_name(agent), (int)net_ep_id(ep));
-        return;
-    }
-
-    bpg_pkg_init(req_buf);
-    bpg_pkg_set_cmd(req_buf, agent->m_cmd_disconnect);
-    bpg_pkg_set_client_id(req_buf, clientId);
-    bpg_pkg_set_connection_id(req_buf, net_ep_id(ep));
-
-    if (dp_dispatch_by_numeric(bpg_pkg_cmd(req_buf), bpg_pkg_to_dp_req(req_buf), agent->m_em) != 0) {
-        CPE_ERROR(
-            agent->m_em, "%s: ep %d: notify disconnect: dispatch error!",
+    if(agent->m_debug) {
+        CPE_INFO(
+            agent->m_em, "%s: ep %d: on open",
             bpg_net_agent_name(agent), (int)net_ep_id(ep));
     }
 }
 
 static void bpg_net_agent_on_close(bpg_net_agent_t agent, net_ep_t ep, net_ep_event_t event) {
-    struct bpg_net_agent_binding * binding;
-    uint64_t client_id = 0;
-
-    binding = bpg_net_agent_binding_find_by_connection_id(agent, net_ep_id(ep));
-    if (binding) {
-        if(agent->m_debug) {
-            CPE_INFO(
-                agent->m_em, "%s: ep %d: on close, remove old binding of client %d, event=%d",
-                bpg_net_agent_name(agent), (int)net_ep_id(ep), (int)binding->m_client_id, event);
-        }
-
-        client_id = binding->m_client_id;
-        bpg_net_agent_binding_free(agent, binding);
-    }
-    else {
-        if(agent->m_debug) {
-            CPE_INFO(
-                agent->m_em, "%s: ep %d: on close, event=%d",
-                bpg_net_agent_name(agent), (int)net_ep_id(ep), event);
-        }
-    }
-
-    if (agent->m_cmd_disconnect != 0) {
-        bpg_net_agent_notify_disconnect(agent, ep, client_id, event);
+    if(agent->m_debug) {
+        CPE_INFO(
+            agent->m_em, "%s: ep %d: on close, event=%d",
+            bpg_net_agent_name(agent), (int)net_ep_id(ep), event);
     }
 
     net_ep_free(ep);

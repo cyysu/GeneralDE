@@ -33,6 +33,7 @@ cpe_hash_string_t bpg_net_agent_name_hs(bpg_net_agent_t mgr);
 void bpg_net_agent_set_conn_timeout(bpg_net_agent_t agent, tl_time_span_t span);
 tl_time_span_t bpg_net_agent_conn_timeout(bpg_net_agent_t agent);
 
+int bpg_net_agent_set_dispatch_to(bpg_net_agent_t agent, const char * dispatch_to);
 short bpg_net_agent_port(bpg_net_agent_t svr);
 
 #ifdef __cplusplus

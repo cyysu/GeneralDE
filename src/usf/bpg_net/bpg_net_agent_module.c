@@ -108,6 +108,14 @@ int bpg_net_agent_app_init(gd_app_context_t app, gd_app_module_t module, cfg_t c
         return -1;
     }
 
+    if (bpg_net_agent_set_dispatch_to(bpg_net_agent, cfg_get_string(cfg, "dispatch-to", NULL)) != 0) {
+        CPE_ERROR(
+            gd_app_em(app), "%s: create: set dispatch to fail!",
+            gd_app_module_name(module));
+        bpg_net_agent_free(bpg_net_agent);
+        return -1;
+    }
+
     bpg_net_agent_set_conn_timeout(
         bpg_net_agent, cfg_get_uint32(cfg, "conn-timeout", 0) * 1000);
 
