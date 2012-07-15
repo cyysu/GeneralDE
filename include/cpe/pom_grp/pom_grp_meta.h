@@ -1,0 +1,70 @@
+#ifndef CPE_POM_GRP_META_H
+#define CPE_POM_GRP_META_H
+#include "cpe/dr/dr_types.h"
+#include "pom_grp_types.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/*meta operations*/
+pom_grp_meta_t pom_grp_meta_create(
+    mem_allocrator_t alloc,
+    const char * name,
+    uint16_t omm_page_size);
+
+void pom_grp_meta_free(pom_grp_meta_t);
+
+const char * pom_grp_meta_name(pom_grp_meta_t meta);
+uint16_t pom_grp_meta_entry_count(pom_grp_meta_t meta);
+pom_grp_entry_meta_t pom_grp_meta_entry_at(pom_grp_meta_t meta, uint16_t pos);
+
+void pom_grp_meta_dump(write_stream_t stream, pom_grp_meta_t meta, int ident);
+
+/*entry operations*/
+pom_grp_entry_meta_t
+pom_grp_entry_meta_normal_create(
+    pom_grp_meta_t meta,
+    const char * entry_name,
+    LPDRMETA entry_meta,
+    error_monitor_t em);
+
+pom_grp_entry_meta_t
+pom_grp_entry_meta_list_create(
+    pom_grp_meta_t meta,
+    const char * entry_name,
+    LPDRMETA entry_meta, uint32_t count_per_page, uint32_t capacity,
+    error_monitor_t em);
+
+pom_grp_entry_meta_t
+pom_grp_entry_meta_ba_create(
+    pom_grp_meta_t meta,
+    const char * entry_name,
+    uint16_t byte_per_page, uint16_t bit_capacity,
+    error_monitor_t em);
+
+pom_grp_entry_meta_t
+pom_grp_entry_meta_binary_create(
+    pom_grp_meta_t meta,
+    const char * entry_name,
+    uint32_t capacity,
+    error_monitor_t em);
+
+void pom_grp_entry_meta_free(pom_grp_entry_meta_t entry_meta);
+
+pom_grp_entry_meta_t
+pom_grp_entry_meta_find(pom_grp_meta_t meta, const char * name);
+
+void pom_grp_entry_meta_it_init(pom_grp_meta_t meta, pom_grp_entry_meta_it_t it);
+
+const char * pom_grp_entry_meta_name(pom_grp_entry_meta_t entry_meta);
+cpe_hash_string_t pom_grp_entry_meta_name_hs(pom_grp_entry_meta_t entry_meta);
+pom_grp_entry_type_t pom_grp_entry_meta_type(pom_grp_entry_meta_t entry_meta);
+
+#define pom_grp_entry_meta_next(it) ((it)->next ? (it)->next(it) : NULL)
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif
