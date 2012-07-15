@@ -14,6 +14,7 @@ struct arg_file * i_om_file;
 struct arg_file * i_meta_file;
 struct arg_file * i_meta_group_root;
 struct arg_file * i_meta_group;
+struct arg_file * o_lib_c;
 struct arg_lit * help;
 struct arg_lit * op_init;
 struct arg_int * arg_shmkey;
@@ -145,7 +146,10 @@ int tools_main(error_monitor_t em) {
 
     rv = 0;
 
-    if (op_init->count) {
+    if (o_lib_c->count) {
+        rv = pom_tool_generate_lib_c(&env, o_lib_c->filename[0]);
+    }
+    else if (op_init->count) {
         rv =  pom_tool_shm_init(&env);
     }
     else {
@@ -164,10 +168,11 @@ ERROR:
 
 int main(int argc, char * argv[]) {
     void* argtable[] = {
-        i_om_file              = arg_file0(   NULL,   "om-def",              "<string>",    "input om def file")
-        , i_meta_file          = arg_filen(   NULL,   "meta-file",              "<string>", 0, 100,    "input meta file")
-        , i_meta_group_root    = arg_file0(   NULL,  "meta-group-root",     "<string>",            "root of input meta files listed in group file")
-        , i_meta_group         = arg_file0(   NULL,  "meta-group",     "<string>",            "a file defined a list of input fild")
+        i_om_file              = arg_file0(   NULL,   "pom-meta",              "<string>",    "input pom meta file")
+        , i_meta_file          = arg_filen(   NULL,   "dr-meta",              "<string>", 0, 100,    "input meta file")
+        , i_meta_group_root    = arg_file0(   NULL,  "dr-meta-group-root",     "<string>",            "root of input meta files listed in group file")
+        , i_meta_group         = arg_file0(   NULL,  "dr-meta-group",     "<string>",            "a file defined a list of input fild")
+        , o_lib_c              = arg_file0(   NULL,  "output-lib-c",       "<string>",            "output c lib file")
         , help                 = arg_lit0(   NULL,  "help",                                   "print this help and exit")
         , op_init              = arg_lit0(   NULL,  "init",                                "init shm")
         , arg_shmkey           = arg_int0(   NULL,  "shm-key",    "<integer>",                 "shm-key")
