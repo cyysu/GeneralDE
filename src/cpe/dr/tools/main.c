@@ -298,7 +298,7 @@ int tools_main(error_monitor_t em) {
             dr_metalib_bilder_lib(ctx.m_builder),
             em) == 0)
     {
-        ctx.m_metalib = (LPDRMETALIB)mem_buffer_make_continuous(&buffer, 0), mem_buffer_size(&buffer);
+        ctx.m_metalib = (LPDRMETALIB)mem_buffer_make_continuous(&buffer, 0);
 
         if (ctx.m_metalib) {
             if (do_validate(&ctx) != 0) rv = -1;
