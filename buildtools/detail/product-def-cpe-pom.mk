@@ -5,6 +5,7 @@ cpe-pom-tool=$(CPDE_OUTPUT_ROOT)/$(tools.output)/bin/cpe_pom_tool
 
 define product-def-rule-cpe-pom-c-module-c
   $(call assert-not-null,$1.cpe-pom.$2.c.output)
+  $(call assert-not-null,$1.cpe-pom.$2.c.arg-name)
 
   $(eval r.$1.$3.cpe-pom.$2.c.output:=$($1.cpe-pom.$2.c.output))
   $(eval r.$1.$3.cpe-pom.$2.c.arg-name:=$($1.cpe-pom.$2.c.arg-name))
@@ -19,9 +20,9 @@ define product-def-rule-cpe-pom-c-module-c
   $(r.$1.$3.cpe-pom.$2.generated.c): $(r.$1.$3.cpe-pom.$2.source) $(cpe-pom-tool)
 	$$(call with_message,cpe-pom generaing lib-c to $(subst $(CPDE_ROOT)/,,$(r.$1.$3.cpe-pom.$2.generated.c)) ...) \
 	LD_LIBRARY_PATH=$(CPDE_OUTPUT_ROOT)/$(tools.output)/lib:$$$$LD_LIBRARY_PATH \
-	$(cpe-pom-tool) $(addprefix --pom-meta, $(r.$1.$2.cpe-pom.$3.pom-meta-source)) \
-                    $(addprefix --dr-meta , $(r.$1.$2.cpe-pom.$3.pom-meta-source)) \
-                   --output-lib-c $$@
+	$(cpe-pom-tool) $(addprefix --pom-meta , $(r.$1.$3.cpe-pom.$2.pom-meta-source)) \
+                    $(addprefix --dr-meta , $(r.$1.$3.cpe-pom.$2.dr-meta-source)) \
+                   --output-lib-c $$@ --output-lib-c-arg $($1.cpe-pom.$2.c.arg-name)
 
 endef
 

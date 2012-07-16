@@ -21,8 +21,8 @@ static int pom_grp_meta_build_from_cfg_entry_normal(
     data_meta = dr_lib_find_meta_by_name(metalib, data_type);
     if (data_meta == NULL) {
         CPE_ERROR(
-            em, "pom_grp_meta_build_from_cfg: entry %s: entry-normal not configure data-type!",
-            cfg_name(entry_cfg));
+            em, "pom_grp_meta_build_from_cfg: entry %s: entry-normal data-type %s not exist!",
+            cfg_name(entry_cfg), data_type);
         return -1;
     }
 
@@ -56,8 +56,8 @@ static int pom_grp_meta_build_from_cfg_entry_list(
     data_meta = dr_lib_find_meta_by_name(metalib, data_type);
     if (data_meta == NULL) {
         CPE_ERROR(
-            em, "pom_grp_meta_build_from_cfg: entry %s: entry-list not configure data-type!",
-            cfg_name(entry_cfg));
+            em, "pom_grp_meta_build_from_cfg: entry %s: entry-list data-type %s not exist!",
+            cfg_name(entry_cfg), data_type);
         return -1;
     }
 

@@ -23,7 +23,7 @@ struct pom_grp_entry_meta_data {
     pom_class_id_t m_class_id;
 };
 
-size_t pom_grp_entry_meta_calc_bin_size(pom_grp_meta_t meta) {
+size_t pom_grp_meta_calc_bin_size(pom_grp_meta_t meta) {
     pom_grp_entry_meta_t entry;
     uint16_t i;
     size_t size;
@@ -56,7 +56,7 @@ size_t pom_grp_entry_meta_calc_bin_size(pom_grp_meta_t meta) {
 }
 
 pom_grp_meta_t
-pom_grp_entry_meta_build_from_bin(mem_allocrator_t alloc, void const * data, LPDRMETALIB metalib, error_monitor_t em) {
+pom_grp_meta_build_from_bin(mem_allocrator_t alloc, void const * data, LPDRMETALIB metalib, error_monitor_t em) {
     struct pom_grp_meta_data * meta_data;
     struct pom_grp_entry_meta_data * entry_meta_data;
     pom_grp_meta_t meta;
@@ -225,7 +225,7 @@ static uint32_t pom_grp_entry_meta_build_to_bin_write_string(uint32_t * string_w
     return r;
 }
 
-void pom_grp_entry_meta_write_to_bin(void * data, size_t capacity, pom_grp_meta_t meta) {
+void pom_grp_meta_write_to_bin(void * data, size_t capacity, pom_grp_meta_t meta) {
     pom_grp_entry_meta_t entry;
     uint32_t i;
     struct pom_grp_meta_data * meta_data;
@@ -233,9 +233,9 @@ void pom_grp_entry_meta_write_to_bin(void * data, size_t capacity, pom_grp_meta_
     uint32_t string_write_pos;
     size_t data_size;
 
-    assert(pom_grp_entry_meta_calc_bin_size(meta) <= capacity);
+    assert(pom_grp_meta_calc_bin_size(meta) <= capacity);
 
-    data_size = pom_grp_entry_meta_calc_bin_size(meta);
+    data_size = pom_grp_meta_calc_bin_size(meta);
     assert(data_size <= capacity);
 
     meta_data = (struct pom_grp_meta_data *)data;
