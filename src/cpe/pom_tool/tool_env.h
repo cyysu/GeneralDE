@@ -20,7 +20,7 @@ typedef struct pom_tool_env {
 } * cpe_dr_tool_env_t;
 
 int pom_tool_shm_init(struct pom_tool_env * env);
-int pom_tool_generate_lib_c(struct pom_tool_env * env, const char * filename);
+int pom_tool_generate_lib_c(struct pom_tool_env * env, const char * filename, const char * arg_name);
 
 #ifdef __cplusplus
 }
