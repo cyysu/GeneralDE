@@ -21,7 +21,7 @@ int pom_grp_obj_mgr_buf_init(
 
     total_head_size
         = sizeof(struct pom_grp_obj_control_data)
-        + CPE_PAL_ALIGN(pom_grp_entry_meta_calc_bin_size(meta))
+        + CPE_PAL_ALIGN(pom_grp_meta_calc_bin_size(meta))
         + CPE_PAL_ALIGN(dr_lib_size(metalib));
 
     if (total_head_size >= data_capacity) {
@@ -30,7 +30,7 @@ int pom_grp_obj_mgr_buf_init(
             ": control size "FMT_SIZE_T", om-meta size "FMT_SIZE_T", metalib size "FMT_SIZE_T"",
             total_head_size, data_capacity,
             sizeof(struct pom_grp_obj_control_data),
-            CPE_PAL_ALIGN(pom_grp_entry_meta_calc_bin_size(meta)),
+            CPE_PAL_ALIGN(pom_grp_meta_calc_bin_size(meta)),
             CPE_PAL_ALIGN(dr_lib_size(metalib)));
         return -1;
     }
@@ -41,8 +41,8 @@ int pom_grp_obj_mgr_buf_init(
     control->m_head_version = 1;
 
     control->m_objmeta_start = sizeof(struct pom_grp_obj_control_data);
-    control->m_objmeta_size = pom_grp_entry_meta_calc_bin_size(meta);
-    pom_grp_entry_meta_write_to_bin(((char *)data) + control->m_objmeta_start, control->m_objmeta_size, meta);
+    control->m_objmeta_size = pom_grp_meta_calc_bin_size(meta);
+    pom_grp_meta_write_to_bin(((char *)data) + control->m_objmeta_start, control->m_objmeta_size, meta);
 
     control->m_metalib_start = control->m_objmeta_start + CPE_PAL_ALIGN(control->m_objmeta_size);
     control->m_metalib_size = dr_lib_size(metalib);

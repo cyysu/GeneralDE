@@ -5,9 +5,14 @@
 #include "cpe/utils/buffer.h"
 #include "cpe/utils/file.h"
 #include "cpe/utils/stream_file.h"
+#include "cpe/cfg/cfg_read.h"
+#include "cpe/cfg/cfg_manage.h"
 #include "cpe/dr/dr_metalib_init.h"
 #include "cpe/dr/dr_metalib_builder.h"
 #include "cpe/dr/dr_metalib_build.h"
+#include "cpe/dr/dr_metalib_manage.h"
+#include "cpe/pom_grp/pom_grp_meta.h"
+#include "cpe/pom_grp/pom_grp_meta_build.h"
 #include "tool_env.h"
 
 struct arg_file * i_om_file;
@@ -15,6 +20,7 @@ struct arg_file * i_meta_file;
 struct arg_file * i_meta_group_root;
 struct arg_file * i_meta_group;
 struct arg_file * o_lib_c;
+struct arg_str * o_lib_c_arg;
 struct arg_lit * help;
 struct arg_lit * op_init;
 struct arg_int * arg_shmkey;
@@ -91,13 +97,39 @@ void prepare_input_meta_file(dr_metalib_builder_t builder, error_monitor_t em) {
         if (dir_exist(filename, em)) {
             dir_search(&g_input_meta_search_visitor, builder, filename, 5, em, NULL);
         }
-        else if (file_exist(i_meta_file->filename[i], em)) {
-            dr_metalib_builder_add_file(builder, NULL, filename);
+        else if (file_exist(filename, em)) {
+            if (dr_metalib_builder_add_file(builder, NULL, filename) == NULL) {
+                CPE_ERROR(em, "add input meta file %s fail!", filename);
+            }
         }
         else {
             CPE_ERROR(em, "input meta file %s not exist!", filename);
         }
     }
+}
+
+pom_grp_meta_t build_pom_grp_meta(error_monitor_t em, LPDRMETALIB metalib, const char * filename) {
+    pom_grp_meta_t pom_meta;
+    cfg_t cfg;
+
+    cfg = cfg_create(NULL);
+
+    if (cfg_read_file(cfg, filename, cfg_replace, em) != 0) {
+        CPE_ERROR(em, "read pom meta from %s fail!", filename);
+        cfg_free(cfg);
+        return NULL;
+    }
+
+    pom_meta = pom_grp_meta_build_from_cfg(NULL, 1024, cfg_child_only(cfg), metalib, em);
+
+    cfg_free(cfg);
+
+    if (pom_meta == NULL) {
+        CPE_ERROR(em, "create pom meta from %s fail!", filename);
+        return NULL;
+    }
+
+    return pom_meta;
 }
 
 int tools_main(error_monitor_t em) {
@@ -119,6 +151,7 @@ int tools_main(error_monitor_t em) {
 
     if (i_meta_file->count > 0 || i_meta_group->count > 0) {
         dr_metalib_builder_t builder;
+        int build_rv;
 
         builder = dr_metalib_builder_create(NULL, em);
         if (builder == NULL) {
@@ -129,25 +162,41 @@ int tools_main(error_monitor_t em) {
         prepare_input_meta_file(builder, em);
         prepare_input_meta_group(builder, em);
 
-        if (dr_inbuild_build_lib(
-                &input_meta_buffer,
-                dr_metalib_bilder_lib(builder),
-                em) == 0)
-        {
-            dr_metalib_builder_free(builder);
-            env.m_input_metalib = (LPDRMETALIB)mem_buffer_size(&input_meta_buffer);
+        dr_metalib_builder_analize(builder);
+        build_rv = dr_inbuild_build_lib(
+            &input_meta_buffer,
+            dr_metalib_bilder_lib(builder),
+            em);
+        dr_metalib_builder_free(builder);
+
+        if (build_rv == 0) {
+            env.m_input_metalib = (LPDRMETALIB)mem_buffer_make_continuous(&input_meta_buffer, 0);
         }
         else {
-            dr_metalib_builder_free(builder);
             printf("build meta lib fail!\n");
             goto ERROR;
         }
     }
 
+    if (i_om_file->count) {
+        if (env.m_input_metalib == NULL) {
+            printf("no metalib!");
+            goto ERROR;
+        }
+
+        env.m_pom_grp_meta = build_pom_grp_meta(em, env.m_input_metalib, i_om_file->filename[0]);
+    }
+
     rv = 0;
 
     if (o_lib_c->count) {
-        rv = pom_tool_generate_lib_c(&env, o_lib_c->filename[0]);
+        if (o_lib_c_arg->count == 0) {
+            CPE_ERROR(em, "not arg name setted!");
+            rv = -1;
+        }
+        else {
+            rv = pom_tool_generate_lib_c(&env, o_lib_c->filename[0], o_lib_c_arg->sval[0]);
+        }
     }
     else if (op_init->count) {
         rv =  pom_tool_shm_init(&env);
@@ -157,11 +206,13 @@ int tools_main(error_monitor_t em) {
         rv = -1;
     }
 
+    if (env.m_pom_grp_meta) pom_grp_meta_free(env.m_pom_grp_meta);
     mem_buffer_clear(&input_meta_buffer);
 
     return rv;
 
 ERROR:
+    if (env.m_pom_grp_meta) pom_grp_meta_free(env.m_pom_grp_meta);
     mem_buffer_clear(&input_meta_buffer);
     return -1;
 }
@@ -173,6 +224,7 @@ int main(int argc, char * argv[]) {
         , i_meta_group_root    = arg_file0(   NULL,  "dr-meta-group-root",     "<string>",            "root of input meta files listed in group file")
         , i_meta_group         = arg_file0(   NULL,  "dr-meta-group",     "<string>",            "a file defined a list of input fild")
         , o_lib_c              = arg_file0(   NULL,  "output-lib-c",       "<string>",            "output c lib file")
+        , o_lib_c_arg          = arg_str0(   NULL,  "output-lib-c-arg",    "<string>",            "output c lib arg name")
         , help                 = arg_lit0(   NULL,  "help",                                   "print this help and exit")
         , op_init              = arg_lit0(   NULL,  "init",                                "init shm")
         , arg_shmkey           = arg_int0(   NULL,  "shm-key",    "<integer>",                 "shm-key")
