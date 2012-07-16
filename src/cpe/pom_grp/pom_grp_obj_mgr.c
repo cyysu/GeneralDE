@@ -77,7 +77,7 @@ pom_grp_obj_mgr_create(
     obj_mgr->m_metalib = (LPDRMETALIB)(obj_mgr->m_full_base + control->m_metalib_start);
 
     obj_mgr->m_meta =
-        pom_grp_entry_meta_build_from_bin(
+        pom_grp_meta_build_from_bin(
             alloc,
             obj_mgr->m_full_base + control->m_objmeta_start,
             obj_mgr->m_metalib,

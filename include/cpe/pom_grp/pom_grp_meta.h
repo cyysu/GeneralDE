@@ -21,17 +21,17 @@ pom_grp_entry_meta_t pom_grp_meta_entry_at(pom_grp_meta_t meta, uint16_t pos);
 
 void pom_grp_meta_dump(write_stream_t stream, pom_grp_meta_t meta, int ident);
 
-size_t pom_grp_entry_meta_calc_bin_size(
+size_t pom_grp_meta_calc_bin_size(
     pom_grp_meta_t meta);
 
 pom_grp_meta_t
-pom_grp_entry_meta_build_from_bin(
+pom_grp_meta_build_from_bin(
     mem_allocrator_t alloc, 
     void const * data,
     LPDRMETALIB metalib,
     error_monitor_t em);
 
-void pom_grp_entry_meta_write_to_bin(
+void pom_grp_meta_write_to_bin(
     void * data, size_t capacity, pom_grp_meta_t meta);
 
 /*entry operations*/
