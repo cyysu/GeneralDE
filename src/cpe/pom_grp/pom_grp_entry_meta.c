@@ -216,6 +216,30 @@ pom_grp_entry_type_t pom_grp_entry_meta_type(pom_grp_entry_meta_t entry_meta) {
     return entry_meta->m_type;
 }
 
+uint16_t pom_grp_entry_meta_index(pom_grp_entry_meta_t entry_meta) {
+    return entry_meta->m_index;
+}
+
+LPDRMETA pom_grp_entry_meta_normal_meta(pom_grp_entry_meta_t entry_meta) {
+    assert(entry_meta->m_type == pom_grp_entry_type_normal);
+    return entry_meta->m_data.m_normal.m_data_meta;
+}
+
+LPDRMETA pom_grp_entry_meta_list_meta(pom_grp_entry_meta_t entry_meta) {
+    assert(entry_meta->m_type == pom_grp_entry_type_list);
+    return entry_meta->m_data.m_list.m_data_meta;
+}
+
+uint32_t pom_grp_entry_meta_ba_bits(pom_grp_entry_meta_t entry_meta) {
+    assert(entry_meta->m_type == pom_grp_entry_type_ba);
+    return entry_meta->m_data.m_ba.m_bit_capacity;
+}
+
+uint32_t pom_grp_entry_meta_ba_bytes(pom_grp_entry_meta_t entry_meta) {
+    assert(entry_meta->m_type == pom_grp_entry_type_ba);
+    return cpe_ba_bytes_from_bits(entry_meta->m_data.m_ba.m_bit_capacity);
+}
+
 uint32_t pom_grp_entry_meta_hash(const struct pom_grp_entry_meta * entry_meta) {
     return cpe_hash_str(entry_meta->m_name, strlen(entry_meta->m_name));
 }

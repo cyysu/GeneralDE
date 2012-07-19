@@ -7,6 +7,7 @@
 static int pom_tool_do_generate_lib_c(write_stream_t stream, struct pom_tool_env * env, const char * arg_name) {
     int rv;
     unsigned char * buf;
+    unsigned char * write_pos;
     size_t size;
     int first_line;
 
@@ -28,6 +29,7 @@ static int pom_tool_do_generate_lib_c(write_stream_t stream, struct pom_tool_env
 
     stream_printf(stream, "#include \"cpe/pal/pal_external.h\"\n EXPORT_DIRECTIVE\nchar %s[] = {", arg_name);
 
+    write_pos = buf;
     while(size > 0) {
         size_t i;
         size_t line_size = size > 16 ? 16 : size;
@@ -42,11 +44,11 @@ static int pom_tool_do_generate_lib_c(write_stream_t stream, struct pom_tool_env
             stream_printf(stream, ", ");
         }
 
-        for(i = 0; i < line_size; ++i) {
+        for(i = 0; i < line_size; ++i, ++write_pos) {
             if (i > 0) { stream_printf(stream, ", "); }
 
             stream_printf(stream, "%s", "0x");
-            stream_printf(stream, "%.2X", buf[i]);
+            stream_printf(stream, "%.2X", *write_pos);
         }
 
         size -= line_size;

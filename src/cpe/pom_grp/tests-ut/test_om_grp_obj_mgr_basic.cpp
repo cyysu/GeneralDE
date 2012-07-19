@@ -26,7 +26,18 @@ public:
     }
 };
 
-TEST_F(OmGrpObjMgrBasicTest, basic_basic) {
-    pom_grp_obj_t obj = pom_mgr_obj_alloc(m_mgr);
+TEST_F(OmGrpObjMgrBasicTest, obj_basic) {
+    pom_grp_obj_t obj = pom_grp_obj_alloc(m_mgr);
     ASSERT_TRUE(obj);
+}
+
+TEST_F(OmGrpObjMgrBasicTest, obj_it_basic) {
+    pom_grp_obj_t obj = pom_grp_obj_alloc(m_mgr);
+    ASSERT_TRUE(obj);
+
+    pom_grp_obj_it it;
+    pom_grp_objs(m_mgr, &it);
+
+    ASSERT_TRUE(pom_grp_obj_it_next(&it) == obj);
+    ASSERT_TRUE(pom_grp_obj_it_next(&it) == NULL);
 }

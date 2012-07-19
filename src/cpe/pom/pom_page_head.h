@@ -20,8 +20,6 @@ struct pom_data_page_head {
 
 #pragma pack(pop)
 
-#define pom_data_page_head_is_valid(p) ((p)->m_classId != POM_INVALID_CLASSID)
-
 #define pom_data_page_head_init(p) do {       \
     struct pom_data_page_head * __p =         \
         (struct pom_data_page_head *)(p);     \

@@ -242,15 +242,16 @@ static int pom_class_reserve_page_array_slot(struct pom_class * theClass, error_
     return 0;
 }
 
-static
 int pom_class_add_new_page(
     struct pom_class * theClass,
-    struct pom_data_page_head * head,
     void * page,
     error_monitor_t em)
 {
     int32_t newRangeStart;
     cpe_ba_t alloc_arry;
+    struct pom_data_page_head * head;
+
+    head = (struct pom_data_page_head *)page;
 
     if (pom_class_reserve_page_array_slot(theClass, em) != 0) return -1;
 
@@ -261,7 +262,7 @@ int pom_class_add_new_page(
     head->m_reserve = 0;
     head->m_page_idx = theClass->m_page_array_size;
     head->m_reserve2 = 0;
-    cpe_ba_set_all(alloc_arry, theClass->m_alloc_buf_capacity, cpe_ba_false);
+    cpe_ba_set_all(alloc_arry, theClass->m_object_per_page, cpe_ba_false);
 
     newRangeStart = theClass->m_object_per_page * theClass->m_page_array_size;
     cpe_range_put_range(&theClass->m_range_alloc, newRangeStart, newRangeStart + theClass->m_object_per_page);
@@ -272,14 +273,15 @@ int pom_class_add_new_page(
     return 0;
 }
 
-static
 int pom_class_add_old_page(
     struct pom_class * theClass,
-    struct pom_data_page_head * head,
     void * page,
     error_monitor_t em)
 {
     cpe_ba_t alloc_arry;
+    struct pom_data_page_head * head;
+
+    head = (struct pom_data_page_head *)page;
 
     if (pom_class_reserve_page_array_slot(theClass, em) != 0) return -1;
 
@@ -311,32 +313,6 @@ int pom_class_add_old_page(
     ++theClass->m_page_array_size;
 
     return 0;
-}
-
-int pom_class_add_page(struct pom_class *cls, void * page, error_monitor_t em) {
-    struct pom_data_page_head * head;
-
-    head = (struct pom_data_page_head *)page;
-
-    if (head->m_magic != POM_PAGE_MAGIC) {
-        CPE_ERROR_EX(em, pom_page_head_error, "page head magic error!");
-        return -1;
-    }
-
-    if (head->m_classId == POM_INVALID_CLASSID) {
-        return pom_class_add_new_page(cls, head, page, em);
-    }
-    else {
-        if (head->m_classId != cls->m_id) {
-            CPE_ERROR_EX(
-                em, pom_page_head_error,
-                "page head class id error, expect %d, but %d!",
-                cls->m_id, head->m_classId);
-            return -1;
-        }
-
-        return pom_class_add_old_page(cls, head, page, em);
-    }
 }
 
 int32_t
@@ -434,7 +410,7 @@ int32_t pom_class_addr_2_object(struct pom_class *cls, void * page, void * addr)
     return head->m_page_idx * cls->m_object_per_page + idx_in_page;
 }
 
-pom_class_id_t om_class_id(pom_class_t cls) {
+pom_class_id_t pom_class_id(pom_class_t cls) {
     return cls->m_id;
 }
 
@@ -448,4 +424,75 @@ cpe_hash_string_t pom_class_name_hs(pom_class_t cls) {
 
 size_t pom_class_obj_size(pom_class_t cls) {
     return cls->m_object_size;
+}
+
+size_t pom_class_page_size(pom_class_t cls) {
+    return cls->m_page_size;
+}
+
+size_t pom_class_object_per_page(pom_class_t cls) {
+    return cls->m_object_per_page;
+}
+
+struct pom_class_obj_it_data {
+    pom_class_t m_class;
+    uint32_t m_page_pos;
+    uint32_t m_pos_in_page;
+};
+
+static void pom_class_obj_it_search_next(struct pom_class_obj_it_data * data) {
+    while(data->m_page_pos < data->m_class->m_page_array_size) {
+        char * page;
+        cpe_ba_t alloc_arry;
+
+        page = (char*)data->m_class->m_page_array[data->m_page_pos];
+        alloc_arry = pom_class_ba_of_page(page);
+
+        while(data->m_pos_in_page < data->m_class->m_object_per_page) {
+            if (cpe_ba_get(alloc_arry, data->m_pos_in_page) == cpe_ba_true) return;
+            ++data->m_pos_in_page;
+        }
+
+        data->m_pos_in_page = 0;
+        ++data->m_page_pos;
+    }
+}
+
+static void * pom_class_obj_it_next(pom_obj_it_t it) {
+    struct pom_class_obj_it_data * data;
+    char * page;
+    void * r;
+
+    data = (struct pom_class_obj_it_data *)it->m_data;
+
+    assert(data);
+    assert(data->m_class);
+    assert(sizeof(struct pom_class_obj_it_data) <= sizeof(it->m_data));
+
+    if (data->m_page_pos >= data->m_class->m_page_array_size) return NULL;
+    if (data->m_pos_in_page >= data->m_class->m_object_per_page) return NULL;
+
+    page = (char*)data->m_class->m_page_array[data->m_page_pos];
+
+    r = (void*)(page + data->m_class->m_object_buf_begin_in_page + (data->m_class->m_object_size * data->m_pos_in_page));
+
+    ++data->m_pos_in_page;
+    pom_class_obj_it_search_next(data);
+
+    return r;
+}
+
+void pom_class_objects(pom_class_t the_class, pom_obj_it_t it) {
+    struct pom_class_obj_it_data * data;
+
+    assert(the_class);
+    assert(sizeof(struct pom_class_obj_it_data) <= sizeof(it->m_data));
+
+    data = (struct pom_class_obj_it_data *)it->m_data;
+    data->m_class = the_class;
+    data->m_page_pos = 0;
+    data->m_pos_in_page = 0;
+    it->next = pom_class_obj_it_next;
+
+    pom_class_obj_it_search_next(data);
 }

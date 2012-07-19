@@ -42,6 +42,11 @@ struct pom_backend {
     void (*clear)(struct pom_buffer_id_it * buf_ids, void * context);
 };
 
+typedef struct pom_obj_it {
+    void * (*next)(struct pom_obj_it * it);
+    char m_data[16];
+} * pom_obj_it_t;
+
 #ifdef __cplusplus
 }
 #endif
