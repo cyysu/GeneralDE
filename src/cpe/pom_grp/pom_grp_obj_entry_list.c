@@ -18,6 +18,16 @@ uint16_t pom_grp_obj_list_count(pom_grp_obj_mgr_t mgr, pom_grp_obj_t obj, const 
     return pom_grp_obj_list_count_ex(mgr, obj, entry_meta);
 }
 
+uint16_t pom_grp_obj_list_capacity(pom_grp_obj_mgr_t mgr, pom_grp_obj_t obj, const char * entry) {
+    pom_grp_entry_meta_t entry_meta = pom_grp_entry_meta_find(mgr->m_meta, entry);
+    if (entry_meta == NULL) {
+        CPE_ERROR(mgr->m_em, "pom_grp_obj_list_capacity: entry %s not exist!", entry);
+        return 0;
+    }
+
+    return pom_grp_obj_list_capacity_ex(mgr, obj, entry_meta);
+}
+
 void * pom_grp_obj_list_at(pom_grp_obj_mgr_t mgr, pom_grp_obj_t obj, const char * entry, uint16_t pos) {
     pom_grp_entry_meta_t entry_meta = pom_grp_entry_meta_find(mgr->m_meta, entry);
     if (entry_meta == NULL) {
@@ -78,6 +88,16 @@ void * pom_grp_obj_list_bsearch(pom_grp_obj_mgr_t mgr, pom_grp_obj_t obj, const 
     return pom_grp_obj_list_bsearch_ex(mgr, obj, entry_meta, key, cmp);
 }
 
+void * pom_grp_obj_list_lsearch(pom_grp_obj_mgr_t mgr, pom_grp_obj_t obj, const char * entry, void const * key, int (*cmp)(void const *, void const *)) {
+    pom_grp_entry_meta_t entry_meta = pom_grp_entry_meta_find(mgr->m_meta, entry);
+    if (entry_meta == NULL) {
+        CPE_ERROR(mgr->m_em, "pom_grp_obj_list_lsearch: entry %s not exist!", entry);
+        return NULL;
+    }
+
+    return pom_grp_obj_list_lsearch_ex(mgr, obj, entry_meta, key, cmp);
+}
+
 uint16_t * pom_grp_obj_list_count_buf(pom_grp_obj_mgr_t mgr, pom_grp_obj_t obj, pom_grp_entry_meta_t entry) {
     return ((uint16_t *)(((char *)obj) + mgr->m_meta->m_size_buf_start)) + entry->m_data.m_list.m_size_idx;
 }
@@ -87,6 +107,13 @@ uint16_t pom_grp_obj_list_count_ex(pom_grp_obj_mgr_t mgr, pom_grp_obj_t obj, pom
     assert(obj);
     assert(entry->m_type == pom_grp_entry_type_list);
     return *pom_grp_obj_list_count_buf(mgr, obj, entry);
+}
+
+uint16_t pom_grp_obj_list_capacity_ex(pom_grp_obj_mgr_t mgr, pom_grp_obj_t obj, pom_grp_entry_meta_t entry) {
+    assert(entry);
+    assert(obj);
+    assert(entry->m_type == pom_grp_entry_type_list);
+    return entry->m_data.m_list.m_capacity;
 }
 
 void * pom_grp_obj_list_at_ex(pom_grp_obj_mgr_t mgr, pom_grp_obj_t obj, pom_grp_entry_meta_t entry, uint16_t pos) {
@@ -366,10 +393,18 @@ int pom_grp_obj_list_remove_ex(pom_grp_obj_mgr_t mgr, pom_grp_obj_t obj, pom_grp
     return 0;
 }
 
+int pom_grp_obj_list_clear_ex(pom_grp_obj_mgr_t mgr, pom_grp_obj_t obj, pom_grp_entry_meta_t entry) {
+    return 0;
+}
+
 int pom_grp_obj_list_sort_ex(pom_grp_obj_mgr_t mgr, pom_grp_obj_t obj, pom_grp_entry_meta_t entry, int (*cmp)(void const *, void const *)) {
     return 0;
 }
 
 void * pom_grp_obj_list_bsearch_ex(pom_grp_obj_mgr_t mgr, pom_grp_obj_t obj, pom_grp_entry_meta_t entry, const void * key, int (*cmp)(void const *, void const *)) {
+    return NULL;
+}
+
+void * pom_grp_obj_list_lsearch_ex(pom_grp_obj_mgr_t mgr, pom_grp_obj_t obj, pom_grp_entry_meta_t entry, const void * key, int (*cmp)(void const *, void const *)) {
     return NULL;
 }

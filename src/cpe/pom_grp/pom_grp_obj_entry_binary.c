@@ -36,14 +36,14 @@ void * pom_grp_obj_binary_check_or_create(pom_grp_obj_mgr_t mgr, pom_grp_obj_t o
     return pom_grp_obj_binary_check_or_create_ex(mgr, obj, entry_meta);
 }
 
-int pom_grp_obj_binary_set(pom_grp_obj_mgr_t mgr, pom_grp_obj_t obj, const char * entry, void * data) {
+int pom_grp_obj_binary_set(pom_grp_obj_mgr_t mgr, pom_grp_obj_t obj, const char * entry, void const * data, uint16_t capacity) {
     pom_grp_entry_meta_t entry_meta = pom_grp_entry_meta_find(mgr->m_meta, entry);
     if (entry_meta == NULL) {
         CPE_ERROR(mgr->m_em, "pom_grp_obj_binary_set_ex: entry %s not exist!", entry);
         return -1;
     }
 
-    return pom_grp_obj_binary_set_ex(mgr, obj, entry_meta, data);
+    return pom_grp_obj_binary_set_ex(mgr, obj, entry_meta, data, capacity);
 }
 
 uint16_t pom_grp_obj_binary_capacity_ex(pom_grp_obj_mgr_t mgr, pom_grp_obj_t obj, pom_grp_entry_meta_t entry) {
@@ -88,7 +88,7 @@ void * pom_grp_obj_binary_check_or_create_ex(pom_grp_obj_mgr_t mgr, pom_grp_obj_
     return pom_obj_get(mgr->m_omm, oid, mgr->m_em);
 }
 
-int pom_grp_obj_binary_set_ex(pom_grp_obj_mgr_t mgr, pom_grp_obj_t obj, pom_grp_entry_meta_t entry, void * data) {
+int pom_grp_obj_binary_set_ex(pom_grp_obj_mgr_t mgr, pom_grp_obj_t obj, pom_grp_entry_meta_t entry, void const * data, uint16_t capacity) {
     pom_oid_t oid;
     void * r;
 

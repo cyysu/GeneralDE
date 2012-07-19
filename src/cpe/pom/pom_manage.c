@@ -170,5 +170,5 @@ int pom_mgr_add_new_buffer(pom_mgr_t omm, pom_buffer_id_t buf_id, error_monitor_
 }
 
 int pom_mgr_attach_old_buffer(pom_mgr_t omm, pom_buffer_id_t buf_id, error_monitor_t em) {
-    return pom_buffer_mgr_attach_old_buffer(&omm->m_bufMgr, buf_id, em);
+    return pom_buffer_mgr_attach_old_buffer(&omm->m_bufMgr, &omm->m_classMgr, buf_id, em);
 }
