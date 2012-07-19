@@ -17,7 +17,7 @@ public:
             "</metalib>"
             ) ;
 
-        m_obj = pom_mgr_obj_alloc(m_mgr);
+        m_obj = pom_grp_obj_alloc(m_mgr);
         ASSERT_TRUE(m_obj);
     }
 

@@ -67,6 +67,26 @@ cpe_ba_value_t pom_grp_obj_ba_get(pom_grp_obj_mgr_t mgr, pom_grp_obj_t obj, cons
     return pom_grp_obj_ba_get_ex(mgr, obj, entry_meta, pos);
 }
 
+int pom_grp_obj_ba_get_binary(pom_grp_obj_mgr_t mgr, pom_grp_obj_t obj, const char * entry, void * data, uint32_t capacity) {
+    pom_grp_entry_meta_t entry_meta = pom_grp_entry_meta_find(mgr->m_meta, entry);
+    if (entry_meta == NULL) {
+        CPE_ERROR(mgr->m_em, "pom_grp_obj_ba_get_all: entry %s not exist!", entry);
+        return -1;
+    }
+
+    return pom_grp_obj_ba_get_binary_ex(mgr, obj, entry_meta, data, capacity);
+}
+
+int pom_grp_obj_ba_set_binary(pom_grp_obj_mgr_t mgr, pom_grp_obj_t obj, const char * entry, void const * data, uint32_t capacity) {
+    pom_grp_entry_meta_t entry_meta = pom_grp_entry_meta_find(mgr->m_meta, entry);
+    if (entry_meta == NULL) {
+        CPE_ERROR(mgr->m_em, "pom_grp_obj_ba_set_all: entry %s not exist!", entry);
+        return -1;
+    }
+
+    return pom_grp_obj_ba_set_binary_ex(mgr, obj, entry_meta, data, capacity);
+}
+
 uint16_t pom_grp_obj_ba_bit_capacity_ex(pom_grp_obj_mgr_t mgr, pom_grp_obj_t obj, pom_grp_entry_meta_t entry) {
     assert(entry);
     assert(obj);
@@ -168,9 +188,14 @@ int pom_grp_obj_ba_set_ex(pom_grp_obj_mgr_t mgr, pom_grp_obj_t obj, pom_grp_entr
             CPE_ERROR(mgr->m_em, "pom_grp_obj_ba_set_ex: alloc %s buf fail!", entry->m_name);
             return -1;
         }
+
+        page_buf = ((char*)pom_obj_get(mgr->m_omm, *oid, mgr->m_em));
+        bzero(page_buf, entry->m_obj_size);
+    }
+    else {
+        page_buf = ((char*)pom_obj_get(mgr->m_omm, *oid, mgr->m_em));
     }
 
-    page_buf = ((char*)pom_obj_get(mgr->m_omm, *oid, mgr->m_em));
     assert(page_buf);
 
     assert(value == cpe_ba_true);
@@ -203,4 +228,68 @@ cpe_ba_value_t pom_grp_obj_ba_get_ex(pom_grp_obj_mgr_t mgr, pom_grp_obj_t obj, p
     assert(page_buf);
 
     return cpe_ba_get((cpe_ba_t)page_buf, get_pos_in_page);
+}
+
+int pom_grp_obj_ba_get_binary_ex(pom_grp_obj_mgr_t mgr, pom_grp_obj_t obj, pom_grp_entry_meta_t entry, void * data, uint32_t capacity) {
+    pom_oid_t * oid;
+    
+    assert(entry);
+    assert(obj);
+    assert(entry->m_type == pom_grp_entry_type_ba);
+
+    if (capacity != cpe_ba_bytes_from_bits(entry->m_data.m_ba.m_bit_capacity)) return -1;
+
+    oid = ((pom_oid_t *)obj) + entry->m_page_begin;
+    while(capacity > 0) {
+        uint32_t copy_size = entry->m_obj_size;
+        if (copy_size > capacity) copy_size = capacity;
+
+        if (*oid == POM_INVALID_OID) {
+            bzero(data, copy_size);
+        }
+        else {
+            char * page_buf = ((char*)pom_obj_get(mgr->m_omm, *oid, mgr->m_em));
+            memcpy(data, page_buf, copy_size);
+        }
+
+        ++oid;
+        capacity -= copy_size;
+        data = ((char *)data) + copy_size;
+    }
+
+    return 0;
+}
+
+int pom_grp_obj_ba_set_binary_ex(pom_grp_obj_mgr_t mgr, pom_grp_obj_t obj, pom_grp_entry_meta_t entry, void const * data, uint32_t capacity) {
+    pom_oid_t * oid;
+    
+    assert(entry);
+    assert(obj);
+    assert(entry->m_type == pom_grp_entry_type_ba);
+
+    if (capacity != cpe_ba_bytes_from_bits(entry->m_data.m_ba.m_bit_capacity)) return -1;
+
+    oid = ((pom_oid_t *)obj) + entry->m_page_begin;
+    while(capacity > 0) {
+        char * page_buf;
+        uint32_t copy_size = entry->m_obj_size;
+        if (copy_size > capacity) copy_size = capacity;
+
+        if (*oid == POM_INVALID_OID) {
+            *oid = pom_obj_alloc(mgr->m_omm, pom_grp_entry_meta_name_hs(entry), mgr->m_em);
+            if (*oid == POM_INVALID_OID) {
+                CPE_ERROR(mgr->m_em, "pom_grp_obj_ba_set_binary_ex: alloc %s buf fail!", entry->m_name);
+                return -1;
+            }
+        }
+
+        page_buf = ((char*)pom_obj_get(mgr->m_omm, *oid, mgr->m_em));
+        memcpy(page_buf, data, copy_size);
+
+        ++oid;
+        capacity -= copy_size;
+        data = ((const char *)data) + copy_size;
+    }
+
+    return 0;
 }

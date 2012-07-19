@@ -29,6 +29,10 @@ typedef struct pom_grp_entry_meta_it {
     pom_grp_entry_meta_t m_data;
 } * pom_grp_entry_meta_it_t;
 
+typedef struct pom_grp_obj_it {
+    struct pom_obj_it m_data;
+} * pom_grp_obj_it_t;
+
 #ifdef __cplusplus
 }
 #endif

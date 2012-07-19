@@ -69,44 +69,44 @@ void * pom_grp_obj_normal_ex(pom_grp_obj_mgr_t mgr, pom_grp_obj_t obj, pom_grp_e
 }
 
 void * pom_grp_obj_normal_check_or_create_ex(pom_grp_obj_mgr_t mgr, pom_grp_obj_t obj, pom_grp_entry_meta_t entry) {
-    pom_oid_t oid;
+    pom_oid_t * oid;
 
     assert(entry);
     assert(obj);
     assert(entry->m_type == pom_grp_entry_type_normal);
 
-    oid = ((pom_oid_t *)obj)[entry->m_page_begin];
+    oid = ((pom_oid_t *)obj) + entry->m_page_begin;
 
-    if (oid == POM_INVALID_OID) {
-        oid = pom_obj_alloc(mgr->m_omm, pom_grp_entry_meta_name_hs(entry), mgr->m_em);
+    if (*oid == POM_INVALID_OID) {
+        *oid = pom_obj_alloc(mgr->m_omm, pom_grp_entry_meta_name_hs(entry), mgr->m_em);
         if (oid == POM_INVALID_OID) {
             CPE_ERROR(mgr->m_em, "om_mgr_obj_normal_check_or_create_ex: alloc %s buf fail!", entry->m_name);
             return NULL;
         }
     }
 
-    return pom_obj_get(mgr->m_omm, oid, mgr->m_em);
+    return pom_obj_get(mgr->m_omm, *oid, mgr->m_em);
 }
 
 int pom_grp_obj_normal_set_ex(pom_grp_obj_mgr_t mgr, pom_grp_obj_t obj, pom_grp_entry_meta_t entry, void * data) {
-    pom_oid_t oid;
+    pom_oid_t * oid;
     void * r;
 
     assert(entry);
     assert(obj);
     assert(entry->m_type == pom_grp_entry_type_normal);
 
-    oid = ((pom_oid_t *)obj)[entry->m_page_begin];
+    oid = ((pom_oid_t *)obj) + entry->m_page_begin;
 
-    if (oid == POM_INVALID_OID) {
-        oid = pom_obj_alloc(mgr->m_omm, pom_grp_entry_meta_name_hs(entry), mgr->m_em);
-        if (oid == POM_INVALID_OID) {
+    if (*oid == POM_INVALID_OID) {
+        *oid = pom_obj_alloc(mgr->m_omm, pom_grp_entry_meta_name_hs(entry), mgr->m_em);
+        if (*oid == POM_INVALID_OID) {
             CPE_ERROR(mgr->m_em, "om_mgr_obj_normal_set: alloc %s buf fail!", entry->m_name);
             return -1;
         }
     }
 
-    r = pom_obj_get(mgr->m_omm, oid, mgr->m_em);
+    r = pom_obj_get(mgr->m_omm, *oid, mgr->m_em);
     assert(r);
 
     memcpy(r, data, entry->m_obj_size);

@@ -26,6 +26,9 @@ int cpe_str_buf_cat_printf(cpe_str_buf_t buf, const char * format, ...);
 int cpe_str_buf_cpy(cpe_str_buf_t buf, const char * data);
 int cpe_str_buf_printf(cpe_str_buf_t buf, const char * format, ...);
 
+void cpe_str_toupper(char * data);
+void cpe_str_tolower(char * data);
+
 #define CPE_STR_BUF_INIT(__b, __size) { __size, 0, __b, 0 }
 
 #ifdef __cplusplus
