@@ -4,10 +4,13 @@
 #include "cpe/utils/error.h"
 #include "cpe/utils/range.h"
 #include "cpe/pom/pom_types.h"
+#include "pom_page_head.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+struct pom_class_mgr;
 
 struct pom_buffer_mgr {
     pom_backend_t m_backend;
@@ -37,6 +40,7 @@ int pom_buffer_mgr_add_new_buffer(
 
 int pom_buffer_mgr_attach_old_buffer(
     struct pom_buffer_mgr * pgm,
+    struct pom_class_mgr * classMgr,
     pom_buffer_id_t buf_id,
     error_monitor_t em);
 

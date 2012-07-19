@@ -84,6 +84,13 @@ pom_grp_entry_meta_find(pom_grp_meta_t meta, const char * name) {
     return (pom_grp_entry_meta_t)cpe_hash_table_find(&meta->m_entry_ht, &key);
 }
 
+pom_grp_entry_meta_t
+pom_grp_entry_meta_at(pom_grp_meta_t meta, uint16_t pos) {
+    if (pos >= meta->m_entry_count) return NULL;
+
+    return meta->m_entry_buf[pos];
+}
+
 static pom_grp_entry_meta_t pom_grp_entry_meta_it_next(struct pom_grp_entry_meta_it * it) {
     pom_grp_entry_meta_t r;
     if (it->m_data == NULL) return NULL;

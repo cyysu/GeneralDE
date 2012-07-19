@@ -130,10 +130,13 @@ void pom_grp_obj_mgr_free(pom_grp_obj_mgr_t mgr) {
     mem_free(mgr->m_alloc, mgr);
 }
 
-pom_mgr_t pom_grp_obj_mgr_omm(pom_grp_obj_mgr_t mgr) {
+pom_mgr_t pom_grp_obj_mgr_pom(pom_grp_obj_mgr_t mgr) {
     return mgr->m_omm;
 }
 
+pom_grp_meta_t pom_grp_obj_mgr_meta(pom_grp_obj_mgr_t mgr) {
+    return mgr->m_meta;
+}
 
 int pom_grp_meta_init_omm(pom_mgr_t omm, pom_grp_meta_t meta, error_monitor_t em) {
     pom_grp_entry_meta_t entry;

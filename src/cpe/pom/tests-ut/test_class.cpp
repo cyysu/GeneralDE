@@ -105,7 +105,7 @@ TEST_F(ClassTest, add_new_page_basic) {
 
     char page_buf[256];
     pom_data_page_head_init(page_buf);
-    ASSERT_EQ(0, pom_class_add_page(cls, &page_buf, t_em()));
+    ASSERT_EQ(0, pom_class_add_new_page(cls, &page_buf, t_em()));
 
     EXPECT_EQ((size_t)1, cls->m_page_array_size);
 

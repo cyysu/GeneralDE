@@ -130,3 +130,17 @@ int cpe_str_buf_printf(cpe_str_buf_t buf, const char * fmt, ...) {
 
     return buf->m_overflow;
 }
+
+void cpe_str_toupper(char * data) {
+    while(*data) {
+        *data = toupper(*data);
+        ++data;
+    }
+}
+
+void cpe_str_tolower(char * data) {
+    while(*data) {
+        *data = tolower(*data);
+        ++data;
+    }
+}

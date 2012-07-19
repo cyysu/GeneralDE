@@ -1,12 +1,13 @@
 #include <assert.h>
 #include "cpe/pal/pal_stdio.h"
+#include "cpe/pom/pom_class.h"
 #include "cpe/pom/pom_object.h"
 #include "cpe/pom/pom_manage.h"
 #include "cpe/pom_grp/pom_grp_obj.h"
 #include "pom_grp_internal_ops.h"
 
 pom_grp_obj_t
-pom_mgr_obj_alloc(pom_grp_obj_mgr_t mgr) {
+pom_grp_obj_alloc(pom_grp_obj_mgr_t mgr) {
     pom_oid_t control_oid;
     pom_grp_obj_t obj;
     assert(mgr);
@@ -60,4 +61,13 @@ uint16_t pom_grp_obj_page_count(pom_grp_obj_mgr_t mgr, pom_grp_obj_t obj) {
     }
 
     return r;
+}
+
+void pom_grp_objs(pom_grp_obj_mgr_t mgr, pom_grp_obj_it_t it) {
+    pom_class_t the_class;
+
+    the_class = pom_mgr_get_class(mgr->m_omm, mgr->m_meta->m_control_class_id);
+    assert(the_class);
+
+    pom_class_objects(the_class, &it->m_data);
 }

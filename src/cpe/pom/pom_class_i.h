@@ -65,7 +65,15 @@ pom_class_get(struct pom_class_mgr * classMgr, pom_class_id_t classId);
 struct pom_class *
 pom_class_find(struct pom_class_mgr * classMgr, cpe_hash_string_t className);
 
-int pom_class_add_page(struct pom_class *cls, void * page, error_monitor_t em);
+int pom_class_add_new_page(
+    struct pom_class * theClass,
+    void * page,
+    error_monitor_t em);
+
+int pom_class_add_old_page(
+    struct pom_class * theClass,
+    void * page,
+    error_monitor_t em);
 
 int32_t pom_class_alloc_object(struct pom_class *cls);
 int32_t pom_class_addr_2_object(struct pom_class *cls, void * page, void * addr);

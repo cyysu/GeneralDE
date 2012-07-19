@@ -17,12 +17,15 @@ pom_grp_obj_mgr_create(
 void pom_grp_obj_mgr_free(pom_grp_obj_mgr_t mgr);
 
 pom_mgr_t pom_grp_obj_mgr_pom(pom_grp_obj_mgr_t mgr);
+pom_grp_meta_t pom_grp_obj_mgr_meta(pom_grp_obj_mgr_t mgr);
 
 int pom_grp_obj_mgr_buf_init(
     LPDRMETALIB metalib,
     pom_grp_meta_t grp_meta,
     void * data, size_t data_capacity,
     error_monitor_t em);
+
+void pom_grp_obj_mgr_info(pom_grp_obj_mgr_t mgr, write_stream_t stream, int ident);
 
 #ifdef __cplusplus
 }
