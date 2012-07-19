@@ -68,11 +68,21 @@ void pom_grp_entry_meta_free(pom_grp_entry_meta_t entry_meta);
 pom_grp_entry_meta_t
 pom_grp_entry_meta_find(pom_grp_meta_t meta, const char * name);
 
+pom_grp_entry_meta_t
+pom_grp_entry_meta_at(pom_grp_meta_t meta, uint16_t pos);
+
 void pom_grp_entry_meta_it_init(pom_grp_meta_t meta, pom_grp_entry_meta_it_t it);
 
 const char * pom_grp_entry_meta_name(pom_grp_entry_meta_t entry_meta);
 cpe_hash_string_t pom_grp_entry_meta_name_hs(pom_grp_entry_meta_t entry_meta);
 pom_grp_entry_type_t pom_grp_entry_meta_type(pom_grp_entry_meta_t entry_meta);
+uint16_t pom_grp_entry_meta_index(pom_grp_entry_meta_t entry_meta);
+
+LPDRMETA pom_grp_entry_meta_normal_meta(pom_grp_entry_meta_t entry_meta);
+LPDRMETA pom_grp_entry_meta_list_meta(pom_grp_entry_meta_t entry_meta);
+
+uint32_t pom_grp_entry_meta_ba_bits(pom_grp_entry_meta_t entry_meta);
+uint32_t pom_grp_entry_meta_ba_bytes(pom_grp_entry_meta_t entry_meta);
 
 #define pom_grp_entry_meta_next(it) ((it)->next ? (it)->next(it) : NULL)
 

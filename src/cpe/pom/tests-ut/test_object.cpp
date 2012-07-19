@@ -72,3 +72,18 @@ TEST_F(MgrTest, object_from_addr_basic) {
 
     EXPECT_EQ(oid, pom_obj_id_from_addr(m_omm, objData, t_em()));
 }
+
+TEST_F(MgrTest, class_object_it_basic) {
+    pom_class_t the_class = pom_mgr_get_class(m_omm, addClass("class1", 20));
+    ASSERT_TRUE(the_class);
+
+    pom_oid_t oid = obj_alloc(pom_class_name_hs(the_class));
+    EXPECT_TRUE(oid != POM_INVALID_OID);
+
+    pom_obj_it it;
+    pom_class_objects(the_class, &it);
+
+    EXPECT_TRUE(pom_obj_it_next(&it) == pom_obj_get(m_omm, oid, t_em()));
+    EXPECT_TRUE(pom_obj_it_next(&it) == NULL);
+}
+

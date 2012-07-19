@@ -3,6 +3,7 @@
 #include "cpe/pom/pom_error.h"
 #include "pom_buffer.h"
 #include "pom_page_head.h"
+#include "pom_class_i.h"
 
 int pom_buffer_mgr_init(
     struct pom_buffer_mgr * pgm,
@@ -199,6 +200,7 @@ static int pom_buffer_mgr_reserve_for_attach_buffer(struct pom_buffer_mgr * pgm,
 
 int pom_buffer_mgr_attach_old_buffer(
     struct pom_buffer_mgr * pgm,
+    struct pom_class_mgr * classMgr,
     pom_buffer_id_t buf_id,
     error_monitor_t em)
 {
@@ -217,10 +219,26 @@ int pom_buffer_mgr_attach_old_buffer(
         leftSize > (int)pgm->m_page_size;
         leftSize -= pgm->m_page_size, buf += pgm->m_page_size)
     {
-        if (!pom_data_page_head_is_valid((struct pom_data_page_head*)buf)) {
+        struct pom_data_page_head* page_head = (struct pom_data_page_head*)buf;
+
+        if (page_head->m_magic != POM_PAGE_MAGIC) {
+            CPE_ERROR(em, "found invalid page %p, magic mismatch!", buf);
+            continue;
+        }
+
+        if (page_head->m_classId == POM_INVALID_CLASSID) {
             cpe_range_put_range(
                 &pgm->m_free_pages,
                 (ptr_int_t)buf, ((ptr_int_t)buf) + pgm->m_page_size);
+        }
+        else {
+            pom_class_t the_class = pom_class_get(classMgr, page_head->m_classId);
+            if (the_class == NULL) {
+                CPE_ERROR(em, "found invalid page %p, class %d not exist!", buf, page_head->m_classId);
+                continue;
+            }
+
+            pom_class_add_old_page(the_class, buf, em);
         }
     }
 

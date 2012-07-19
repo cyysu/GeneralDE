@@ -36,6 +36,8 @@ pom_obj_class(
     pom_oid_t oid,
     error_monitor_t em);
 
+#define pom_obj_it_next(it) ((it)->next ? (it)->next(it) : NULL)
+
 #ifdef __cplusplus
 }
 #endif

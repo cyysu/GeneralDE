@@ -33,7 +33,7 @@ pom_oid_t pom_obj_alloc(
             return POM_INVALID_OID;
         }
 
-        if (pom_class_add_page(theClass, newPage, em) != 0) {
+        if (pom_class_add_new_page(theClass, newPage, em) != 0) {
             CPE_ERROR_EX(
                 em, pom_no_memory,
                 "object of theClass %s add page fail!", cpe_hs_data(className));

@@ -17,21 +17,49 @@ define product-def-rule-cpe-pom-c-module-c
   $(eval r.$1.$3.c.sources += $(r.$1.$3.cpe-pom.$2.generated.c))
   $(eval r.$1.cleanup += $(r.$1.$3.cpe-pom.$2.generated.c))
 
-  $(r.$1.$3.cpe-pom.$2.generated.c): $(r.$1.$3.cpe-pom.$2.source) $(cpe-pom-tool)
+  $(r.$1.$3.cpe-pom.$2.generated.c): $(r.$1.$3.cpe-pom.$2.pom-meta-source) $(r.$1.$3.cpe-pom.$2.dr-meta-source) $(cpe-pom-tool)
 	$$(call with_message,cpe-pom generaing lib-c to $(subst $(CPDE_ROOT)/,,$(r.$1.$3.cpe-pom.$2.generated.c)) ...) \
 	LD_LIBRARY_PATH=$(CPDE_OUTPUT_ROOT)/$(tools.output)/lib:$$$$LD_LIBRARY_PATH \
-	$(cpe-pom-tool) $(addprefix --pom-meta , $(r.$1.$3.cpe-pom.$2.pom-meta-source)) \
+	$(cpe-pom-tool) mk-clib \
+                    $(addprefix --pom-meta , $(r.$1.$3.cpe-pom.$2.pom-meta-source)) \
                     $(addprefix --dr-meta , $(r.$1.$3.cpe-pom.$2.dr-meta-source)) \
-                   --output-lib-c $$@ --output-lib-c-arg $($1.cpe-pom.$2.c.arg-name)
+                    --page-size=$(r.$1.$3.cpe-pom.$2.page-size) \
+                    --output-lib-c $$@ --output-lib-c-arg $($1.cpe-pom.$2.c.arg-name)
+
+endef
+
+define product-def-rule-cpe-pom-c-module-hpp
+  $(call assert-not-null,$1.cpe-pom.$2.hpp.output)
+  $(call assert-not-null,$1.cpe-pom.$2.hpp.class-name)
+  $(call assert-not-null,$1.cpe-pom.$2.hpp.namespace)
+
+  $(eval r.$1.$3.cpe-pom.$2.hpp.output:=$($1.cpe-pom.$2.hpp.output))
+  $(eval r.$1.$3.cpe-pom.$2.hpp.class-name:=$($1.cpe-pom.$2.hpp.class-name))
+  $(eval r.$1.$3.cpe-pom.$2.hpp.namespace:=$($1.cpe-pom.$2.hpp.namespace))
+  $(eval r.$1.$3.cpe-pom.$2.generated.hpp:=$(r.$1.base)/$($1.cpe-pom.$2.hpp.output))
+
+  $(call c-source-to-object,$(r.$1.c.sources),$3): $(r.$1.$3.cpe-pom.$2.generated.hpp)
+
+  $(r.$1.$3.cpe-pom.$2.generated.hpp): $(r.$1.$3.cpe-pom.$2.pom-meta-source) $(r.$1.$3.cpe-pom.$2.dr-meta-source) $(cpe-pom-tool)
+	$$(call with_message,cpe-pom generaing hpp to $(subst $(CPDE_ROOT)/,,$(r.$1.$3.cpe-pom.$2.generated.hpp)) ...) \
+	LD_LIBRARY_PATH=$(CPDE_OUTPUT_ROOT)/$(tools.output)/lib:$$$$LD_LIBRARY_PATH \
+	$(cpe-pom-tool) mk-hpp \
+                    $(addprefix --pom-meta , $(r.$1.$3.cpe-pom.$2.pom-meta-source)) \
+                    $(addprefix --dr-meta , $(r.$1.$3.cpe-pom.$2.dr-meta-source)) \
+                    --output-hpp $$@ \
+                    --class-name $($1.cpe-pom.$2.hpp.class-name) \
+                    --namespace $($1.cpe-pom.$2.hpp.namespace)
 
 endef
 
 define product-def-rule-cpe-pom-c-module
 $(call assert-not-null,$1.cpe-pom.$3.pom-meta-source)
+$(call assert-not-null,$1.cpe-pom.$3.page-size)
 $(call assert-not-null,$1.cpe-pom.$3.dr-meta-source)
 $(call assert-not-null,$1.cpe-pom.$3.generate)
 
 $(eval r.$1.$2.cpe-pom.$3.pom-meta-source:=$($1.cpe-pom.$3.pom-meta-source))
+$(eval r.$1.$2.cpe-pom.$3.page-size:=$($1.cpe-pom.$3.page-size))
 $(eval r.$1.$2.cpe-pom.$3.dr-meta-source:=$($1.cpe-pom.$3.dr-meta-source))
 $(eval r.$1.$2.cpe-pom.$3.generate:=$($1.cpe-pom.$3.generate))
 
