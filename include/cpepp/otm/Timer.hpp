@@ -14,8 +14,8 @@ public:
     bool autoEnable(void) const { return otm_timer_auto_enable(*this); }
     void setAautoEnable(bool b) const { return otm_timer_set_auto_enable(*this, b ? 1 : 0); }
 
-    void enable(tl_time_t cur_time, otm_memo_t memo, tl_time_t first_exec_span = 0) {
-        otm_timer_enable(*this, cur_time, first_exec_span, memo);
+    void enable(uint32_t cur_time_s, otm_memo_t memo, uint32_t first_exec_span_s = 0) {
+        otm_timer_enable(*this, cur_time_s, first_exec_span_s, memo);
     }
 
     void disable(otm_memo_t memo) {

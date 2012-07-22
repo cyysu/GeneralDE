@@ -8,9 +8,9 @@ struct pom_grp_meta_data {
     uint16_t m_magic;
     uint16_t m_size;
     uint16_t m_name_pos;
-    uint16_t m_omm_page_size;
+    uint16_t m_entry_count;
     pom_class_id_t m_omm_control_class_id;
-    uint8_t m_entry_count;
+    uint32_t m_omm_page_size;
 };
 
 struct pom_grp_entry_meta_data {

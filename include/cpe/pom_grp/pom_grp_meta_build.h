@@ -10,7 +10,7 @@ extern "C" {
 pom_grp_meta_t
 pom_grp_meta_build_from_cfg(
     mem_allocrator_t alloc,
-    uint16_t omm_page_size,
+    uint32_t omm_page_size,
     cfg_t cfg,
     LPDRMETALIB metalib,
     error_monitor_t em);

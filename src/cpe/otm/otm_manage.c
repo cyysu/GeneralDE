@@ -40,7 +40,7 @@ void otm_manage_free(otm_manage_t mgr) {
     mem_free(mgr->m_alloc, mgr);
 }
 
-int otm_manage_buf_init(otm_manage_t mgr, tl_time_t cur_time, otm_memo_t memo_buf, size_t memo_capacitiy) {
+int otm_manage_buf_init(otm_manage_t mgr, uint32_t cur_time_s, otm_memo_t memo_buf, size_t memo_capacitiy) {
     struct cpe_hash_it timer_it;
     otm_timer_t timer;
     size_t i;
@@ -56,12 +56,12 @@ int otm_manage_buf_init(otm_manage_t mgr, tl_time_t cur_time, otm_memo_t memo_bu
         memo_buf[i].m_id = timer->m_id;
 
         if (otm_timer_auto_enable(timer)) {
-            memo_buf[i].m_last_action_time = cur_time;
-            memo_buf[i].m_next_action_time = cur_time + timer->m_span;
+            memo_buf[i].m_last_action_time_s = cur_time_s;
+            memo_buf[i].m_next_action_time_s = cur_time_s + timer->m_span_s;
         }
         else {
-            memo_buf[i].m_last_action_time = 0;
-            memo_buf[i].m_next_action_time = 0;
+            memo_buf[i].m_last_action_time_s = 0;
+            memo_buf[i].m_next_action_time_s = 0;
         }
         ++i;
     }
@@ -75,54 +75,54 @@ error_monitor_t otm_manage_em(otm_manage_t mgr) {
     return mgr->m_em;
 }
 
-void otm_manage_tick(otm_manage_t mgr, tl_time_t cur_time, void * obj_ctx, otm_memo_t memo_buf, size_t memo_capacity) {
+void otm_manage_tick(otm_manage_t mgr, uint32_t cur_time_s, void * obj_ctx, otm_memo_t memo_buf, size_t memo_capacity) {
     size_t i;
     int repeat_count;
     for(i = 0; i < memo_capacity; ++i) {
         otm_memo_t memo = memo_buf + i;
 
         if (memo->m_id == 0) continue;
-        if (memo->m_next_action_time == 0 || memo->m_next_action_time > cur_time) continue;
+        if (memo->m_next_action_time_s == 0 || memo->m_next_action_time_s > cur_time_s) continue;
 
         otm_timer_t timer = otm_timer_find(mgr, memo->m_id);
         if (timer == NULL) continue;
 
         repeat_count = 0;
-        while(memo->m_next_action_time > 0 && timer->m_span && memo->m_next_action_time <= cur_time) {
+        while(memo->m_next_action_time_s > 0 && timer->m_span_s && memo->m_next_action_time_s <= cur_time_s) {
             if (++repeat_count > 2048) {
                 CPE_INFO(
-                    mgr->m_em, "otm_timer_tick: repeat max reached, span="FMT_INT64_T", next_action_time="FMT_UINT64_T", cur_time="FMT_UINT64_T"",
-                    timer->m_span, memo->m_next_action_time, cur_time);
+                    mgr->m_em, "otm_timer_tick: repeat max reached, span=%u, next_action_time=%u, cur_time=%u",
+                    timer->m_span_s, memo->m_next_action_time_s, cur_time_s);
                 break;
             }
 
-            tl_time_t cur_next_action_time = memo->m_next_action_time;
-            timer->m_process(timer, memo, cur_next_action_time, obj_ctx);
-            if (timer->m_span == 0) {
-                if (memo->m_next_action_time != 0) {
+            uint32_t cur_next_action_time_s = memo->m_next_action_time_s;
+            timer->m_process(timer, memo, cur_next_action_time_s, obj_ctx);
+            if (timer->m_span_s == 0) {
+                if (memo->m_next_action_time_s != 0) {
                     CPE_ERROR(
-                        mgr->m_em, "otm_timer_tick: error span is zero, but next_action_time is "FMT_UINT64_T,
-                        memo->m_next_action_time);
-                    memo->m_next_action_time = 0;
+                        mgr->m_em, "otm_timer_tick: error span is zero, but next_action_time is %u",
+                        memo->m_next_action_time_s);
+                    memo->m_next_action_time_s = 0;
                     break;
                 }
             }
 
-            if (memo->m_next_action_time == cur_next_action_time) {
-                memo->m_next_action_time += timer->m_span;
+            if (memo->m_next_action_time_s == cur_next_action_time_s) {
+                memo->m_next_action_time_s += timer->m_span_s;
             }
-            else if (memo->m_next_action_time && memo->m_next_action_time < cur_next_action_time) {
+            else if (memo->m_next_action_time_s && memo->m_next_action_time_s < cur_next_action_time_s) {
                 CPE_ERROR(
-                    mgr->m_em, "otm_timer_tick: error next_action_time "FMT_UINT64_T", cur_next_action_time="FMT_UINT64_T"",
-                    memo->m_next_action_time, cur_next_action_time);
-                memo->m_next_action_time = cur_next_action_time + timer->m_span;
+                    mgr->m_em, "otm_timer_tick: error next_action_time %u, cur_next_action_time=%u",
+                    memo->m_next_action_time_s, cur_next_action_time_s);
+                memo->m_next_action_time_s = cur_next_action_time_s + timer->m_span_s;
                 break;
             }
         }
     }
 }
 
-int otm_manage_enable(otm_manage_t mgr, otm_timer_id_t id, tl_time_t cur_time, tl_time_t first_exec_span, otm_memo_t memo, size_t memo_capacitiy) {
+int otm_manage_enable(otm_manage_t mgr, otm_timer_id_t id, uint32_t cur_time_s, uint32_t first_exec_span_s, otm_memo_t memo, size_t memo_capacitiy) {
     struct otm_memo key;
     otm_memo_t timer_memo;
     otm_timer_t timer;
@@ -138,12 +138,12 @@ int otm_manage_enable(otm_manage_t mgr, otm_timer_id_t id, tl_time_t cur_time, t
     timer = otm_timer_find(mgr, id);
     if (timer == NULL) return -1;
 
-    otm_timer_enable(timer, cur_time, first_exec_span, timer_memo);
+    otm_timer_enable(timer, cur_time_s, first_exec_span_s, timer_memo);
 
     return 0;
 }
 
-int otm_manage_perform(otm_manage_t mgr, tl_time_t cur_time, otm_timer_id_t id, void * obj_ctx, otm_memo_t memo, size_t memo_capacitiy) {
+int otm_manage_perform(otm_manage_t mgr, uint32_t cur_time_s, otm_timer_id_t id, void * obj_ctx, otm_memo_t memo, size_t memo_capacitiy) {
     struct otm_memo key_memo;
     struct otm_timer key_timer;
     otm_memo_t timer_memo;
@@ -161,7 +161,7 @@ int otm_manage_perform(otm_manage_t mgr, tl_time_t cur_time, otm_timer_id_t id, 
     timer = (otm_timer_t)cpe_hash_table_find(&mgr->m_timers, &key_timer);
     if (timer == NULL) return -1;
 
-    timer->m_process(timer, timer_memo, cur_time, obj_ctx);
+    timer->m_process(timer, timer_memo, cur_time_s, obj_ctx);
 
     return 0;
 }
@@ -178,8 +178,8 @@ int otm_manage_disable(otm_manage_t mgr, otm_timer_id_t id, otm_memo_t memo, siz
     timer_memo = (otm_memo_t)bsearch(&key, memo, memo_capacitiy, sizeof(struct otm_memo), otm_memo_cmp);
     if (timer_memo == NULL) return 0;
 
-    timer_memo->m_last_action_time = 0;
-    timer_memo->m_next_action_time = 0;
+    timer_memo->m_last_action_time_s = 0;
+    timer_memo->m_next_action_time_s = 0;
 
     return 0;
 }

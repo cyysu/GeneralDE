@@ -10,7 +10,7 @@ otm_timer_t otm_timer_create(
     otm_manage_t mgr,
     otm_timer_id_t id,
     const char * name,
-    otm_timer_id_t span,
+    uint32_t span_s,
     size_t capacity,
     otm_process_fun_t process);
 
@@ -26,7 +26,7 @@ size_t otm_timer_capacity(otm_timer_t timer);
 void otm_timer_set_auto_enable(otm_timer_t timer, int enable_p);
 int otm_timer_auto_enable(otm_timer_t timer);
 
-void otm_timer_enable(otm_timer_t timer, tl_time_t cur_time, tl_time_t first_exec_span, otm_memo_t memo);
+void otm_timer_enable(otm_timer_t timer, uint32_t cur_time_s, uint32_t first_exec_span_s, otm_memo_t memo);
 void otm_timer_disable(otm_timer_t timer, otm_memo_t memo);
 
 #ifdef __cplusplus

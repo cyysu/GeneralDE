@@ -15,7 +15,7 @@ otm_timer_t otm_timer_create(
     otm_manage_t mgr,
     otm_timer_id_t id,
     const char * name,
-    otm_timer_id_t span,
+    uint32_t span_s,
     size_t capacity,
     otm_process_fun_t process)
 {
@@ -33,7 +33,7 @@ otm_timer_t otm_timer_create(
     timer->m_mgr = mgr;
     timer->m_id = id;
     timer->m_name = buf;
-    timer->m_span = span;
+    timer->m_span_s = span_s;
     timer->m_capacity = capacity;
     timer->m_process = process;
     timer->m_flags = 0;
@@ -109,21 +109,21 @@ int otm_timer_auto_enable(otm_timer_t timer) {
     return timer->m_flags | OTM_TIMER_FLAGS_AUTO_ENABLE;
 }
 
-void otm_timer_enable(otm_timer_t timer, tl_time_t cur_time, tl_time_t first_exec_span, otm_memo_t memo) {
-    if (memo->m_last_action_time != 0) {
-        if (first_exec_span != 0) {
-            memo->m_next_action_time = cur_time + first_exec_span;
+void otm_timer_enable(otm_timer_t timer, uint32_t cur_time_s, uint32_t first_exec_span_s, otm_memo_t memo) {
+    if (memo->m_last_action_time_s != 0) {
+        if (first_exec_span_s != 0) {
+            memo->m_next_action_time_s = cur_time_s + first_exec_span_s;
         }
     }
     else {
-        if (first_exec_span == 0) first_exec_span = timer->m_span;
+        if (first_exec_span_s == 0) first_exec_span_s = timer->m_span_s;
 
-        memo->m_last_action_time = cur_time;
-        memo->m_next_action_time = cur_time + first_exec_span;
+        memo->m_last_action_time_s = cur_time_s;
+        memo->m_next_action_time_s = cur_time_s + first_exec_span_s;
     }
 }
 
 void otm_timer_disable(otm_timer_t timer, otm_memo_t memo) {
-    memo->m_last_action_time = 0;
-    memo->m_next_action_time = 0;
+    memo->m_last_action_time_s = 0;
+    memo->m_next_action_time_s = 0;
 }

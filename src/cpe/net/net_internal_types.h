@@ -112,6 +112,7 @@ struct net_ep {
     int m_fd;
     struct ev_io m_watcher;
     struct ev_timer m_timer;
+	int m_status;
 };
 
 struct net_ep_page {
