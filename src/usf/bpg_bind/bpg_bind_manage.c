@@ -14,6 +14,7 @@
 #include "usf/bpg_bind/bpg_bind_manage.h"
 #include "usf/bpg_pkg/bpg_pkg_dsp.h"
 #include "bpg_bind_internal_ops.h"
+//#include "bpg_net_internal_ops.h"
 
 static void bpg_bind_manage_clear(nm_node_t node);
 
@@ -27,7 +28,7 @@ bpg_bind_manage_create(
     gd_app_context_t app,
     mem_allocrator_t alloc,
     const char * name,
-    bpg_rsp_manage_t rsp_mgr,
+    bpg_pkg_manage_t pkg_mgr,
     error_monitor_t em)
 {
     struct bpg_bind_manage * mgr;
@@ -44,9 +45,10 @@ bpg_bind_manage_create(
     mgr->m_alloc = alloc;
     mgr->m_em = em;
     mgr->m_debug = 0;
-    mgr->m_rsp_mgr = rsp_mgr;
+    mgr->m_pkg_manage = pkg_mgr;
 
     mgr->m_recv_at = NULL;
+	mgr->m_reply_to = NULL;
 
     if (cpe_hash_table_init(
             &mgr->m_cliensts,
@@ -162,7 +164,25 @@ int bpg_bind_manage_set_recv_at(bpg_bind_manage_t mgr, const char * name) {
     return 0;
 }
 
-bpg_rsp_manage_t bpg_bind_manage_rsp_manage(bpg_bind_manage_t mgr) {
-    return mgr->m_rsp_mgr;
+bpg_pkg_manage_t bpg_bind_manage_pkg_manage(bpg_bind_manage_t mgr) {
+    return mgr->m_pkg_manage;
 }
 
+int bpg_bind_manage_set_reply_to(bpg_bind_manage_t mgr, const char * reply_to) {
+	size_t name_len;
+
+	if (mgr->m_reply_to) {
+		mem_free(mgr->m_alloc, mgr->m_reply_to);
+		mgr->m_reply_to = NULL;
+	}
+
+	if (reply_to) {
+		name_len = cpe_hs_len_to_binary_len(strlen(reply_to));
+		mgr->m_reply_to = (cpe_hash_string_t)mem_alloc(mgr->m_alloc, name_len);
+		if (mgr->m_reply_to == NULL) return -1;
+
+		cpe_hs_init(mgr->m_reply_to, name_len, reply_to);
+	}
+
+	return 0;
+}

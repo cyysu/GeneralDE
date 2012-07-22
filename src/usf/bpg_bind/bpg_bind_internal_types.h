@@ -14,9 +14,11 @@ struct bpg_bind_manage {
     gd_app_context_t m_app;
     mem_allocrator_t m_alloc;
     error_monitor_t m_em;
-    bpg_rsp_manage_t m_rsp_mgr;
+    bpg_pkg_manage_t m_pkg_manage;
 
     dp_rsp_t m_recv_at;
+
+	dp_rsp_t m_reply_to;
 
     struct cpe_hash_table m_cliensts;
     struct cpe_hash_table m_connections;

@@ -34,79 +34,79 @@ bpg_bind_process_recv(bpg_bind_manage_t mgr, uint64_t client_id, uint32_t connec
     return bpg_net_pkg_next_go_without_connection_id;
 }
 
-/* net_ep_t bpg_bind_process_reply(bpg_bind_manage_t mgr, uint64_t client_id, uint32_t connection_id) { */
-/*     net_ep_t ep; */
+ net_ep_t bpg_bind_process_binding(bpg_bind_manage_t mgr, uint64_t client_id, uint32_t connection_id) { 
+     net_ep_t ep; 
 
-/*     ep = NULL; */
+     ep = NULL; 
 
-/*     if (connection_id != BPG_INVALID_CONNECTION_ID) { */
-/*         ep = net_ep_find(gd_app_net_mgr(mgr->m_app), connection_id); */
-/*         if (ep == NULL) { */
-/*             CPE_ERROR( */
-/*                 mgr->m_em, "%s: bind_process_reply: connection of id %d not exist!", */
-/*                 bpg_bind_manage_name(mgr), (int)connection_id); */
-/*             return NULL; */
-/*         } */
+     if (connection_id != BPG_INVALID_CONNECTION_ID) { 
+         ep = net_ep_find(gd_app_net_mgr(mgr->m_app), connection_id); 
+         if (ep == NULL) { 
+             CPE_ERROR( 
+                 mgr->m_em, "%s: bind_process_reply: connection of id %d not exist!", 
+                 bpg_bind_manage_name(mgr), (int)connection_id); 
+             return NULL; 
+         } 
 
-/*         if (client_id != 0) { */
-/*             struct bpg_bind_binding * binding = */
-/*                 bpg_bind_binding_find_by_connection_id(mgr, connection_id); */
-/*             if (binding == NULL) { */
-/*                 if (mgr->m_debug) { */
-/*                     CPE_INFO( */
-/*                         mgr->m_em, "%s: ep %d: binding: client %d no binding, accept replay!", */
-/*                         bpg_bind_manage_name(mgr), (int)connection_id, (int)client_id); */
-/*                 } */
+         if (client_id != 0) { 
+             struct bpg_bind_binding * binding = 
+                 bpg_bind_binding_find_by_connection_id(mgr, connection_id); 
+             if (binding == NULL) { 
+                 if (mgr->m_debug) { 
+                     CPE_INFO( 
+                         mgr->m_em, "%s: ep %d: binding: client %d no binding, accept replay!", 
+                         bpg_bind_manage_name(mgr), (int)connection_id, (int)client_id); 
+                 } 
 
-/*                 if (bpg_bind_binding_create(mgr, client_id, connection_id) != 0) { */
-/*                     CPE_ERROR( */
-/*                         mgr->m_em, "%s: ep %d: binding: create binding fail!", */
-/*                         bpg_bind_manage_name(mgr), (int)connection_id); */
-/*                 } */
-/*             } */
-/*             else if (binding->m_client_id != client_id) { */
-/*                 uint64_t old_client_id = binding->m_client_id; */
-/*                 bpg_bind_binding_free(mgr, binding); */
+                 if (bpg_bind_binding_create(mgr, client_id, connection_id) != 0) { 
+                     CPE_ERROR( 
+                         mgr->m_em, "%s: ep %d: binding: create binding fail!", 
+                         bpg_bind_manage_name(mgr), (int)connection_id); 
+                 } 
+             } 
+             else if (binding->m_client_id != client_id) { 
+                 uint64_t old_client_id = binding->m_client_id; 
+                 bpg_bind_binding_free(mgr, binding); 
 
-/*                 if (bpg_bind_binding_create(mgr, client_id, connection_id) != 0) { */
-/*                     CPE_ERROR( */
-/*                         mgr->m_em, "%s: ep %d: binding: create binding fail!", */
-/*                         bpg_bind_manage_name(mgr), (int)connection_id); */
-/*                 } */
-/*                 else { */
-/*                     if (mgr->m_debug) { */
-/*                         CPE_INFO( */
-/*                             mgr->m_em, "%s: ep %d: binding: client %d replace old binding %d!", */
-/*                             bpg_bind_manage_name(mgr), (int)connection_id, (int)client_id, (int)old_client_id); */
-/*                     } */
-/*                 } */
-/*             } */
-/*         }             */
+                 if (bpg_bind_binding_create(mgr, client_id, connection_id) != 0) { 
+                     CPE_ERROR( 
+                         mgr->m_em, "%s: ep %d: binding: create binding fail!", 
+                         bpg_bind_manage_name(mgr), (int)connection_id); 
+                 } 
+                 else { 
+                     if (mgr->m_debug) { 
+                         CPE_INFO( 
+                             mgr->m_em, "%s: ep %d: binding: client %d replace old binding %d!", 
+                             bpg_bind_manage_name(mgr), (int)connection_id, (int)client_id, (int)old_client_id); 
+                     } 
+                 } 
+             } 
+         }             
 
-/*         return ep; */
-/*     } */
+         return ep; 
+     } 
 
-/*     if (client_id != 0) { */
-/*         struct bpg_bind_binding * binding = */
-/*             bpg_bind_binding_find_by_client_id(mgr, client_id); */
-/*         if (binding == NULL) { */
-/*             CPE_ERROR( */
-/*                 mgr->m_em, "%s: bind_process_reply: connection binding of client %d not exist!", */
-/*                 bpg_bind_manage_name(mgr), (int)client_id); */
-/*             return NULL; */
-/*         } */
+     if (client_id != 0) { 
+         struct bpg_bind_binding * binding = 
+             bpg_bind_binding_find_by_client_id(mgr, client_id); 
+         if (binding == NULL) { 
+             CPE_ERROR( 
+                 mgr->m_em, "%s: bind_process_reply: connection binding of client %d not exist!", 
+                 bpg_bind_manage_name(mgr), (int)client_id); 
+             return NULL; 
+         } 
 
-/*         ep = net_ep_find(gd_app_net_mgr(mgr->m_app), binding->m_connection_id); */
-/*         if (ep == NULL) { */
-/*             CPE_ERROR( */
-/*                 mgr->m_em, "%s: bind_process_reply: connection id %d of client %d not exist!", */
-/*                 bpg_bind_manage_name(mgr), (int)binding->m_connection_id, (int)client_id); */
-/*             return NULL; */
-/*         } */
-/*     } */
+         ep = net_ep_find(gd_app_net_mgr(mgr->m_app), binding->m_connection_id); 
+         if (ep == NULL) { 
+             CPE_ERROR( 
+                 mgr->m_em, "%s: bind_process_reply: connection id %d of client %d not exist!", 
+                 bpg_bind_manage_name(mgr), (int)binding->m_connection_id, (int)client_id); 
+             return NULL; 
+         } 
+     } 
 
-/*     return ep; */
-/* } */
+     return ep; 
+ } 
 
 int bpg_bind_binding_create(
     bpg_bind_manage_t mgr,

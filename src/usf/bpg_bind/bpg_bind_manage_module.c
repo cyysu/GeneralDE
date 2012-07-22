@@ -15,17 +15,18 @@
 EXPORT_DIRECTIVE
 int bpg_bind_manage_app_init(gd_app_context_t app, gd_app_module_t module, cfg_t cfg) {
     bpg_bind_manage_t bpg_bind_manage;
-    bpg_rsp_manage_t rsp_manage;
+    bpg_pkg_manage_t pkg_manage;
     const char * recv_at;
+	const char * reply_to;
 
-    rsp_manage = bpg_rsp_manage_find_nc(app, cfg_get_string(cfg, "rsp-manage", NULL));
-    if (rsp_manage == NULL) {
-        CPE_ERROR(
-            gd_app_em(app), "%s: create: rsp-manage %s not exist!",
-            gd_app_module_name(module),
-            cfg_get_string(cfg, "rsp-manage", "default"));
-        return -1;
-    }
+	pkg_manage = bpg_pkg_manage_find_nc(app, cfg_get_string(cfg, "pkg-manage", NULL));
+	if (pkg_manage == NULL) {
+		CPE_ERROR(
+			gd_app_em(app), "%s: create: pkg-manage %s not exist!",
+			gd_app_module_name(module),
+			cfg_get_string(cfg, "pkg-manage", "default"));
+		return -1;
+	}
 
     recv_at = cfg_get_string(cfg, "recv-at", NULL);
     if (recv_at == NULL) {
@@ -35,12 +36,20 @@ int bpg_bind_manage_app_init(gd_app_context_t app, gd_app_module_t module, cfg_t
         return -1;
     }
 
+	reply_to = cfg_get_string(cfg, "reply-to", NULL);
+	if (reply_to == NULL) {
+		CPE_ERROR(
+			gd_app_em(app), "%s: create: reply_to not configured!",
+			gd_app_module_name(module));
+		return -1;
+	}
+
     bpg_bind_manage =
         bpg_bind_manage_create(
             app,
             gd_app_alloc(app),
             gd_app_module_name(module),
-            rsp_manage,
+            pkg_manage,
             gd_app_em(app));
     if (bpg_bind_manage == NULL) return -1;
 
@@ -53,6 +62,15 @@ int bpg_bind_manage_app_init(gd_app_context_t app, gd_app_module_t module, cfg_t
         return -1;
     }
 
+	if (bpg_bind_manage_set_reply_to(bpg_bind_manage, reply_to) != 0) {
+		CPE_ERROR(
+			gd_app_em(app), "%s: create: set recv-at %s fail!",
+			gd_app_module_name(module),
+			recv_at);
+		bpg_bind_manage_free(bpg_bind_manage);
+		return -1;
+	}
+
     bpg_bind_manage->m_debug = cfg_get_int32(cfg, "debug", 0);
 
     if (bpg_bind_manage->m_debug) {
@@ -60,7 +78,7 @@ int bpg_bind_manage_app_init(gd_app_context_t app, gd_app_module_t module, cfg_t
             gd_app_em(app),
             "%s: create: done., rsp-manage=%s, recv-at=%s",
             gd_app_module_name(module),
-            bpg_rsp_manage_name(rsp_manage),
+            bpg_pkg_manage_name(pkg_manage),
             recv_at);
     }
 

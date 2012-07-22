@@ -62,6 +62,15 @@ bpg_net_agent_create(
     }
     dp_rsp_set_processor(mgr->m_reply_rsp, bpg_net_agent_reply, mgr);
 
+	snprintf(name_buf, sizeof(name_buf), "%s.notify-rsp", name);
+	mgr->m_notify_rsp = dp_rsp_create(gd_app_dp_mgr(app), name_buf);
+	if (mgr->m_notify_rsp == NULL) {
+		mem_buffer_clear(&mgr->m_rsp_buf);
+		nm_node_free(mgr_node);
+		return NULL;
+	}
+	dp_rsp_set_processor(mgr->m_notify_rsp, bpg_net_agent_notify_client, mgr);
+
     mgr->m_listener =
         net_listener_create(
             gd_app_net_mgr(app),
@@ -74,6 +83,7 @@ bpg_net_agent_create(
     if (mgr->m_listener == NULL) {
         mem_buffer_clear(&mgr->m_rsp_buf);
         dp_rsp_free(mgr->m_reply_rsp);
+		dp_rsp_free(mgr->m_notify_rsp);
         nm_node_free(mgr_node);
         return NULL;
     }

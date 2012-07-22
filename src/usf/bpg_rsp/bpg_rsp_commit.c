@@ -105,10 +105,14 @@ void bpg_rsp_commit(logic_context_t op_context, void * user_data) {
         goto SEND_ERROR_RESPONSE;
     }
 
+
     if (bpg_pkg_dsp_dispatch(bpg_mgr->m_commit_dsp, response_buf, em) != 0) {
         CPE_ERROR(em, "%s.%s: bpg_rsp_commit: dispatch fail!", bpg_rsp_manage_name(bpg_mgr), bpg_rsp_name(bpg_rsp));
         return;
     }
+
+	//检查bpg_rsp,如果下发的包是kickoff包，则踢掉该用户
+	//net_ep_close()
 
     bpg_rsp_manage_free_context(bpg_mgr, op_context);
     return;
