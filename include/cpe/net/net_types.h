@@ -53,6 +53,13 @@ typedef void (*net_run_tick_fun_t)(void * ctx);
 
 struct ev_loop;
 
+enum net_status
+{
+	NET_INVALID = 0,
+	NET_CONNECTION,
+	NET_REMOVE_AFTER_SEND,
+};
+
 #ifdef __cplusplus
 }
 #endif
