@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <ctype.h>
 #include "cpe/pal/pal_stdio.h"
 #include "cpe/pal/pal_string.h"
 #include "cpe/utils/string_utils.h"

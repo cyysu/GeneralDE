@@ -240,6 +240,11 @@ uint32_t pom_grp_entry_meta_ba_bytes(pom_grp_entry_meta_t entry_meta) {
     return cpe_ba_bytes_from_bits(entry_meta->m_data.m_ba.m_bit_capacity);
 }
 
+uint16_t pom_grp_entry_meta_binary_capacity(pom_grp_entry_meta_t entry_meta) {
+    assert(entry_meta->m_type == pom_grp_entry_type_binary);
+    return entry_meta->m_data.m_binary.m_capacity;
+}
+
 uint32_t pom_grp_entry_meta_hash(const struct pom_grp_entry_meta * entry_meta) {
     return cpe_hash_str(entry_meta->m_name, strlen(entry_meta->m_name));
 }

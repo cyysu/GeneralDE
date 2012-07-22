@@ -11,7 +11,7 @@ extern "C" {
 pom_grp_meta_t pom_grp_meta_create(
     mem_allocrator_t alloc,
     const char * name,
-    uint16_t omm_page_size);
+    uint32_t omm_page_size);
 
 void pom_grp_meta_free(pom_grp_meta_t);
 
@@ -83,6 +83,8 @@ LPDRMETA pom_grp_entry_meta_list_meta(pom_grp_entry_meta_t entry_meta);
 
 uint32_t pom_grp_entry_meta_ba_bits(pom_grp_entry_meta_t entry_meta);
 uint32_t pom_grp_entry_meta_ba_bytes(pom_grp_entry_meta_t entry_meta);
+
+uint16_t pom_grp_entry_meta_binary_capacity(pom_grp_entry_meta_t entry_meta);
 
 #define pom_grp_entry_meta_next(it) ((it)->next ? (it)->next(it) : NULL)
 

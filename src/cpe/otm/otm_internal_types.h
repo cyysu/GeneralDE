@@ -17,7 +17,7 @@ struct otm_timer {
     otm_manage_t m_mgr;
     otm_timer_id_t m_id;
     const char * m_name;
-    tl_time_span_t m_span;
+    uint32_t m_span_s;
     size_t m_capacity;
     otm_process_fun_t m_process;
     int m_flags;

@@ -26,6 +26,7 @@ net_ep_create(net_mgr_t nmgr) {
     ep->m_chanel_w = NULL;
     ep->m_connector = NULL;
     ep->m_fd = -1;
+	ep->m_status = NET_INVALID;
     ep->m_process_fun = NULL;
     ep->m_process_ctx = NULL;
 
@@ -201,6 +202,7 @@ void net_ep_close_i(net_ep_t ep, net_ep_event_t ev) {
 #ifdef _MSC_VER
     //if (ep->m_type = net_ep_socket) {
         net_socket_close(&ep->m_fd, ep->m_mgr->m_em);
+		net_ep_set_status(ep, NET_INVALID);
     //}
     //else {
     //    CPE_ERROR(
@@ -213,6 +215,7 @@ void net_ep_close_i(net_ep_t ep, net_ep_event_t ev) {
             ep->m_mgr->m_em, "net_ep_close: close fail, errno=%d (%s)",
             cpe_sock_errno(), cpe_sock_errstr(cpe_sock_errno()));
     }
+	net_ep_set_status(ep, NET_INVALID);
 #endif
 
     if (net_ep_calc_ev_events(ep)) {
@@ -255,6 +258,15 @@ int net_ep_set_fd(net_ep_t ep, int fd) {
     net_ep_update_events(ep, 0);
 
     return 0;
+}
+
+void net_ep_set_status(net_ep_t ep, int status)
+{
+	if (ep)
+	{
+		ep->m_status = status;
+	}
+	
 }
 
 int net_ep_send(net_ep_t ep, const void * buf, size_t size) {
@@ -374,6 +386,10 @@ void net_ep_cb(EV_P_ ev_io *w, int revents) {
             if (ep->m_mgr->m_debug) {
                 CPE_INFO(ep->m_mgr->m_em, "net_mgr: ep %d: send %d bytes data!", ep->m_id, (int)send_size);
             }
+			if(ep->m_status == NET_REMOVE_AFTER_SEND)
+			{
+				net_ep_close(ep);
+			}
         }
     }
 
