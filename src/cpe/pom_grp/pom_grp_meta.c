@@ -9,7 +9,7 @@ pom_grp_meta_t
 pom_grp_meta_create(
     mem_allocrator_t alloc,
     const char * name,
-    uint16_t omm_page_size)
+    uint32_t omm_page_size)
 {
     char * buf;
     size_t name_len;

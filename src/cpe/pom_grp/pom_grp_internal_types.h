@@ -23,7 +23,7 @@ struct pom_grp_meta {
     mem_allocrator_t m_alloc;
     const char * m_name;
 
-    uint16_t m_omm_page_size;
+    uint32_t m_omm_page_size;
 
     pom_class_id_t m_control_class_id;
     uint16_t m_control_obj_size;

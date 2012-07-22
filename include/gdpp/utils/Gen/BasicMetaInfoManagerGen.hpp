@@ -103,6 +103,17 @@ protected:
         }
     }
 
+    ElementT const * lower_bound(ElementT const & key) const {
+        typename ElementContainer::const_iterator pos = 
+            ::std::lower_bound(m_elements.begin(), m_elements.end(), key, Compare());
+        if (pos != m_elements.end()) {
+            return &*pos;
+        }
+        else {
+            return end();
+        }
+    }
+
     template<typename CmpT>
     ElementT const * lineerFind(ElementT const & key, CmpT const & cmp = CmpT()) const {
         for(typename ElementContainer::const_iterator pos = m_elements.begin();
@@ -118,6 +129,7 @@ protected:
 
     ElementT const * begin(void) const { return &m_elements[0]; }
     ElementT const * end(void) const { return begin() + m_elements.size(); }
+    ElementT const * last(void) const { return m_elements.size() ? (end() - 1) : NULL; }
 
     ElementContainer m_elements;
 };

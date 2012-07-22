@@ -25,6 +25,8 @@ void net_listeners_free(net_mgr_t nmgr);
 int net_ep_set_fd(net_ep_t ep, int fd);
 void net_ep_close_i(net_ep_t ep, net_ep_event_t ev);
 
+void net_ep_set_status(net_ep_t ep, int status);
+
 /*ep_pages op*/
 net_ep_t net_ep_pages_alloc_ep(net_mgr_t nmgr);
 void net_ep_pages_free_ep(net_ep_t);

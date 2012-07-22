@@ -12,16 +12,16 @@ class ManagerBase : public Cpe::Utils::SimulateObject {
 public:
     operator otm_manage_t (void) const { return (otm_manage_t)(this); }
 
-    void init(tl_time_t cur_time, otm_memo_t memo, size_t memo_capacitiy) {
-        otm_manage_buf_init(*this, cur_time, memo, memo_capacitiy);
+    void init(uint32_t cur_time_s, otm_memo_t memo, size_t memo_capacitiy) {
+        otm_manage_buf_init(*this, cur_time_s, memo, memo_capacitiy);
     }
 
-    void tick(tl_time_t cur_time, void * obj_ctx, otm_memo_t memo, size_t memo_capacitiy) {
-        otm_manage_tick(*this, cur_time, obj_ctx, memo, memo_capacitiy);
+    void tick(uint32_t cur_time_s, void * obj_ctx, otm_memo_t memo, size_t memo_capacitiy) {
+        otm_manage_tick(*this, cur_time_s, obj_ctx, memo, memo_capacitiy);
     }
 
-    void enable(otm_timer_id_t id, tl_time_t cur_time, otm_memo_t memo_buf, size_t memo_capacitiy, tl_time_t first_exec_span = 0) {
-        otm_manage_enable(*this, id, cur_time, first_exec_span, memo_buf, memo_capacitiy);
+    void enable(otm_timer_id_t id, uint32_t cur_time_s, otm_memo_t memo_buf, size_t memo_capacitiy, uint32_t first_exec_span_s = 0) {
+        otm_manage_enable(*this, id, cur_time_s, first_exec_span_s, memo_buf, memo_capacitiy);
     }
 
     void disable(otm_timer_id_t id, otm_memo_t memo_buf, size_t memo_capacitiy) {
@@ -29,13 +29,13 @@ public:
     }
 
     template<size_t capacity>
-    void init(tl_time_t cur_time, MemoBuf<capacity> & buf) {
-        init(cur_time, buf, capacity);
+    void init(uint32_t cur_time_s, MemoBuf<capacity> & buf) {
+        init(cur_time_s, buf, capacity);
     }
 
     template<size_t capacity>
-    void enable(otm_timer_id_t id, tl_time_t cur_time, MemoBuf<capacity> & buf, tl_time_t first_exec_span = 0) { 
-        enable(id, cur_time, buf, capacity, first_exec_span);
+    void enable(otm_timer_id_t id, uint32_t cur_time_s, MemoBuf<capacity> & buf, uint32_t first_exec_span_s = 0) { 
+        enable(id, cur_time_s, buf, capacity, first_exec_span_s);
     }
 
     template<size_t capacity>
@@ -56,7 +56,7 @@ protected:
         otm_timer_id_t id,
         const char * name,
         void * realResponser, void * fun_addr, size_t fun_size,
-        tl_time_span_t span
+        uint32_t span_s
 #ifdef _MSC_VER
         , void * useResponser
 #endif
@@ -69,7 +69,7 @@ template<typename ContextT>
 class Manager : public ManagerBase {
 public:
     typedef Cpe::Otm::TimerProcessor<ContextT> TimerProcessor;
-    typedef void (TimerProcessor::*Fun)(Timer & timer, Memo & memo, tl_time_t cur_exec_time, ContextT & obj_ctx);
+    typedef void (TimerProcessor::*Fun)(Timer & timer, Memo & memo, uint32_t cur_exec_time_s, ContextT & obj_ctx);
 
     using ManagerBase::registerTimer;
     template<typename T>
@@ -77,7 +77,7 @@ public:
         otm_timer_id_t id,
         const char * name,
         T & r,
-        void (T::*fun)(Timer & timer, Memo & memo, tl_time_t cur_exec_time, ContextT & obj_ctx),
+        void (T::*fun)(Timer & timer, Memo & memo, uint32_t cur_exec_time_s, ContextT & obj_ctx),
         tl_time_span_t span)
     {
 #ifdef _MSC_VER
@@ -102,8 +102,8 @@ public:
     using ManagerBase::tick;
 
     template<size_t capacity>
-    void tick(tl_time_t cur_time, ContextT & ctx, MemoBuf<capacity> & buf) {
-        tick(cur_time, &ctx, buf, capacity);
+    void tick(uint32_t cur_time_s, ContextT & ctx, MemoBuf<capacity> & buf) {
+        tick(cur_time_s, &ctx, buf, capacity);
     }
 
     static Manager & _cast(otm_manage_t otm) {
