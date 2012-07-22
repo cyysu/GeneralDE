@@ -158,7 +158,7 @@ static int env_init_meta(
         return -1;
     }
 
-    env->m_pom_grp_meta = pom_grp_meta_build_from_cfg(NULL, page_size ? page_size->ival[0] : 1024, cfg_child_only(env->m_pom_cfg), env->m_input_metalib, env->m_em);
+    env->m_pom_grp_meta = pom_grp_meta_build_from_cfg(NULL, (page_size && page_size->count) ? page_size->ival[0] : 1024, cfg_child_only(env->m_pom_cfg), env->m_input_metalib, env->m_em);
     if (env->m_pom_grp_meta == NULL) {
         CPE_ERROR(env->m_em, "create pom meta from %s fail!", pom_meta_file->filename[0]);
         return -1;
@@ -194,7 +194,7 @@ int main(int argc, char * argv[]) {
     struct arg_file  * mk_hpp_dr_group =     arg_file0(NULL, "dr-meta-group", NULL, "input dr meta group file");
     struct arg_file  * mk_hpp_o_file =     arg_file1(NULL, "output-hpp", NULL, "output hpp file");
     struct arg_str  * mk_hpp_o_classname =     arg_str1(NULL, "class-name", NULL, "output class name");
-    struct arg_str  * mk_hpp_o_namespace =     arg_str1(NULL, "namespace", NULL, "output class namespace");
+    struct arg_str  * mk_hpp_o_namespace =     arg_str0(NULL, "namespace", NULL, "output class namespace");
     struct arg_end  * mk_hpp_end = arg_end(20);
     void* mk_hpp_argtable[] = { 
         mk_hpp, mk_hpp_pom_meta, 
@@ -289,9 +289,13 @@ int main(int argc, char * argv[]) {
             goto EXIT;
         }
 
-        rv = pom_tool_generate_hpp(&env, mk_hpp_o_file->filename[0], mk_hpp_o_classname->sval[0], mk_hpp_o_namespace->sval[0]);
+        rv = pom_tool_generate_hpp(
+            &env,
+            mk_hpp_o_file->filename[0],
+            mk_hpp_o_classname->sval[0],
+            mk_hpp_o_namespace->count ? mk_hpp_o_namespace->sval[0] : "");
     }
-    else if (common_argtable == 0) {
+    else if (common_nerrors == 0) {
         if (common_help->count) {
             goto PRINT_HELP;
         }

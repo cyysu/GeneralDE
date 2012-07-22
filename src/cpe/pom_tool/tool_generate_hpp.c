@@ -144,8 +144,8 @@ static void pom_tool_do_generate_hpp_read_ops_binary(write_stream_t stream, pom_
     const char * data_type = cfg_get_string(entry_cfg, "data-type", NULL);
     if (data_type) {
         stream_printf(
-            stream, "    %s const &  %s(void) const { return binaryEntry<%s >(%d); }\n",
-            data_type, entry_name, data_type, entry_idx);
+            stream, "    %s const &  %s(void) const { char _check_type_size[sizeof(%s) > %d ? -1 : 1]; (void)_check_type_size; return binaryEntry<%s >(%d); }\n",
+            data_type, entry_name, data_type, pom_grp_entry_meta_binary_capacity(entry), data_type, entry_idx);
     }
     else {
         stream_printf(
@@ -250,8 +250,8 @@ static void pom_tool_do_generate_hpp_write_ops_binary(write_stream_t stream, pom
     const char * data_type = cfg_get_string(entry_cfg, "data-type", NULL);
     if (data_type) {
         stream_printf(
-            stream, "    %s &  _%s(void) { return binaryEntry<%s >(%d); }\n",
-            data_type, entry_name, data_type, entry_idx);
+            stream, "    %s &  _%s(void) { char _check_type_size[sizeof(%s) > %d ? -1 : 1]; (void)_check_type_size; return binaryEntry<%s >(%d); }\n",
+            data_type, entry_name, data_type, pom_grp_entry_meta_binary_capacity(entry), data_type, entry_idx);
     }
     else {
         stream_printf(

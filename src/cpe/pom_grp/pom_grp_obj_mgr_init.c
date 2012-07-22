@@ -55,7 +55,7 @@ int pom_grp_obj_mgr_buf_init(
     omm = pom_mgr_create(NULL, meta->m_omm_page_size, control->m_data_size);
     if (omm == NULL) {
         CPE_ERROR(
-            em, "pom_grp_obj_mgr_create_by_init: create omm for init data buf fail, page-size=%d, buf-size="FMT_SIZE_T"!",
+            em, "pom_grp_obj_mgr_create_by_init: create omm for init data buf fail, page-size=%d, buf-size=%u!",
             meta->m_omm_page_size, control->m_data_size);
         return -1;
     }
@@ -66,7 +66,7 @@ int pom_grp_obj_mgr_buf_init(
             em) != 0)
     {
         CPE_ERROR(
-            em, "pom_grp_obj_mgr_create_by_init: create omm for init data buf fail, page-size=%d, buf-size="FMT_SIZE_T"!",
+            em, "pom_grp_obj_mgr_create_by_init: create omm for init data buf fail, page-size=%d, buf-size=%u!",
             meta->m_omm_page_size, control->m_data_size);
         pom_mgr_free(omm);
         return -1;
