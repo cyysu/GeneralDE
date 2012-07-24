@@ -23,7 +23,7 @@ define product-def-rule-cpe-pom-c-module-c
 	$(cpe-pom-tool) mk-clib \
                     $(addprefix --pom-meta , $(r.$1.$3.cpe-pom.$2.pom-meta-source)) \
                     $(addprefix --dr-meta , $(r.$1.$3.cpe-pom.$2.dr-meta-source)) \
-                    --page-size=$(r.$1.$3.cpe-pom.$2.page-size) \
+                    --page-size $(r.$1.$3.cpe-pom.$2.page-size) \
                     --output-lib-c $$@ --output-lib-c-arg $($1.cpe-pom.$2.c.arg-name)
 
 endef
@@ -31,7 +31,6 @@ endef
 define product-def-rule-cpe-pom-c-module-hpp
   $(call assert-not-null,$1.cpe-pom.$2.hpp.output)
   $(call assert-not-null,$1.cpe-pom.$2.hpp.class-name)
-  $(call assert-not-null,$1.cpe-pom.$2.hpp.namespace)
 
   $(eval r.$1.$3.cpe-pom.$2.hpp.output:=$($1.cpe-pom.$2.hpp.output))
   $(eval r.$1.$3.cpe-pom.$2.hpp.class-name:=$($1.cpe-pom.$2.hpp.class-name))
@@ -48,7 +47,7 @@ define product-def-rule-cpe-pom-c-module-hpp
                     $(addprefix --dr-meta , $(r.$1.$3.cpe-pom.$2.dr-meta-source)) \
                     --output-hpp $$@ \
                     --class-name $($1.cpe-pom.$2.hpp.class-name) \
-                    --namespace $($1.cpe-pom.$2.hpp.namespace)
+                    $(addprefix --namespace ,$($1.cpe-pom.$2.hpp.namespace))
 
 endef
 
