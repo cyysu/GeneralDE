@@ -105,7 +105,7 @@ logic_op_asnyc_exec(
         if (tmp_rv == logic_op_exec_result_false) asnyc_info->res_rv = logic_op_exec_result_false;
     }
 
-    /*最后检查还有没有require*/
+    /*鏈�鍚庢鏌ヨ繕鏈夋病鏈塺equire*/
     logic_stack_node_requires(stack_node, &require_it);
 
     return logic_require_next(&require_it) ? logic_op_exec_result_true : asnyc_info->res_rv;

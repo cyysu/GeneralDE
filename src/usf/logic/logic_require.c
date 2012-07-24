@@ -98,6 +98,10 @@ logic_require_id_t logic_require_id(logic_require_t require) {
     return require->m_id;
 }
 
+const char * logic_require_name(logic_require_t require) {
+    return require->m_name;
+}
+
 logic_require_state_t logic_require_state(logic_require_t require) {
     return require->m_state;
 }
