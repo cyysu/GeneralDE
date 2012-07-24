@@ -199,7 +199,7 @@ static void bpg_net_client_free_chanel_buf(net_chanel_t chanel, void * ctx) {
     mem_free(client->m_alloc, net_chanel_queue_buf(chanel));
 }
 
-int bpg_net_client_ep_init(bpg_net_client_t client, net_ep_t ep) {
+int bpg_net_client_ep_init(bpg_net_client_t client, net_ep_t ep, size_t read_chanel_size, size_t write_chanel_size) {
     void * buf_r = NULL;
     void * buf_w = NULL;
     net_chanel_t chanel_r = NULL;
@@ -207,16 +207,16 @@ int bpg_net_client_ep_init(bpg_net_client_t client, net_ep_t ep) {
 
     assert(client);
 
-    buf_r = mem_alloc(client->m_alloc, 2048);
-    buf_w = mem_alloc(client->m_alloc, 2048);
+    buf_r = mem_alloc(client->m_alloc, read_chanel_size);
+    buf_w = mem_alloc(client->m_alloc, write_chanel_size);
     if (buf_r == NULL || buf_w == NULL) goto ERROR;
 
-    chanel_r = net_chanel_queue_create(net_ep_mgr(ep), buf_r, 2048);
+    chanel_r = net_chanel_queue_create(net_ep_mgr(ep), buf_r, read_chanel_size);
     if (chanel_r == NULL) goto ERROR;
     net_chanel_queue_set_close(chanel_r, bpg_net_client_free_chanel_buf, client);
     buf_r = NULL;
 
-    chanel_w = net_chanel_queue_create(net_ep_mgr(ep), buf_w, 2048);
+    chanel_w = net_chanel_queue_create(net_ep_mgr(ep), buf_w, write_chanel_size);
     if (chanel_w == NULL) goto ERROR;
     net_chanel_queue_set_close(chanel_w, bpg_net_client_free_chanel_buf, client);
     buf_w = NULL;

@@ -15,6 +15,8 @@ bpg_net_client_create(
     const char * name,
     const char * ip,
     short port,
+    size_t read_chanel_size,
+    size_t write_chanel_size,
     mem_allocrator_t alloc,
     error_monitor_t em);
 

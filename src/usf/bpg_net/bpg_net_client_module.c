@@ -62,6 +62,8 @@ int bpg_net_client_app_init(gd_app_context_t app, gd_app_module_t module, cfg_t 
         bpg_net_client_create(
             app, pkg_manage, logic_manage, gd_app_module_name(module),
             ip, port,
+            cfg_get_uint32(cfg, "read-chanel-size", 2 * 1024),
+            cfg_get_uint32(cfg, "write-chanel-size", 2 * 1024),
             gd_app_alloc(app), gd_app_em(app));
     if (bpg_net_client == NULL) return -1;
 

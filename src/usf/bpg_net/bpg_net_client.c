@@ -23,6 +23,8 @@ bpg_net_client_create(
     const char * name,
     const char * ip,
     short port,
+    size_t read_chanel_size,
+    size_t write_chanel_size,
     mem_allocrator_t alloc,
     error_monitor_t em)
 {
@@ -86,7 +88,7 @@ bpg_net_client_create(
         return NULL;
     }
 
-    if (bpg_net_client_ep_init(mgr, net_connector_ep(mgr->m_connector)) != 0) {
+    if (bpg_net_client_ep_init(mgr, net_connector_ep(mgr->m_connector), read_chanel_size, write_chanel_size) != 0) {
         net_connector_free(mgr->m_connector);
         dp_rsp_free(mgr->m_send_rsp);
         bpg_pkg_dsp_free(mgr->m_rsp_dsp);

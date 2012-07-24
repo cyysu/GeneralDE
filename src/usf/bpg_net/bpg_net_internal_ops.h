@@ -14,7 +14,7 @@ bpg_pkg_t bpg_net_agent_req_buf(bpg_net_agent_t mgr);
 int bpg_net_agent_notify_client(dp_req_t req, void * ctx, error_monitor_t em);
 
 /*client process*/
-int bpg_net_client_ep_init(bpg_net_client_t client, net_ep_t ep);
+int bpg_net_client_ep_init(bpg_net_client_t client, net_ep_t ep, size_t read_chanel_size, size_t write_chanel_size);
 bpg_pkg_t bpg_net_client_req_buf(bpg_net_client_t mgr);
 int bpg_net_client_send(dp_req_t req, void * ctx, error_monitor_t em);
 
