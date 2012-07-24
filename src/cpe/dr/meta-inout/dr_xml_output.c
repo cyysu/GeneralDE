@@ -1,0 +1,186 @@
+#include "libxml/encoding.h"
+#include "libxml/xmlwriter.h"
+#include "cpe/pal/pal_string.h"
+#include "cpe/pal/pal_strings.h"
+#include "cpe/dr/dr_metalib_init.h"
+#include "cpe/dr/dr_metalib_manage.h"
+#include "cpe/dr/dr_metalib_xml.h"
+#include "../dr_internal_types.h"
+#include "../dr_ctype_ops.h"
+
+#define DR_SAVE_LIB_TO_XML_WRITE_ATTRIBUTE(__attrname, __attrvalue) \
+    if (xmlTextWriterWriteAttribute(writer, BAD_CAST __attrname, BAD_CAST __attrvalue) < 0) { \
+        CPE_ERROR(em, "dr_save_lib_to_xml_file: Error write attribute %s, value=%s", (__attrname), (__attrvalue)); \
+        return -1;                                                      \
+    }
+
+#define DR_SAVE_LIB_TO_XML_WRITE_ATTRIBUTE_FMT(__attrname, __fmt, __args...)      \
+    if (xmlTextWriterWriteFormatAttribute(writer, BAD_CAST __attrname, __fmt, ##__args) < 0) { \
+        CPE_ERROR(em, "dr_save_lib_to_xml_file: Error write attribute %s, "__fmt, (__attrname), ##__args); \
+        return -1;                                                      \
+    }
+
+#define DR_SAVE_LIB_TO_XML_WRITE_START_ELEMENT(__element_name)          \
+    if (xmlTextWriterStartElement(writer, BAD_CAST __element_name) < 0) {   \
+        CPE_ERROR(em, "dr_save_lib_to_xml_file: start element %s fail!", __element_name); \
+        return -1;                                                      \
+    }
+
+#define DR_SAVE_LIB_TO_XML_WRITE_END_ELEMENT()          \
+    if (xmlTextWriterEndElement(writer) < 0) {   \
+        CPE_ERROR(em, "dr_save_lib_to_xml_file: end element fail!"); \
+        return -1;                                                      \
+    }
+
+static int dr_save_lib_to_xml_entries(LPDRMETA meta, xmlTextWriterPtr writer, error_monitor_t em) {
+    int i;
+    int count;
+
+    count = dr_meta_entry_num(meta);
+    for(i = 0; i < count; ++i) {
+        LPDRMETAENTRY entry = dr_meta_entry_at(meta, i);
+        LPDRMETA ref_meta = dr_entry_ref_meta(entry);
+
+        DR_SAVE_LIB_TO_XML_WRITE_START_ELEMENT("entry");
+
+        DR_SAVE_LIB_TO_XML_WRITE_ATTRIBUTE("name", dr_entry_name(entry));
+        DR_SAVE_LIB_TO_XML_WRITE_ATTRIBUTE(
+            "type", (ref_meta ? dr_meta_name(ref_meta) : dr_find_ctype_info_by_type(dr_entry_type(entry))->m_name) );
+
+        if (dr_entry_id(entry) != -1) DR_SAVE_LIB_TO_XML_WRITE_ATTRIBUTE_FMT("id", "%d", dr_entry_id(entry));
+
+        if (strcmp(dr_entry_cname(entry), "") != 0) DR_SAVE_LIB_TO_XML_WRITE_ATTRIBUTE("cname", dr_entry_cname(entry));
+        if (strcmp(dr_entry_desc(entry), "") != 0) DR_SAVE_LIB_TO_XML_WRITE_ATTRIBUTE("desc", dr_entry_desc(entry));
+
+        DR_SAVE_LIB_TO_XML_WRITE_END_ELEMENT();
+    }
+    
+    return 0;
+}
+
+static int dr_save_lib_to_xml_metas(LPDRMETALIB metaLib, xmlTextWriterPtr writer, error_monitor_t em) {
+    int i;
+    int count;
+
+    count = dr_lib_meta_num(metaLib);
+    for(i = 0; i < count; ++i) {
+        LPDRMETA meta = dr_lib_meta_at(metaLib, i);
+
+        if (meta->m_type == CPE_DR_TYPE_STRUCT) {
+            DR_SAVE_LIB_TO_XML_WRITE_START_ELEMENT("struct");
+        }
+        else {
+            DR_SAVE_LIB_TO_XML_WRITE_START_ELEMENT("union");
+        }
+    
+        DR_SAVE_LIB_TO_XML_WRITE_ATTRIBUTE("name", dr_meta_name(meta));
+        DR_SAVE_LIB_TO_XML_WRITE_ATTRIBUTE_FMT("version", "%d", dr_meta_current_version(meta));
+        if (strcmp(dr_meta_desc(meta), "") != 0) DR_SAVE_LIB_TO_XML_WRITE_ATTRIBUTE("desc", dr_meta_desc(meta));
+
+        if (dr_save_lib_to_xml_entries(meta, writer, em) != 0) return -1;
+
+        DR_SAVE_LIB_TO_XML_WRITE_END_ELEMENT();
+    }
+
+    return 0;
+}
+
+static int dr_save_lib_to_xml_macros(LPDRMETALIB metaLib, xmlTextWriterPtr writer, error_monitor_t em) {
+    int i;
+    int count;
+
+    count = dr_lib_macro_num(metaLib);
+    for(i = 0; i < count; ++i) {
+        LPDRMACRO macro = dr_lib_macro_at(metaLib, i);
+
+        DR_SAVE_LIB_TO_XML_WRITE_START_ELEMENT("macro");
+    
+        DR_SAVE_LIB_TO_XML_WRITE_ATTRIBUTE("name", dr_macro_name(metaLib, macro));
+        DR_SAVE_LIB_TO_XML_WRITE_ATTRIBUTE_FMT("value", "%d", dr_macro_value(macro));
+
+        DR_SAVE_LIB_TO_XML_WRITE_END_ELEMENT();
+    }
+
+    return 0;
+}
+
+static int dr_save_lib_to_xml_i(LPDRMETALIB metaLib, xmlTextWriterPtr writer, error_monitor_t em) {
+    xmlTextWriterSetIndent(writer, 1);
+    xmlTextWriterSetIndentString(writer, BAD_CAST "    ");
+
+    if (xmlTextWriterStartDocument(writer, NULL, "utf-8", NULL) < 0) {
+        CPE_ERROR(em, "dr_save_lib_to_xml_file: Error at xmlTextWriterStartDocument");
+        return -1;
+    }
+
+    DR_SAVE_LIB_TO_XML_WRITE_START_ELEMENT("metalib");
+
+    DR_SAVE_LIB_TO_XML_WRITE_ATTRIBUTE_FMT("tagsetversion", "%d", metaLib->m_tag_set_version);
+    DR_SAVE_LIB_TO_XML_WRITE_ATTRIBUTE("name", dr_lib_name(metaLib));
+    DR_SAVE_LIB_TO_XML_WRITE_ATTRIBUTE_FMT("version", "%d", metaLib->m_version);
+
+    if (dr_save_lib_to_xml_macros(metaLib, writer, em) != 0) return -1;
+    if (dr_save_lib_to_xml_metas(metaLib, writer, em) != 0) return -1;
+
+    DR_SAVE_LIB_TO_XML_WRITE_END_ELEMENT();
+
+    if (xmlTextWriterEndDocument(writer) < 0) {
+        CPE_ERROR(em, "dr_save_lib_to_xml_file: Error at xmlTextWriterEndDocument\n");
+        return -1;
+    }
+
+    return 0;
+}
+
+int dr_save_lib_to_xml_file(LPDRMETALIB metaLib, const char * fileName, error_monitor_t em) {
+    int rv;
+    xmlTextWriterPtr writer;
+
+    writer = xmlNewTextWriterFilename(fileName, 0);
+    if (writer == NULL) {
+        CPE_ERROR(em, "dr_save_lib_to_xml_file: Error creating the xml writer");
+        return -1;
+    }
+
+    rv = dr_save_lib_to_xml_i(metaLib, writer, em);
+
+    xmlFreeTextWriter(writer);
+
+    return rv;
+}
+
+char* dr_save_lib_to_xml_buf(
+    mem_buffer_t buffer,
+    LPDRMETALIB metaLib,
+    error_monitor_t em)
+{
+    int rv;
+    xmlBufferPtr buf;
+    xmlTextWriterPtr writer;
+
+    mem_buffer_clear_data(buffer);
+
+    buf = xmlBufferCreate();
+    if (buf == NULL) {
+        CPE_ERROR(em, "dr_save_lib_to_xml_buf: Error creating the xml buffer\n");
+        return NULL;
+    }
+
+    writer = xmlNewTextWriterMemory(buf, 0);
+    if (writer == NULL) {
+        CPE_ERROR(em, "dr_save_lib_to_xml_buf: Error creating the xml writer\n");
+        xmlBufferFree(buf);
+        return NULL;
+    }
+
+    rv = dr_save_lib_to_xml_i(metaLib, writer, em);
+
+    mem_buffer_append(buffer, buf->content, buf->use);
+    mem_buffer_append_char(buffer, 0);
+
+    xmlFreeTextWriter(writer);
+    xmlBufferFree(buf);
+
+    return (char*)mem_buffer_make_continuous(buffer, 0);
+}
+
