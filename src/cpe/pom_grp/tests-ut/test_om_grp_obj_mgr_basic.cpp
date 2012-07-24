@@ -1,7 +1,11 @@
 #include "OmGrpObjMgrTest.hpp" 
 
-TEST_F(OmGrpObjMgrTest, basic_basic) {
-    t_em_set_print();
+class OmGrpObjMgrBasicTest : public OmGrpObjMgrTest {
+public:
+    virtual void SetUp() {
+        OmGrpObjMgrTest::SetUp();
+
+        t_em_set_print();
 
         install(
             "TestObj:\n"
