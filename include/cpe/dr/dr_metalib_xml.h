@@ -20,8 +20,15 @@ CPE_DR_API int dr_create_lib_from_xml_ex(
     const char* buf, int bufSize,
     error_monitor_t er);
 
-CPE_DR_API int dr_save_xml(
-    LPDRMETALIB metaLib, const char * fileName);
+CPE_DR_API int dr_save_lib_to_xml_file(
+    LPDRMETALIB metaLib,
+    const char * fileName,
+    error_monitor_t em);
+
+CPE_DR_API char * dr_save_lib_to_xml_buf(
+    mem_buffer_t buffer,
+    LPDRMETALIB metaLib,
+    error_monitor_t em);
 
 #ifdef __cplusplus
 }
