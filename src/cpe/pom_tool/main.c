@@ -12,6 +12,7 @@
 #include "cpe/dr/dr_metalib_manage.h"
 #include "cpe/pom_grp/pom_grp_meta.h"
 #include "cpe/pom_grp/pom_grp_meta_build.h"
+#include "cpe/pom_grp/pom_grp_obj_mgr.h"
 #include "tool_env.h"
 
 dir_visit_next_op_t
@@ -186,6 +187,22 @@ int main(int argc, char * argv[]) {
     };
     int mk_clib_nerrors;
 
+    /*mk metalib xml*/
+    struct arg_rex  * metalib_xml =     arg_rex1(NULL, NULL, "metalib-xml", NULL, 0, NULL);
+    struct arg_file  * metalib_xml_pom_meta =     arg_file1(NULL, "pom-meta", NULL, "input pom meta file");
+    struct arg_file  * metalib_xml_dr_file =     arg_filen(NULL, "dr-meta", NULL, 0, 100, "input dr meta file(s)");
+    struct arg_file  * metalib_xml_dr_group_root =     arg_file0(NULL, "dr-meta-group-root", NULL, "input dr meta group root");
+    struct arg_file  * metalib_xml_dr_group =     arg_file0(NULL, "dr-meta-group", NULL, "input dr meta group file");
+    struct arg_file  * metalib_xml_o_file =     arg_file1(NULL, "output-metalib-xml", NULL, "output metalib xml file");
+    struct arg_end  * metalib_xml_end = arg_end(20);
+    void* metalib_xml_argtable[] = { 
+        metalib_xml, metalib_xml_pom_meta,
+        metalib_xml_dr_file, metalib_xml_dr_group_root, metalib_xml_dr_group,
+        metalib_xml_o_file,
+        metalib_xml_end
+    };
+    int metalib_xml_nerrors;
+
     /*mk hpp*/
     struct arg_rex  * mk_hpp =     arg_rex1(NULL, NULL, "mk-hpp", NULL, 0, NULL);
     struct arg_file  * mk_hpp_pom_meta =     arg_file1(NULL, "pom-meta", NULL, "input pom meta file");
@@ -246,6 +263,7 @@ int main(int argc, char * argv[]) {
     assert(arg_nullcheck(shm_init_argtable) == 0);
 
     mk_clib_nerrors = arg_parse(argc, argv, mk_clib_argtable);
+    metalib_xml_nerrors = arg_parse(argc, argv, metalib_xml_argtable);
     mk_hpp_nerrors = arg_parse(argc, argv, mk_hpp_argtable);
     shm_init_nerrors = arg_parse(argc, argv, shm_init_argtable);
     common_nerrors = arg_parse(argc, argv, common_argtable);
@@ -275,6 +293,21 @@ int main(int argc, char * argv[]) {
         }
 
         rv = pom_tool_generate_lib_c(&env, mk_clib_o_file->filename[0], mk_clib_o_argname->sval[0]);
+    }
+    else if (metalib_xml_nerrors == 0) {
+        if (env_init_meta(
+                &env, 
+                metalib_xml_pom_meta,
+                NULL,
+                metalib_xml_dr_file,
+                metalib_xml_dr_group_root,
+                metalib_xml_dr_group) != 0)
+        {
+            rv = -1;
+            goto EXIT;
+        }
+
+        rv = pom_tool_generate_metalib_xml(&env, metalib_xml_o_file->filename[0]);
     }
     else if (mk_hpp_nerrors == 0) {
         if (env_init_meta(
@@ -312,6 +345,11 @@ int main(int argc, char * argv[]) {
             printf("usage: %s ", argv[0]);
             arg_print_syntax(stdout, mk_clib_argtable, "\n");
         }
+        else if (metalib_xml->count) {
+            arg_print_errors(stdout, metalib_xml_end, argv[0]);
+            printf("usage: %s ", argv[0]);
+            arg_print_syntax(stdout, metalib_xml_argtable, "\n");
+        }
         else if (mk_hpp->count) {
             arg_print_errors(stdout, mk_hpp_end, argv[0]);
             printf("usage: %s ", argv[0]);
@@ -325,14 +363,16 @@ int main(int argc, char * argv[]) {
     goto EXIT;
 
 PRINT_HELP:
-    printf("%s: missing <mk-clib|mk-hpp|shm-init> command.\n", argv[0]);
+    printf("%s: missing <mk-clib|mk-hpp|metalib-xml|shm-init> command.\n", argv[0]);
     printf("usage 1: %s ", argv[0]); arg_print_syntax(stdout, mk_clib_argtable, "\n");
-    printf("usage 2: %s ", argv[0]); arg_print_syntax(stdout, mk_hpp_argtable, "\n");
-    printf("usage 3: %s ", argv[0]); arg_print_syntax(stdout, shm_init_argtable, "\n");
-    printf("usage 4: %s ", argv[0]); arg_print_syntax(stdout, common_argtable, "\n");
+    printf("usage 2: %s ", argv[0]); arg_print_syntax(stdout, metalib_xml_argtable, "\n");
+    printf("usage 3: %s ", argv[0]); arg_print_syntax(stdout, mk_hpp_argtable, "\n");
+    printf("usage 4: %s ", argv[0]); arg_print_syntax(stdout, shm_init_argtable, "\n");
+    printf("usage 5: %s ", argv[0]); arg_print_syntax(stdout, common_argtable, "\n");
 
 EXIT:
     arg_freetable(mk_clib_argtable, sizeof(mk_clib_argtable) / sizeof(mk_clib_argtable[0]));
+    arg_freetable(metalib_xml_argtable, sizeof(metalib_xml_argtable) / sizeof(metalib_xml_argtable[0]));
     arg_freetable(mk_hpp_argtable, sizeof(mk_hpp_argtable) / sizeof(mk_hpp_argtable[0]));
     arg_freetable(shm_init_argtable, sizeof(shm_init_argtable) / sizeof(shm_init_argtable[0]));
     arg_freetable(common_argtable, sizeof(common_argtable) / sizeof(common_argtable[0]));

@@ -3,6 +3,26 @@ product-def-all-items+=cpe-pom.modules
 
 cpe-pom-tool=$(CPDE_OUTPUT_ROOT)/$(tools.output)/bin/cpe_pom_tool
 
+define product-def-rule-cpe-pom-c-module-metalib-xml
+  $(call assert-not-null,$1.cpe-pom.$2.metalib-xml.output)
+
+  $(eval r.$1.$3.cpe-pom.$2.metalib-xml.output:=$($1.cpe-pom.$2.metalib-xml.output))
+  $(eval r.$1.$3.cpe-pom.$2.metalib-xml.output-dir:=$(CPDE_OUTPUT_ROOT)/$3/$(dir $($1.cpe-pom.$2.metalib-xml.output)))
+  $(eval r.$1.$3.cpe-pom.$2.generated.metalib-xml:=$(r.$1.$3.cpe-pom.$2.metalib-xml.output-dir)$(notdir $($1.cpe-pom.$2.metalib-xml.output)))
+
+  auto-build-dirs += $(r.$1.$3.cpe-pom.$2.metalib-xml.output-dir)
+
+  $(eval r.$1.cleanup += $(r.$1.$3.cpe-pom.$2.generated.metalib-xml))
+
+  $(r.$1.$3.cpe-pom.$2.generated.metalib-xml): $(r.$1.$3.cpe-pom.$2.pom-meta-source) $(r.$1.$3.cpe-pom.$2.dr-meta-source) $(cpe-pom-tool)
+	$$(call with_message,cpe-pom generaing metalib-xml to $(subst $(CPDE_ROOT)/,,$(r.$1.$3.cpe-pom.$2.generated.metalib-xml)) ...) \
+	LD_LIBRARY_PATH=$(CPDE_OUTPUT_ROOT)/$(tools.output)/lib:$$$$LD_LIBRARY_PATH \
+	$(cpe-pom-tool) metalib-xml \
+                    $(addprefix --pom-meta , $(r.$1.$3.cpe-pom.$2.pom-meta-source)) \
+                    $(addprefix --dr-meta , $(r.$1.$3.cpe-pom.$2.dr-meta-source)) \
+                    --output-metalib-xml $$@
+endef
+
 define product-def-rule-cpe-pom-c-module-c
   $(call assert-not-null,$1.cpe-pom.$2.c.output)
   $(call assert-not-null,$1.cpe-pom.$2.c.arg-name)
