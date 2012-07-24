@@ -24,7 +24,7 @@ int bpg_bind_manage_rsp(dp_req_t req, void * ctx, error_monitor_t em) {
             return -1;
         }
 
-		////åœ¨bindå“ˆå¸Œè¡¨ä¸­æŸ¥æ‰¾æ˜¯å¦å½“å‰clientidå’Œconnectionå·²ç»å­˜åœ¨
+		////ÔÚbind¹þÏ£±íÖÐ²éÕÒÊÇ·ñµ±Ç°clientidºÍconnectionÒÑ¾­´æÔÚ
 		struct bpg_bind_binding * binding;
 
 		binding = mem_alloc(mgr->m_alloc, sizeof(struct bpg_bind_binding));
@@ -33,7 +33,7 @@ int bpg_bind_manage_rsp(dp_req_t req, void * ctx, error_monitor_t em) {
 		binding->m_client_id = bpg_pkg_client_id(pkg);
 		binding->m_connection_id = bpg_pkg_connection_id(pkg);
 
-		printf("-----111 client_id %d, connection_id %d\n", binding->m_client_id, binding->m_connection_id);
+		printf("--forrestsong---111 client_id %d, connection_id %d\n", binding->m_client_id, binding->m_connection_id);
 
 		if (binding->m_client_id != 0)
 		{
@@ -41,13 +41,13 @@ int bpg_bind_manage_rsp(dp_req_t req, void * ctx, error_monitor_t em) {
 			if (pUserFound != NULL)
 			{
 				struct bpg_bind_binding * found_binding = (struct bpg_bind_binding *) pUserFound;
-				printf("-----222 client_id %d, connection_id %d\n", found_binding->m_client_id, found_binding->m_connection_id);
+				printf("--forrestsong---222 client_id %d, connection_id %d\n", found_binding->m_client_id, found_binding->m_connection_id);
 
 				if (found_binding->m_connection_id != binding->m_connection_id)
 				{
-					printf("--------connection %d need removed\n", found_binding->m_connection_id);
+					printf("----forrestsong----connection %d need removed\n", found_binding->m_connection_id);
 
-					//å¦‚æžœæ‰¾åˆ°äº†å†²çªçš„ç”¨æˆ·ï¼Œæž„é€ æ¶ˆæ¯åŒ…ï¼Œé€šçŸ¥å†²çªçš„ç”¨æˆ·ä¸‹çº¿ï¼ŒåŒæ—¶åˆ é™¤è¯¥ç”¨æˆ·
+					//Èç¹ûÕÒµ½ÁË³åÍ»µÄÓÃ»§£¬¹¹ÔìÏûÏ¢°ü£¬Í¨Öª³åÍ»µÄÓÃ»§ÏÂÏß£¬Í¬Ê±É¾³ý¸ÃÓÃ»§
 					//LPDRMETA cmd_meta = dr_lib_find_meta_by_name((LPDRMETALIB)g_szMetalib_NetData,  "CSPKGData");
 					//bpg_pkg_t kickoff_packet = bpg_pkg_create(mgr->m_pkg_manage, 4096, cmd_meta, sizeof(RESKICKOFF));
 					bpg_pkg_t kickoff_packet = bpg_pkg_create(mgr->m_pkg_manage, 4096, NULL, 0);
@@ -63,7 +63,7 @@ int bpg_bind_manage_rsp(dp_req_t req, void * ctx, error_monitor_t em) {
 						//}
 						dp_req_t resreq = bpg_pkg_to_dp_req(kickoff_packet);
 						dp_dispatch_by_string(mgr->m_reply_to, resreq, mgr->m_em);
-						printf("--------connection %d to be removed\n", found_binding->m_connection_id);
+						printf("-----forrestsong---connection %d to be removed\n", found_binding->m_connection_id);
 						cpe_hash_table_remove_by_key(&mgr->m_cliensts, found_binding);
 						cpe_hash_table_remove_by_key(&mgr->m_connections, found_binding);
 
@@ -71,8 +71,10 @@ int bpg_bind_manage_rsp(dp_req_t req, void * ctx, error_monitor_t em) {
 					}
 				}
 			}
-			
+
+			printf("==========forrestsong-----------start bind----\n");
 			bpg_bind_process_binding(mgr, binding->m_client_id, binding->m_connection_id);
+
 			
 		}
 
