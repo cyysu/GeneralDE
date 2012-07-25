@@ -90,6 +90,9 @@ typedef struct dr_metalib_source_it {
 } * dr_metalib_source_it_t;
 
 struct DRInBuildMetaLib;
+struct DRInBuildMacro;
+struct DRInBuildMeta;
+struct DRInBuildMetaEntry;
 
 typedef enum dr_cvt_result {
     dr_cvt_result_success = 0
