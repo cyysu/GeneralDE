@@ -167,6 +167,38 @@ void dr_inbuild_metalib_remove_meta(struct DRInBuildMetaLib * inBuildMetaLib, st
     free(meta);
 }
 
+void dr_inbuild_meta_set_type(struct DRInBuildMeta * meta, int type) {
+    meta->m_data.m_type = type;
+}
+
+void dr_inbuild_meta_set_id(struct DRInBuildMeta * meta, int id) {
+    meta->m_data.m_id = id;
+}
+
+void dr_inbuild_meta_set_align(struct DRInBuildMeta * meta, int align) {
+    meta->m_data.m_align = align;
+}
+
+void dr_inbuild_meta_set_base_version(struct DRInBuildMeta * meta, int version) {
+    meta->m_data.m_based_version = version;
+}
+
+int dr_inbuild_meta_current_version(struct DRInBuildMeta * meta) {
+    return meta->m_data.m_current_version;
+}
+
+void dr_inbuild_meta_set_current_version(struct DRInBuildMeta * meta, int version) {
+    meta->m_data.m_current_version = version;
+}
+
+void dr_inbuild_meta_set_name(struct DRInBuildMeta * meta, const char * name) {
+    meta->m_name = name;
+}
+
+void dr_inbuild_meta_set_desc(struct DRInBuildMeta * meta, const char * desc) {
+    meta->m_desc = desc;
+}
+
 struct DRInBuildMetaEntry *
 dr_inbuild_meta_add_entry(struct DRInBuildMeta * meta) {
     struct DRInBuildMetaEntry * newEntry = (struct DRInBuildMetaEntry *)malloc(sizeof(struct DRInBuildMetaEntry));
@@ -201,3 +233,32 @@ void dr_inbuild_meta_remove_entry(struct DRInBuildMeta * meta, struct DRInBuildM
 
     free(entry);
 }
+
+int dr_inbuild_entry_version(struct DRInBuildMetaEntry * entry) {
+    return entry->m_data.m_version;
+}
+
+void dr_inbuild_entry_set_type(struct DRInBuildMetaEntry * entry, const char * type_name) {
+    entry->m_ref_type_name = type_name;
+}
+
+void dr_inbuild_entry_set_id(struct DRInBuildMetaEntry * entry, int id) {
+    entry->m_data.m_id = id;
+}
+
+void dr_inbuild_entry_set_version(struct DRInBuildMetaEntry * entry, int version) {
+    entry->m_data.m_version = version;
+}
+
+void dr_inbuild_entry_set_array_count(struct DRInBuildMetaEntry * entry, int array_count) {
+    entry->m_data.m_array_count = array_count;
+}
+
+void dr_inbuild_entry_set_name(struct DRInBuildMetaEntry * entry, const char * name) {
+    entry->m_name = name;
+}
+
+void dr_inbuild_entry_set_desc(struct DRInBuildMetaEntry * entry, const char * desc) {
+    entry->m_desc = desc;
+}
+
