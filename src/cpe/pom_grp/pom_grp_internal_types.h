@@ -3,6 +3,7 @@
 #include "cpe/pal/pal_queue.h"
 #include "cpe/utils/hash.h"
 #include "cpe/utils/bitarry.h"
+#include "cpe/utils/buffer.h"
 #include "cpe/dr/dr_types.h"
 #include "cpe/pom_grp/pom_grp_types.h"
 #include "cpe/utils/range.h"
@@ -81,6 +82,24 @@ struct pom_grp_entry_meta {
 };
 
 extern cpe_hash_string_t pom_grp_control_class_name;
+
+struct pom_grp_store {
+    mem_allocrator_t m_alloc;
+    error_monitor_t m_em;
+    pom_grp_meta_t m_meta;
+    LPDRMETALIB m_store_metalib;
+    struct mem_buffer m_store_metalib_buffer;
+
+    struct cpe_hash_table m_entries;
+};
+
+struct pom_grp_store_entry {
+    pom_grp_entry_meta_t m_entry_meta;
+    char m_sub_name[64];
+    LPDRMETAENTRY m_store_entry;
+
+    struct cpe_hash_entry m_hh;
+};
 
 #endif
 

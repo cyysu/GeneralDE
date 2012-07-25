@@ -1,13 +1,47 @@
+#include <assert.h>
 #include "cpe/dr/dr_metalib_build.h"
 #include "cpe/pom_grp/pom_grp_store.h"
-#include "pom_grp_internal_types.h"
+#include "pom_grp_internal_ops.h"
 
-int pom_grp_meta_build_store_meta(mem_buffer_t buffer, pom_grp_meta_t meta, error_monitor_t em) {
-    dr_metalib_builder_t builder = dr_metalib_builder_create(NULL, em);
-    if (builder == NULL) {
-        CPE_ERROR(em, "create metalib builder fail!");
-        return -1;
+pom_grp_store_t
+pom_grp_store_create(
+    mem_allocrator_t alloc,
+    pom_grp_meta_t meta,
+    const char * main_entry,
+    const char * key,
+    error_monitor_t em)
+{
+    pom_grp_store_t store;
+
+    store = mem_alloc(alloc, sizeof(struct pom_grp_store));
+    if (store == NULL) {
+        CPE_ERROR(em, "pom_grp_store_create: alloc pom_grp_store fail!");
+        return NULL;
     }
 
-    return 0;
+    store->m_alloc = alloc;
+    store->m_em = em;
+    store->m_meta = meta;
+    store->m_store_metalib = NULL;
+    mem_buffer_init(&store->m_store_metalib_buffer, alloc);
+
+    if (pom_grp_meta_build_store_meta(&store->m_store_metalib_buffer, meta, main_entry, key, em) != 0) {
+        mem_buffer_clear(&store->m_store_metalib_buffer);
+        mem_free(alloc, store);
+        return NULL;
+    }
+
+    store->m_store_metalib = (LPDRMETALIB)mem_buffer_make_continuous(&store->m_store_metalib_buffer, 0);
+    assert(store->m_store_metalib);
+
+    return store;
+}
+
+void pom_grp_store_free(pom_grp_store_t store) {
+    mem_buffer_clear(&store->m_store_metalib_buffer);
+    mem_free(store->m_alloc, store);
+}
+
+LPDRMETALIB pom_grp_store_metalib(pom_grp_store_t store) {
+    return store->m_store_metalib;
 }
