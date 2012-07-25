@@ -8,6 +8,7 @@ extern "C" {
 
 typedef struct pom_grp_obj * pom_grp_obj_t;
 typedef struct pom_grp_obj_mgr * pom_grp_obj_mgr_t;
+typedef struct pom_grp_store * pom_grp_store_t;
 
 typedef enum pom_grp_entry_type {
     pom_grp_entry_type_normal

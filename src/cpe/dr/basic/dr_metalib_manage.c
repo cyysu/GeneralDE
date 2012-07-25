@@ -445,6 +445,19 @@ int dr_entry_type(LPDRMETAENTRY entry) {
     return entry->m_type;
 }
 
+const char * dr_entry_type_name(LPDRMETAENTRY entry) {
+    if (entry->m_type > CPE_DR_TYPE_COMPOSITE) {
+        const struct tagDRCTypeInfo * typeInfo;
+
+        typeInfo = dr_find_ctype_info_by_type(entry->m_type);
+
+        return typeInfo == NULL ? "unknown-type" : typeInfo->m_name;
+    }
+    else {
+        return dr_meta_name(dr_entry_ref_meta(entry));
+    }
+}
+
 int dr_entry_align(LPDRMETAENTRY entry) {
     if (entry->m_type > CPE_DR_TYPE_COMPOSITE) {
         const struct tagDRCTypeInfo * typeInfo;
