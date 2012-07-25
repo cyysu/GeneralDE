@@ -313,7 +313,11 @@ int dr_calc_meta_use_size(int entryCount) {
 }
 
 void dr_meta_do_complete(LPDRMETA meta, error_monitor_t em) {
-    int panding = meta->m_data_size % meta->m_align;
+    int panding;
+
+    if (meta->m_align == 0) meta->m_align = 1;
+
+    panding = meta->m_data_size % meta->m_align;
     if (panding) {
         panding = meta->m_align - panding;
     }

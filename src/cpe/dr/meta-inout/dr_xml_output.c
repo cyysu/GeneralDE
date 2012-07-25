@@ -35,11 +35,13 @@
 static int dr_save_lib_to_xml_entries(LPDRMETA meta, xmlTextWriterPtr writer, error_monitor_t em) {
     int i;
     int count;
+    char buf[128];
 
     count = dr_meta_entry_num(meta);
     for(i = 0; i < count; ++i) {
         LPDRMETAENTRY entry = dr_meta_entry_at(meta, i);
         LPDRMETA ref_meta = dr_entry_ref_meta(entry);
+        LPDRMETAENTRY array_refer_entry = dr_entry_array_refer_entry(entry);
 
         DR_SAVE_LIB_TO_XML_WRITE_START_ELEMENT("entry");
 
@@ -48,6 +50,18 @@ static int dr_save_lib_to_xml_entries(LPDRMETA meta, xmlTextWriterPtr writer, er
             "type", (ref_meta ? dr_meta_name(ref_meta) : dr_find_ctype_info_by_type(dr_entry_type(entry))->m_name) );
 
         if (dr_entry_id(entry) != -1) DR_SAVE_LIB_TO_XML_WRITE_ATTRIBUTE_FMT("id", "%d", dr_entry_id(entry));
+
+        if (dr_entry_type(entry) == CPE_DR_TYPE_STRING) {
+            DR_SAVE_LIB_TO_XML_WRITE_ATTRIBUTE_FMT("size", "%d", (int)dr_entry_size(entry));
+        }
+
+        if (dr_entry_array_count(entry) != 1) {
+            DR_SAVE_LIB_TO_XML_WRITE_ATTRIBUTE_FMT("count", "%d", (int)dr_entry_array_count(entry));
+        }
+
+        if (array_refer_entry) {
+            DR_SAVE_LIB_TO_XML_WRITE_ATTRIBUTE("refer", dr_meta_off_to_path(meta, dr_entry_data_start_pos(array_refer_entry), buf, sizeof(buf)));
+        }
 
         if (strcmp(dr_entry_cname(entry), "") != 0) DR_SAVE_LIB_TO_XML_WRITE_ATTRIBUTE("cname", dr_entry_cname(entry));
         if (strcmp(dr_entry_desc(entry), "") != 0) DR_SAVE_LIB_TO_XML_WRITE_ATTRIBUTE("desc", dr_entry_desc(entry));
