@@ -3,6 +3,7 @@
 #include "cpe/pal/pal_stdlib.h"
 #include "cpe/utils/stream.h"
 #include "cpe/pom_grp/pom_grp_shm.h"
+#include "cpe/pom_grp/pom_grp_cfg.h"
 #include "cpe/pom_grp/pom_grp_obj_mgr.h"
 
 int pom_grp_shm_init(
@@ -146,6 +147,51 @@ int pom_grp_shm_rm(int shm_key, error_monitor_t em) {
         em, "shm rm: shm(key=%d) remove success.",
         shm_key);
 
+    return 0;
+}
+
+int pom_grp_shm_dump(int shm_key, write_stream_t stream, int ident, error_monitor_t em) {
+    cpe_shm_id_t shmid;
+    pom_grp_obj_mgr_t pom_grp_obj_mgr;
+    cpe_shmid_ds shm_info;
+    void * data;
+
+    shmid = cpe_shm_get(shm_key);
+    if (shmid == -1) {
+        CPE_ERROR(
+            em, "shm : get shm (key=%d) fail, errno=%d (%s)",
+            shm_key, cpe_shm_errno(), cpe_shm_errstr(cpe_shm_errno()));
+        return -1;
+    }
+
+    if (cpe_shm_ds_get(shmid, &shm_info) != 0) {
+        CPE_ERROR(
+            em, "shm : get shm info (key=%d) fail, errno=%d (%s)",
+            shm_key, cpe_shm_errno(), cpe_shm_errstr(cpe_shm_errno()));
+        return -1;
+    }
+
+    data = cpe_shm_attach(shmid, NULL, 0);
+    if (data == NULL) {
+        CPE_ERROR(
+            em, "shm : attach shm fail, errno=%d (%s)",
+            cpe_shm_errno(), cpe_shm_errstr(cpe_shm_errno()));
+        return -1;
+    }
+
+    pom_grp_obj_mgr = pom_grp_obj_mgr_create(NULL, data, shm_info.shm_segsz, em);
+    if (pom_grp_obj_mgr == NULL) {
+        CPE_ERROR(em, "shm : create pom_grp_obj_mgr fail!");
+        cpe_shm_detach(data);
+        return -1;
+    }
+
+    if (pom_grp_obj_cfg_dump_to_stream(stream, pom_grp_obj_mgr, em) != 0) {
+        CPE_ERROR(em, "shm : dump fail!");
+    }
+
+    pom_grp_obj_mgr_free(pom_grp_obj_mgr);
+    cpe_shm_detach(data);
     return 0;
 }
 
