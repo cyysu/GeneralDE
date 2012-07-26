@@ -54,6 +54,7 @@ size_t dr_entry_data_start_pos(LPDRMETAENTRY entry);
 
 int dr_lib_find_macro_value(int *a_piID, LPDRMETALIB metaLib, const  char *name);
 LPDRMACRO dr_lib_macro_at(LPDRMETALIB metaLib, int a_iIdx);
+LPDRMACRO dr_lib_macro_find(LPDRMETALIB metaLib, const char * name);
 
 int dr_lib_macro_num(LPDRMETALIB metaLib);
 const char* dr_macro_name(LPDRMETALIB metaLib, LPDRMACRO macro);
