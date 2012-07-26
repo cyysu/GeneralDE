@@ -530,27 +530,18 @@ const char *dr_entry_customattr(LPDRMETALIB metaLib, LPDRMETAENTRY entry) {
 }
 
 int dr_lib_find_macro_value(int *result, LPDRMETALIB metaLib, const  char *name) {
-    char * base;
-    int i;
-    struct tagDRMacro* macros = 0;
-    struct tagDRMacro* curMacro = 0;
+    LPDRMACRO macro;
 
     assert(result);
-    assert(metaLib);
-    assert(name);
 
-    base = (char *)(metaLib + 1);
-    macros = (struct tagDRMacro*)(base + metaLib->m_startpos_macro);
-
-    for(i = 0; i < metaLib->m_macro_count; ++i) {
-        curMacro = macros + i;
-        if (strcmp(name, (char *)(metaLib + 1) + curMacro->m_name_pos) == 0) {
-            *result = curMacro->m_value;
-            return 0;
-        }
+    macro = dr_lib_macro_find(metaLib, name);
+    if (macro) {
+        *result = macro->m_value;
+        return 0;
     }
-
-    return -1;
+    else {
+        return -1;
+    }
 }
 
 int dr_lib_macro_num(LPDRMETALIB metaLib) {
@@ -569,6 +560,28 @@ LPDRMACRO dr_lib_macro_at(LPDRMETALIB metaLib, int a_iIdx) {
         char * base = (char *)(metaLib + 1);
         return (struct tagDRMacro*)(base + metaLib->m_startpos_macro) + a_iIdx;
     }
+}
+
+LPDRMACRO dr_lib_macro_find(LPDRMETALIB metaLib, const char * name) {
+    char * base;
+    int i;
+    struct tagDRMacro* macros = 0;
+    struct tagDRMacro* curMacro = 0;
+
+    assert(metaLib);
+    assert(name);
+
+    base = (char *)(metaLib + 1);
+    macros = (struct tagDRMacro*)(base + metaLib->m_startpos_macro);
+
+    for(i = 0; i < metaLib->m_macro_count; ++i) {
+        curMacro = macros + i;
+        if (strcmp(name, (char *)(metaLib + 1) + curMacro->m_name_pos) == 0) {
+            return curMacro;
+        }
+    }
+
+    return NULL;
 }
 
 const char* dr_macro_name(LPDRMETALIB metaLib, LPDRMACRO a_pstMacro) {
