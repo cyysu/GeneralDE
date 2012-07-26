@@ -109,7 +109,7 @@ pom_grp_entry_meta_t
 pom_grp_entry_meta_list_create(
     pom_grp_meta_t meta,
     const char * entry_name,
-    LPDRMETA entry_meta, uint32_t count_per_page, uint32_t capacity,
+    LPDRMETA entry_meta, uint32_t count_per_page, uint32_t capacity, int standalone,
     error_monitor_t em)
 {
     pom_grp_entry_meta_t r;
@@ -128,6 +128,7 @@ pom_grp_entry_meta_list_create(
         r->m_data.m_list.m_data_meta = entry_meta;
         r->m_data.m_list.m_capacity = capacity;
         r->m_data.m_list.m_size_idx = meta->m_size_buf_count;
+        r->m_data.m_list.m_standalone = standalone;
         meta->m_size_buf_count += 1;
         meta->m_control_obj_size += sizeof(uint16_t);
     }
@@ -228,6 +229,11 @@ LPDRMETA pom_grp_entry_meta_normal_meta(pom_grp_entry_meta_t entry_meta) {
 LPDRMETA pom_grp_entry_meta_list_meta(pom_grp_entry_meta_t entry_meta) {
     assert(entry_meta->m_type == pom_grp_entry_type_list);
     return entry_meta->m_data.m_list.m_data_meta;
+}
+
+uint16_t pom_grp_entry_meta_list_capacity(pom_grp_entry_meta_t entry_meta) {
+    assert(entry_meta->m_type == pom_grp_entry_type_list);
+    return entry_meta->m_data.m_list.m_capacity;
 }
 
 uint32_t pom_grp_entry_meta_ba_bits(pom_grp_entry_meta_t entry_meta) {

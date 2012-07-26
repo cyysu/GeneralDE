@@ -44,6 +44,7 @@ static int pom_grp_meta_build_from_cfg_entry_list(
     const char * data_capacity;
     int list_count;
     int group_count;
+    int standalone;
 
     data_type  = cfg_get_string(entry_cfg, "data-type", NULL);
     if (data_type == NULL) {
@@ -60,6 +61,8 @@ static int pom_grp_meta_build_from_cfg_entry_list(
             cfg_name(entry_cfg), data_type);
         return -1;
     }
+
+    standalone = cfg_get_int32(entry_cfg, "standalone", 0);
 
     list_count = cfg_get_int32(entry_cfg, "capacity", -1);
     if (list_count == -1) {
@@ -111,7 +114,7 @@ static int pom_grp_meta_build_from_cfg_entry_list(
         return -1;
     }
 
-    if (pom_grp_entry_meta_list_create(meta, cfg_name(entry_cfg), data_meta, group_count, list_count, em) == NULL) {
+    if (pom_grp_entry_meta_list_create(meta, cfg_name(entry_cfg), data_meta, group_count, list_count, standalone, em) == NULL) {
         CPE_ERROR(
             em, "pom_grp_meta_build_from_cfg: entry %s: create list entry fail!",
             cfg_name(entry_cfg));
