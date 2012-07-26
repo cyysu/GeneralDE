@@ -9,8 +9,6 @@
 #include "tool_env.h"
 
 int pom_tool_generate_metalib_xml(struct pom_tool_env * env, const char * filename) {
-    struct write_stream_file stream;
-
     if (env->m_input_metalib == NULL) {
         CPE_ERROR(env->m_em, "generate metalib xml: no metalib!");
         return -1;

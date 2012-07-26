@@ -139,6 +139,39 @@ TEST_F(OmGrpStoreTest, multi_list) {
         "        <entry name=\"a1\" type=\"uint32\" id=\"1\"/>\n"
         "    </struct>\n"
         "    <struct name=\"AttrGroup2\" version=\"0\">\n"
+        "        <entry name=\"b1\" type=\"uint32\" id=\"2\"/>\n"
+        "    </struct>\n"
+        "</metalib>\n"
+        ,
+        store_meta());
+}
+
+TEST_F(OmGrpStoreTest, multi_list_standalone) {
+    install(
+        "TestObj:\n"
+        "  - entry1: { entry-type: normal, data-type: AttrGroup1 }\n"
+        "  - entry2: { entry-type: list, data-type: AttrGroup2, group-count: 3, capacity: 5, standalone: 1 }\n"
+        ,
+        "<metalib tagsetversion='1' name='net'  version='1'>"
+        "    <struct name='AttrGroup1' version='1'>"
+        "	     <entry name='a1' type='uint32' id='1'/>"
+        "    </struct>"
+        "    <struct name='AttrGroup2' version='1'>"
+        "	     <entry name='b1' type='uint32' id='2'/>"
+        "    </struct>"
+        "</metalib>"
+        ,
+        "entry1"
+        ,
+        "a1") ;
+
+    EXPECT_STREQ(
+        "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+        "<metalib tagsetversion=\"0\" name=\"\" version=\"0\">\n"
+        "    <struct name=\"AttrGroup1\" version=\"0\">\n"
+        "        <entry name=\"a1\" type=\"uint32\" id=\"1\"/>\n"
+        "    </struct>\n"
+        "    <struct name=\"AttrGroup2\" version=\"0\">\n"
         "        <entry name=\"a1\" type=\"uint32\" id=\"1\"/>\n"
         "        <entry name=\"b1\" type=\"uint32\" id=\"2\"/>\n"
         "    </struct>\n"
