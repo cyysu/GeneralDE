@@ -17,6 +17,8 @@ int pom_grp_shm_info(
 
 int pom_grp_shm_rm(int shm_key, error_monitor_t em);
 
+int pom_grp_shm_dump(int shm_key, write_stream_t stream, int ident, error_monitor_t em);
+
 #ifdef __cplusplus
 }
 #endif

@@ -47,6 +47,7 @@ pom_grp_entry_meta_list_create(
     pom_grp_meta_t meta,
     const char * entry_name,
     LPDRMETA entry_meta, uint32_t count_per_page, uint32_t capacity,
+    int standalone,
     error_monitor_t em);
 
 pom_grp_entry_meta_t
@@ -79,7 +80,9 @@ pom_grp_entry_type_t pom_grp_entry_meta_type(pom_grp_entry_meta_t entry_meta);
 uint16_t pom_grp_entry_meta_index(pom_grp_entry_meta_t entry_meta);
 
 LPDRMETA pom_grp_entry_meta_normal_meta(pom_grp_entry_meta_t entry_meta);
+
 LPDRMETA pom_grp_entry_meta_list_meta(pom_grp_entry_meta_t entry_meta);
+uint16_t pom_grp_entry_meta_list_capacity(pom_grp_entry_meta_t entry_meta);
 
 uint32_t pom_grp_entry_meta_ba_bits(pom_grp_entry_meta_t entry_meta);
 uint32_t pom_grp_entry_meta_ba_bytes(pom_grp_entry_meta_t entry_meta);

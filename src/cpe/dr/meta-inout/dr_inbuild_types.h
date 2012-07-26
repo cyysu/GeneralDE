@@ -20,6 +20,7 @@ struct DRInBuildMetaLib {
 };
 
 struct DRInBuildMeta {
+    struct DRInBuildMetaLib * m_lib;
     TAILQ_ENTRY(DRInBuildMeta) m_next;
     TAILQ_HEAD(DRInBuildMetaEntryList, DRInBuildMetaEntry) m_entries;
     struct cpe_hash_entry m_hh;

@@ -23,6 +23,30 @@ define product-def-rule-cpe-pom-c-module-metalib-xml
                     --output-metalib-xml $$@
 endef
 
+define product-def-rule-cpe-pom-c-module-store-metalib-xml
+  $(call assert-not-null,$1.cpe-pom.$2.store-metalib-xml.output)
+  $(call assert-not-null,$1.cpe-pom.$2.store-metalib-xml.main-entry)
+  $(call assert-not-null,$1.cpe-pom.$2.store-metalib-xml.key)
+
+  $(eval r.$1.$3.cpe-pom.$2.store-metalib-xml.output:=$($1.cpe-pom.$2.store-metalib-xml.output))
+  $(eval r.$1.$3.cpe-pom.$2.store-metalib-xml.output-dir:=$(CPDE_OUTPUT_ROOT)/$3/$(dir $($1.cpe-pom.$2.store-metalib-xml.output)))
+  $(eval r.$1.$3.cpe-pom.$2.generated.store-metalib-xml:=$(r.$1.$3.cpe-pom.$2.store-metalib-xml.output-dir)$(notdir $($1.cpe-pom.$2.store-metalib-xml.output)))
+
+  auto-build-dirs += $(r.$1.$3.cpe-pom.$2.store-metalib-xml.output-dir)
+
+  $(eval r.$1.cleanup += $(r.$1.$3.cpe-pom.$2.generated.store-metalib-xml))
+
+  $(r.$1.$3.cpe-pom.$2.generated.store-metalib-xml): $(r.$1.$3.cpe-pom.$2.pom-meta-source) $(r.$1.$3.cpe-pom.$2.dr-meta-source) $(cpe-pom-tool)
+	$$(call with_message,cpe-pom generaing store-metalib-xml to $(subst $(CPDE_ROOT)/,,$(r.$1.$3.cpe-pom.$2.generated.store-metalib-xml)) ...) \
+	LD_LIBRARY_PATH=$(CPDE_OUTPUT_ROOT)/$(tools.output)/lib:$$$$LD_LIBRARY_PATH \
+	$(cpe-pom-tool) store-metalib-xml \
+                    $(addprefix --pom-meta , $(r.$1.$3.cpe-pom.$2.pom-meta-source)) \
+                    $(addprefix --dr-meta , $(r.$1.$3.cpe-pom.$2.dr-meta-source)) \
+                    --main-entry $($1.cpe-pom.$2.store-metalib-xml.main-entry) \
+                    --key $($1.cpe-pom.$2.store-metalib-xml.key) \
+                    --output-metalib-xml $$@
+endef
+
 define product-def-rule-cpe-pom-c-module-c
   $(call assert-not-null,$1.cpe-pom.$2.c.output)
   $(call assert-not-null,$1.cpe-pom.$2.c.arg-name)

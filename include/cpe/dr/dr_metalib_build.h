@@ -25,6 +25,10 @@ struct DRInBuildMacro * dr_inbuild_metalib_find_macro(struct DRInBuildMetaLib * 
 
 struct DRInBuildMeta * dr_inbuild_metalib_add_meta(struct DRInBuildMetaLib * inBuildMetaLib);
 void dr_inbuild_metalib_remove_meta(struct DRInBuildMetaLib * inBuildMetaLib, struct DRInBuildMeta * meta);
+struct DRInBuildMeta * dr_inbuild_metalib_find_meta(struct DRInBuildMetaLib * inBuildMetaLib, const char * meta_name);
+
+struct DRInBuildMeta *
+dr_inbuild_metalib_copy_meta(struct DRInBuildMetaLib * inBuildMetaLib, LPDRMETA meta);
 
 int dr_inbuild_meta_current_version(struct DRInBuildMeta * meta);
 void dr_inbuild_meta_set_type(struct DRInBuildMeta * meta, int type);
@@ -37,6 +41,12 @@ void dr_inbuild_meta_set_desc(struct DRInBuildMeta * meta, const char * desc);
 
 struct DRInBuildMetaEntry * dr_inbuild_meta_add_entry(struct DRInBuildMeta * meta);
 void dr_inbuild_meta_remove_entry(struct DRInBuildMeta * meta, struct DRInBuildMetaEntry * entry);
+struct DRInBuildMetaEntry *
+dr_inbuild_meta_copy_entry(struct DRInBuildMeta * meta, LPDRMETAENTRY entry);
+
+int dr_inbuild_meta_init(struct DRInBuildMeta * new_meta, LPDRMETA src_meta);
+int dr_inbuild_meta_copy_entrys(struct DRInBuildMeta * new_meta, LPDRMETA src_meta);
+
 
 int dr_inbuild_entry_version(struct DRInBuildMetaEntry * entry);
 void dr_inbuild_entry_set_type(struct DRInBuildMetaEntry * entry, const char * type_name);
@@ -45,6 +55,7 @@ void dr_inbuild_entry_set_array_count(struct DRInBuildMetaEntry * entry, int arr
 void dr_inbuild_entry_set_version(struct DRInBuildMetaEntry * entry, int version);
 void dr_inbuild_entry_set_name(struct DRInBuildMetaEntry * entry, const char * name);
 void dr_inbuild_entry_set_desc(struct DRInBuildMetaEntry * entry, const char * desc);
+void dr_inbuild_entry_set_size(struct DRInBuildMetaEntry * entry, int size);
 
 #ifdef __cplusplus
 }
