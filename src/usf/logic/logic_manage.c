@@ -105,6 +105,7 @@ logic_manage_create(
         cpe_hash_table_fini(&mgr->m_contexts);
         cpe_hash_table_fini(&mgr->m_queues);
         nm_node_free(mgr_node);
+        return NULL;
     }
 
     nm_node_set_type(mgr_node, &s_nm_node_type_logic_manage);

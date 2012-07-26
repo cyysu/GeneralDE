@@ -186,7 +186,10 @@ static int bpg_rsp_build_i(bpg_rsp_manage_t mgr, cfg_t cfg, mem_buffer_t buf, cf
 
     rv = 0;
 
-    if (cfg_type(cfg) == CPE_CFG_TYPE_SEQUENCE) {
+    if (cfg == NULL) {
+        //do nothing!
+    }
+    else if (cfg_type(cfg) == CPE_CFG_TYPE_SEQUENCE) {
         cfg_it_init(&child_it, cfg);
         while((child = cfg_it_next(&child_it))) {
             bpg_rsp_t rsp = bpg_rsp_build_one(mgr, child, metalib, em);
