@@ -48,6 +48,7 @@ struct pom_grp_entry_data_list {
     LPDRMETA m_data_meta;
     uint32_t m_capacity;
     uint16_t m_size_idx;
+    uint16_t m_standalone;
 };
 
 struct pom_grp_entry_data_ba {

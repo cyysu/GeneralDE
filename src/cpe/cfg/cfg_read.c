@@ -287,6 +287,8 @@ int cfg_path_print(write_stream_t stream, cfg_t cfg, cfg_t to) {
     int haveParent;
     cfg_t parent;
 
+    if (cfg == NULL) return 0;
+
     if (cfg->m_parent == 0 || cfg == to) {
         return -1;
     }

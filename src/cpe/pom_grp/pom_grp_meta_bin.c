@@ -20,6 +20,8 @@ struct pom_grp_entry_meta_data {
     uint16_t m_type;
     uint16_t m_obj_size;
     uint16_t m_obj_align;
+    uint16_t m_standalone;
+    uint16_t m_reserve1;
     pom_class_id_t m_class_id;
 };
 
@@ -160,6 +162,7 @@ pom_grp_meta_build_from_bin(mem_allocrator_t alloc, void const * data, LPDRMETAL
                 meta, entry_name, data_meta,
                 entry_meta_data->m_obj_size / dr_meta_size(data_meta),
                 entry_meta_data->m_capacity,
+                entry_meta_data->m_standalone,
                 em);
             break;
         case pom_grp_entry_type_ba:
@@ -265,6 +268,8 @@ void pom_grp_meta_write_to_bin(void * data, size_t capacity, pom_grp_meta_t meta
         entry_meta_data->m_class_id = entry->m_class_id;
         entry_meta_data->m_obj_size = entry->m_obj_size;
         entry_meta_data->m_obj_align = entry->m_obj_align;
+        entry_meta_data->m_standalone = 0;
+        entry_meta_data->m_reserve1 = 0;
 
         switch(entry->m_type) {
         case pom_grp_entry_type_normal:
@@ -280,6 +285,7 @@ void pom_grp_meta_write_to_bin(void * data, size_t capacity, pom_grp_meta_t meta
                     dr_meta_name(entry->m_data.m_list.m_data_meta));
 
             entry_meta_data->m_capacity = entry->m_data.m_list.m_capacity;
+            entry_meta_data->m_standalone = entry->m_data.m_list.m_standalone;
             break;
         case pom_grp_entry_type_ba:
             entry_meta_data->m_capacity = entry->m_data.m_ba.m_bit_capacity;
