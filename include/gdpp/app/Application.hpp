@@ -16,6 +16,7 @@ public:
 
     mem_allocrator_t allocrator(void) { return gd_app_alloc(*this); }
     error_monitor_t em(void) const { return gd_app_em(*this); }
+    error_monitor_t em(const char * name) const { return gd_app_named_em(*this, name); }
 
     Cpe::Cfg::Node & cfg(void) { return *(Cpe::Cfg::Node *)gd_app_cfg(*this); }
     Cpe::Cfg::Node const & cfg(void) const { return *(Cpe::Cfg::Node *)gd_app_cfg(*this); }
