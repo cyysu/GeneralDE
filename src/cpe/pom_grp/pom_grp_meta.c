@@ -1,5 +1,6 @@
 #include <assert.h>
 #include "cpe/pal/pal_platform.h"
+#include "cpe/dr/dr_metalib_cmp.h"
 #include "cpe/dr/dr_metalib_manage.h"
 #include "cpe/pom_grp/pom_grp_meta.h"
 #include "pom_grp_internal_ops.h"
@@ -161,4 +162,71 @@ void pom_grp_meta_dump(write_stream_t stream, pom_grp_meta_t meta, int ident) {
             stream, ", page-begin=%d, page-count=%d, class-id=%d, obj-size=%d, obj-align=%d",
             entry->m_page_begin, entry->m_page_count, entry->m_class_id, entry->m_obj_size, entry->m_obj_align);
     }
+}
+
+int pom_grp_meta_compatable(pom_grp_meta_t l, pom_grp_meta_t r) {
+    uint16_t i, count;
+
+    if (l->m_omm_page_size != r->m_omm_page_size
+        || l->m_control_class_id != r->m_control_class_id
+        || l->m_control_obj_size != r->m_control_obj_size
+        || l->m_page_count != r->m_page_count
+        || l->m_size_buf_start != r->m_size_buf_start
+        || l->m_size_buf_count != r->m_size_buf_count
+        || l->m_entry_count != r->m_entry_count
+        || l->m_entry_capacity != r->m_entry_capacity
+        || strcmp(l->m_name, r->m_name) != 0)
+    {
+        return 0;
+    }
+
+    count = l->m_entry_count;
+    for(i = 0; i < count; ++i) {
+        pom_grp_entry_meta_t l_em = l->m_entry_buf[i];
+        pom_grp_entry_meta_t r_em = r->m_entry_buf[i];
+
+        assert(l_em);
+        assert(r_em);
+
+        if (l_em->m_index != r_em->m_index
+            || l_em->m_type != r_em->m_type
+            || l_em->m_page_begin != r_em->m_page_begin
+            || l_em->m_page_count != r_em->m_page_count
+            || l_em->m_class_id != r_em->m_class_id
+            || l_em->m_obj_size != r_em->m_obj_size
+            || l_em->m_obj_align != r_em->m_obj_align
+            || strcmp(l_em->m_name, r_em->m_name) != 0)
+        {
+            return 0;
+        }
+
+        switch(l_em->m_type) {
+        case pom_grp_entry_type_normal:
+            if (!dr_meta_compatible(l_em->m_data.m_normal.m_data_meta, r_em->m_data.m_normal.m_data_meta)) {
+                return 0;
+            }
+            break;
+        case pom_grp_entry_type_list:
+            if (l_em->m_data.m_list.m_capacity != r_em->m_data.m_list.m_capacity
+                || l_em->m_data.m_list.m_size_idx != r_em->m_data.m_list.m_size_idx
+                || l_em->m_data.m_list.m_standalone != r_em->m_data.m_list.m_standalone
+                || !dr_meta_compatible(l_em->m_data.m_list.m_data_meta, r_em->m_data.m_list.m_data_meta))
+            {
+                return 0;
+            }
+            break;
+        case pom_grp_entry_type_ba:
+            if (l_em->m_data.m_ba.m_bit_capacity != r_em->m_data.m_ba.m_bit_capacity) {
+                return 0;
+            }
+            break;
+        case pom_grp_entry_type_binary:
+            if (l_em->m_data.m_binary.m_capacity != r_em->m_data.m_binary.m_capacity) {
+                return 0;
+            }
+            break;
+        }
+    }
+
+    return 1;
 }
