@@ -1,4 +1,3 @@
-//#include "cpe/net/net_endpoint.h"
 #include "gd/app/app_context.h"
 #include "usf/bpg_bind/bpg_bind_manage.h"
 #include "bpg_bind_internal_ops.h"
@@ -34,7 +33,7 @@ bpg_bind_process_recv(bpg_bind_manage_t mgr, uint64_t client_id, uint32_t connec
     return bpg_net_pkg_next_go_without_connection_id;
 }
 
- void bpg_bind_process_binding(bpg_bind_manage_t mgr, uint64_t client_id, uint32_t connection_id) { 
+void bpg_bind_process_binding(bpg_bind_manage_t mgr, uint64_t client_id, uint32_t connection_id) { 
      //net_ep_t ep; 
 
      //ep = NULL; 

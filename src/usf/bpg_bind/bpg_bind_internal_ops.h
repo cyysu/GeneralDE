@@ -20,8 +20,7 @@ bpg_bind_binding_find_by_client_id(bpg_bind_manage_t mgr, uint64_t client_id);
 
 struct bpg_bind_binding *
 bpg_bind_binding_find_by_connection_id(bpg_bind_manage_t mgr, uint32_t connection_id);
-
-//net_ep_t bpg_bind_process_binding(bpg_bind_manage_t mgr, uint64_t client_id, uint32_t connection_id);
+void bpg_bind_process_binding(bpg_bind_manage_t mgr, uint64_t client_id, uint32_t connection_id);
 
 void bpg_bind_process_binding(bpg_bind_manage_t mgr, uint64_t client_id, uint32_t connection_id);
 

@@ -8,6 +8,7 @@
 #include "cpe/dp/dp_manage.h"
 #include "gd/app/app_context.h"
 #include "gd/app/app_module.h"
+#include "usf/bpg_pkg/bpg_pkg_manage.h"
 #include "usf/bpg_rsp/bpg_rsp_manage.h"
 #include "usf/bpg_bind/bpg_bind_manage.h"
 #include "bpg_bind_internal_types.h"

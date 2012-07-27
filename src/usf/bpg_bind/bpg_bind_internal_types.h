@@ -18,7 +18,7 @@ struct bpg_bind_manage {
 
     dp_rsp_t m_recv_at;
 
-	dp_rsp_t m_reply_to;
+	cpe_hash_string_t m_reply_to;
 
     struct cpe_hash_table m_cliensts;
     struct cpe_hash_table m_connections;
