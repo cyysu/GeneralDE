@@ -63,7 +63,7 @@ uint64_t RspOpContext::clientId(void) const {
     return bpg_rsp_context_client_id(carryInfo);
 }
 
-void RspOpContext::setNoResponse(void) {
+void RspOpContext::setResponse(bool needResponse) {
     bpg_rsp_carry_info_t carryInfo = bpg_rsp_carry_info_find(*this);
     if (carryInfo == NULL) {
         APP_CTX_THROW_EXCEPTION(
@@ -72,7 +72,7 @@ void RspOpContext::setNoResponse(void) {
             "RspOpContext[%d]: carry info not exist!", id());
     }
 
-    bpg_rsp_context_set_no_response(carryInfo);
+    bpg_rsp_context_set_no_response(carryInfo, needResponse ? 0 : 1);
 }
 
 }}

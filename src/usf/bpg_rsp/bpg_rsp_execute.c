@@ -469,11 +469,11 @@ bpg_rsp_manage_create_follow_op_by_name(bpg_rsp_manage_t bpg_mgr, logic_context_
             }
         }
         else {
-            bpg_rsp_context_set_no_response(carry_info);
+            bpg_rsp_context_set_no_response(carry_info, 1);
         }
     }
     else {
-        bpg_rsp_context_set_no_response(carry_info);
+        bpg_rsp_context_set_no_response(carry_info, 1);
     }
 
     if (bpg_mgr->m_debug >= 2 || bpg_rsp_flag_is_enable(rsp, bpg_rsp_flag_debug)) {
@@ -588,11 +588,9 @@ bpg_rsp_manage_create_op_by_name(
                 bpg_rsp_context_set_cmd(carry_info, cmd);
             }
         }
-        printf("xx xxxx!");
     }
     else {
-        printf("xx set no response!");
-        bpg_rsp_context_set_no_response(carry_info);
+        bpg_rsp_context_set_no_response(carry_info, 1);
     }
 
     if (bpg_mgr->m_debug >= 2 || bpg_rsp_flag_is_enable(rsp, bpg_rsp_flag_debug)) {

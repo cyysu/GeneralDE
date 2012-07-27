@@ -30,6 +30,6 @@ void bpg_rsp_context_set_client_id(bpg_rsp_carry_info_t carry_info, uint64_t cli
     ((BPG_CARRY_INFO *)carry_info)->clientId = client_id;
 }
 
-void bpg_rsp_context_set_no_response(bpg_rsp_carry_info_t carry_info) {
-    ((BPG_CARRY_INFO *)carry_info)->no_response = 1;
+void bpg_rsp_context_set_no_response(bpg_rsp_carry_info_t carry_info, int no_response) {
+    ((BPG_CARRY_INFO *)carry_info)->no_response = no_response;
 }
