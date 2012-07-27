@@ -23,7 +23,7 @@ public:
     void install(
         const char * om_meta,
         const char * metalib, 
-        size_t capacity = 2048, uint16_t page_size = 256);
+        size_t capacity = 20480, uint16_t page_size = 256);
 
     pom_grp_obj_mgr_t m_mgr;
 };

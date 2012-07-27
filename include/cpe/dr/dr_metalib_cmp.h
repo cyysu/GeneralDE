@@ -7,6 +7,7 @@
 extern "C" {
 #endif /* __cplusplus */
 
+int dr_meta_compatible(LPDRMETA l, LPDRMETA r);
 int dr_metalib_compatible_part(LPDRMETALIB full, LPDRMETALIB part);
 
 #ifdef __cplusplus

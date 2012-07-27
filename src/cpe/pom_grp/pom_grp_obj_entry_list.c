@@ -394,6 +394,15 @@ int pom_grp_obj_list_remove_ex(pom_grp_obj_mgr_t mgr, pom_grp_obj_t obj, pom_grp
 }
 
 int pom_grp_obj_list_clear_ex(pom_grp_obj_mgr_t mgr, pom_grp_obj_t obj, pom_grp_entry_meta_t entry) {
+    uint16_t * count;
+
+    assert(entry);
+    assert(obj);
+    assert(entry->m_type == pom_grp_entry_type_list);
+
+    count = pom_grp_obj_list_count_buf(mgr, obj, entry);
+    *count = 0;
+
     return 0;
 }
 
