@@ -34,6 +34,8 @@ pom_grp_meta_build_from_bin(
 void pom_grp_meta_write_to_bin(
     void * data, size_t capacity, pom_grp_meta_t meta);
 
+int pom_grp_meta_compatable(pom_grp_meta_t l, pom_grp_meta_t r);
+
 /*entry operations*/
 pom_grp_entry_meta_t
 pom_grp_entry_meta_normal_create(

@@ -1,4 +1,5 @@
 #include <assert.h>
+#include "cpe/utils/hex_utils.h"
 #include "cpe/cfg/cfg_manage.h" 
 #include "cpe/cfg/cfg_read.h" 
 #include "cpe/dr/dr_cfg.h" 
@@ -79,6 +80,79 @@ static int pom_grp_obj_cfg_dump_list(
     return rv;
 }
 
+static int pom_grp_obj_cfg_dump_ba(
+    cfg_t cfg,
+    pom_grp_meta_t meta,
+    pom_grp_entry_meta_t entry_meta,
+    pom_grp_obj_mgr_t mgr,
+    pom_grp_obj_t obj,
+    error_monitor_t em)
+{
+    uint16_t i, count;
+    cfg_t data_cfg;
+    int rv;
+
+    cfg = cfg_struct_add_seq(cfg, entry_meta->m_name, cfg_replace);
+    if (cfg == NULL) {
+        CPE_ERROR(em, "pom_grp_obj_cfg_dump: %s: create sub cfg fail!", entry_meta->m_name);
+        return -1;
+    }
+
+    rv = 0;
+
+    count = pom_grp_obj_ba_bit_capacity_ex(mgr, obj, entry_meta);
+    for(i = 0; i < count; ++i) {
+        if (pom_grp_obj_ba_get_ex(mgr, obj, entry_meta, i) != cpe_ba_true) continue;
+
+        data_cfg = cfg_seq_add_int32(cfg, i);
+        if (data_cfg == NULL) {
+            CPE_ERROR(em, "pom_grp_obj_cfg_dump: %s: add value %d fail!", entry_meta->m_name, i);
+            rv = -1;
+            continue;
+        }
+    }
+
+    return rv;
+}
+
+static int pom_grp_obj_cfg_dump_binary(
+    cfg_t cfg,
+    pom_grp_meta_t meta,
+    pom_grp_entry_meta_t entry_meta,
+    pom_grp_obj_mgr_t mgr,
+    pom_grp_obj_t obj,
+    error_monitor_t em)
+{
+    void * data;
+    char * str;
+    struct mem_buffer buffer;
+    int rv;
+
+    data = pom_grp_obj_binary_ex(mgr, obj, entry_meta);
+    if (data == NULL) return 0;
+
+    mem_buffer_init(&buffer, NULL);
+
+    rv = 0;
+
+    str = cpe_hex_dup_buf(data, pom_grp_obj_binary_capacity_ex(mgr, obj, entry_meta), &buffer);
+    if (str == NULL) {
+        CPE_ERROR(em, "pom_grp_obj_cfg_dump: %s: dump data to hexx!", entry_meta->m_name);
+        rv = -1;
+    }
+    else {
+        if (cfg_struct_add_string(cfg, entry_meta->m_name, str, cfg_replace) == NULL) {
+            CPE_ERROR(em, "pom_grp_obj_cfg_dump: %s: create sub string cfg fail!", entry_meta->m_name);
+            rv = -1;
+        }
+    }
+
+    mem_buffer_clear(&buffer);
+
+    return rv;
+}
+
+
 int pom_grp_obj_cfg_dump(cfg_t cfg, pom_grp_obj_mgr_t mgr, pom_grp_obj_t obj, error_monitor_t em) {
     uint16_t i, count;
     int rv;
@@ -105,8 +179,10 @@ int pom_grp_obj_cfg_dump(cfg_t cfg, pom_grp_obj_mgr_t mgr, pom_grp_obj_t obj, er
             if (pom_grp_obj_cfg_dump_list(cfg, meta, entry_meta, mgr, obj, em) != 0) rv = -1;
             break;
         case pom_grp_entry_type_ba:
+            if (pom_grp_obj_cfg_dump_ba(cfg, meta, entry_meta, mgr, obj, em) != 0) rv = -1;
             break;
         case pom_grp_entry_type_binary:
+            if (pom_grp_obj_cfg_dump_binary(cfg, meta, entry_meta, mgr, obj, em) != 0) rv = -1;
             break;
         }
     }
