@@ -90,7 +90,7 @@ TEST_F(OmGrpObjListTest, at_overflow_count_not_empty) {
 
 TEST_F(OmGrpObjListTest, append_basic) {
     append(1);
-    EXPECT_EQ(1, at(0));
+    EXPECT_EQ((uint32_t)1, at(0));
 }
 
 TEST_F(OmGrpObjListTest, append_all) {
@@ -123,7 +123,7 @@ TEST_F(OmGrpObjListTest, insert_to_empty) {
     EXPECT_EQ(0, pom_grp_obj_list_insert(m_mgr, m_obj, "entry1", 0, &v1));
 
     EXPECT_EQ(1, count());
-    EXPECT_EQ(1, at(0));
+    EXPECT_EQ((uint32_t)1, at(0));
 }
 
 TEST_F(OmGrpObjListTest, insert_to_page_last) {

@@ -65,6 +65,10 @@ void cpe_ba_set_all(cpe_ba_t ba, size_t bit_capacity, cpe_ba_value_t value) {
     CPE_BA_CLR_NOT_USED(ba, s, bit_capacity);
 }
 
+size_t cpe_ba_bytes_from_bits(size_t nbits) {
+    return (nbits >> 3) + (nbits % 8 ? 0 : 1);
+}
+
 ssize_t cpe_ba_next_pos(cpe_ba_t ba, size_t bit_capacity) {
     size_t s = cpe_ba_bytes_from_bits(bit_capacity);
     register size_t i;
