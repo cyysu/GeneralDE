@@ -1,5 +1,5 @@
 #ifndef GDPP_UTILS_IDGENERATOR_H
-#define gdpp_UTILS_IDGENERATOR_H
+#define GDPP_UTILS_IDGENERATOR_H
 #include "cpepp/utils/ClassCategory.hpp"
 #include "gdpp/app/Application.hpp"
 #include "gd/utils/id_generator.h"
