@@ -66,7 +66,7 @@ void cpe_ba_set_all(cpe_ba_t ba, size_t bit_capacity, cpe_ba_value_t value) {
 }
 
 size_t cpe_ba_bytes_from_bits(size_t nbits) {
-    return (nbits >> 3) + (nbits % 8 ? 0 : 1);
+    return (nbits >> 3) + (nbits % 8 ? 1 : 0);
 }
 
 ssize_t cpe_ba_next_pos(cpe_ba_t ba, size_t bit_capacity) {
