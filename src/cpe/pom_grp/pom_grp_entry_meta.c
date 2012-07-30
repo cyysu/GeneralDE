@@ -153,7 +153,7 @@ pom_grp_entry_meta_ba_create(
     r =
         pom_grp_entry_meta_create_i(
             meta, entry_name, pom_grp_entry_type_ba,
-            1, byte_capacity, page_count, em);
+            page_count, byte_capacity, 1, em);
 
     if (r) {
         r->m_data.m_ba.m_bit_capacity = bit_capacity;
@@ -219,6 +219,14 @@ pom_grp_entry_type_t pom_grp_entry_meta_type(pom_grp_entry_meta_t entry_meta) {
 
 uint16_t pom_grp_entry_meta_index(pom_grp_entry_meta_t entry_meta) {
     return entry_meta->m_index;
+}
+
+uint16_t pom_grp_entry_meta_page_count(pom_grp_entry_meta_t entry_meta) {
+    return entry_meta->m_page_count;
+}
+
+uint16_t pom_grp_entry_meta_page_size(pom_grp_entry_meta_t entry_meta) {
+    return entry_meta->m_obj_size;
 }
 
 LPDRMETA pom_grp_entry_meta_normal_meta(pom_grp_entry_meta_t entry_meta) {
