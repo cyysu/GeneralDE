@@ -153,7 +153,7 @@ pom_grp_entry_meta_ba_create(
     r =
         pom_grp_entry_meta_create_i(
             meta, entry_name, pom_grp_entry_type_ba,
-            page_count, byte_capacity, 1, em);
+            page_count, byte_per_page, 1, em);
 
     if (r) {
         r->m_data.m_ba.m_bit_capacity = bit_capacity;
