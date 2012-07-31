@@ -1,3 +1,4 @@
+#include <set>
 #include "OmGrpObjMgrTest.hpp" 
 
 class OmGrpObjMgrBasicTest : public OmGrpObjMgrTest {
@@ -40,4 +41,48 @@ TEST_F(OmGrpObjMgrBasicTest, obj_it_basic) {
 
     ASSERT_TRUE(pom_grp_obj_it_next(&it) == obj);
     ASSERT_TRUE(pom_grp_obj_it_next(&it) == NULL);
+}
+
+TEST_F(OmGrpObjMgrBasicTest, obj_it_multi) {
+    ::std::set<pom_oid_t> oids;
+
+    for(int i = 0; i < 1000; ++i) {
+        pom_grp_obj_t obj = pom_grp_obj_alloc(m_mgr);
+        ASSERT_TRUE(obj);
+        ASSERT_TRUE(oids.insert(pom_grp_obj_oid(m_mgr, obj)).second);
+    }
+
+    pom_grp_obj_it it;
+    pom_grp_objs(m_mgr, &it);
+
+    while(pom_grp_obj_t obj = pom_grp_obj_it_next(&it)) {
+        ::std::set<pom_oid_t>::iterator pos = oids.find(pom_grp_obj_oid(m_mgr, obj));
+        ASSERT_TRUE(pos != oids.end());
+        oids.erase(pos);
+    }
+
+    ASSERT_TRUE(oids.empty());
+}
+
+TEST_F(OmGrpObjMgrBasicTest, obj_it_multi_reload) {
+    ::std::set<pom_oid_t> oids;
+
+    for(int i = 0; i < 1000; ++i) {
+        pom_grp_obj_t obj = pom_grp_obj_alloc(m_mgr);
+        ASSERT_TRUE(obj);
+        ASSERT_TRUE(oids.insert(pom_grp_obj_oid(m_mgr, obj)).second);
+    }
+
+    reload();
+
+    pom_grp_obj_it it;
+    pom_grp_objs(m_mgr, &it);
+
+    while(pom_grp_obj_t obj = pom_grp_obj_it_next(&it)) {
+        ::std::set<pom_oid_t>::iterator pos = oids.find(pom_grp_obj_oid(m_mgr, obj));
+        ASSERT_TRUE(pos != oids.end());
+        oids.erase(pos);
+    }
+
+    ASSERT_TRUE(oids.empty());
 }
