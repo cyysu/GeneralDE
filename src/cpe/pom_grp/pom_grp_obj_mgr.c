@@ -130,6 +130,14 @@ void pom_grp_obj_mgr_free(pom_grp_obj_mgr_t mgr) {
     mem_free(mgr->m_alloc, mgr);
 }
 
+void * pom_grp_obj_mgr_data(pom_grp_obj_mgr_t mgr) {
+    return mgr->m_full_base;
+}
+
+size_t pom_grp_obj_mgr_data_capacity(pom_grp_obj_mgr_t mgr) {
+    return mgr->m_full_capacity;
+}
+
 pom_mgr_t pom_grp_obj_mgr_pom(pom_grp_obj_mgr_t mgr) {
     return mgr->m_omm;
 }

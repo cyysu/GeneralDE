@@ -24,3 +24,12 @@ void OmGrpObjMgrTest::install(const char * om_meta, const char * metalib, size_t
 
     m_mgr = t_pom_grp_obj_mgr_create(om_meta, metalib, capacity, page_size);
 }
+
+void OmGrpObjMgrTest::reload(void) {
+    void * data = pom_grp_obj_mgr_data(m_mgr);
+    uint32_t capacity = pom_grp_obj_mgr_data_capacity(m_mgr);
+
+    pom_grp_obj_mgr_free(m_mgr);
+
+    m_mgr = pom_grp_obj_mgr_create(t_allocrator(), data, capacity, t_em());
+}

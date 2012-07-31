@@ -16,6 +16,9 @@ pom_grp_obj_mgr_create(
 
 void pom_grp_obj_mgr_free(pom_grp_obj_mgr_t mgr);
 
+void * pom_grp_obj_mgr_data(pom_grp_obj_mgr_t mgr);
+size_t pom_grp_obj_mgr_data_capacity(pom_grp_obj_mgr_t mgr);
+
 pom_mgr_t pom_grp_obj_mgr_pom(pom_grp_obj_mgr_t mgr);
 pom_grp_meta_t pom_grp_obj_mgr_meta(pom_grp_obj_mgr_t mgr);
 
