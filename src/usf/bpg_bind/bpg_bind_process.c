@@ -18,9 +18,7 @@ int bpg_bind_manage_rsp(dp_req_t req, void * ctx, error_monitor_t em) {
     /* else { */
         pkg = bpg_pkg_from_dp_req(req);
         if (pkg == NULL) {
-            /* CPE_ERROR( */
-            /*     mgr->m_em, "%s: ep %d: dispatch cmd %d error!", */
-            /*     bpg_net_mgr_name(mgr), (int)net_ep_id(ep), bpg_pkg_cmd(req_buf)); */
+            CPE_ERROR(mgr->m_em, "%s: cast to bpg_pkg fail!", bpg_bind_manage_name(mgr));
             return -1;
         }
 
@@ -48,8 +46,6 @@ int bpg_bind_manage_rsp(dp_req_t req, void * ctx, error_monitor_t em) {
 					printf("----forrestsong----connection %d need removed\n", found_binding->m_connection_id);
 
 					//如果找到了冲突的用户，构造消息包，通知冲突的用户下线，同时删除该用户
-					//LPDRMETA cmd_meta = dr_lib_find_meta_by_name((LPDRMETALIB)g_szMetalib_NetData,  "CSPKGData");
-					//bpg_pkg_t kickoff_packet = bpg_pkg_create(mgr->m_pkg_manage, 4096, cmd_meta, sizeof(RESKICKOFF));
 					bpg_pkg_t kickoff_packet = bpg_pkg_create(mgr->m_pkg_manage, 4096, NULL, 0);
 					if (kickoff_packet != NULL)
 					{

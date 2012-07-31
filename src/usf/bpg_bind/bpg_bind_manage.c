@@ -14,7 +14,6 @@
 #include "usf/bpg_bind/bpg_bind_manage.h"
 #include "usf/bpg_pkg/bpg_pkg_dsp.h"
 #include "bpg_bind_internal_ops.h"
-//#include "bpg_net_internal_ops.h"
 
 static void bpg_bind_manage_clear(nm_node_t node);
 

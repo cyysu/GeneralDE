@@ -24,8 +24,6 @@ void bpg_bind_process_binding(bpg_bind_manage_t mgr, uint64_t client_id, uint32_
 
 void bpg_bind_process_binding(bpg_bind_manage_t mgr, uint64_t client_id, uint32_t connection_id);
 
-bpg_net_pkg_next_step_t bpg_bind_process_recv(bpg_bind_manage_t mgr, uint64_t client_id, uint32_t connection_id);
-
 uint32_t bpg_bind_binding_client_id_hash(
     const struct bpg_bind_binding * binding);
 int bpg_bind_binding_client_id_cmp(
