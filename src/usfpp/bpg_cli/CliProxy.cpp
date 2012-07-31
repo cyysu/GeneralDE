@@ -139,4 +139,36 @@ void CliProxy::send(Usf::Logic::LogicOpRequire & require, LPDRMETA meta, void co
     send(require, pkg);
 }
 
+void CliProxy::send(Usf::Bpg::Package & pkg) {
+    if (bpg_cli_proxy_send(*this, NULL, pkg) != 0) {
+        APP_CTX_THROW_EXCEPTION(
+            app(), ::std::runtime_error,
+            "%s: send pkg fail!", name().c_str());
+    }
+}
+
+void CliProxy::send(Cpe::Dr::Data const & data) {
+    Usf::Bpg::Package & pkg = pkgBuf() ;
+    pkg.clearData();
+    pkg.setErrCode(0);
+    pkg.setCmdAndData(data);
+    send(pkg);
+}
+
+void CliProxy::send(const char * metaName, void const * data, size_t size) {
+    Usf::Bpg::Package & pkg = pkgBuf() ;
+    pkg.clearData();
+    pkg.setErrCode(0);
+    pkg.setCmdAndData(metaName, data, size);
+    send(pkg);
+}
+
+void CliProxy::send(LPDRMETA meta, void const * data, size_t size) {
+    Usf::Bpg::Package & pkg = pkgBuf() ;
+    pkg.clearData();
+    pkg.setErrCode(0);
+    pkg.setCmdAndData(dr_meta_name(meta), data, size);
+    send(pkg);
+}
+
 }}

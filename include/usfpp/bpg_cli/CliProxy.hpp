@@ -42,6 +42,21 @@ public:
         send(requrest, meta, &data, sizeof(data));
     }
 
+    void send(Usf::Bpg::Package & pkg);
+    void send(Cpe::Dr::Data const & data);
+    void send(const char * metaName, void const * data, size_t size);
+    void send(LPDRMETA meta, void const * data, size_t size);
+
+    template<typename T>
+    void send(T const & data, const char * metaName = Cpe::Dr::MetaTraits<T>::NAME) {
+        send( metaName, &data, sizeof(data));
+    }
+
+    template<typename T>
+    void send(LPDRMETA meta, T const & data) {
+        send(meta, &data, sizeof(data));
+    }
+
     static CliProxy & _cast(bpg_cli_proxy_t cli_proxy);
     static CliProxy & instance(gd_app_context_t app, const char * name);
 };

@@ -225,11 +225,11 @@ int bpg_cli_proxy_send(
         CPE_ERROR(
             proxy->m_em, "%s: bpg_cli_proxy_set_recv_at: no send to configured!",
             bpg_cli_proxy_name(proxy));
-        logic_require_set_error(require);
+        if (require) logic_require_set_error(require);
         return -1;
     }
 
-    bpg_pkg_set_sn(pkg, logic_require_id(require));
+    if (require) bpg_pkg_set_sn(pkg, logic_require_id(require));
 
     rv = bpg_pkg_dsp_dispatch(proxy->m_send_to, pkg, proxy->m_em);
 
@@ -237,7 +237,7 @@ int bpg_cli_proxy_send(
         CPE_ERROR(
             proxy->m_em, "%s: bpg_cli_proxy_set_recv_at: dispatch to send fail!",
             bpg_cli_proxy_name(proxy));
-        logic_require_set_error(require);
+        if (require) logic_require_set_error(require);
         return rv;
     }
 
