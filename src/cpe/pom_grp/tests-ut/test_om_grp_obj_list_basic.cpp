@@ -210,3 +210,4 @@ TEST_F(OmGrpObjListTest, remote_last_page_left) {
     remove(3);
     EXPECT_STREQ("1:2:3:5", dump());
 }
+

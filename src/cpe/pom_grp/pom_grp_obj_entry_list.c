@@ -375,7 +375,6 @@ int pom_grp_obj_list_remove_ex(pom_grp_obj_mgr_t mgr, pom_grp_obj_t obj, pom_grp
         - (count_in_page * remove_page_pos)
         - remove_pos_in_page
         - 1;
-
     if (last_page_left_count > 0) {
         memmove(
             page_buf + element_size * remove_pos_in_page,
