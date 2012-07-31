@@ -69,7 +69,7 @@ TEST_F(OmGrpMetaTest, bitarry_multi_page) {
 
     EXPECT_STREQ(
         "pom_grp_meta: name=TestObj, page-size=256, class-id=1, obj-size=8, page-count=2, size-buf-start=8, size-buf-count=0\n"
-        "    entry1: entry-type=ba, bit-capacity=38, page-begin=0, page-count=2, class-id=2, obj-size=5, obj-align=1"
+        "    entry1: entry-type=ba, bit-capacity=38, page-begin=0, page-count=2, class-id=2, obj-size=3, obj-align=1"
         ,
         t_pom_grp_meta_dump(m_meta));
 }
