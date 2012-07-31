@@ -24,15 +24,12 @@ struct tsorter_str_element {
     struct tsorter_str_depend_list m_depend_froms;
     struct cpe_hash_entry m_hh;
 
-    TAILQ_ENTRY(tsorter_str_element) m_next;
+    tsorter_str_element_t m_next;
 };
-
-TAILQ_HEAD(tsorter_str_element_list, tsorter_str_element);
 
 struct tsorter_str {
     mem_allocrator_t m_alloc;
     struct cpe_hash_table m_elements;
-    struct tsorter_str_element_list m_sorted_elements;
     int m_dup_str;
 };
 
@@ -57,8 +54,6 @@ tsorter_str_t tsorter_str_create(mem_allocrator_t alloc, int dup_str) {
         return NULL;
     }
 
-    TAILQ_INIT(&sorter->m_sorted_elements);
-    
     return sorter;
 }
 
@@ -66,8 +61,6 @@ void tsorter_str_free(tsorter_str_t sorter) {
     struct cpe_hash_it element_it;
     tsorter_str_element_t element;
 
-    TAILQ_INIT(&sorter->m_sorted_elements);
-    
     cpe_hash_it_init(&element_it, &sorter->m_elements);
     element = cpe_hash_it_next(&element_it);
     while (element) {
@@ -79,6 +72,14 @@ void tsorter_str_free(tsorter_str_t sorter) {
     cpe_hash_table_fini(&sorter->m_elements);
 
     mem_free(sorter->m_alloc, sorter);
+}
+
+int tsorter_str_add_dep(tsorter_str_t sorter, const char * dep_from, const char * dep_to) {
+    tsorter_str_element_t dep_to_element = tsorter_str_element_check_create(sorter, dep_to);
+
+    if (dep_to_element == NULL) return -1;
+
+    return tsorter_str_element_add_dep(dep_to_element, dep_from);
 }
 
 tsorter_str_element_t tsorter_str_element_check_create(tsorter_str_t sorter, const char * name) {
@@ -137,7 +138,7 @@ void tsorter_str_element_free(tsorter_str_element_t element) {
     mem_free(element->m_sorter->m_alloc, element);
 }
 
-int tsorter_str_add_dep(tsorter_str_element_t element, const char * dep_by) {
+int tsorter_str_element_add_dep(tsorter_str_element_t element, const char * dep_by) {
     tsorter_str_element_t element_depend_from;
 
     element_depend_from = tsorter_str_element_check_create(element->m_sorter, dep_by);
@@ -169,13 +170,67 @@ void tsorter_str_depend_free(tsorter_str_depend_t dep) {
     mem_free(dep->m_depend_to->m_sorter->m_alloc, dep);
 }
 
-int tsorter_str_sort(tsorter_str_t sorter) {
-    TAILQ_INIT(&sorter->m_sorted_elements);
+static const char * tsorter_str_do_next(tsorter_str_it_t it) {
+    tsorter_str_element_t r;
 
-    return 0;
+    if (it->ctx == NULL) return NULL;
+    
+    r = it->ctx;
+    it->ctx = r->m_next;
+    return r->m_name;
 }
 
-const char * tsorter_str_next(tsorter_str_t sorter);
+int tsorter_str_sort(tsorter_str_it_t it, tsorter_str_t sorter) {
+    int process_count;
+    tsorter_str_element_t processing_list;
+    tsorter_str_element_t * result;
+    tsorter_str_element_t * processing;
+    tsorter_str_element_t element;
+    struct cpe_hash_it element_it;
+
+    it->next = tsorter_str_do_next;
+
+    /*build process list*/
+    processing = &processing_list;
+
+    cpe_hash_it_init(&element_it, &sorter->m_elements);
+    while((element = cpe_hash_it_next(&element_it))) {
+        *processing = element;
+        processing = &element->m_next;
+    }
+    *processing = NULL;
+
+    result = &it->ctx;
+    do {
+        tsorter_str_element_t next_processing_list;
+
+        process_count = 0;
+        processing = &next_processing_list;
+
+        for(; processing_list; processing_list = processing_list->m_next) {
+            if (TAILQ_EMPTY(&processing_list->m_depend_tos)) {
+                while(!TAILQ_EMPTY(&processing_list->m_depend_froms)) {
+                    tsorter_str_depend_free(TAILQ_FIRST(&processing_list->m_depend_froms));
+                }
+
+                ++process_count;
+                *result = processing_list;
+                result = &processing_list->m_next;
+            }
+            else {
+                *processing = processing_list;
+                processing = &processing_list->m_next;
+            }
+        }
+
+        *processing = NULL;
+        processing_list = next_processing_list;
+    } while(process_count > 0);
+
+    *result = NULL;
+
+    return processing_list ? -1 : 0;
+}
 
 uint32_t tsorter_str_element_hash(struct tsorter_str_element const * e) {
     return cpe_hash_str(e->m_name, strlen(e->m_name));
