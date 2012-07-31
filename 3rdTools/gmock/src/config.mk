@@ -9,5 +9,6 @@ $(product).c.includes:=3rdTools/gmock
 $(product).c.flags.ld:=-lpthread
 $(product).c.linker:=$(LINK.cc)
 $(product).product.c.libraries:=pthread
+$(product).product.c.flags.all:=-Wno-null-dereference
 
 $(eval $(call product-def,$(product)))
