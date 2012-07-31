@@ -103,5 +103,3 @@ struct pom_grp_store_entry {
 };
 
 #endif
-
-

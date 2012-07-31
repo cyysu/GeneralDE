@@ -80,6 +80,8 @@ const char * pom_grp_entry_meta_name(pom_grp_entry_meta_t entry_meta);
 cpe_hash_string_t pom_grp_entry_meta_name_hs(pom_grp_entry_meta_t entry_meta);
 pom_grp_entry_type_t pom_grp_entry_meta_type(pom_grp_entry_meta_t entry_meta);
 uint16_t pom_grp_entry_meta_index(pom_grp_entry_meta_t entry_meta);
+uint16_t pom_grp_entry_meta_page_count(pom_grp_entry_meta_t entry_meta);
+uint16_t pom_grp_entry_meta_page_size(pom_grp_entry_meta_t entry_meta);
 
 LPDRMETA pom_grp_entry_meta_normal_meta(pom_grp_entry_meta_t entry_meta);
 
