@@ -67,6 +67,16 @@ uint16_t pom_grp_obj_page_count(pom_grp_obj_mgr_t mgr, pom_grp_obj_t obj) {
     return r;
 }
 
+uint16_t pom_grp_obj_page_capacity(pom_grp_obj_mgr_t mgr, pom_grp_obj_t obj) {
+    return mgr->m_meta->m_page_count;
+}
+
+pom_oid_t pom_grp_obj_page_oid(pom_grp_obj_mgr_t mgr, pom_grp_obj_t obj, uint16_t pos) {
+    pom_oid_t * oids = (pom_oid_t *)obj;
+    assert(pos < mgr->m_meta->m_page_count);
+    return oids[pos];
+}
+
 void pom_grp_objs(pom_grp_obj_mgr_t mgr, pom_grp_obj_it_t it) {
     pom_class_t the_class;
 
