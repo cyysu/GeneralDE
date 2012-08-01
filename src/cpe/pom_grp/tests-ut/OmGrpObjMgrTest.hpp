@@ -25,6 +25,8 @@ public:
         const char * metalib, 
         size_t capacity = 20480, uint16_t page_size = 256);
 
+    const char * pages(pom_grp_obj_t obj);
+
     void reload(void);
 
     pom_grp_obj_mgr_t m_mgr;
