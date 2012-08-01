@@ -15,6 +15,8 @@ void pom_grp_obj_free(pom_grp_obj_mgr_t mgr, pom_grp_obj_t obj);
 
 pom_oid_t pom_grp_obj_oid(pom_grp_obj_mgr_t mgr, pom_grp_obj_t obj);
 uint16_t pom_grp_obj_page_count(pom_grp_obj_mgr_t mgr, pom_grp_obj_t obj);
+uint16_t pom_grp_obj_page_capacity(pom_grp_obj_mgr_t mgr, pom_grp_obj_t obj);
+pom_oid_t pom_grp_obj_page_oid(pom_grp_obj_mgr_t mgr, pom_grp_obj_t obj, uint16_t pos);
 
 void pom_grp_objs(pom_grp_obj_mgr_t mgr, pom_grp_obj_it_t it);
 #define pom_grp_obj_it_next(it) ((pom_grp_obj_t)pom_obj_it_next(&((it)->m_data)))
