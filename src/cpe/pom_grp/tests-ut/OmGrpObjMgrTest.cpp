@@ -33,3 +33,14 @@ void OmGrpObjMgrTest::reload(void) {
 
     m_mgr = pom_grp_obj_mgr_create(t_allocrator(), data, capacity, t_em());
 }
+
+const char * OmGrpObjMgrTest::pages(pom_grp_obj_t obj) {
+    char buf[256];
+    size_t write_pos = 0;
+
+    for(uint16_t i = 0; i < pom_grp_obj_page_capacity(m_mgr, obj); ++i) {
+        write_pos += snprintf(buf + write_pos, sizeof(buf) - write_pos, "%d:", pom_grp_obj_page_oid(m_mgr, obj, i));
+    }
+
+    return t_tmp_strdup(buf);
+}
