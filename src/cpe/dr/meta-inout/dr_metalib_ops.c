@@ -29,8 +29,8 @@ int dr_lib_init(LPDRMETALIB pstLib, const LPDRLIBPARAM pstParam) {
     pstLib->m_startpos_macro = 0; /*guess*/
     pstLib->m_startpos_meta_by_id = pstLib->m_startpos_macro + sizeof(struct tagDRMacro) * pstParam->iMaxMacros;
     pstLib->m_startpos_meta_by_name = pstLib->m_startpos_meta_by_id + sizeof(struct tagDRMetaIdxById) * pstParam->iMaxMetas;
-    pstLib->m_startpos_meta_by_unknown = pstLib->m_startpos_meta_by_name + sizeof(struct tagDRMetaIdxByName) * pstParam->iMaxMetas;
-    pstLib->m_startpos_meta = pstLib->m_startpos_meta_by_unknown + sizeof(struct tagDRMetaIdxByName /*TODO: change type*/) * pstParam->iMaxMetas;
+    pstLib->m_startpos_meta_by_orig = pstLib->m_startpos_meta_by_name + sizeof(struct tagDRMetaIdxByName) * pstParam->iMaxMetas;
+    pstLib->m_startpos_meta = pstLib->m_startpos_meta_by_orig + sizeof(struct tagDRMetaIdxByOrig /*TODO: change type*/) * pstParam->iMaxMetas;
     pstLib->m_startpos_str = pstLib->m_startpos_meta + pstParam->iMetaSize;
     pstLib->m_buf_size_str = pstParam->iStrBufSize;
     //int8_t reserve7[8];
@@ -134,6 +134,19 @@ static void dr_lib_add_meta_index_for_name(
     putAt->m_diff_to_base = newMeta->m_self_pos;
 }
 
+static void dr_lib_add_meta_index_for_orig(
+    LPDRMETALIB metaLib, LPDRMETA newMeta, error_monitor_t em)
+{
+    char * base = (char*)(metaLib + 1);
+    struct tagDRMetaIdxByOrig * putAt = NULL;
+    struct tagDRMetaIdxByOrig * begin =
+        (struct tagDRMetaIdxByOrig *)(base + metaLib->m_startpos_meta_by_orig);
+
+    putAt = begin + metaLib->m_meta_count;
+    putAt->m_diff_to_base = newMeta->m_self_pos;
+    putAt->m_reserve = 0;
+}
+
 static void dr_lib_add_meta_index_for_id(
     LPDRMETALIB metaLib, LPDRMETA newMeta, error_monitor_t em)
 {
@@ -203,6 +216,7 @@ dr_lib_add_meta(LPDRMETALIB metaLib, LPDRMETA meta, error_monitor_t em) {
 
     dr_lib_add_meta_index_for_name(metaLib, newMeta, em);
     dr_lib_add_meta_index_for_id(metaLib, newMeta, em);
+    dr_lib_add_meta_index_for_orig(metaLib, newMeta, em);
 
     /*must inc m_meta_count here
       becuse dr_add_metalib_meta_add_index_by_xxx will use this */

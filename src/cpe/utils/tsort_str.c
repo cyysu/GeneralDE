@@ -25,11 +25,17 @@ struct tsorter_str_element {
     struct cpe_hash_entry m_hh;
 
     tsorter_str_element_t m_next;
+
+    TAILQ_ENTRY(tsorter_str_element) m_orig_next;
 };
+
+
+TAILQ_HEAD(tsorter_str_element_list, tsorter_str_element);
 
 struct tsorter_str {
     mem_allocrator_t m_alloc;
     struct cpe_hash_table m_elements;
+    struct tsorter_str_element_list m_orig_order;
     int m_dup_str;
 };
 
@@ -41,6 +47,7 @@ tsorter_str_t tsorter_str_create(mem_allocrator_t alloc, int dup_str) {
 
     sorter->m_alloc = alloc;
     sorter->m_dup_str = dup_str;
+    TAILQ_INIT(&sorter->m_orig_order);
 
     if (cpe_hash_table_init(
             &sorter->m_elements,
@@ -82,6 +89,12 @@ int tsorter_str_add_dep(tsorter_str_t sorter, const char * dep_from, const char 
     return tsorter_str_element_add_dep(dep_to_element, dep_from);
 }
 
+int tsorter_str_add_element(tsorter_str_t sorter, const char * name) {
+    return tsorter_str_element_check_create(sorter, name)
+        ? 0
+        : -1;
+}
+
 tsorter_str_element_t tsorter_str_element_check_create(tsorter_str_t sorter, const char * name) {
     tsorter_str_element_t r;
     struct tsorter_str_element key;
@@ -111,6 +124,8 @@ tsorter_str_element_t tsorter_str_element_check_create(tsorter_str_t sorter, con
             mem_free(sorter->m_alloc, r);
             return NULL;
         }
+
+        TAILQ_INSERT_TAIL(&sorter->m_orig_order, r, m_orig_next);
     }
 
     assert(r);
@@ -133,6 +148,7 @@ void tsorter_str_element_free(tsorter_str_element_t element) {
         tsorter_str_depend_free(TAILQ_FIRST(&element->m_depend_froms));
     }
 
+    TAILQ_REMOVE(&element->m_sorter->m_orig_order, element, m_orig_next);
     cpe_hash_table_remove_by_ins(&element->m_sorter->m_elements, element);
 
     mem_free(element->m_sorter->m_alloc, element);
@@ -186,15 +202,13 @@ int tsorter_str_sort(tsorter_str_it_t it, tsorter_str_t sorter) {
     tsorter_str_element_t * result;
     tsorter_str_element_t * processing;
     tsorter_str_element_t element;
-    struct cpe_hash_it element_it;
 
     it->next = tsorter_str_do_next;
 
     /*build process list*/
     processing = &processing_list;
 
-    cpe_hash_it_init(&element_it, &sorter->m_elements);
-    while((element = cpe_hash_it_next(&element_it))) {
+    TAILQ_FOREACH(element, &sorter->m_orig_order, m_orig_next) {
         *processing = element;
         processing = &element->m_next;
     }

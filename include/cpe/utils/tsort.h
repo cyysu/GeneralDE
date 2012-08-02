@@ -20,6 +20,7 @@ typedef struct tsorter_str_it {
 tsorter_str_t tsorter_str_create(mem_allocrator_t alloc, int dup_str);
 void tsorter_str_free(tsorter_str_t sorter);
 int tsorter_str_add_dep(tsorter_str_t sorter, const char * dep_from, const char * dep_to); 
+int tsorter_str_add_element(tsorter_str_t sorter, const char * name);
 
 tsorter_str_element_t tsorter_str_element_check_create(tsorter_str_t sorter, const char * value);
 tsorter_str_element_t tsorter_str_element_find(tsorter_str_t sorter, const char * value);
