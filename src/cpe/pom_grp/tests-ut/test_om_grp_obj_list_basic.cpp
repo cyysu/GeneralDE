@@ -101,7 +101,7 @@ TEST_F(OmGrpObjListTest, append_all) {
     append(5);
 
     EXPECT_STREQ("1:2:3:4:5", dump());
-    EXPECT_STREQ("33554432:33554433:", pages(m_obj));
+    EXPECT_STREQ("0x2000000:0x2000001:", pages(m_obj));
 }
 
 TEST_F(OmGrpObjListTest, append_overflow) {
@@ -116,7 +116,7 @@ TEST_F(OmGrpObjListTest, append_overflow) {
     EXPECT_NE(0, pom_grp_obj_list_append(m_mgr, m_obj, "entry1", &t));
 
     EXPECT_STREQ("1:2:3:4:5", dump());
-    EXPECT_STREQ("33554432:33554433:", pages(m_obj));
+    EXPECT_STREQ("0x2000000:0x2000001:", pages(m_obj));
 }
 
 TEST_F(OmGrpObjListTest, insert_to_empty) {
@@ -136,7 +136,7 @@ TEST_F(OmGrpObjListTest, insert_to_page_last) {
     insert(2, 3);
 
     EXPECT_STREQ("1:2:3:4", dump());
-    EXPECT_STREQ("33554432:33554433:", pages(m_obj));
+    EXPECT_STREQ("0x2000000:0x2000001:", pages(m_obj));
 }
 
 TEST_F(OmGrpObjListTest, insert_to_page_middle) {
@@ -171,7 +171,7 @@ TEST_F(OmGrpObjListTest, remote_page_first) {
 
     remove(0);
     EXPECT_STREQ("2:3:4", dump());
-    EXPECT_STREQ("33554432:0:", pages(m_obj));
+    EXPECT_STREQ("0x2000000:0x0:", pages(m_obj));
 }
 
 TEST_F(OmGrpObjListTest, remote_page_middle) {
@@ -182,7 +182,7 @@ TEST_F(OmGrpObjListTest, remote_page_middle) {
 
     remove(1);
     EXPECT_STREQ("1:3:4", dump());
-    EXPECT_STREQ("33554432:0:", pages(m_obj));
+    EXPECT_STREQ("0x2000000:0x0:", pages(m_obj));
 }
 
 TEST_F(OmGrpObjListTest, remote_page_last) {
@@ -193,7 +193,7 @@ TEST_F(OmGrpObjListTest, remote_page_last) {
 
     remove(2);
     EXPECT_STREQ("1:2:4", dump());
-    EXPECT_STREQ("33554432:0:", pages(m_obj));
+    EXPECT_STREQ("0x2000000:0x0:", pages(m_obj));
 }
 
 TEST_F(OmGrpObjListTest, remote_last_page) {
@@ -204,7 +204,7 @@ TEST_F(OmGrpObjListTest, remote_last_page) {
 
     remove(3);
     EXPECT_STREQ("1:2:3", dump());
-    EXPECT_STREQ("33554432:0:", pages(m_obj));
+    EXPECT_STREQ("0x2000000:0x0:", pages(m_obj));
 }
 
 TEST_F(OmGrpObjListTest, remote_last_page_left) {
