@@ -19,6 +19,10 @@ uint32_t pom_grp_store_entry_hash(const struct pom_grp_store_entry * store_entry
 int pom_grp_store_entry_cmp(const struct pom_grp_store_entry * l, const struct pom_grp_store_entry * r);
 void pom_grp_store_entry_free_all(pom_grp_store_t store);
 
+uint32_t pom_grp_store_table_hash(const struct pom_grp_store_table * store_table);
+int pom_grp_store_table_cmp(const struct pom_grp_store_table * l, const struct pom_grp_store_table * r);
+void pom_grp_store_table_free_all(pom_grp_store_t store);
+
 #endif
 
 

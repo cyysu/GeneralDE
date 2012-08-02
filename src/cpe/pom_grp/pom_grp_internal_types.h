@@ -91,7 +91,15 @@ struct pom_grp_store {
     LPDRMETALIB m_store_metalib;
     struct mem_buffer m_store_metalib_buffer;
 
+    struct cpe_hash_table m_tables;
     struct cpe_hash_table m_entries;
+};
+
+struct pom_grp_store_table {
+    pom_grp_store_t m_store;
+    LPDRMETA m_meta;
+
+    struct cpe_hash_entry m_hh;
 };
 
 struct pom_grp_store_entry {
