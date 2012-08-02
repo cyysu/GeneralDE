@@ -9,6 +9,7 @@ extern "C" {
 typedef struct pom_grp_obj * pom_grp_obj_t;
 typedef struct pom_grp_obj_mgr * pom_grp_obj_mgr_t;
 typedef struct pom_grp_store * pom_grp_store_t;
+typedef struct pom_grp_store_table * pom_grp_store_table_t;
 
 typedef enum pom_grp_entry_type {
     pom_grp_entry_type_normal
@@ -33,6 +34,11 @@ typedef struct pom_grp_entry_meta_it {
 typedef struct pom_grp_obj_it {
     struct pom_obj_it m_data;
 } * pom_grp_obj_it_t;
+
+typedef struct pom_grp_store_table_it {
+    pom_grp_store_table_t (*next)(struct pom_grp_store_table_it * it);
+    char m_data[16];
+} * pom_grp_store_table_it_t;
 
 #ifdef __cplusplus
 }

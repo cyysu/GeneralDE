@@ -12,6 +12,10 @@ extern "C" {
 struct DRInBuildMetaLib * dr_inbuild_create_lib(void);
 void dr_inbuild_free_lib(struct DRInBuildMetaLib * ctx);
 
+int dr_inbuild_tsort(
+    struct DRInBuildMetaLib * inBuildMetaLib,
+    error_monitor_t er);
+
 int dr_inbuild_build_lib(
     mem_buffer_t buffer,
     struct DRInBuildMetaLib * inBuildMetaLib,
@@ -29,6 +33,11 @@ struct DRInBuildMeta * dr_inbuild_metalib_find_meta(struct DRInBuildMetaLib * in
 
 struct DRInBuildMeta *
 dr_inbuild_metalib_copy_meta(struct DRInBuildMetaLib * inBuildMetaLib, LPDRMETA meta);
+
+int dr_inbuild_metalib_version(struct DRInBuildMetaLib * inBuildMetaLib);
+void dr_inbuild_metalib_set_version(struct DRInBuildMetaLib * inBuildMetaLib, int version);
+void dr_inbuild_metalib_set_tagsetversion(struct DRInBuildMetaLib * inBuildMetaLib, int version);
+void dr_inbuild_metalib_set_name(struct DRInBuildMetaLib * inBuildMetaLib, const char * name);
 
 int dr_inbuild_meta_current_version(struct DRInBuildMeta * meta);
 void dr_inbuild_meta_set_type(struct DRInBuildMeta * meta, int type);
@@ -52,6 +61,8 @@ int dr_inbuild_entry_version(struct DRInBuildMetaEntry * entry);
 void dr_inbuild_entry_set_type(struct DRInBuildMetaEntry * entry, const char * type_name);
 void dr_inbuild_entry_set_id(struct DRInBuildMetaEntry * entry, int id);
 void dr_inbuild_entry_set_array_count(struct DRInBuildMetaEntry * entry, int array_count);
+void dr_inbuild_entry_set_array_refer(struct DRInBuildMetaEntry * entry, const char * refer);
+void dr_inbuild_entry_set_selector(struct DRInBuildMetaEntry * entry, const char * selector);
 void dr_inbuild_entry_set_version(struct DRInBuildMetaEntry * entry, int version);
 void dr_inbuild_entry_set_name(struct DRInBuildMetaEntry * entry, const char * name);
 void dr_inbuild_entry_set_desc(struct DRInBuildMetaEntry * entry, const char * desc);

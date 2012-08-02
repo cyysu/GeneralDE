@@ -42,6 +42,10 @@ void pom_grp_store_free(pom_grp_store_t store) {
     mem_free(store->m_alloc, store);
 }
 
+pom_grp_meta_t pom_grp_store_meta(pom_grp_store_t store) {
+    return store->m_meta;
+}
+
 LPDRMETALIB pom_grp_store_metalib(pom_grp_store_t store) {
     return store->m_store_metalib;
 }

@@ -8,9 +8,10 @@
 #include "cpe/dr/dr_metalib_build.h"
 #include "cpe/dr/dr_metalib_xml.h"
 #include "cpe/dr/dr_error.h"
+#include "cpe/dr/dr_metalib_build.h"
 #include "../dr_internal_types.h"
 #include "../dr_ctype_ops.h"
-#include "dr_inbuild.h"
+#include "dr_inbuild_types.h"
 #include "dr_inbuild_error.h"
 #include "dr_XMLtags.h"
 #include "dr_builder_ops.h"
@@ -267,12 +268,15 @@ static void dr_build_xml_process_meta(
         int len = valueEnd - valueBegin;
 
         if (strcmp((char const *)localname, CPE_DR_TAG_NAME) == 0) {
+            char * name;
             if (len > CPE_DR_MACRO_LEN) {
                 DR_NOTIFY_ERROR(ctx->m_em, CPE_DR_ERROR_NAME_LEN_BEYOND_UPLIMIT);
                 return;
             }
 
-            DR_DO_DUP_STR(newMeta->m_name);
+            DR_DO_DUP_STR(name);
+
+            dr_inbuild_meta_set_name(newMeta, name);
         }
         else if (strcmp((char const *)localname, CPE_DR_TAG_DESCIPTION) == 0) {
             if (len > CPE_DR_DESC_LEN) len = CPE_DR_DESC_LEN;
