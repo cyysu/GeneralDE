@@ -82,3 +82,10 @@ TEST_F(MetalibManagerTest, GetMetaByIdNegative) {
     ASSERT_EQ(NULL, dr_lib_find_meta_by_id(m_lib, -1)) << "dr_get_meta_by_id(-1) should not exist";
 }
 
+
+TEST_F(MetalibManagerTest, MetaOrder) {
+    EXPECT_EQ(5, dr_lib_meta_num(m_lib));
+    EXPECT_STREQ("PkgHead", dr_meta_name(dr_lib_meta_at(m_lib, 0)));
+    EXPECT_STREQ("CmdLogin", dr_meta_name(dr_lib_meta_at(m_lib, 1)));
+    EXPECT_STREQ("CmdLogout", dr_meta_name(dr_lib_meta_at(m_lib, 2)));
+}

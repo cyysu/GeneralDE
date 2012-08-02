@@ -3,6 +3,7 @@
 #include "cpe/utils/error.h"
 #include "cpe/dr/dr_metalib_build.h"
 #include "../dr_internal_types.h"
+#include "dr_inbuild_types.h"
 
 #ifdef __cplusplus
 extern "C" {

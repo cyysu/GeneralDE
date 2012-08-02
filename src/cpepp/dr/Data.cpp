@@ -429,6 +429,8 @@ void Data::setCapacity(size_t capacity) {
     m_capacity = capacity;
 }
 
+void Data::bzero(void) { ::bzero(data(), capacity()); }
+
 void Data::copySameEntriesFrom(ConstData const & o, error_monitor_t em) {
     if (m_meta == NULL) throw ::std::runtime_error("Data::copySameEntriesFrom: meta not exist!");
 
