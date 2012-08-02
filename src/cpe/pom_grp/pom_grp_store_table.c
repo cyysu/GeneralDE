@@ -12,10 +12,12 @@ pom_grp_store_table_create(pom_grp_store_t store, LPDRMETA meta) {
     if (table == NULL) return NULL;
 
     table->m_store = store;
+    table->m_name = dr_meta_name(meta);
     table->m_meta = meta;
 
-    cpe_hash_entry_init(&table->m_hh);
+    TAILQ_INIT(&table->m_entries);
 
+    cpe_hash_entry_init(&table->m_hh);
     if (cpe_hash_table_insert_unique(&store->m_tables, table) != 0) {
         mem_free(store->m_alloc, table);
         return NULL; 
@@ -25,13 +27,16 @@ pom_grp_store_table_create(pom_grp_store_t store, LPDRMETA meta) {
 }
 
 void pom_grp_store_table_free(pom_grp_store_table_t store_table) {
+    while(!TAILQ_EMPTY(&store_table->m_entries)) {
+        pom_grp_store_entry_free(TAILQ_FIRST(&store_table->m_entries));
+    }
+
     cpe_hash_table_remove_by_ins(&store_table->m_store->m_tables, store_table);
     mem_free(store_table->m_store->m_alloc, store_table);
 }
 
 uint32_t pom_grp_store_table_hash(const struct pom_grp_store_table * store_table) {
-    const char * name = dr_meta_name(store_table->m_meta);
-    return cpe_hash_str(name, strlen(name));
+    return cpe_hash_str(store_table->m_name, strlen(store_table->m_name));
 }
 
 int pom_grp_store_table_cmp(const struct pom_grp_store_table * l, const struct pom_grp_store_table * r) {
@@ -150,4 +155,10 @@ void pom_grp_store_tables(pom_grp_store_t store, pom_grp_store_table_it_t it) {
 
     cpe_hash_it_init(stroe_table_it, &store->m_tables);
     it->next = pom_grp_store_table_next;
+}
+
+pom_grp_store_table_t pom_grp_store_table_find(pom_grp_store_t store, const char * name) {
+    struct pom_grp_store_table key;
+    key.m_name = name;
+    return (pom_grp_store_table_t)cpe_hash_table_find(&store->m_tables, &key);
 }

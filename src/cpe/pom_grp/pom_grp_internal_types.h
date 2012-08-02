@@ -95,19 +95,25 @@ struct pom_grp_store {
     struct cpe_hash_table m_entries;
 };
 
+TAILQ_HEAD(pom_grp_store_entry_list, pom_grp_store_entry);
+
 struct pom_grp_store_table {
     pom_grp_store_t m_store;
+    const char * m_name;
     LPDRMETA m_meta;
+
+    struct pom_grp_store_entry_list m_entries;
 
     struct cpe_hash_entry m_hh;
 };
 
 struct pom_grp_store_entry {
+    const char * m_name;
+    pom_grp_store_table_t m_table;
     pom_grp_entry_meta_t m_entry_meta;
-    char m_sub_name[64];
-    LPDRMETAENTRY m_store_entry;
 
     struct cpe_hash_entry m_hh;
+    TAILQ_ENTRY(pom_grp_store_entry) m_next;
 };
 
 #endif
