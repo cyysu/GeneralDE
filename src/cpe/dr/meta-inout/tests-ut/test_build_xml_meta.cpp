@@ -258,3 +258,22 @@ TEST_F(BuildFromXmlMetaTest, composite_basic) {
     ASSERT_TRUE(dr_meta_find_entry_by_name(metaS2, "m_s"));
     EXPECT_TRUE(metaS == dr_entry_ref_meta(dr_meta_find_entry_by_name(metaS2, "m_s")));
 }
+
+TEST_F(BuildFromXmlMetaTest, meta_order_origin) {
+    EXPECT_EQ(
+        0,
+        parseMeta(
+            "<metalib tagsetversion='1' name='net'  version='10'>"
+            "    <struct name='A2' version='1'>"
+            "	     <entry name='a1' type='int8'/>"
+            "    </struct>"
+            "    <struct name='A1' version='1'>"
+            "	     <entry name='a1' type='int8'/>"
+            "    </struct>"
+            "</metalib>"
+            ));
+
+    EXPECT_EQ(2, dr_lib_meta_num(m_metaLib));
+    EXPECT_STREQ("A2", dr_meta_name(dr_lib_meta_at(m_metaLib, 0)));
+    EXPECT_STREQ("A1", dr_meta_name(dr_lib_meta_at(m_metaLib, 1)));
+}
