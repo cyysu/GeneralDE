@@ -19,6 +19,7 @@ pom_grp_store_create(
 
 void pom_grp_store_free(pom_grp_store_t store);
 
+pom_grp_meta_t pom_grp_store_meta(pom_grp_store_t store);
 LPDRMETALIB pom_grp_store_metalib(pom_grp_store_t store);
 
 int pom_grp_meta_build_store_meta(
