@@ -16,7 +16,7 @@ LPDRMETA dr_lib_meta_at(LPDRMETALIB metaLib, int idx) {
 
     if (idx >= 0 && idx < metaLib->m_meta_count) {
         char * base = (char *)(metaLib + 1);
-        struct tagDRMetaIdxByName * idx_start = (struct tagDRMetaIdxByName *)(base + metaLib->m_startpos_meta_by_name);
+        struct tagDRMetaIdxByOrig * idx_start = (struct tagDRMetaIdxByOrig *)(base + metaLib->m_startpos_meta_by_orig);
 
         return (LPDRMETA)(base + (idx_start + idx)->m_diff_to_base);
     }

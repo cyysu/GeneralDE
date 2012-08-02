@@ -38,7 +38,7 @@ struct tagDRMetaLib {
     /*076*/ dr_int_t m_startpos_macro; /*guess*/
     /*080*/ dr_int_t m_startpos_meta_by_id;
     /*084*/ dr_int_t m_startpos_meta_by_name;
-    /*088*/ dr_int_t m_startpos_meta_by_unknown; /*what is this index?*/
+    /*088*/ dr_int_t m_startpos_meta_by_orig; /*what is this index?*/
     /*092*/ dr_int_t m_startpos_meta;
     /*096*/ dr_int_t m_startpos_str;
     /*100*/ dr_int_t m_buf_size_str;
@@ -127,6 +127,11 @@ struct tagDRMetaIdxById {
 struct tagDRMetaIdxByName {
     dr_int_t m_name_pos;
     dr_int_t m_diff_to_base;
+};
+
+struct tagDRMetaIdxByOrig {
+    dr_int_t m_diff_to_base;
+    dr_int_t m_reserve;
 };
 
 #pragma pack(pop)

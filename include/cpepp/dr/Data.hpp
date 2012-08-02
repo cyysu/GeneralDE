@@ -111,6 +111,7 @@ public:
     void setMeta(LPDRMETA meta);
     void setCapacity(size_t capacity);
     void copySameEntriesFrom(ConstData const & o, error_monitor_t em = 0);
+    void bzero(void);
 
     void copy(const void * data, size_t capacity);
     void copy(ConstData const & data);

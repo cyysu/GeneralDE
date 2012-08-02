@@ -2,12 +2,13 @@
 #include <assert.h>
 #include "cpe/pal/pal_string.h"
 #include "cpe/pal/pal_strings.h"
+#include "cpe/utils/tsort.h"
 #include "cpe/dr/dr_error.h"
+#include "cpe/dr/dr_metalib_build.h"
 #include "cpe/dr/dr_metalib_manage.h"
 #include "cpe/dr/dr_data.h"
 #include "cpe/dr/dr_types.h"
 #include "../dr_ctype_ops.h"
-#include "dr_inbuild.h"
 #include "dr_metalib_ops.h"
 
 static int dr_inbuild_calc_lib_paras(
@@ -359,3 +360,57 @@ int dr_inbuild_calc_lib_paras(
 }
 
 
+int dr_inbuild_tsort(
+    struct DRInBuildMetaLib * inBuildLib,
+    error_monitor_t er)
+{
+    tsorter_str_t tsorter;
+    struct tsorter_str_it tsorter_it;
+    const char * meta_name;
+
+    tsorter = tsorter_str_create(NULL, 0);
+    if (tsorter == NULL) {
+        CPE_ERROR(er, "dr_inbuild_tsort: alloc tsorter fail!");
+        return -1;
+    }
+
+    while(!TAILQ_EMPTY(&inBuildLib->m_metas)) {
+        struct DRInBuildMeta * metaEle = TAILQ_FIRST(&inBuildLib->m_metas);
+        struct DRInBuildMetaEntry * entryEle;
+
+        TAILQ_REMOVE(&inBuildLib->m_metas, metaEle, m_next);
+
+        if (tsorter_str_add_element(tsorter, metaEle->m_name) != 0) {
+            CPE_ERROR(er, "dr_inbuild_tsort: add element %s fail!", metaEle->m_name);
+        }
+
+        TAILQ_FOREACH(entryEle, &metaEle->m_entries, m_next) {
+            if (dr_find_ctype_info_by_name(entryEle->m_ref_type_name) == NULL) {
+                if (tsorter_str_add_dep(tsorter, metaEle->m_name, entryEle->m_ref_type_name) != 0) {
+                    CPE_ERROR(
+                        er, "dr_inbuild_tsort: add depend %s ==> %s fail!",
+                        metaEle->m_name, entryEle->m_ref_type_name);
+                }
+            }
+        }
+    }
+
+    if (tsorter_str_sort(&tsorter_it, tsorter) != 0) {
+        CPE_ERROR(
+            er, "dr_inbuild_tsort: sort fail, maby have circle!");
+    }
+
+    while((meta_name = tsorter_str_next(&tsorter_it))) {
+        struct DRInBuildMeta * metaEle = dr_inbuild_metalib_find_meta(inBuildLib, meta_name);
+        if (metaEle == NULL) {
+            CPE_ERROR(
+                er, "dr_inbuild_tsort: meta %s not exist!", meta_name);
+            continue;
+        }
+
+        TAILQ_INSERT_TAIL(&inBuildLib->m_metas, metaEle, m_next);
+    }
+
+    tsorter_str_free(tsorter);
+    return 0;
+}

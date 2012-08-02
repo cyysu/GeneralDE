@@ -1,5 +1,6 @@
 #include <assert.h>
 #include "cpe/pal/pal_stdio.h"
+#include "cpe/dr/dr_metalib_init.h"
 #include "cpe/dr/dr_metalib_build.h"
 #include "cpe/dr/dr_metalib_manage.h"
 #include "cpe/pom_grp/pom_grp_meta.h"
@@ -26,7 +27,6 @@ static int pom_grp_meta_build_store_meta_add_entry_i(
             prefix_len ? "_%s" : "%s", dr_entry_name(template_entry));
 
     refmeta = dr_entry_ref_meta(template_entry);
-    
     if (refmeta) {
         if (expand) {
             int i, count;
@@ -213,6 +213,12 @@ static int pom_grp_meta_build_store_meta_on_entry_list(
     return 0;
 }
 
+static int pom_grp_meta_build_calc_version(
+    struct DRInBuildMetaLib * builder)
+{
+    return 1;
+}
+
 static int pom_grp_meta_build_store_meta_i(
     struct DRInBuildMetaLib * builder,
     pom_grp_meta_t meta,
@@ -222,6 +228,7 @@ static int pom_grp_meta_build_store_meta_i(
     error_monitor_t em)
 {
     struct DRInBuildMeta * main_meta;
+    LPDRMETALIB src_metalib;
     LPDRMETAENTRY key_entry;
     pom_grp_entry_meta_t main_entry_meta;
     uint16_t i, count;
@@ -252,6 +259,13 @@ static int pom_grp_meta_build_store_meta_i(
         CPE_ERROR(em, "pom_grp_meta_build_store_meta: create main meta fail!");
         return -1;
     }
+    dr_inbuild_meta_set_current_version(
+        main_meta, dr_meta_current_version(dr_entry_self_meta(key_entry)));
+
+    src_metalib = dr_meta_owner_lib(dr_entry_self_meta(key_entry));
+
+    dr_inbuild_metalib_set_tagsetversion(builder, dr_lib_tag_set_version(src_metalib));
+    dr_inbuild_metalib_set_name(builder, pom_grp_meta_name(meta));
 
     if (dr_inbuild_meta_init(main_meta, pom_grp_entry_meta_normal_meta(main_entry_meta)) != 0) return -1;
 
@@ -278,6 +292,8 @@ static int pom_grp_meta_build_store_meta_i(
         }
     }
 
+    dr_inbuild_metalib_set_version(builder, pom_grp_meta_build_calc_version(builder));
+
     return 0;
 }
 
@@ -301,6 +317,11 @@ int pom_grp_meta_build_store_meta(
         goto ERROR;
     }
     
+    if (dr_inbuild_tsort(builder, em) != 0) {
+        CPE_ERROR(em, "pom_grp_meta_build_store_meta: sort lib fail!");
+        goto ERROR;
+    }
+
     if (dr_inbuild_build_lib(buffer, builder, em) != 0) {
         CPE_ERROR(em, "pom_grp_meta_build_store_meta: build lib to buffer fail!");
         goto ERROR;
