@@ -25,7 +25,36 @@ pom_grp_store_create(
     store->m_store_metalib = NULL;
     mem_buffer_init(&store->m_store_metalib_buffer, alloc);
 
+    if (cpe_hash_table_init(
+            &store->m_tables,
+            alloc,
+            (cpe_hash_fun_t) pom_grp_store_table_hash,
+            (cpe_hash_cmp_t) pom_grp_store_table_cmp,
+            CPE_HASH_OBJ2ENTRY(pom_grp_store_table, m_hh),
+            -1) != 0)
+    {
+        mem_buffer_clear(&store->m_store_metalib_buffer);
+        mem_free(alloc, store);
+        return NULL;
+    }
+
+    if (cpe_hash_table_init(
+            &store->m_entries,
+            alloc,
+            (cpe_hash_fun_t) pom_grp_store_entry_hash,
+            (cpe_hash_cmp_t) pom_grp_store_entry_cmp,
+            CPE_HASH_OBJ2ENTRY(pom_grp_store_entry, m_hh),
+            -1) != 0)
+    {
+        cpe_hash_table_fini(&store->m_tables);
+        mem_buffer_clear(&store->m_store_metalib_buffer);
+        mem_free(alloc, store);
+        return NULL;
+    }
+
     if (pom_grp_meta_build_store_meta(&store->m_store_metalib_buffer, meta, main_entry, key, em) != 0) {
+        cpe_hash_table_fini(&store->m_entries);
+        cpe_hash_table_fini(&store->m_tables);
         mem_buffer_clear(&store->m_store_metalib_buffer);
         mem_free(alloc, store);
         return NULL;
@@ -38,6 +67,10 @@ pom_grp_store_create(
 }
 
 void pom_grp_store_free(pom_grp_store_t store) {
+    pom_grp_store_table_free_all(store);
+    pom_grp_store_entry_free_all(store);
+    cpe_hash_table_fini(&store->m_tables);
+    cpe_hash_table_fini(&store->m_entries);
     mem_buffer_clear(&store->m_store_metalib_buffer);
     mem_free(store->m_alloc, store);
 }

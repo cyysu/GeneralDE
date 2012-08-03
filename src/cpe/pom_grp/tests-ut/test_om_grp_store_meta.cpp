@@ -17,8 +17,8 @@ TEST_F(OmGrpStoreTest, basic) {
 
     EXPECT_STREQ(
         "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
-        "<metalib tagsetversion=\"0\" name=\"\" version=\"0\">\n"
-        "    <struct name=\"AttrGroup1\" version=\"0\">\n"
+        "<metalib tagsetversion=\"1\" name=\"TestObj\" version=\"1\">\n"
+        "    <struct name=\"AttrGroup1\" version=\"1\">\n"
         "        <entry name=\"a1\" type=\"uint32\" id=\"1\"/>\n"
         "    </struct>\n"
         "</metalib>\n"
@@ -47,8 +47,8 @@ TEST_F(OmGrpStoreTest, multi_normal) {
 
     EXPECT_STREQ(
         "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
-        "<metalib tagsetversion=\"0\" name=\"\" version=\"0\">\n"
-        "    <struct name=\"AttrGroup1\" version=\"0\">\n"
+        "<metalib tagsetversion=\"1\" name=\"TestObj\" version=\"1\">\n"
+        "    <struct name=\"AttrGroup1\" version=\"1\">\n"
         "        <entry name=\"a1\" type=\"uint32\" id=\"1\"/>\n"
         "        <entry name=\"b1\" type=\"uint32\" id=\"2\"/>\n"
         "    </struct>\n"
@@ -75,8 +75,8 @@ TEST_F(OmGrpStoreTest, multi_ba) {
 
     EXPECT_STREQ(
         "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
-        "<metalib tagsetversion=\"0\" name=\"\" version=\"0\">\n"
-        "    <struct name=\"AttrGroup1\" version=\"0\">\n"
+        "<metalib tagsetversion=\"1\" name=\"TestObj\" version=\"1\">\n"
+        "    <struct name=\"AttrGroup1\" version=\"1\">\n"
         "        <entry name=\"a1\" type=\"uint32\" id=\"1\"/>\n"
         "        <entry name=\"entry2\" type=\"uint8\" count=\"4\"/>\n"
         "    </struct>\n"
@@ -103,8 +103,8 @@ TEST_F(OmGrpStoreTest, multi_binary) {
 
     EXPECT_STREQ(
         "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
-        "<metalib tagsetversion=\"0\" name=\"\" version=\"0\">\n"
-        "    <struct name=\"AttrGroup1\" version=\"0\">\n"
+        "<metalib tagsetversion=\"1\" name=\"TestObj\" version=\"1\">\n"
+        "    <struct name=\"AttrGroup1\" version=\"1\">\n"
         "        <entry name=\"a1\" type=\"uint32\" id=\"1\"/>\n"
         "        <entry name=\"entry2\" type=\"uint8\" count=\"5\"/>\n"
         "    </struct>\n"
@@ -134,11 +134,11 @@ TEST_F(OmGrpStoreTest, multi_list) {
 
     EXPECT_STREQ(
         "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
-        "<metalib tagsetversion=\"0\" name=\"\" version=\"0\">\n"
-        "    <struct name=\"AttrGroup2\" version=\"0\">\n"
+        "<metalib tagsetversion=\"1\" name=\"TestObj\" version=\"1\">\n"
+        "    <struct name=\"AttrGroup2\" version=\"1\">\n"
         "        <entry name=\"b1\" type=\"uint32\" id=\"2\"/>\n"
         "    </struct>\n"
-        "    <struct name=\"AttrGroup1\" version=\"0\">\n"
+        "    <struct name=\"AttrGroup1\" version=\"1\">\n"
         "        <entry name=\"a1\" type=\"uint32\" id=\"1\"/>\n"
         "        <entry name=\"entry2\" type=\"AttrGroup2\" count=\"5\"/>\n"
         "    </struct>\n"
@@ -168,11 +168,11 @@ TEST_F(OmGrpStoreTest, multi_list_standalone) {
 
     EXPECT_STREQ(
         "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
-        "<metalib tagsetversion=\"0\" name=\"\" version=\"0\">\n"
-        "    <struct name=\"AttrGroup1\" version=\"0\">\n"
+        "<metalib tagsetversion=\"1\" name=\"TestObj\" version=\"1\">\n"
+        "    <struct name=\"AttrGroup1\" version=\"1\">\n"
         "        <entry name=\"a1\" type=\"uint32\" id=\"1\"/>\n"
         "    </struct>\n"
-        "    <struct name=\"AttrGroup2\" version=\"0\">\n"
+        "    <struct name=\"AttrGroup2\" version=\"1\">\n"
         "        <entry name=\"a1\" type=\"uint32\" id=\"1\"/>\n"
         "        <entry name=\"b1\" type=\"uint32\" id=\"2\"/>\n"
         "    </struct>\n"
