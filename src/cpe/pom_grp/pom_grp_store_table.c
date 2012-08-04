@@ -14,7 +14,6 @@ pom_grp_store_table_create(pom_grp_store_t store, LPDRMETA meta) {
     table->m_store = store;
     table->m_name = dr_meta_name(meta);
     table->m_meta = meta;
-
     TAILQ_INIT(&table->m_entries);
 
     cpe_hash_entry_init(&table->m_hh);
@@ -33,6 +32,14 @@ void pom_grp_store_table_free(pom_grp_store_table_t store_table) {
 
     cpe_hash_table_remove_by_ins(&store_table->m_store->m_tables, store_table);
     mem_free(store_table->m_store->m_alloc, store_table);
+}
+
+const char * pom_grp_store_table_name(pom_grp_store_table_t table) {
+    return table->m_name;
+}
+
+LPDRMETA pom_grp_store_table_meta(pom_grp_store_table_t table) {
+    return table->m_meta;
 }
 
 uint32_t pom_grp_store_table_hash(const struct pom_grp_store_table * store_table) {
@@ -62,6 +69,13 @@ static int pom_grp_store_table_build_for_entry_normal(
     pom_grp_store_table_t main_table,
     pom_grp_entry_meta_t entry)
 {
+    if (pom_grp_store_entry_create(main_table, entry) == NULL) {
+        CPE_ERROR(
+            store->m_em, "pom_grp_store_table_build: create entry %s in table %s fail!",
+            main_table->m_name, entry->m_name);
+        return -1;
+    }
+
     return 0;
 }
 
@@ -70,6 +84,13 @@ static int pom_grp_store_table_build_for_entry_ba(
     pom_grp_store_table_t main_table,
     pom_grp_entry_meta_t entry)
 {
+    if (pom_grp_store_entry_create(main_table, entry) == NULL) {
+        CPE_ERROR(
+            store->m_em, "pom_grp_store_table_build: create entry %s in table %s fail!",
+            main_table->m_name, entry->m_name);
+        return -1;
+    }
+
     return 0;
 }
 
@@ -78,6 +99,13 @@ static int pom_grp_store_table_build_for_entry_binary(
     pom_grp_store_table_t main_table,
     pom_grp_entry_meta_t entry)
 {
+    if (pom_grp_store_entry_create(main_table, entry) == NULL) {
+        CPE_ERROR(
+            store->m_em, "pom_grp_store_table_build: create entry %s in table %s fail!",
+            main_table->m_name, entry->m_name);
+        return -1;
+    }
+
     return 0;
 }
 
@@ -86,6 +114,13 @@ static int pom_grp_store_table_build_for_entry_list(
     pom_grp_store_table_t main_table,
     pom_grp_entry_meta_t entry)
 {
+    if (pom_grp_store_entry_create(main_table, entry) == NULL) {
+        CPE_ERROR(
+            store->m_em, "pom_grp_store_table_build: create entry %s in table %s fail!",
+            main_table->m_name, entry->m_name);
+        return -1;
+    }
+
     return 0;
 }
 
@@ -111,6 +146,12 @@ int pom_grp_store_table_build(pom_grp_store_t store, const char * main_entry, co
     if (main_table == NULL) {
         CPE_ERROR(
             store->m_em, "pom_grp_store_table_build: create main table fail!");
+        return -1;
+    }
+
+    if (pom_grp_store_entry_create(main_table, main_entry_meta) == NULL) {
+        CPE_ERROR(
+            store->m_em, "pom_grp_store_table_build: create main entry in table fail!");
         return -1;
     }
 
@@ -144,6 +185,10 @@ static pom_grp_store_table_t pom_grp_store_table_next(struct pom_grp_store_table
     stroe_table_it = (struct cpe_hash_it *)(it->m_data);
 
     return (struct pom_grp_store_table *)cpe_hash_it_next(stroe_table_it);
+}
+
+uint32_t pom_grp_store_table_count(pom_grp_store_t store) {
+    return cpe_hash_table_count(&store->m_tables);
 }
 
 void pom_grp_store_tables(pom_grp_store_t store, pom_grp_store_table_it_t it) {

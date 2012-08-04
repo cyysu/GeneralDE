@@ -7,92 +7,6 @@
 #include "cpe/pom_grp/pom_grp_store.h"
 #include "pom_grp_internal_ops.h"
 
-static int pom_grp_meta_build_store_meta_add_entry_i(
-    struct DRInBuildMetaLib * builder,
-    struct DRInBuildMeta * new_meta,
-    LPDRMETAENTRY template_entry,
-    char * prefix_buf,
-    size_t prefix_len,
-    size_t prefix_capacity,
-    mem_buffer_t str_buffer,
-    int expand,
-    error_monitor_t em)
-{
-    LPDRMETA refmeta;
-    struct DRInBuildMetaEntry * new_entry;
-
-    prefix_len +=
-        snprintf(
-            prefix_buf + prefix_len, prefix_capacity - prefix_len,
-            prefix_len ? "_%s" : "%s", dr_entry_name(template_entry));
-
-    refmeta = dr_entry_ref_meta(template_entry);
-    if (refmeta) {
-        if (expand) {
-            int i, count;
-
-            count = dr_meta_entry_num(refmeta);
-            for(i = 0; i < count; ++i) {
-                if (pom_grp_meta_build_store_meta_add_entry_i(
-                        builder,
-                        new_meta,
-                        dr_meta_entry_at(refmeta, i),
-                        prefix_buf, prefix_len, prefix_capacity,
-                        str_buffer, expand, em) != 0)
-                {
-                    return -1;
-                }
-
-                prefix_buf[prefix_len] = 0;
-            }
-
-            return 0;
-        }
-        else {
-            if (dr_inbuild_metalib_find_meta(builder, dr_meta_name(refmeta)) == NULL) {
-                if (dr_inbuild_metalib_copy_meta(builder, refmeta) == NULL) {
-                    CPE_ERROR(em, "pom_grp_meta_build_store_meta: create meta for %s fail!", dr_entry_name(template_entry));
-                    return -1;
-                }
-            }
-        }
-    }
-
-    new_entry = dr_inbuild_meta_add_entry(new_meta);
-    if (new_entry == NULL) {
-        CPE_ERROR(
-            em, "pom_grp_meta_build_store_meta: create new entry %s fail!",
-            prefix_buf);
-        return -1;
-    }
-
-    dr_inbuild_entry_set_name(new_entry, mem_buffer_strdup(str_buffer, prefix_buf));
-    dr_inbuild_entry_set_id(new_entry, dr_entry_id(template_entry));
-    dr_inbuild_entry_set_type(new_entry, dr_entry_type_name(template_entry));
-    dr_inbuild_entry_set_size(new_entry, dr_entry_size(template_entry));
-
-    return 0;
-}
-
-static int pom_grp_meta_build_store_meta_add_entry(
-    struct DRInBuildMetaLib * builder,
-    struct DRInBuildMeta * new_meta,
-    LPDRMETAENTRY template_entry,
-    mem_buffer_t str_buffer,
-    int expand,
-    error_monitor_t em)
-{
-    char prefx_buf[256] = { 0 };
-    return pom_grp_meta_build_store_meta_add_entry_i(
-        builder,
-        new_meta,
-        template_entry,
-        prefx_buf,
-        0,
-        sizeof(prefx_buf),
-        str_buffer, expand, em);
-}
-
 static int pom_grp_meta_build_store_meta_on_entry_normal(
     struct DRInBuildMetaLib * builder,
     struct DRInBuildMeta * meta,
@@ -100,23 +14,10 @@ static int pom_grp_meta_build_store_meta_on_entry_normal(
     mem_buffer_t str_buffer,
     error_monitor_t em)
 {
-    int i, count;
     LPDRMETA entry_meta = pom_grp_entry_meta_normal_meta(entry);
     assert(entry_meta);
 
-    count = dr_meta_entry_num(entry_meta);
-    for(i = 0; i < count; ++i) {
-        if (pom_grp_meta_build_store_meta_add_entry(
-                builder,
-                meta,
-                dr_meta_entry_at(entry_meta, i),
-                str_buffer, 1, em) != 0)
-        {
-            return -1;
-        }
-    }
-
-    return 0;
+    return dr_inbuild_meta_copy_entrys(meta, entry_meta);
 }
 
 static int pom_grp_meta_build_store_meta_on_entry_ba(
@@ -183,13 +84,35 @@ static int pom_grp_meta_build_store_meta_on_entry_list(
 
         dr_inbuild_meta_init(meta, entry_meta);
 
-        if (pom_grp_meta_build_store_meta_add_entry(builder, meta, key_entry, str_buffer, 0, em) != 0) return -1;
+        if (dr_inbuild_meta_copy_entry(meta, key_entry) == NULL) return -1;
 
         dr_inbuild_meta_copy_entrys(meta, entry_meta);
     }
     else {
         struct DRInBuildMetaEntry * new_entry;
+        size_t countNameLen;
+        char * countNameBuf;
+        /*count*/
+        new_entry = dr_inbuild_meta_add_entry(main_meta);
+        if (new_entry == NULL) {
+            CPE_ERROR(em, "pom_grp_meta_build_store_meta: create new entry %sCount fail!", entry->m_name);
+            return -1;
+        }
 
+        countNameLen = strlen(entry->m_name) + 1 + strlen("Count");
+        countNameBuf = mem_buffer_alloc(str_buffer, countNameLen);
+        if (countNameBuf == NULL) {
+            CPE_ERROR(em, "pom_grp_meta_build_store_meta: create new entry %sCount fail!", entry->m_name);
+            return -1;
+        }
+        snprintf(countNameBuf, countNameLen, "%sCount", entry->m_name);
+        dr_inbuild_entry_set_name(new_entry, countNameBuf);
+        dr_inbuild_entry_set_id(new_entry, -1);
+        dr_inbuild_entry_set_type(new_entry, "uint32");
+        dr_inbuild_entry_set_array_count(new_entry, 1);
+
+
+        /*entry*/
         if (dr_inbuild_metalib_find_meta(builder, dr_meta_name(entry_meta)) == NULL) {
             if (dr_inbuild_metalib_copy_meta(builder, entry_meta) == NULL) {
                 CPE_ERROR(em, "pom_grp_meta_build_store_meta: create meta for %s fail!", entry->m_name);
@@ -208,6 +131,7 @@ static int pom_grp_meta_build_store_meta_on_entry_list(
         dr_inbuild_entry_set_id(new_entry, -1);
         dr_inbuild_entry_set_type(new_entry, dr_meta_name(entry_meta));
         dr_inbuild_entry_set_array_count(new_entry, pom_grp_entry_meta_list_capacity(entry));
+        dr_inbuild_entry_set_array_refer(new_entry, countNameBuf);
     }
 
     return 0;

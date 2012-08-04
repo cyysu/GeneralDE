@@ -57,7 +57,7 @@ pom_oid_t pom_obj_alloc(
         return POM_INVALID_OID; 
     }
 
-    return (((uint32_t)theClass->m_id) << 24) | ((uint32_t)baseOid);
+    return pom_oid_make(theClass->m_id, baseOid);
 }
 
 void pom_obj_free(
