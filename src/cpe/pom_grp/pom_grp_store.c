@@ -23,6 +23,8 @@ pom_grp_store_create(
     store->m_em = em;
     store->m_meta = meta;
     store->m_store_metalib = NULL;
+    store->m_main_table = NULL;
+
     mem_buffer_init(&store->m_store_metalib_buffer, alloc);
 
     if (cpe_hash_table_init(

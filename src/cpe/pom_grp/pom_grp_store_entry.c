@@ -106,3 +106,11 @@ pom_grp_store_entry_t pom_grp_store_entry_find(pom_grp_store_t store, const char
     key.m_name = name;
     return (pom_grp_store_entry_t)cpe_hash_table_find(&store->m_entries, &key);
 }
+
+const char * pom_grp_store_entry_name(pom_grp_store_entry_t entry) {
+    return entry->m_name;
+}
+
+pom_grp_entry_meta_t pom_grp_store_entry_meta(pom_grp_store_entry_t entry) {
+    return entry->m_entry_meta;
+}

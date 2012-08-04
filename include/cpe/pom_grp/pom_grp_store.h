@@ -19,14 +19,22 @@ pom_grp_store_create(
 
 void pom_grp_store_free(pom_grp_store_t store);
 
+uint32_t pom_grp_store_table_count(pom_grp_store_t store);
+
 void pom_grp_store_tables(pom_grp_store_t store, pom_grp_store_table_it_t it);
 pom_grp_store_table_t pom_grp_store_table_find(pom_grp_store_t store, const char * name);
+
+const char * pom_grp_store_table_name(pom_grp_store_table_t table);
+LPDRMETA pom_grp_store_table_meta(pom_grp_store_table_t table);
 
 void pom_grp_store_entries(pom_grp_store_t store, pom_grp_store_entry_it_t it);
 pom_grp_store_entry_t pom_grp_store_entry_find(pom_grp_store_t store, const char * name);
 
 void pom_grp_table_entries(pom_grp_store_table_t table, pom_grp_store_entry_it_t it);
 pom_grp_store_entry_t pom_grp_table_entry_find(pom_grp_store_table_t table, const char * name);
+
+const char * pom_grp_store_entry_name(pom_grp_store_entry_t entry);
+pom_grp_entry_meta_t pom_grp_store_entry_meta(pom_grp_store_entry_t entry);
 
 pom_grp_meta_t pom_grp_store_meta(pom_grp_store_t store);
 LPDRMETALIB pom_grp_store_metalib(pom_grp_store_t store);
