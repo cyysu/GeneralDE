@@ -140,7 +140,8 @@ TEST_F(OmGrpStoreTest, multi_list) {
         "    </struct>\n"
         "    <struct name=\"AttrGroup1\" version=\"1\">\n"
         "        <entry name=\"a1\" type=\"uint32\" id=\"1\"/>\n"
-        "        <entry name=\"entry2\" type=\"AttrGroup2\" count=\"5\"/>\n"
+        "        <entry name=\"entry2Count\" type=\"uint32\"/>\n"
+        "        <entry name=\"entry2\" type=\"AttrGroup2\" count=\"5\" refer=\"entry2Count\"/>\n"
         "    </struct>\n"
         "</metalib>\n"
         ,

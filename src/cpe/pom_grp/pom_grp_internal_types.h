@@ -90,6 +90,7 @@ struct pom_grp_store {
     pom_grp_meta_t m_meta;
     LPDRMETALIB m_store_metalib;
     struct mem_buffer m_store_metalib_buffer;
+    pom_grp_store_table_t m_main_table;
 
     struct cpe_hash_table m_tables;
     struct cpe_hash_table m_entries;

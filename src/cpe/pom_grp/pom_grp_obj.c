@@ -49,6 +49,30 @@ void pom_grp_obj_free(pom_grp_obj_mgr_t mgr, pom_grp_obj_t obj) {
     pom_obj_free(mgr->m_omm, control_oid, mgr->m_em);
 }
 
+void pom_grp_obj_clear(pom_grp_obj_mgr_t mgr, pom_grp_obj_t obj) {
+    int i;
+    pom_oid_t * oids = (pom_oid_t *)obj;
+
+    for(i = 0; i < mgr->m_meta->m_page_count; ++i) {
+        if (oids[i] != POM_INVALID_OID) {
+            pom_obj_free(mgr->m_omm, oids[i], mgr->m_em);
+        }
+    }
+
+    bzero(obj, mgr->m_meta->m_control_obj_size);
+}
+
+int pom_grp_obj_is_empty(pom_grp_obj_mgr_t mgr, pom_grp_obj_t obj) {
+    int i;
+    pom_oid_t * oids = (pom_oid_t *)obj;
+
+    for(i = 0; i < mgr->m_meta->m_page_count; ++i) {
+        if (oids[i] != POM_INVALID_OID) return 0;
+    }
+
+    return 1;
+}
+
 pom_oid_t pom_grp_obj_oid(pom_grp_obj_mgr_t mgr, pom_grp_obj_t obj) {
     return pom_obj_id_from_addr(mgr->m_omm, obj, mgr->m_em);
 }

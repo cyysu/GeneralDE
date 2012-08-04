@@ -12,6 +12,8 @@ pom_grp_obj_t
 pom_grp_obj_alloc(pom_grp_obj_mgr_t mgr);
 
 void pom_grp_obj_free(pom_grp_obj_mgr_t mgr, pom_grp_obj_t obj);
+void pom_grp_obj_clear(pom_grp_obj_mgr_t mgr, pom_grp_obj_t obj);
+int pom_grp_obj_is_empty(pom_grp_obj_mgr_t mgr, pom_grp_obj_t obj);
 
 pom_oid_t pom_grp_obj_oid(pom_grp_obj_mgr_t mgr, pom_grp_obj_t obj);
 uint16_t pom_grp_obj_page_count(pom_grp_obj_mgr_t mgr, pom_grp_obj_t obj);
