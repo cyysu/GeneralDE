@@ -38,6 +38,8 @@ pom_obj_class(
 
 #define pom_obj_it_next(it) ((it)->next ? (it)->next(it) : NULL)
 
+#define pom_oid_make(__class_id, __base_oid) ((((uint32_t)(__class_id)) << 24) | ((uint32_t)(__base_oid)))
+
 #ifdef __cplusplus
 }
 #endif
