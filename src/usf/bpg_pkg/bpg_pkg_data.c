@@ -99,7 +99,9 @@ int bpg_pkg_add_append_data(bpg_pkg_t pkg, LPDRMETA meta, const void * buf, size
             buf, &input_size,
             em, pkg->m_mgr->m_debug) != 0)
     {
-        CPE_ERROR(em, "bpg_pkg_pkg_data: encode fail!");
+        CPE_ERROR(
+            em, "bpg_pkg_pkg_data: encode fail, decode-buf-size=%d!",
+            (int)(bpg_pkg_pkg_capacity(pkg) - cur_size));
         return -1;
     }
 
