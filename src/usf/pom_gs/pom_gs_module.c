@@ -119,4 +119,3 @@ void pom_gs_agent_app_fini(gd_app_context_t app, gd_app_module_t module) {
         pom_gs_agent_free(pom_gs_agent);
     }
 }
-

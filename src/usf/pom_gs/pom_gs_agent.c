@@ -4,6 +4,7 @@
 #include "cpe/pom_grp/pom_grp_store.h"
 #include "gd/app/app_context.h"
 #include "gd/app/app_module.h"
+#include "usf/logic/logic_require.h"
 #include "usf/pom_gs/pom_gs_agent.h"
 #include "pom_gs_internal_ops.h"
 
@@ -121,7 +122,7 @@ int pom_gs_agent_set_backend(pom_gs_agent_t agent, pom_gs_agent_backend_t backen
 }
 
 int pom_gs_agent_remove_backend(pom_gs_agent_t agent) {
-    if (agent->m_backend != NULL) {
+    if (agent->m_backend == NULL) {
         CPE_ERROR(
             agent->m_em, "%s: pom_gs_agent_remove_backend: backend not exist!",
             pom_gs_agent_name(agent));

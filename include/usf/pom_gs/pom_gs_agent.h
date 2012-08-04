@@ -28,8 +28,19 @@ pom_gs_agent_t pom_gs_agent_find_nc(gd_app_context_t app, const char * name);
 
 gd_app_context_t pom_gs_agent_app(pom_gs_agent_t agent);
 const char * pom_gs_agent_name(pom_gs_agent_t agent);
+cpe_hash_string_t pom_gs_agent_name_hs(pom_gs_agent_t agent);
 
-pom_gs_agent_t pom_gs_agent_insert(pom_gs_agent_t agent, pom_grp_obj_t obj, logic_require_t require);
+int pom_gs_agent_obj_insert(
+    pom_gs_agent_t agent,
+    pom_grp_obj_mgr_t obj_mgr,
+    pom_grp_obj_t obj,
+    logic_require_t require);
+
+int pom_gs_agent_data_insert(
+    pom_gs_agent_t agent,
+    LPDRMETA meta, void * data, size_t capacity, 
+    const char * entries,
+    logic_require_t require);
 
 #ifdef __cplusplus
 }

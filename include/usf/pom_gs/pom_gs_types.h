@@ -11,10 +11,16 @@ extern "C" {
 #endif
 
 typedef struct pom_gs_agent * pom_gs_agent_t;
+typedef struct pom_gs_pkg * pom_gs_pkg_t;
 
 typedef struct pom_gs_agent_backend {
     const char * name;
-    int (*insert)(pom_grp_obj_mgr_t obj_mgr, pom_grp_obj_t obj, logic_require_t require, void * ctx);
+    int (*insert)(
+        pom_grp_store_table_t table,
+        void * data,
+        size_t capacity,
+        logic_require_t require,
+        void * ctx);
 } * pom_gs_agent_backend_t;
 
 #ifdef __cplusplus
