@@ -31,10 +31,10 @@ public:
         OmGrpObjMgrTest::TearDown();
     }
 
-    void append(uint32_t value) {
+    int append(uint32_t value) {
         AttrGroup1 t;
         t.a1 = value;
-        EXPECT_EQ(0, pom_grp_obj_list_append(m_mgr, m_obj, "entry1", &t));
+        return pom_grp_obj_list_append(m_mgr, m_obj, "entry1", &t);
     }
 
     void insert(uint32_t pos, uint32_t value) {
@@ -43,8 +43,8 @@ public:
         ASSERT_EQ(0, pom_grp_obj_list_insert(m_mgr, m_obj, "entry1", pos, &t));
     }
 
-    void remove(uint32_t pos) {
-        ASSERT_EQ(0, pom_grp_obj_list_remove(m_mgr, m_obj, "entry1", pos));
+    int remove(uint32_t pos) {
+        return pom_grp_obj_list_remove(m_mgr, m_obj, "entry1", pos);
     }
 
     uint32_t at(uint32_t pos) {
@@ -163,6 +163,30 @@ TEST_F(OmGrpObjListTest, remote_empty) {
     EXPECT_NE(0, pom_grp_obj_list_remove(m_mgr, m_obj, "entry1", 0));
 }
 
+TEST_F(OmGrpObjListTest, remote_to_empty) {
+    append(1);
+    append(2);
+    append(3);
+    append(4);
+
+    EXPECT_EQ(4, count());
+
+    EXPECT_EQ(0, remove(0));
+    EXPECT_EQ(3, count());
+
+    EXPECT_EQ(0, remove(0));
+    EXPECT_EQ(2, count());
+
+    EXPECT_EQ(0, remove(0));
+    EXPECT_EQ(1, count());
+
+    EXPECT_EQ(0, remove(0));
+    EXPECT_EQ(0, count());
+
+    EXPECT_NE(0, remove(0));
+    EXPECT_EQ(0, count());
+}
+
 TEST_F(OmGrpObjListTest, remote_page_first) {
     append(1);
     append(2);
@@ -217,3 +241,4 @@ TEST_F(OmGrpObjListTest, remote_last_page_left) {
     remove(3);
     EXPECT_STREQ("1:2:3:5", dump());
 }
+
