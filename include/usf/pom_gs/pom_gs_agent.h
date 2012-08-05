@@ -38,8 +38,7 @@ int pom_gs_agent_obj_insert(
 
 int pom_gs_agent_data_insert(
     pom_gs_agent_t agent,
-    LPDRMETA meta, void * data, size_t capacity, 
-    const char * entries,
+    pom_gs_pkg_t pkg,
     logic_require_t require);
 
 #ifdef __cplusplus

@@ -5,6 +5,7 @@
 #include "gd/app/app_module.h"
 #include "usf/logic/logic_require.h"
 #include "usf/pom_gs/pom_gs_agent.h"
+#include "usf/pom_gs/pom_gs_pkg.h"
 #include "pom_gs_internal_ops.h"
 
 static int pom_gs_agent_build_data(
@@ -80,10 +81,51 @@ ERROR:
 
 int pom_gs_agent_data_insert(
     pom_gs_agent_t agent,
-    LPDRMETA meta, void * data, size_t capacity, 
-    const char * entries,
+    pom_gs_pkg_t pkg,
     logic_require_t require)
 {
-    
+    uint32_t i, processing_count;
+    struct pom_gs_pkg_data_entry * data_entry;
+
+    if (agent->m_backend == NULL) {
+        CPE_ERROR(
+            agent->m_em, "%s: data_insert: backend not exist!",
+            pom_gs_agent_name(agent));
+        goto ERROR;
+    }
+
+    if (agent->m_backend->insert == NULL) {
+        CPE_ERROR(
+            agent->m_em, "%s: data_insert: backend %s not support insert!",
+            pom_gs_agent_name(agent), agent->m_backend->name);
+        goto ERROR;
+    }
+
+    processing_count = 0;
+    for(i = 0; i < pkg->m_entry_count; ++i) {
+        data_entry = &pkg->m_entries[i];
+
+        if (data_entry->m_capacity <= 0) continue;
+
+        if (agent->m_backend->insert(
+                data_entry->m_table,
+                pom_gs_pkg_entry_buf(pkg, data_entry),
+                data_entry->m_capacity,
+                require,
+                agent->m_backend_ctx) != 0)
+        {
+            CPE_ERROR(
+                agent->m_em, "%s: data_insert: backend %s insert fail!",
+                pom_gs_agent_name(agent), agent->m_backend->name);
+            goto ERROR;
+        }
+    }
+
+    if (require && processing_count == 0) logic_require_set_done(require);
+
     return 0;
+
+ERROR:
+    if (require) logic_require_set_error(require);
+    return -1;
 }
