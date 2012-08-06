@@ -84,6 +84,7 @@ uint16_t pom_grp_entry_meta_page_count(pom_grp_entry_meta_t entry_meta);
 uint16_t pom_grp_entry_meta_page_size(pom_grp_entry_meta_t entry_meta);
 
 LPDRMETA pom_grp_entry_meta_normal_meta(pom_grp_entry_meta_t entry_meta);
+uint16_t pom_grp_entry_meta_normal_capacity(pom_grp_entry_meta_t entry_meta);
 
 LPDRMETA pom_grp_entry_meta_list_meta(pom_grp_entry_meta_t entry_meta);
 uint16_t pom_grp_entry_meta_list_capacity(pom_grp_entry_meta_t entry_meta);

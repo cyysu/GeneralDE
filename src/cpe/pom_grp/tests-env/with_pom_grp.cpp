@@ -4,6 +4,7 @@
 #include "cpe/cfg/tests-env/with_cfg.hpp"
 #include "cpe/dr/tests-env/with_dr.hpp"
 #include "cpe/pom_grp/pom_grp_meta_build.h"
+#include "cpe/pom_grp/pom_grp_cfg.h"
 #include "cpe/pom_grp/tests-env/with_pom_grp.hpp"
 
 namespace cpe { namespace pom_grp { namespace testenv {
@@ -101,6 +102,60 @@ with_pom_grp::t_pom_grp_obj_mgr_create(
     pom_grp_obj_mgr_t mgr = pom_grp_obj_mgr_create(t_allocrator(), buf, capacity, em);
     EXPECT_TRUE(mgr) << "om_mgr_obj_mgr create fail!";
     return mgr;
+}
+
+pom_grp_obj_t
+with_pom_grp::t_pom_grp_obj_create(
+    pom_grp_obj_mgr_t obj_mgr,
+    const char * data)
+{
+    cfg_t cfg_data = envOf<cpe::cfg::testenv::with_cfg>().t_cfg_parse(data);
+    EXPECT_TRUE(cfg_data) << "parse cfg fail!";
+    if (cfg_data == NULL) return NULL;
+
+    return t_pom_grp_obj_create(obj_mgr, cfg_data);
+}
+
+pom_grp_obj_t
+with_pom_grp::t_pom_grp_obj_create(
+    pom_grp_obj_mgr_t obj_mgr,
+    cfg_t data)
+{
+    pom_grp_obj_t obj = pom_grp_obj_alloc(obj_mgr);
+    EXPECT_TRUE(obj) << "alloc obj fail!";
+    if (obj == NULL) return NULL;
+
+    if (t_pom_grp_obj_load(obj_mgr, obj, data) != 0) {
+        pom_grp_obj_free(obj_mgr, obj);
+        return NULL;
+    }
+
+    return obj;
+}
+
+int with_pom_grp::t_pom_grp_obj_load(
+    pom_grp_obj_mgr_t obj_mgr,
+    pom_grp_obj_t obj,
+    const char * data)
+{
+    cfg_t cfg_data = envOf<cpe::cfg::testenv::with_cfg>().t_cfg_parse(data);
+    EXPECT_TRUE(cfg_data) << "parse cfg fail!";
+    if (cfg_data == NULL) return -1;
+
+    return t_pom_grp_obj_load(obj_mgr, obj, cfg_data);
+}
+
+int with_pom_grp::t_pom_grp_obj_load(
+    pom_grp_obj_mgr_t obj_mgr,
+    pom_grp_obj_t obj,
+    cfg_t data)
+{
+    error_monitor_t em = NULL;
+    if (tryEnvOf<utils::testenv::with_em>()) {
+        em = envOf<utils::testenv::with_em>().t_em();
+    }
+
+    return pom_grp_obj_cfg_load(obj, obj_mgr, data, em);
 }
 
 }}}

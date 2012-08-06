@@ -234,6 +234,11 @@ LPDRMETA pom_grp_entry_meta_normal_meta(pom_grp_entry_meta_t entry_meta) {
     return entry_meta->m_data.m_normal.m_data_meta;
 }
 
+uint16_t pom_grp_entry_meta_normal_capacity(pom_grp_entry_meta_t entry_meta) {
+    assert(entry_meta->m_type == pom_grp_entry_type_normal);
+    return entry_meta->m_obj_size;
+}
+
 LPDRMETA pom_grp_entry_meta_list_meta(pom_grp_entry_meta_t entry_meta) {
     assert(entry_meta->m_type == pom_grp_entry_type_list);
     return entry_meta->m_data.m_list.m_data_meta;
