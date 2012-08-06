@@ -152,7 +152,6 @@ static int pom_grp_obj_cfg_dump_binary(
     return rv;
 }
 
-
 int pom_grp_obj_cfg_dump(cfg_t cfg, pom_grp_obj_mgr_t mgr, pom_grp_obj_t obj, error_monitor_t em) {
     uint16_t i, count;
     int rv;
@@ -190,8 +189,6 @@ int pom_grp_obj_cfg_dump(cfg_t cfg, pom_grp_obj_mgr_t mgr, pom_grp_obj_t obj, er
     return 0;
 }
 
-int pom_grp_obj_cfg_load(pom_grp_obj_t obj, pom_grp_obj_mgr_t mgr, cfg_t cfg, error_monitor_t em);
-
 int pom_grp_obj_cfg_dump_all(cfg_t cfg, pom_grp_obj_mgr_t mgr, error_monitor_t em) {
     int rv;
     struct pom_grp_obj_it obj_it;
@@ -218,8 +215,6 @@ int pom_grp_obj_cfg_dump_all(cfg_t cfg, pom_grp_obj_mgr_t mgr, error_monitor_t e
 
     return rv;
 }
-
-int pom_grp_obj_cfg_load_all(pom_grp_obj_mgr_t mgr, cfg_t cfg, error_monitor_t em);
 
 int pom_grp_obj_cfg_dump_to_stream(write_stream_t stream, pom_grp_obj_mgr_t mgr, error_monitor_t em) {
     cfg_t root_cfg;
@@ -260,3 +255,4 @@ COMPLETE:
     cfg_free(root_cfg);
     return rv;
 }
+

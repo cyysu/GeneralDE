@@ -2,6 +2,7 @@
 #define CPE_POM_GRP_TESTENV_OMGRP_H
 #include "cpe/utils/tests-env/test-env.hpp"
 #include "../pom_grp_meta.h"
+#include "../pom_grp_obj.h"
 #include "../pom_grp_obj_mgr.h"
 
 namespace cpe { namespace pom_grp { namespace testenv {
@@ -31,6 +32,24 @@ public:
         const char * om_meta,
         LPDRMETALIB metalib, 
         size_t capacity = 2048, uint16_t page_size = 256);
+
+    pom_grp_obj_t t_pom_grp_obj_create(
+        pom_grp_obj_mgr_t obj_mgr,
+        const char * data);
+
+    pom_grp_obj_t t_pom_grp_obj_create(
+        pom_grp_obj_mgr_t obj_mgr,
+        cfg_t data);
+
+    int t_pom_grp_obj_load(
+        pom_grp_obj_mgr_t obj_mgr,
+        pom_grp_obj_t obj,
+        const char * data);
+
+    int t_pom_grp_obj_load(
+        pom_grp_obj_mgr_t obj_mgr,
+        pom_grp_obj_t obj,
+        cfg_t data);
 };
 
 }}}
