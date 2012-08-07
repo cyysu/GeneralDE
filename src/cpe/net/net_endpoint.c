@@ -260,13 +260,9 @@ int net_ep_set_fd(net_ep_t ep, int fd) {
     return 0;
 }
 
-void net_ep_set_status(net_ep_t ep, int status)
-{
-	if (ep)
-	{
-		ep->m_status = status;
-	}
-	
+void net_ep_set_status(net_ep_t ep, enum net_status status) {
+    assert(ep);
+    ep->m_status = status;
 }
 
 int net_ep_send(net_ep_t ep, const void * buf, size_t size) {
