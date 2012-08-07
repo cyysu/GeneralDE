@@ -8,10 +8,7 @@
 #include "pom_gs_internal_ops.h"
 
 pom_gs_pkg_t
-pom_gs_pkg_create(
-    pom_gs_agent_t agent,
-    size_t pkg_capacity)
-{
+pom_gs_pkg_create(pom_gs_agent_t agent, size_t pkg_capacity) {
     dp_req_t dp_req;
     pom_gs_pkg_t pom_gs_pkg;
     uint32_t i;
@@ -140,3 +137,5 @@ size_t pom_gs_pkg_buf_capacity(pom_gs_pkg_t pkg, const char * table_name) {
 
     return 0;
 }
+
+CPE_HS_DEF_VAR(pom_gs_pkg_type_name, "pom_gs_pkg_type");

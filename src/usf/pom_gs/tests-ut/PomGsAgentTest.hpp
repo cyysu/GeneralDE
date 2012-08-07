@@ -1,5 +1,5 @@
-#ifndef USF_POM_GS_PKG_TEST_H
-#define USF_POM_GS_PKG_TEST_H
+#ifndef USF_POM_GS_AGENT_TEST_H
+#define USF_POM_GS_AGENT_TEST_H
 #include "gmock/gmock.h"
 #include "cpe/utils/tests-env/test-fixture.hpp"
 #include "cpe/utils/tests-env/with_em.hpp"
