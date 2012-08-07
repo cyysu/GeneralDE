@@ -33,11 +33,6 @@ Package::dataMetaLib(void) const {
 }
 
 Cpe::Dr::Meta const &
-Package::cmdMeta(void) const {
-    return mgr().cmdMeta();
-}
-
-Cpe::Dr::Meta const &
 Package::mainDataMeta(void) const {
     Cpe::Utils::ErrorCollector em;
 
@@ -50,12 +45,12 @@ Package::mainDataMeta(void) const {
 }
 
 void Package::setCmdAndData(Cpe::Dr::ConstData const & data, size_t * write_size) {
-    setCmd(cmdMeta().entry(data.meta().name()).id());
+    setCmd(mgr().cmdFromMetaName(data.meta().name()));
     setMainData(data.data(), data.capacity(), write_size);
 }
 
 void Package::setCmdAndData(Cpe::Dr::ConstData const & data, size_t size, size_t * write_size) {
-    setCmd(cmdMeta().entry(data.meta().name()).id());
+    setCmd(mgr().cmdFromMetaName(data.meta().name()));
     setMainData(data.data(), size, write_size);
 }
 
@@ -65,12 +60,12 @@ void Package::setCmdAndData(int cmd, const void * data, size_t data_size, size_t
 }
 
 void Package::setCmdAndData(const char * meta_name, const void * data, size_t data_size, size_t * write_size) {
-    setCmd(cmdMeta().entry(meta_name).id());
+    setCmd(mgr().cmdFromMetaName(meta_name));
     setMainData(data, data_size, write_size);
 }
         
 void Package::setCmdAndData(LPDRMETA meta, const void * data, size_t data_size, size_t * write_size) {
-    setCmd(cmdMeta().entry(dr_meta_name(meta)).id());
+    setCmd(mgr().cmdFromMetaName(dr_meta_name(meta)));
     setMainData(data, data_size, write_size);
 }
 

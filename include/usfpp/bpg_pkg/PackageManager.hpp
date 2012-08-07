@@ -18,7 +18,6 @@ public:
     Gd::App::Application const & app(void) const { return Gd::App::Application::_cast(bpg_pkg_manage_app(*this)); }
 
     Cpe::Dr::MetaLib const & dataMetaLib(void) const;
-    Cpe::Dr::Meta const & cmdMeta(void) const;
 
     uint32_t cmdFromMetaName(const char * metaName) const;
 

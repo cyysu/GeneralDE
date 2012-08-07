@@ -42,8 +42,6 @@ dr_cvt_t bpg_pkg_data_cvt(bpg_pkg_t pkg);
 dr_cvt_t bpg_pkg_base_cvt(bpg_pkg_t pkg);
 LPDRMETA bpg_pkg_base_meta(bpg_pkg_t pkg);
 
-LPDRMETA bpg_pkg_cmd_meta(bpg_pkg_t pkg);
-
 dp_req_t bpg_pkg_to_dp_req(bpg_pkg_t pkg);
 bpg_pkg_t bpg_pkg_from_dp_req(dp_req_t pkg);
 

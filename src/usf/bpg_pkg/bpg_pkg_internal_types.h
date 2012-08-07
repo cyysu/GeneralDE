@@ -15,16 +15,24 @@ struct bpg_pkg_manage {
     dr_ref_t m_metalib_ref;
     error_monitor_t m_em;
 
-    char m_cmd_meta_name[64];
-    LPDRMETA m_cmd_meta;
-
     dr_cvt_t m_base_cvt;
     dr_cvt_t m_data_cvt;
+
+    struct cpe_hash_table m_cmd_info_by_cmd;
+    struct cpe_hash_table m_cmd_info_by_name;
 
     struct cpe_hash_table m_pkg_debug_infos;
     bpg_pkg_debug_level_t m_pkg_debug_default_level;
 
     int m_debug;
+};
+
+struct bpg_pkg_cmd_info {
+    uint32_t m_cmd;
+    const char * m_name;
+    struct cpe_hash_entry m_hh_for_cmd;
+    struct cpe_hash_entry m_hh_for_name;
+    LPDRMETA m_cmd_meta;
 };
 
 struct bpg_pkg_debug_info {

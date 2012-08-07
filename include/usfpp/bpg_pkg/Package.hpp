@@ -30,7 +30,6 @@ public:
     void setClientId(uint64_t client_id) { bpg_pkg_set_client_id(*this, client_id); }
 
     Cpe::Dr::MetaLib const & dataMetaLib(void) const;
-    Cpe::Dr::Meta const & cmdMeta(void) const;
 
     /*main data and cmd write*/
     void setCmdAndData(Cpe::Dr::ConstData const & data, size_t * write_size = NULL);

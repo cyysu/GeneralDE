@@ -41,13 +41,12 @@ LPDRMETALIB bpg_pkg_manage_basepkg_metalib(bpg_pkg_manage_t mgr);
 LPDRMETA bpg_pkg_manage_basepkg_head_meta(bpg_pkg_manage_t mgr);
 
 int bpg_pkg_manage_set_data_metalib(bpg_pkg_manage_t mgr, const char * metalib_name);
-int bpg_pkg_manage_set_cmd_meta_name(bpg_pkg_manage_t mgr, const char * name);
-LPDRMETA bpg_pkg_manage_cmd_meta(bpg_pkg_manage_t mgr);
-const char * bpg_pkg_manage_cmd_meta_name(bpg_pkg_manage_t mgr);
+int bpg_pkg_manage_add_cmd_by_meta(bpg_pkg_manage_t mgr, const char * name);
 
 const char * bpg_pkg_manage_data_metalib_name(bpg_pkg_manage_t mgr);
 LPDRMETALIB bpg_pkg_manage_data_metalib(bpg_pkg_manage_t mgr);
 
+LPDRMETA bpg_pkg_manage_find_meta_by_cmd(bpg_pkg_manage_t mgr, uint32_t cmd);
 int bpg_pkg_find_cmd_from_meta_name(uint32_t * cmd, bpg_pkg_manage_t mgr, const char * meta_name);
 
 bpg_pkg_debug_level_t bpg_pkg_manage_debug_level(bpg_pkg_manage_t mgr, uint32_t cmd);

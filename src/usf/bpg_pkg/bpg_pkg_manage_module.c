@@ -22,19 +22,13 @@ static int bpg_pkg_manage_app_validate_meta(gd_app_context_t app, gd_app_module_
         return -1;
     }
 
-    if (bpg_pkg_manage_cmd_meta(mgr) == NULL) {
-        CPE_ERROR(
-            gd_app_em(app), "%s: validate meta info: request meta %s not exist in lib %s!",
-            bpg_pkg_manage_name(mgr), bpg_pkg_manage_cmd_meta_name(mgr), bpg_pkg_manage_data_metalib_name(mgr));
-        return -1;
-    }
-
     return 0;
 }
 
 static int bpg_pkg_manage_app_load_meta(gd_app_context_t app, gd_app_module_t module, bpg_pkg_manage_t mgr, cfg_t cfg) {
     const char * arg;
-    
+    cfg_t cmd_meta_cfg;
+
     if ((arg = cfg_get_string(cfg, "lib-name", NULL))) {
         if (bpg_pkg_manage_set_data_metalib(mgr, arg) != 0) {
             CPE_ERROR(
@@ -50,17 +44,48 @@ static int bpg_pkg_manage_app_load_meta(gd_app_context_t app, gd_app_module_t mo
         return -1;
     }
 
-    if ((arg = cfg_get_string(cfg, "cmd-meta-name", NULL))) {
-        if (bpg_pkg_manage_set_cmd_meta_name(mgr, arg) != 0) {
+    cmd_meta_cfg = cfg_find_cfg(cfg, "cmd-meta-name");
+    if (cmd_meta_cfg == NULL) {
+        CPE_ERROR(
+            gd_app_em(app), "%s: load meta info: cmd-meta-name not configured!",
+            gd_app_module_name(module));
+        return -1;
+    }
+
+    if (cfg_type(cmd_meta_cfg) == CPE_CFG_TYPE_STRING) {
+        if (bpg_pkg_manage_add_cmd_by_meta(mgr, cfg_as_string(cmd_meta_cfg, NULL)) != 0) {
             CPE_ERROR(
-                gd_app_em(app), "%s: load meta info: set cmd-meta-name %s fail!",
-                gd_app_module_name(module), arg);
+                gd_app_em(app), "%s: load meta info: add cmd-meta-name %s fail!",
+                gd_app_module_name(module), cfg_as_string(cmd_meta_cfg, NULL));
             return -1;
+        }
+    }
+    else if (cfg_type(cmd_meta_cfg) == CPE_CFG_TYPE_SEQUENCE) {
+        struct cfg_it it;
+        cfg_t child_cfg;
+
+        cfg_it_init(&it, cmd_meta_cfg);
+
+        while((child_cfg = cfg_it_next(&it))) {
+            const char * arg = cfg_as_string(child_cfg, NULL);
+            if (arg == NULL) {
+                CPE_ERROR(
+                    gd_app_em(app), "%s: load meta info: add cmd-meta-name(sub) type error!",
+                    gd_app_module_name(module));
+                return -1;
+            }
+
+            if (bpg_pkg_manage_add_cmd_by_meta(mgr, arg)) {
+                CPE_ERROR(
+                    gd_app_em(app), "%s: load meta info: add cmd-meta-name %s fail!",
+                    gd_app_module_name(module), arg);
+                return -1;
+            }
         }
     }
     else {
         CPE_ERROR(
-            gd_app_em(app), "%s: load meta info: cmd-meta-name not configured!",
+            gd_app_em(app), "%s: load meta info: cmd-meta-name type error!",
             gd_app_module_name(module));
         return -1;
     }

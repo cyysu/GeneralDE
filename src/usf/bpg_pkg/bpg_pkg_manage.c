@@ -2,6 +2,7 @@
 #include "cpe/pal/pal_external.h"
 #include "cpe/cfg/cfg_read.h"
 #include "cpe/dr/dr_cvt.h"
+#include "cpe/dr/dr_metalib_init.h"
 #include "cpe/dr/dr_metalib_manage.h"
 #include "cpe/nm/nm_manage.h"
 #include "cpe/nm/nm_read.h"
@@ -50,15 +51,41 @@ bpg_pkg_manage_create(
     mgr->m_metalib_ref = NULL;
     mgr->m_pkg_debug_default_level = bpg_pkg_debug_none;
 
-    mgr->m_cmd_meta_name[0] = 0;
-    mgr->m_cmd_meta = NULL;
-
     mgr->m_metalib_basepkg_ref =
         dr_ref_create(
             dr_store_manage_default(mgr->m_app),
             BPG_BASEPKG_LIB_NAME);
     if (mgr->m_metalib_basepkg_ref == NULL) {
         CPE_ERROR(em, "%s: create: create basepkg_ref fail!", name);
+        nm_node_free(mgr_node);
+        return NULL;
+    }
+
+    if (cpe_hash_table_init(
+            &mgr->m_cmd_info_by_cmd,
+            mgr->m_alloc,
+            (cpe_hash_fun_t) bpg_pkg_cmd_info_cmd_hash,
+            (cpe_hash_cmp_t) bpg_pkg_cmd_info_cmd_eq,
+            CPE_HASH_OBJ2ENTRY(bpg_pkg_cmd_info, m_hh_for_cmd),
+            -1) != 0)
+    {
+        CPE_ERROR(em, "%s: create: init bpg_cmd_info_by_cmd hash table fail!", name);
+        dr_ref_free(mgr->m_metalib_basepkg_ref);
+        nm_node_free(mgr_node);
+        return NULL;
+    }
+
+    if (cpe_hash_table_init(
+            &mgr->m_cmd_info_by_name,
+            mgr->m_alloc,
+            (cpe_hash_fun_t) bpg_pkg_cmd_info_name_hash,
+            (cpe_hash_cmp_t) bpg_pkg_cmd_info_name_eq,
+            CPE_HASH_OBJ2ENTRY(bpg_pkg_cmd_info, m_hh_for_name),
+            -1) != 0)
+    {
+        CPE_ERROR(em, "%s: create: init bpg_cmd_info_by_name hash table fail!", name);
+        cpe_hash_table_fini(&mgr->m_cmd_info_by_cmd);
+        dr_ref_free(mgr->m_metalib_basepkg_ref);
         nm_node_free(mgr_node);
         return NULL;
     }
@@ -72,6 +99,8 @@ bpg_pkg_manage_create(
             -1) != 0)
     {
         CPE_ERROR(em, "%s: create: init bpg_pkg_debug_info hash table fail!", name);
+        cpe_hash_table_fini(&mgr->m_cmd_info_by_name);
+        cpe_hash_table_fini(&mgr->m_cmd_info_by_cmd);
         dr_ref_free(mgr->m_metalib_basepkg_ref);
         nm_node_free(mgr_node);
         return NULL;
@@ -105,6 +134,10 @@ static void bpg_pkg_manage_clear(nm_node_t node) {
         dr_ref_free(mgr->m_metalib_ref);
         mgr->m_metalib_ref = NULL;
     }
+
+    bpg_pkg_cmd_info_free_all(mgr);
+    cpe_hash_table_fini(&mgr->m_cmd_info_by_name);
+    cpe_hash_table_fini(&mgr->m_cmd_info_by_cmd);
 
     bpg_pkg_debug_info_free_all(mgr);
     cpe_hash_table_fini(&mgr->m_pkg_debug_infos);
@@ -221,63 +254,72 @@ int bpg_pkg_manage_set_data_metalib(bpg_pkg_manage_t mgr, const char * metalib_n
         return -1;
     }
 
-    mgr->m_cmd_meta = NULL;
-
     return 0;
 }
 
-int bpg_pkg_manage_set_cmd_meta_name(bpg_pkg_manage_t mgr, const char * name) {
-    size_t name_len;
+int bpg_pkg_manage_add_cmd_by_meta(bpg_pkg_manage_t mgr, const char * name) {
+    LPDRMETA cmd_meta;
+    int i, count;
 
-    name_len = strlen(name) + 1;
-    if (name_len > sizeof(mgr->m_cmd_meta_name)) {
+    if (mgr->m_metalib_ref == NULL) {
         CPE_ERROR(
-            mgr->m_em, "bpg_pkg_manage %s: set cmd meta name %s, name len overflow!", 
+            mgr->m_em, "bpg_pkg_manage %s: add cmd by meta %s, data metalib not exist!", 
             bpg_pkg_manage_name(mgr), name);
         return -1;
     }
 
-    memcpy(mgr->m_cmd_meta_name, name, name_len);
-    mgr->m_cmd_meta = NULL;
+    if (dr_ref_lib(mgr->m_metalib_ref) == NULL) {
+        CPE_ERROR(
+            mgr->m_em, "bpg_pkg_manage %s: add cmd by meta %s, data metalib no lib!", 
+            bpg_pkg_manage_name(mgr), name);
+        return -1;
+    }
+
+    cmd_meta = dr_lib_find_meta_by_name(dr_ref_lib(mgr->m_metalib_ref), name);
+    if (cmd_meta == NULL) {
+        CPE_ERROR(
+            mgr->m_em, "bpg_pkg_manage %s: add cmd by meta %s, meta not exist in lib!", 
+            bpg_pkg_manage_name(mgr), name);
+        return -1;
+    }
+
+    count = dr_meta_entry_num(cmd_meta);
+    for(i = 0; i < count; ++i) {
+        LPDRMETAENTRY entry = dr_meta_entry_at(cmd_meta, i);
+        LPDRMETA cmd_data_meta = dr_entry_ref_meta(entry);
+        if (cmd_data_meta == NULL) {
+            CPE_ERROR(
+                mgr->m_em, "bpg_pkg_manage %s: add cmd by meta %s, entry %s have no ref meta!", 
+                bpg_pkg_manage_name(mgr), name, dr_entry_name(entry));
+            return -1;
+        }
+
+        if (dr_entry_id(entry) == -1) {
+            CPE_ERROR(
+                mgr->m_em, "bpg_pkg_manage %s: add cmd by meta %s, entry %s have no id!", 
+                bpg_pkg_manage_name(mgr), name, dr_entry_name(entry));
+            return -1;
+        }
+
+        if (bpg_pkg_cmd_info_create(mgr, dr_entry_id(entry), cmd_data_meta) == NULL) {
+            CPE_ERROR(
+                mgr->m_em, "bpg_pkg_manage %s: add cmd by meta %s, create cmd %d ==> %s fail!",
+                bpg_pkg_manage_name(mgr), name, dr_entry_id(entry), dr_meta_name(cmd_data_meta));
+            return -1;
+        }
+    }
 
     return 0;
-}
-
-const char * bpg_pkg_manage_data_metalib_name(bpg_pkg_manage_t mgr) {
-    return mgr->m_metalib_ref ? dr_ref_lib_name(mgr->m_metalib_ref) : "???";
 }
 
 LPDRMETALIB bpg_pkg_manage_data_metalib(bpg_pkg_manage_t mgr) {
     return mgr->m_metalib_ref ? dr_ref_lib(mgr->m_metalib_ref) : NULL;
 }
 
-LPDRMETA bpg_pkg_manage_cmd_meta(bpg_pkg_manage_t mgr) {
-    if (mgr->m_cmd_meta_name[0] == 0) {
-        CPE_ERROR(
-            mgr->m_em, "bpg_pkg_manage %s: cmd meta name not confitured!",
-            bpg_pkg_manage_name(mgr));
-        return NULL;
-    }
-
-    if (mgr->m_cmd_meta == NULL) {
-        LPDRMETALIB metalib = bpg_pkg_manage_data_metalib(mgr);
-        if (metalib == NULL) {
-            CPE_ERROR(
-                mgr->m_em, "bpg_pkg_manage %s: cmd meta lib not exist!",
-                bpg_pkg_manage_name(mgr));
-            return NULL;
-        }
-
-        mgr->m_cmd_meta = dr_lib_find_meta_by_name(metalib, mgr->m_cmd_meta_name);
-        if (mgr->m_cmd_meta == NULL) {
-            CPE_ERROR(
-                mgr->m_em, "bpg_pkg_manage %s: cmd meta %s not exist in metalib!",
-                bpg_pkg_manage_name(mgr), mgr->m_cmd_meta_name);
-            return NULL;
-        } 
-    }
-
-    return mgr->m_cmd_meta;
+const char * bpg_pkg_manage_data_metalib_name(bpg_pkg_manage_t mgr) {
+    return mgr->m_metalib_ref 
+        ? dr_lib_name(dr_ref_lib(mgr->m_metalib_ref))
+        : "???";
 }
 
 LPDRMETALIB bpg_pkg_manage_basepkg_metalib(bpg_pkg_manage_t mgr) {
@@ -291,30 +333,26 @@ LPDRMETA bpg_pkg_manage_basepkg_head_meta(bpg_pkg_manage_t mgr) {
     return metalib ? dr_lib_find_meta_by_name(metalib, "basepkg_head") : NULL;
 }
 
-const char *
-bpg_pkg_manage_cmd_meta_name(bpg_pkg_manage_t mgr) {
-    return mgr->m_cmd_meta_name;
+LPDRMETA bpg_pkg_manage_find_meta_by_cmd(bpg_pkg_manage_t mgr, uint32_t cmd) {
+    struct bpg_pkg_cmd_info * r;
+    struct bpg_pkg_cmd_info key;
+    key.m_cmd = cmd;
+
+    r = (struct bpg_pkg_cmd_info *)cpe_hash_table_find(&mgr->m_cmd_info_by_cmd, &key);
+    return r ? r->m_cmd_meta : NULL;
 }
 
-int bpg_pkg_find_cmd_from_meta_name(
-    uint32_t * cmd, bpg_pkg_manage_t mgr, const char * meta_name)
-{
-    int entry_count, i;
-    LPDRMETA cmd_meta;
+int bpg_pkg_find_cmd_from_meta_name(uint32_t * cmd, bpg_pkg_manage_t mgr, const char * meta_name) {
+    struct bpg_pkg_cmd_info * r;
+    struct bpg_pkg_cmd_info key;
+    key.m_name = meta_name;
 
-    cmd_meta = bpg_pkg_manage_cmd_meta(mgr);
-    if (cmd_meta == NULL) return -1;
-
-    entry_count = dr_meta_entry_num(cmd_meta);
-
-    for(i = 0; i < entry_count; ++i) {
-        LPDRMETAENTRY entry = dr_meta_entry_at(cmd_meta, i);
-        LPDRMETA entry_meta = dr_entry_ref_meta(entry);
-        if (strcmp(dr_meta_name(entry_meta), meta_name) == 0) {
-            *cmd = dr_entry_id(entry);
-            return 0;
-        }
+    r = (struct bpg_pkg_cmd_info *)cpe_hash_table_find(&mgr->m_cmd_info_by_name, &key);
+    if (r) {
+        *cmd = r->m_cmd;
+        return 0;
     }
-
-    return -1;
+    else {
+        return -1;
+    }
 }

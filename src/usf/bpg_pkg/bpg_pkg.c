@@ -1,6 +1,7 @@
 #include <assert.h>
 #include "cpe/pal/pal_strings.h"
 #include "cpe/utils/stream_buffer.h"
+#include "cpe/dr/dr_metalib_init.h"
 #include "cpe/dr/dr_metalib_manage.h"
 #include "cpe/dr/dr_cvt.h"
 #include "cpe/dr/dr_json.h"
@@ -212,40 +213,8 @@ LPDRMETA bpg_pkg_base_meta(bpg_pkg_t pkg) {
     return metalib ? dr_lib_find_meta_by_name(metalib, "basepkg") : NULL;
 }
 
-LPDRMETA bpg_pkg_cmd_meta(bpg_pkg_t pkg) {
-    return bpg_pkg_manage_cmd_meta(pkg->m_mgr);
-}
-
 LPDRMETA bpg_pkg_main_data_meta(bpg_pkg_t pkg, error_monitor_t em) {
-    LPDRMETA cmd_meta;
-    int cmd_entry_idx;
-    LPDRMETA data_meta;
-
-    cmd_meta = bpg_pkg_cmd_meta(pkg);
-    if (cmd_meta == NULL) {
-        CPE_ERROR(
-            em, "%s: bpg_pkg_main_data_meta: cmd meta \"%s\" not exist!",
-            bpg_pkg_manage_name(pkg->m_mgr), pkg->m_mgr->m_cmd_meta_name);
-        return NULL;
-    }
-
-    cmd_entry_idx = dr_meta_find_entry_idx_by_id(cmd_meta, bpg_pkg_cmd(pkg));
-    if (cmd_entry_idx < 0) {
-        CPE_ERROR(
-            em, "%s: bpg_pkg_main_data_meta:  meta \"%s\" have no entry associate with cmd %d!",
-            bpg_pkg_manage_name(pkg->m_mgr), dr_meta_name(cmd_meta), bpg_pkg_cmd(pkg));
-        return NULL;
-    }
-
-    data_meta = dr_entry_ref_meta(dr_meta_entry_at(cmd_meta, cmd_entry_idx));
-    if (data_meta == NULL) {
-        CPE_ERROR(
-            em, "%s: bpg_pkg_main_data_meta:  %s[%d] have no associate meta!",
-            bpg_pkg_manage_name(pkg->m_mgr), dr_meta_name(cmd_meta), cmd_entry_idx);
-        return NULL;
-    }
-
-    return data_meta;
+    return bpg_pkg_manage_find_meta_by_cmd(pkg->m_mgr, bpg_pkg_cmd(pkg));
 }
 
 LPDRMETA bpg_pkg_append_data_meta(bpg_pkg_t pkg, bpg_pkg_append_info_t append_info, error_monitor_t em) {
@@ -255,8 +224,8 @@ LPDRMETA bpg_pkg_append_data_meta(bpg_pkg_t pkg, bpg_pkg_append_info_t append_in
     metalib = bpg_pkg_manage_data_metalib(pkg->m_mgr);
     if (metalib == NULL) {
         CPE_ERROR(
-            em, "%s: bpg_pkg_append_data_meta:  data meta \"%s\" not exist!",
-            bpg_pkg_manage_name(pkg->m_mgr), pkg->m_mgr->m_cmd_meta_name);
+            em, "%s: bpg_pkg_append_data_meta:  data meta not exist!",
+            bpg_pkg_manage_name(pkg->m_mgr));
         return NULL;
     }
 
@@ -264,7 +233,7 @@ LPDRMETA bpg_pkg_append_data_meta(bpg_pkg_t pkg, bpg_pkg_append_info_t append_in
     if (data_meta == NULL) {
         CPE_ERROR(
             em, "%s: bpg_pkg_append_data_meta:  meta of id %d not exist in lib %s!",
-            bpg_pkg_manage_name(pkg->m_mgr), bpg_pkg_append_info_id(append_info), pkg->m_mgr->m_cmd_meta_name);
+            bpg_pkg_manage_name(pkg->m_mgr), bpg_pkg_append_info_id(append_info), dr_lib_name(metalib));
         return NULL;
     }
 

@@ -2,7 +2,7 @@
 #include "cpe/dp/dp_manage.h"
 #include "usf/bpg_pkg/bpg_pkg.h"
 #include "usf/bpg_bind/bpg_bind_manage.h"
-#include "bpg_bind_internal_types.h"
+#include "bpg_bind_internal_ops.h"
 
 int bpg_bind_manage_rsp(dp_req_t req, void * ctx, error_monitor_t em) {
     bpg_bind_manage_t mgr = (bpg_bind_manage_t)ctx;
@@ -31,20 +31,15 @@ int bpg_bind_manage_rsp(dp_req_t req, void * ctx, error_monitor_t em) {
 		binding->m_client_id = bpg_pkg_client_id(pkg);
 		binding->m_connection_id = bpg_pkg_connection_id(pkg);
 
-		printf("--forrestsong---111 client_id %d, connection_id %d\n", binding->m_client_id, binding->m_connection_id);
-
 		if (binding->m_client_id != 0)
 		{
 			void * pUserFound = cpe_hash_table_find(&mgr->m_cliensts, binding);
 			if (pUserFound != NULL)
 			{
 				struct bpg_bind_binding * found_binding = (struct bpg_bind_binding *) pUserFound;
-				printf("--forrestsong---222 client_id %d, connection_id %d\n", found_binding->m_client_id, found_binding->m_connection_id);
 
 				if (found_binding->m_connection_id != binding->m_connection_id)
 				{
-					printf("----forrestsong----connection %d need removed\n", found_binding->m_connection_id);
-
 					//如果找到了冲突的用户，构造消息包，通知冲突的用户下线，同时删除该用户
 					bpg_pkg_t kickoff_packet = bpg_pkg_create(mgr->m_pkg_manage, 4096, NULL, 0);
 					if (kickoff_packet != NULL)
@@ -68,10 +63,7 @@ int bpg_bind_manage_rsp(dp_req_t req, void * ctx, error_monitor_t em) {
 				}
 			}
 
-			printf("==========forrestsong-----------start bind----\n");
 			bpg_bind_process_binding(mgr, binding->m_client_id, binding->m_connection_id);
-
-			
 		}
 
 		mem_free(mgr->m_alloc, binding);
