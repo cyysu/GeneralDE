@@ -128,15 +128,12 @@ int bpg_net_agent_notify_client(dp_req_t req, void * ctx, error_monitor_t em) {
     }
     
 	net_ep_set_status(ep, NET_REMOVE_AFTER_SEND);
-	//net_ep_close(ep);
 
-	printf("socket connect_id %d, client_id %d has beed closed \n", bpg_pkg_connection_id(pkg), bpg_pkg_client_id(pkg));
-    //if (agent->m_debug >= 2) {
-    //    CPE_ERROR(
-    //        agent->m_em,
-    //        "%s: bpg_net_agent_reply: send one response, write-size=" FMT_SIZE_T " !\n\n",
-    //        bpg_net_agent_name(agent), write_size);
-    //}
+    if (agent->m_debug >= 2) {
+        CPE_ERROR(
+            agent->m_em, "socket connect_id %d, client_id "FMT_UINT64_T" has beed closed",
+            bpg_pkg_connection_id(pkg), bpg_pkg_client_id(pkg));
+    }
 
     return 0;
 }
