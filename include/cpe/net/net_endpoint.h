@@ -31,6 +31,8 @@ net_connector_t net_ep_connector(net_ep_t ep);
 
 void net_ep_set_processor(net_ep_t ep, net_process_fun_t process_fun, void * process_ctx);
 
+void net_ep_set_status(net_ep_t ep, enum net_status status);
+
 /*服务读写接口*/
 int net_ep_send(net_ep_t ep, const void * buf, size_t size);
 ssize_t net_ep_rece(net_ep_t ep, void * buf, size_t capacity);
