@@ -138,7 +138,9 @@ int otm_manage_enable(otm_manage_t mgr, otm_timer_id_t id, uint32_t cur_time_s, 
     timer = otm_timer_find(mgr, id);
     if (timer == NULL) return -1;
 
-    otm_timer_enable(timer, cur_time_s, first_exec_span_s, timer_memo);
+	if(!otm_timer_is_enable(timer, timer_memo)) {
+		otm_timer_enable(timer, cur_time_s, first_exec_span_s, timer_memo);
+	}
 
     return 0;
 }
