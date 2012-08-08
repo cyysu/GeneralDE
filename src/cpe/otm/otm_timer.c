@@ -127,3 +127,8 @@ void otm_timer_disable(otm_timer_t timer, otm_memo_t memo) {
     memo->m_last_action_time_s = 0;
     memo->m_next_action_time_s = 0;
 }
+
+int otm_timer_is_enable(otm_timer_t timer, otm_memo_t memo)
+{
+	return memo->m_last_action_time_s != 0 || memo->m_next_action_time_s != 0;
+}
