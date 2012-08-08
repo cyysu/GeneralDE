@@ -193,7 +193,7 @@ tl_time_span_t bpg_net_agent_conn_timeout(bpg_net_agent_t agent) {
 bpg_pkg_t
 bpg_net_agent_req_buf(bpg_net_agent_t mgr) {
     if (mgr->m_req_buf) {
-        if (bpg_pkg_pkg_capacity(mgr->m_req_buf) < mgr->m_req_max_size) {
+        if (bpg_pkg_pkg_data_capacity(mgr->m_req_buf) < mgr->m_req_max_size) {
             bpg_pkg_free(mgr->m_req_buf);
             mgr->m_req_buf = NULL;
         }

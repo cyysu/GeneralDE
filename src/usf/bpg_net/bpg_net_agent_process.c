@@ -48,7 +48,7 @@ static void bpg_net_agent_on_read(bpg_net_agent_t agent, net_ep_t ep) {
         }
 
         input_size = buf_size;
-        output_size = bpg_pkg_pkg_capacity(req_buf);
+        output_size = bpg_pkg_pkg_data_capacity(req_buf);
 
         bpg_pkg_init(req_buf);
 

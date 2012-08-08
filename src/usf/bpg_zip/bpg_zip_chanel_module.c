@@ -111,6 +111,8 @@ int bpg_zip_chanel_app_init(gd_app_context_t app, gd_app_module_t module, cfg_t 
         bpg_zip_chanel_free(bpg_zip_chanel);
     }
 
+    bpg_zip_chanel->m_size_threshold = cfg_get_uint32(cfg, "size-threshold", bpg_zip_chanel->m_size_threshold);
+
     bpg_zip_chanel->m_debug = cfg_get_int32(cfg, "debug", 0);
 
     if (bpg_zip_chanel->m_debug) {

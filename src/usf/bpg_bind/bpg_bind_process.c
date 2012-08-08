@@ -54,7 +54,6 @@ int bpg_bind_manage_rsp(dp_req_t req, void * ctx, error_monitor_t em) {
 						//}
 						dp_req_t resreq = bpg_pkg_to_dp_req(kickoff_packet);
 						dp_dispatch_by_string(mgr->m_reply_to, resreq, mgr->m_em);
-						printf("-----forrestsong---connection %d to be removed\n", found_binding->m_connection_id);
 						cpe_hash_table_remove_by_key(&mgr->m_cliensts, found_binding);
 						cpe_hash_table_remove_by_key(&mgr->m_connections, found_binding);
 

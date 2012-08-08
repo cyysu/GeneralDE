@@ -178,7 +178,7 @@ bpg_net_client_name_hs(bpg_net_client_t mgr) {
 bpg_pkg_t
 bpg_net_client_req_buf(bpg_net_client_t mgr) {
     if (mgr->m_req_buf) {
-        if (bpg_pkg_pkg_capacity(mgr->m_req_buf) < mgr->m_req_max_size) {
+        if (bpg_pkg_pkg_data_capacity(mgr->m_req_buf) < mgr->m_req_max_size) {
             bpg_pkg_free(mgr->m_req_buf);
             mgr->m_req_buf = NULL;
         }

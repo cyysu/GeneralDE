@@ -46,7 +46,7 @@ bpg_zip_chanel_create(
     chanel->m_unzip_send_to = NULL;
     chanel->m_unzip_recv_at = NULL;
     chanel->m_mask_bit = 0;
-
+    chanel->m_size_threshold = 0;
     mem_buffer_init(&chanel->m_data_buf, gd_app_alloc(app));
 
     nm_node_set_type(mgr_node, &s_nm_node_type_bpg_zip_chanel);
@@ -211,3 +211,10 @@ int bpg_zip_chanel_set_unzip_recv_at(bpg_zip_chanel_t chanel, const char * name)
     return 0;
 }
 
+uint32_t bpg_zip_chanel_size_threshold(bpg_zip_chanel_t chanel) {
+    return chanel->m_size_threshold;
+}
+
+void bpg_zip_chanel_set_size_threshold(bpg_zip_chanel_t chanel, uint32_t threaded) {
+    chanel->m_size_threshold = threaded;
+}

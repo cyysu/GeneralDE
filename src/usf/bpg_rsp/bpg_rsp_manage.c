@@ -215,7 +215,7 @@ bpg_rsp_manage_rsp_buf(bpg_rsp_manage_t mgr, const char * pkg_mgr_name, LPDRMETA
         if (strcmp(bpg_pkg_manage_name(bpg_pkg_mgr(mgr->m_rsp_buf)), pkg_mgr_name) != 0
             || bpg_pkg_carry_data_meta(mgr->m_rsp_buf) != carry_meta
             || bpg_pkg_carry_data_capacity(mgr->m_rsp_buf) < carry_capacity
-            || bpg_pkg_pkg_capacity(mgr->m_rsp_buf) < mgr->m_rsp_max_size)
+            || bpg_pkg_pkg_data_capacity(mgr->m_rsp_buf) < mgr->m_rsp_max_size)
         {
             bpg_pkg_free(mgr->m_rsp_buf);
             mgr->m_rsp_buf = NULL;

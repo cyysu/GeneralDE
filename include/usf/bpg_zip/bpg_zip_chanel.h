@@ -30,6 +30,9 @@ int bpg_zip_chanel_set_zip_recv_at(bpg_zip_chanel_t chanel, const char * name);
 int bpg_zip_chanel_set_unzip_send_to(bpg_zip_chanel_t chanel, cfg_t cfg);
 int bpg_zip_chanel_set_unzip_recv_at(bpg_zip_chanel_t chanel, const char * name);
 
+uint32_t bpg_zip_chanel_size_threshold(bpg_zip_chanel_t chanel);
+void bpg_zip_chanel_set_size_threshold(bpg_zip_chanel_t chanel, uint32_t threaded);
+
 #ifdef __cplusplus
 }
 #endif

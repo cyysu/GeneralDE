@@ -201,7 +201,7 @@ bpg_pkg_manage_t bpg_cli_proxy_pkg_manage(bpg_cli_proxy_t proxy) {
 bpg_pkg_t
 bpg_cli_proxy_pkg_buf(bpg_cli_proxy_t proxy) {
     if (proxy->m_send_pkg_buf) {
-        if (bpg_pkg_pkg_capacity(proxy->m_send_pkg_buf) < proxy->m_send_pkg_max_size) {
+        if (bpg_pkg_pkg_data_capacity(proxy->m_send_pkg_buf) < proxy->m_send_pkg_max_size) {
             bpg_pkg_free(proxy->m_send_pkg_buf);
             proxy->m_send_pkg_buf = NULL;
         }

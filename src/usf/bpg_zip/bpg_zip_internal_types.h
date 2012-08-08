@@ -17,6 +17,7 @@ struct bpg_zip_chanel {
     dp_rsp_t m_unzip_recv_at;
     bpg_pkg_dsp_t m_unzip_send_to;
 
+    uint32_t m_size_threshold;
     uint8_t m_mask_bit;
 
     struct mem_buffer m_data_buf;
