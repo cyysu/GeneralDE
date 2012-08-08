@@ -31,7 +31,7 @@ void * bpg_pkg_carry_data(bpg_pkg_t pkg);
 size_t bpg_pkg_carry_data_size(bpg_pkg_t pkg);
 int bpg_pkg_carry_data_set_size(bpg_pkg_t pkg, size_t size);
 
-size_t bpg_pkg_pkg_capacity(bpg_pkg_t pkg);
+size_t bpg_pkg_pkg_data_capacity(bpg_pkg_t pkg);
 
 void * bpg_pkg_pkg_data(bpg_pkg_t pkg);
 size_t bpg_pkg_pkg_data_size(bpg_pkg_t pkg);
@@ -60,11 +60,17 @@ uint64_t bpg_pkg_client_id(bpg_pkg_t pkg);
 void bpg_pkg_set_client_id(bpg_pkg_t pkg, uint64_t client_id);
 
 uint32_t bpg_pkg_sn(bpg_pkg_t pkg);
-void bpg_pkg_set_sn(bpg_pkg_t pkg, uint32_t cmd);
+void bpg_pkg_set_sn(bpg_pkg_t pkg, uint32_t sn);
+
+uint32_t bpg_pkg_flags(bpg_pkg_t pkg);
+void bpg_pkg_set_flags(bpg_pkg_t pkg, uint32_t flags);
 
 void * bpg_pkg_body_data(bpg_pkg_t pkg);
 uint32_t bpg_pkg_body_len(bpg_pkg_t pkg);
 uint32_t bpg_pkg_body_origin_len(bpg_pkg_t pkg);
+
+uint32_t bpg_pkg_body_total_len(bpg_pkg_t pkg);
+void bpg_pkg_set_body_total_len(bpg_pkg_t pkg, uint32_t len);
 
 int32_t bpg_pkg_append_info_count(bpg_pkg_t pkg);
 bpg_pkg_append_info_t bpg_pkg_append_info_at(bpg_pkg_t pkg, int32_t pos);

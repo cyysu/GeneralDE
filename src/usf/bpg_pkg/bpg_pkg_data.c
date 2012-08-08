@@ -24,7 +24,7 @@ int bpg_pkg_set_main_data(bpg_pkg_t pkg, LPDRMETA meta, void const * buf, size_t
 
     cur_size = sizeof(BASEPKG_HEAD);
 
-    use_size = bpg_pkg_pkg_capacity(pkg) - cur_size;
+    use_size = bpg_pkg_pkg_data_capacity(pkg) - cur_size;
     input_size = capacity;
     if (dr_cvt_encode(
             bpg_pkg_data_cvt(pkg),
@@ -89,7 +89,7 @@ int bpg_pkg_add_append_data(bpg_pkg_t pkg, LPDRMETA meta, const void * buf, size
     }
 
     cur_size = bpg_pkg_pkg_data_size(pkg);
-    use_size = bpg_pkg_pkg_capacity(pkg) - cur_size;
+    use_size = bpg_pkg_pkg_data_capacity(pkg) - cur_size;
     input_size = capacity;
 
     if (dr_cvt_encode(
@@ -101,7 +101,7 @@ int bpg_pkg_add_append_data(bpg_pkg_t pkg, LPDRMETA meta, const void * buf, size
     {
         CPE_ERROR(
             em, "bpg_pkg_pkg_data: encode fail, decode-buf-size=%d!",
-            (int)(bpg_pkg_pkg_capacity(pkg) - cur_size));
+            (int)(bpg_pkg_pkg_data_capacity(pkg) - cur_size));
         return -1;
     }
 
