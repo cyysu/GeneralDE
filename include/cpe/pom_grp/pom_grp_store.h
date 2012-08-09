@@ -3,6 +3,7 @@
 #include "cpe/utils/error.h"
 #include "cpe/utils/buffer.h"
 #include "cpe/dr/dr_types.h"
+#include "cpe/cfg/cfg_types.h"
 #include "pom_grp_types.h"
 
 #ifdef __cplusplus

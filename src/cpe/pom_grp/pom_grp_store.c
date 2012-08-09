@@ -65,6 +65,14 @@ pom_grp_store_create(
     store->m_store_metalib = (LPDRMETALIB)mem_buffer_make_continuous(&store->m_store_metalib_buffer, 0);
     assert(store->m_store_metalib);
 
+    if (pom_grp_store_table_build(store, main_entry, key) != 0) {
+        cpe_hash_table_fini(&store->m_entries);
+        cpe_hash_table_fini(&store->m_tables);
+        mem_buffer_clear(&store->m_store_metalib_buffer);
+        mem_free(alloc, store);
+        return NULL;
+    }
+
     return store;
 }
 

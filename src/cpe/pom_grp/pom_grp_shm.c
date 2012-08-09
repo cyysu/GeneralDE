@@ -186,7 +186,7 @@ int pom_grp_shm_dump(int shm_key, write_stream_t stream, int ident, error_monito
         return -1;
     }
 
-    if (pom_grp_obj_cfg_dump_to_stream(stream, pom_grp_obj_mgr, em) != 0) {
+    if (pom_grp_obj_cfg_dump_all_to_stream(stream, pom_grp_obj_mgr, em) != 0) {
         CPE_ERROR(em, "shm : dump fail!");
     }
 
