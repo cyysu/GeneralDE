@@ -89,7 +89,6 @@ int pom_gs_pkg_buf_resize(pom_gs_pkg_t pkg, struct pom_gs_pkg_data_entry * data_
         int move_size = (int)dp_req_size(pkg->m_dp_req) - (int)data_entry->m_start - (int)data_entry->m_capacity;
 
         assert(move_size >= 0);
-
         memmove(move_start, move_start + inc_size, move_size);
     }
 

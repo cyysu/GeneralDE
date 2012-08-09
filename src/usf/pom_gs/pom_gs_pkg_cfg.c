@@ -57,7 +57,7 @@ int pom_gs_pkg_cfg_load(pom_gs_pkg_t pkg, cfg_t cfg, error_monitor_t em) {
     rv = 0;
 
     for(i = 0; i < pkg->m_entry_count; ++i) {
-        data_entry = &pkg->m_entries[i];
+        data_entry = pkg->m_entries + i;
 
         child_cfg = cfg_struct_find_cfg(cfg, pom_grp_store_table_name(data_entry->m_table));
         if (child_cfg == NULL) {
@@ -76,7 +76,7 @@ int pom_gs_pkg_cfg_load(pom_gs_pkg_t pkg, cfg_t cfg, error_monitor_t em) {
         }
 
         buf = pom_gs_pkg_entry_buf(pkg, data_entry);
-        if (dr_cfg_read(buf, capacity, cfg, data_meta, 0, em) != 0) {
+        if (dr_cfg_read(buf, capacity, child_cfg, data_meta, 0, em) < 0) {
             CPE_ERROR(
                 em, "pom_grp_pkg_load: %s: read date fail!", 
                 pom_grp_store_table_name(data_entry->m_table));

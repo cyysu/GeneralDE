@@ -13,7 +13,15 @@ class PomGsPkg : public Cpe::Utils::SimulateObject {
 public:
     operator pom_gs_pkg_t () const { return (pom_gs_pkg_t)this; }
 
-    
+    PomGsAgent & agent(void) { return *(PomGsAgent*)pom_gs_pkg_agent(*this); }
+    PomGsAgent const & agent(void) const { return *(PomGsAgent const *)pom_gs_pkg_agent(*this); }
+
+    void setEntry(LPDRMETA meta, void const * data, size_t capacity, const char * entry_name = 0);
+
+    template<typename T>
+    void setEntry(T const & data, const char * entry_name = 0) {
+        setData(Cpe::Dr::MetaTraits<T>::META, &data, sizeof(data), entry_name);
+    }
 };
 
 }}

@@ -1,3 +1,4 @@
+#include "usf/pom_gs/pom_gs_pkg_cfg.h"
 #include "PomGsPkgTest.hpp"
 
 class PomGsPkgBasicTest : public PomGsPkgTest {
@@ -45,4 +46,20 @@ TEST_F(PomGsPkgBasicTest, not_exist) {
     EXPECT_TRUE(NULL == pom_gs_pkg_table_buf(m_pkg, "not-exist", &capacity));
     EXPECT_EQ((size_t)0, capacity);
     EXPECT_EQ(0, pom_gs_pkg_table_buf_capacity(m_pkg, "not-exist"));
+}
+
+TEST_F(PomGsPkgBasicTest, cfg_basic) {
+    t_em_set_print();
+
+    t_pom_gs_pkg_load(
+        m_pkg,
+        "AttrGroup1:\n"
+        "    a1: 1"
+        );
+
+    EXPECT_CFG_EQ_PART(
+        "AttrGroup1:\n"
+        "    a1: 1"
+        ,
+        t_pom_gs_pkg_dump_to_cfg(m_pkg));
 }

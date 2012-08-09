@@ -1,5 +1,5 @@
-#ifndef USF_POM_GS_DATA_H
-#define USF_POM_GS_DATA_H
+#ifndef USF_POM_GS_PKG_CFG_H
+#define USF_POM_GS_PKG_CFG_H
 #include "cpe/cfg/cfg_types.h"
 #include "pom_gs_types.h"
 
