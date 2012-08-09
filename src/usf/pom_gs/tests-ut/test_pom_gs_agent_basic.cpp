@@ -29,3 +29,13 @@ public:
 
 TEST_F(PomGsAgentBasicTest, basic) {
 }
+
+TEST_F(PomGsAgentBasicTest, insert_by_obj) {
+    pom_grp_obj_t obj = t_pom_grp_obj_create(
+        m_pom_grp_obj_mgr,
+        "entry1: { a1: 1 }"
+        );
+    EXPECT_TRUE(obj);
+
+    
+}

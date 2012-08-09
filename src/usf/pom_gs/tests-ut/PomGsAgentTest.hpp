@@ -37,6 +37,7 @@ public:
         const char * key);
 
     pom_grp_meta_t m_pom_grp_meta;
+    pom_grp_obj_mgr_t m_pom_grp_obj_mgr;
     pom_gs_agent_t m_agent;
 };
 

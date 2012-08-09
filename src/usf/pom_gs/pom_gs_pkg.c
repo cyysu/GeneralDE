@@ -68,14 +68,14 @@ void pom_gs_pkg_init(pom_gs_pkg_t pkg) {
     dp_req_set_size(pkg->m_dp_req, pom_gs_pkg_head_capacity(pkg->m_entry_count));
 }
 
-static int pom_gs_pkg_buf_resize(pom_gs_pkg_t pkg, struct pom_gs_pkg_data_entry * data_entry, size_t capacity) {
+int pom_gs_pkg_buf_resize(pom_gs_pkg_t pkg, struct pom_gs_pkg_data_entry * data_entry, size_t capacity) {
     pom_gs_agent_t agent;
-    size_t inc_size = capacity - data_entry->m_capacity;
+    int inc_size = (int)capacity - (int)data_entry->m_capacity;
     uint32_t index;
 
     agent = pkg->m_agent;
 
-    if (dp_req_size(pkg->m_dp_req) + inc_size > dp_req_capacity(pkg->m_dp_req)) {
+    if ((int)dp_req_size(pkg->m_dp_req) + inc_size > (int)dp_req_capacity(pkg->m_dp_req)) {
         CPE_ERROR(
             agent->m_em, "%s: pom_gs_pkg_buf_resize for %s: not enough buf, old-capacity=%d, new-capacity=%d, pkg-capacity=%d",
             pom_gs_agent_name(agent), pom_grp_store_table_name(data_entry->m_table),
@@ -99,21 +99,23 @@ static int pom_gs_pkg_buf_resize(pom_gs_pkg_t pkg, struct pom_gs_pkg_data_entry 
     return 0;
 }
 
-void * pom_gs_pkg_buf(pom_gs_pkg_t pkg, const char * table_name, size_t capacity) {
+void * pom_gs_pkg_table_buf(pom_gs_pkg_t pkg, const char * table_name, size_t * capacity) {
     struct pom_gs_pkg_data_entry * data_entry;
     uint32_t i;
 
+    assert(capacity);
+
     for(i = 0; i < pkg->m_entry_count; ++i) {
         data_entry = &pkg->m_entries[i];
-
-        if (strcmp(pom_grp_store_table_name(data_entry->m_table), table_name) == 0) break;;
+        if (strcmp(pom_grp_store_table_name(data_entry->m_table), table_name) == 0) break;
     }
 
     if (i >= pkg->m_entry_count) return NULL;
 
-    if (capacity == 0) capacity = dr_meta_size(pom_grp_store_table_meta(data_entry->m_table));
+    LPDRMETA meta = pom_grp_store_table_meta(data_entry->m_table);
+    if (*capacity == 0) *capacity = dr_meta_size(meta);
 
-    if (pom_gs_pkg_buf_resize(pkg, data_entry, capacity) != 0) {
+    if (pom_gs_pkg_buf_resize(pkg, data_entry, *capacity) != 0) {
         CPE_ERROR(
             pkg->m_agent->m_em, "%s: pom_gs_pkg_buf for %s: resize fail!",
             pom_gs_agent_name(pkg->m_agent), pom_grp_store_table_name(data_entry->m_table));
@@ -123,7 +125,28 @@ void * pom_gs_pkg_buf(pom_gs_pkg_t pkg, const char * table_name, size_t capacity
     return pom_gs_pkg_entry_buf(pkg, data_entry);
 }
 
-size_t pom_gs_pkg_buf_capacity(pom_gs_pkg_t pkg, const char * table_name) {
+int pom_gs_pkg_table_buf_clear(pom_gs_pkg_t pkg, const char * table_name) {
+    struct pom_gs_pkg_data_entry * data_entry;
+    uint32_t i;
+
+    for(i = 0; i < pkg->m_entry_count; ++i) {
+        data_entry = &pkg->m_entries[i];
+        if (strcmp(pom_grp_store_table_name(data_entry->m_table), table_name) == 0) break;
+    }
+
+    if (i >= pkg->m_entry_count) return -1;
+    
+    if (pom_gs_pkg_buf_resize(pkg, data_entry, 0) != 0) {
+        CPE_ERROR(
+            pkg->m_agent->m_em, "%s: pom_gs_pkg_clear for %s: resize fail!",
+            pom_gs_agent_name(pkg->m_agent), pom_grp_store_table_name(data_entry->m_table));
+        return -1;
+    }
+
+    return 0;
+}
+
+size_t pom_gs_pkg_table_buf_capacity(pom_gs_pkg_t pkg, const char * table_name) {
     struct pom_gs_pkg_data_entry * data_entry;
     uint32_t i;
 

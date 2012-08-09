@@ -3,7 +3,9 @@
 #include "PomGsAgentTest.hpp"
 
 PomGsAgentTest::PomGsAgentTest()
-  : m_pom_grp_meta(NULL), m_agent(NULL)
+    : m_pom_grp_meta(NULL)
+    , m_pom_grp_obj_mgr(NULL)
+    , m_agent(NULL)
 {
 }
 
@@ -14,6 +16,7 @@ void PomGsAgentTest::SetUp() {
 void PomGsAgentTest::TearDown() {
     if (m_agent) pom_gs_agent_free(m_agent);
     if (m_pom_grp_meta) pom_grp_meta_free(m_pom_grp_meta);
+    if (m_pom_grp_obj_mgr) pom_grp_obj_mgr_free(m_pom_grp_obj_mgr);
 
     Base::TearDown();
 }
@@ -26,10 +29,14 @@ void PomGsAgentTest::installAgent(
 {
     if (m_agent) { pom_gs_agent_free(m_agent); m_agent = NULL; }
     if (m_pom_grp_meta) { pom_grp_meta_free(m_pom_grp_meta); m_pom_grp_meta = NULL; }
+    if (m_pom_grp_obj_mgr) pom_grp_obj_mgr_free(m_pom_grp_obj_mgr);
 
     m_pom_grp_meta = t_pom_grp_meta_create(om_meta, metalib);
     ASSERT_TRUE(m_pom_grp_meta);
     if (m_pom_grp_meta == NULL) return;
+
+    m_pom_grp_obj_mgr = t_pom_grp_obj_mgr_create(om_meta, metalib);
+    ASSERT_TRUE(m_pom_grp_obj_mgr);
 
     m_agent = pom_gs_agent_create(
         t_app(), 

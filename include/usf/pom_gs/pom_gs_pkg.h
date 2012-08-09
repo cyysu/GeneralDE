@@ -1,6 +1,5 @@
 #ifndef USF_POM_GS_DATA_H
 #define USF_POM_GS_DATA_H
-#include "cpe/cfg/cfg_types.h"
 #include "pom_gs_types.h"
 
 #ifdef __cplusplus
@@ -17,8 +16,9 @@ pom_gs_agent_t pom_gs_pkg_agent(pom_gs_pkg_t pkg);
 
 void pom_gs_pkg_init(pom_gs_pkg_t pkg);
 
-void * pom_gs_pkg_buf(pom_gs_pkg_t pkg, const char * table_name, size_t capacity);
-size_t pom_gs_pkg_buf_capacity(pom_gs_pkg_t pkg, const char * table_name);
+int pom_gs_pkg_table_buf_clear(pom_gs_pkg_t pkg, const char * table_name);
+void * pom_gs_pkg_table_buf(pom_gs_pkg_t pkg, const char * table_name, size_t * capacity);
+size_t pom_gs_pkg_table_buf_capacity(pom_gs_pkg_t pkg, const char * table_name);
 
 #ifdef __cplusplus
 }

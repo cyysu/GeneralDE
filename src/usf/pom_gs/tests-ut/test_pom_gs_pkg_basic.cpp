@@ -24,8 +24,25 @@ public:
             "entry1"
             ,
             "a1");
+
+        installPkg();
     }
 };
 
 TEST_F(PomGsPkgBasicTest, basic) {
+    EXPECT_EQ(0, pom_gs_pkg_table_buf_capacity(m_pkg, "AttrGroup1"));
+
+    size_t capacity = 0;
+    EXPECT_TRUE(pom_gs_pkg_table_buf(m_pkg, "AttrGroup1", &capacity));
+    EXPECT_EQ((size_t)30, capacity);
+    EXPECT_EQ(30, pom_gs_pkg_table_buf_capacity(m_pkg, "AttrGroup1"));
+}
+
+TEST_F(PomGsPkgBasicTest, not_exist) {
+    EXPECT_EQ(0, pom_gs_pkg_table_buf_capacity(m_pkg, "not-exist"));
+
+    size_t capacity = 0;
+    EXPECT_TRUE(NULL == pom_gs_pkg_table_buf(m_pkg, "not-exist", &capacity));
+    EXPECT_EQ((size_t)0, capacity);
+    EXPECT_EQ(0, pom_gs_pkg_table_buf_capacity(m_pkg, "not-exist"));
 }
