@@ -10,6 +10,7 @@
 namespace Usf { namespace Pom {
 
 class PomGsAgent;
+class PomGsPkg;
 
 }}
 

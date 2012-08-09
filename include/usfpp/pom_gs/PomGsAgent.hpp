@@ -19,6 +19,8 @@ public:
     Gd::App::Application & app(void) { return Gd::App::Application::_cast(pom_gs_agent_app(*this)); }
     Gd::App::Application const & app(void) const { return Gd::App::Application::_cast(pom_gs_agent_app(*this)); }
 
+    PomGsPkg & pkgBuf(void) { return *(PomGsPkg*)pom_gs_agent_pkg_buf(*this); }
+
     void insert(
         pom_grp_obj_mgr_t obj_mgr,
         pom_grp_obj_t obj,

@@ -30,6 +30,8 @@ gd_app_context_t pom_gs_agent_app(pom_gs_agent_t agent);
 const char * pom_gs_agent_name(pom_gs_agent_t agent);
 cpe_hash_string_t pom_gs_agent_name_hs(pom_gs_agent_t agent);
 
+pom_gs_pkg_t pom_gs_agent_pkg_buf(pom_gs_agent_t agent);
+
 int pom_gs_agent_obj_insert(
     pom_gs_agent_t agent,
     pom_grp_obj_mgr_t obj_mgr,

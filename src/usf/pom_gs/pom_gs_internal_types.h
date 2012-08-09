@@ -17,6 +17,9 @@ struct pom_gs_agent {
 
     pom_grp_store_t m_pom_grp_store;
 
+    pom_gs_pkg_t m_pkg_buf;
+    size_t m_pkg_buf_size;
+
     pom_gs_agent_backend_t m_backend;
     void * m_backend_ctx;
 
