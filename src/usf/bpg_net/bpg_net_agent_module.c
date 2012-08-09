@@ -57,7 +57,6 @@ int bpg_net_agent_app_init(gd_app_context_t app, gd_app_module_t module, cfg_t c
     int accept_queue_size;
     bpg_pkg_manage_t pkg_manage;
     cfg_t reply_recv_cfg;
-    cfg_t reply_notify_cfg;
 
     pkg_manage = bpg_pkg_manage_find_nc(app, cfg_get_string(cfg, "pkg-manage", NULL));
     if (pkg_manage == NULL) {
@@ -75,8 +74,6 @@ int bpg_net_agent_app_init(gd_app_context_t app, gd_app_module_t module, cfg_t c
                 gd_app_module_name(module));
         return -1;
     }
-
-    reply_notify_cfg = cfg_find_cfg(cfg, "notify-client");
 
     ip = cfg_get_string(cfg, "ip", "");
     port = cfg_get_int16(cfg, "port", 0);
@@ -109,16 +106,6 @@ int bpg_net_agent_app_init(gd_app_context_t app, gd_app_module_t module, cfg_t c
                 gd_app_module_name(module));
         bpg_net_agent_free(bpg_net_agent);
         return -1;
-    }
-
-    if (reply_notify_cfg) {
-        if (dp_rsp_bind_by_cfg(bpg_net_agent->m_notify_rsp, reply_notify_cfg, gd_app_em(app)) != 0) {
-            CPE_ERROR(
-                    gd_app_em(app), "%s: create: bind rsp by cfg fail!",
-                    gd_app_module_name(module));
-            bpg_net_agent_free(bpg_net_agent);
-            return -1;
-        }
     }
 
     if (bpg_net_agent_set_dispatch_to(bpg_net_agent, cfg_get_string(cfg, "dispatch-to", NULL)) != 0) {

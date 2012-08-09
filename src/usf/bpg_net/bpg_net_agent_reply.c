@@ -1,34 +1,20 @@
 #include "cpe/pal/pal_stdio.h"
+#include "cpe/utils/hash_string.h"
+#include "cpe/dp/dp_request.h"
 #include "cpe/dr/dr_cvt.h"
 #include "cpe/dr/dr_metalib_manage.h"
 #include "cpe/utils/buffer.h"
 #include "cpe/net/net_endpoint.h"
+#include "gd/vnet/vnet_control_pkg.h"
 #include "usf/bpg_pkg/bpg_pkg.h"
 #include "usf/bpg_net/bpg_net_agent.h"
 #include "bpg_net_internal_ops.h"
 
-int bpg_net_agent_reply(dp_req_t req, void * ctx, error_monitor_t em) {
-    bpg_net_agent_t agent;
-    bpg_pkg_t pkg;
+static int bpg_net_agent_send_to_client(bpg_net_agent_t agent, bpg_pkg_t pkg, error_monitor_t em) {
     size_t pkg_size;
     size_t write_size;
     net_ep_t ep;
     dr_cvt_result_t cvt_result;
-
-    agent = (bpg_net_agent_t)ctx;
-    pkg = bpg_pkg_from_dp_req(req);
-
-    if (pkg == NULL) {
-        CPE_ERROR(
-            em, "%s: bpg_net_agent_reply: input req is not bpg_pkg!",
-            bpg_net_agent_name(agent));
-
-        if (agent->m_debug) {
-            CPE_INFO(agent->m_em, "\n\n");
-        }
-
-        return 0;
-    }
 
     if (agent->m_debug) {
         LPDRMETA main_meta = bpg_pkg_main_data_meta(pkg, NULL);
@@ -132,4 +118,55 @@ int bpg_net_agent_reply(dp_req_t req, void * ctx, error_monitor_t em) {
     }
 
     return 0;
+}
+
+static int bpg_net_agent_process_control_pkg(bpg_net_agent_t agent, vnet_control_pkg_t pkg, error_monitor_t em) {
+    net_ep_t ep;
+
+    ep = net_ep_find(gd_app_net_mgr(agent->m_app), vnet_control_pkg_connection_id(pkg));
+    if (ep == NULL) {
+        CPE_ERROR(
+            em, "%s: bpg_net_agent_process_control_pkg: no connection associate with %d!",
+            bpg_net_agent_name(agent), vnet_control_pkg_connection_id(pkg));
+        return 0;
+    }
+
+    switch(vnet_control_pkg_cmd(pkg)) {
+    case vnet_control_op_disconnect:
+        net_ep_set_status(ep, NET_REMOVE_AFTER_SEND);
+        break;
+    case vnet_control_op_ignore_input:
+        break;
+    }
+
+    return 0;
+}
+
+int bpg_net_agent_reply(dp_req_t req, void * ctx, error_monitor_t em) {
+    bpg_net_agent_t agent;
+    bpg_pkg_t pkg;
+
+    agent = (bpg_net_agent_t)ctx;
+
+    if (cpe_hs_cmp(dp_req_type_hs(req), vnet_control_pkg_type_name) == 0) {
+        return bpg_net_agent_process_control_pkg(
+            agent, vnet_control_pkg_from_dp_req(req), em);
+    }
+    else {
+        pkg = bpg_pkg_from_dp_req(req);
+
+        if (pkg == NULL) {
+            CPE_ERROR(
+                em, "%s: bpg_net_agent_reply: input req is not bpg_pkg!",
+                bpg_net_agent_name(agent));
+
+            if (agent->m_debug) {
+                CPE_INFO(agent->m_em, "\n\n");
+            }
+
+            return 0;
+        }
+
+        return bpg_net_agent_send_to_client(agent, pkg, em);
+    }
 }

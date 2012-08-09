@@ -142,6 +142,29 @@ int bpg_pkg_dsp_dispatch(bpg_pkg_dsp_t dsp, bpg_pkg_t pkg, error_monitor_t em) {
         : -1;
 }
 
+int bpg_pkg_dsp_pass(bpg_pkg_dsp_t dsp, dp_req_t req, error_monitor_t em) {
+    if (dsp->m_dft_dsp == NULL) {
+        CPE_ERROR(em, "bpg_pkg_dsp_pass: no default dsp!");
+        return -1;
+    }
+
+    switch(dsp->m_dft_dsp->m_type) {
+    case bpg_pkg_dsp_to_cmd:
+        return dp_dispatch_by_numeric(
+            dsp->m_dft_dsp->m_target.m_to_cmd, req, em) == 0
+            ? 0
+            : -1;
+    case bpg_pkg_dsp_to_str:
+        return dp_dispatch_by_string(
+            dsp->m_dft_dsp->m_target.m_to_str, req, em) == 0
+            ? 0
+            : -1;
+    default:
+        CPE_ERROR(em, "bpg_pkg_dsp_pass: unknown dispatch type %d", dsp->m_dft_dsp->m_type);
+        return -1;
+    }
+}
+
 struct bpg_pkg_dsp_node *
 bpg_pkg_dsp_create_node_from_cfg(bpg_pkg_dsp_t dsp, const char * str_cmd, int32_t cmd, cfg_t cfg, error_monitor_t em) {
     switch(cfg_type(cfg)) {

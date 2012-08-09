@@ -30,8 +30,6 @@ struct bpg_net_agent {
 
     dp_rsp_t m_reply_rsp;
 
-	dp_rsp_t m_notify_rsp;
-
     int m_debug;
 };
 

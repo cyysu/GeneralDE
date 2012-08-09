@@ -66,10 +66,9 @@ int bpg_zip_chanel_zip_rsp(dp_req_t req, void * ctx, error_monitor_t em) {
     bpg_pkg_set_flags(pkg, flags);
 
     if (chanel->m_debug) {
-        CPE_ERROR(
+        CPE_INFO(
             em, "bpg_zip_chanel_zip_rsp: compress success, size: %d ==> %d, flags 0x%x ==> 0x%x!",
             (int)input_size, (int)output_size, old_flags, flags);
-        return -1;
     }
 
 DISPATCH:
@@ -136,10 +135,9 @@ int bpg_zip_chanel_unzip_rsp(dp_req_t req, void * ctx, error_monitor_t em) {
     bpg_pkg_set_flags(pkg, flags);
 
     if (chanel->m_debug) {
-        CPE_ERROR(
+        CPE_INFO(
             em, "bpg_zip_chanel_unzip_rsp: uncompress success, size: %d ==> %d, flags 0x%x ==> 0x%x!",
             (int)input_size, (int)output_size, old_flags, flags);
-        return -1;
     }
 
 DISPATCH:
