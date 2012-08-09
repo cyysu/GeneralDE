@@ -38,7 +38,7 @@ int pom_gs_agent_obj_insert(pom_gs_agent_t agent, pom_grp_obj_mgr_t obj_mgr, pom
         struct pom_grp_store_entry_it entry_it;
         pom_grp_store_entry_t entry;
         size_t capacity = dr_meta_size(pom_grp_store_table_meta(table));
-        char * buf = pom_gs_agent_buf(agent, capacity);
+        char * buf = (char *)pom_gs_agent_buf(agent, capacity);
         if (buf == NULL) {
             CPE_ERROR(
                 agent->m_em, "%s: obj_insert: get buf for insert %s, capacity=%d",

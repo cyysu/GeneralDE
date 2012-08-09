@@ -44,11 +44,14 @@ pom_gs_agent_create(
 
     agent->m_debug = 0;
 
+    mem_buffer_init(&agent->m_buffer, alloc);
+
     agent->m_pom_grp_store = pom_grp_store_create(alloc, pom_grp_meta, main_entry, key, em);
     if (agent->m_pom_grp_store == NULL) {
         CPE_ERROR(
             em, "%s: create pom_grp_store fail, main_entry=%s, key=%s",
             name, main_entry, key);
+        mem_buffer_clear(&agent->m_buffer);
         nm_node_free(agent_node);
         return NULL;
     }
@@ -61,6 +64,8 @@ pom_gs_agent_create(
 static void pom_gs_agent_clear(nm_node_t node) {
     pom_gs_agent_t agent;
     agent = (pom_gs_agent_t)nm_node_data(node);
+
+    mem_buffer_clear(&agent->m_buffer);
 
     if (agent->m_pkg_buf) {
         pom_gs_pkg_free(agent->m_pkg_buf);
@@ -149,4 +154,12 @@ pom_gs_pkg_t pom_gs_agent_pkg_buf(pom_gs_agent_t agent) {
     }
 
     return agent->m_pkg_buf;
+}
+
+void * pom_gs_agent_buf(pom_gs_agent_t agent, size_t capacity) {
+    if (capacity > mem_buffer_size(&agent->m_buffer)) {
+        mem_buffer_set_size(&agent->m_buffer, capacity);
+    }
+
+    return mem_buffer_make_continuous(&agent->m_buffer, 0);
 }

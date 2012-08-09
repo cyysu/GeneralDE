@@ -27,7 +27,7 @@ public:
         logic_require_t require);
 
     void insert(
-        LPDRMETA meta, const void * data, size_t capacity,
+        pom_gs_pkg_t pkg,
         logic_require_t require);
 
     static PomGsAgent & _cast(pom_gs_agent_t agent);

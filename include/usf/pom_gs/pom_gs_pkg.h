@@ -20,6 +20,8 @@ int pom_gs_pkg_table_buf_clear(pom_gs_pkg_t pkg, const char * table_name);
 void * pom_gs_pkg_table_buf(pom_gs_pkg_t pkg, const char * table_name, size_t * capacity);
 size_t pom_gs_pkg_table_buf_capacity(pom_gs_pkg_t pkg, const char * table_name);
 
+int pom_gs_pkg_set_data(pom_gs_pkg_t pkg, const char * entry_name, void const * data, size_t data_size);
+
 #ifdef __cplusplus
 }
 #endif

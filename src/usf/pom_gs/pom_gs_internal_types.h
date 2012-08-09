@@ -17,6 +17,8 @@ struct pom_gs_agent {
 
     pom_grp_store_t m_pom_grp_store;
 
+    struct mem_buffer m_buffer;
+
     pom_gs_pkg_t m_pkg_buf;
     size_t m_pkg_buf_size;
 

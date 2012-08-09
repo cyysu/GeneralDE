@@ -264,6 +264,8 @@ void bpg_pkg_set_body_total_len(bpg_pkg_t pkg, uint32_t totallen) {
     BASEPKG_HEAD * head;
     head = (BASEPKG_HEAD *)bpg_pkg_pkg_data(pkg);
     head->bodytotallen = totallen;
+
+    bpg_pkg_pkg_data_set_size(pkg, sizeof(BASEPKG_HEAD) + totallen);
 }
 
 void * bpg_pkg_body_data(bpg_pkg_t pkg) {
