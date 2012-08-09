@@ -8,6 +8,7 @@
 #include "cpe/dr/dr_metalib_manage.h"
 #include "gd/app/app_module.h"
 #include "gd/app/app_context.h"
+#include "gd/vnet/vnet_control_pkg.h"
 #include "usf/bpg_pkg/bpg_pkg.h"
 #include "usf/bpg_pkg/bpg_pkg_manage.h"
 #include "usf/bpg_rsp/bpg_rsp_manage.h"
@@ -46,8 +47,13 @@ bpg_bind_manage_create(
     mgr->m_debug = 0;
     mgr->m_pkg_manage = pkg_mgr;
 
-    mgr->m_recv_at = NULL;
-	mgr->m_reply_to = NULL;
+    mgr->m_data_pkg = NULL;
+    mgr->m_control_pkg = NULL;
+
+    mgr->m_incoming_recv_at = NULL;
+	mgr->m_incoming_send_to = NULL;
+    mgr->m_outgoing_recv_at = NULL;
+	mgr->m_outgoing_send_to = NULL;
 
     if (cpe_hash_table_init(
             &mgr->m_cliensts,
@@ -86,9 +92,34 @@ static void bpg_bind_manage_clear(nm_node_t node) {
     cpe_hash_table_fini(&mgr->m_cliensts);
     cpe_hash_table_fini(&mgr->m_connections);
 
-    if (mgr->m_recv_at != NULL) {
-        dp_rsp_free(mgr->m_recv_at);
-        mgr->m_recv_at = NULL;
+    if (mgr->m_data_pkg) {
+        bpg_pkg_free(mgr->m_data_pkg);
+        mgr->m_data_pkg = NULL;
+    }
+
+    if (mgr->m_control_pkg) {
+        vnet_control_pkg_free(mgr->m_control_pkg);
+        mgr->m_control_pkg = NULL;
+    }
+
+    if (mgr->m_incoming_recv_at) {
+        dp_rsp_free(mgr->m_incoming_recv_at);
+        mgr->m_incoming_recv_at = NULL;
+    }
+
+    if (mgr->m_incoming_send_to) {
+        bpg_pkg_dsp_free(mgr->m_incoming_send_to);
+        mgr->m_incoming_send_to = NULL;
+    }
+
+    if (mgr->m_outgoing_recv_at) {
+        dp_rsp_free(mgr->m_outgoing_recv_at);
+        mgr->m_outgoing_recv_at = NULL;
+    }
+
+    if (mgr->m_outgoing_send_to) {
+        bpg_pkg_dsp_free(mgr->m_outgoing_send_to);
+        mgr->m_outgoing_send_to = NULL;
     }
 }
 
@@ -132,31 +163,88 @@ bpg_bind_manage_name_hs(bpg_bind_manage_t mgr) {
     return nm_node_name_hs(nm_node_from_data(mgr));
 }
 
-int bpg_bind_manage_rsp(dp_req_t req, void * ctx, error_monitor_t em);
-int bpg_bind_manage_set_recv_at(bpg_bind_manage_t mgr, const char * name) {
-    char sp_name_buf[128];
-
-    if (mgr->m_recv_at != NULL) {
-        dp_rsp_free(mgr->m_recv_at);
-        mgr->m_recv_at = NULL;
+int bpg_bind_manage_set_incoming_send_to(bpg_bind_manage_t mgr, cfg_t cfg) {
+    if (mgr->m_incoming_send_to != NULL) {
+        bpg_pkg_dsp_free(mgr->m_incoming_send_to);
+        mgr->m_incoming_send_to = NULL;
     }
 
-    snprintf(sp_name_buf, sizeof(sp_name_buf), "%s.recv.sp", bpg_bind_manage_name(mgr));
-    mgr->m_recv_at = dp_rsp_create(gd_app_dp_mgr(mgr->m_app), sp_name_buf);
-    if (mgr->m_recv_at == NULL) {
+    mgr->m_incoming_send_to = bpg_pkg_dsp_create(mgr->m_alloc);
+    if (mgr->m_incoming_send_to == NULL) return -1;
+
+    if (bpg_pkg_dsp_load(mgr->m_incoming_send_to, cfg, mgr->m_em) != 0) return -1;
+
+    return 0;
+}
+
+int bpg_bind_manage_set_incoming_recv_at(bpg_bind_manage_t mgr, const char * name) {
+    char sp_name_buf[128];
+
+    if (mgr->m_incoming_recv_at != NULL) {
+        dp_rsp_free(mgr->m_incoming_recv_at);
+        mgr->m_incoming_recv_at = NULL;
+    }
+
+    snprintf(sp_name_buf, sizeof(sp_name_buf), "%s.incoming.recv.sp", bpg_bind_manage_name(mgr));
+    mgr->m_incoming_recv_at = dp_rsp_create(gd_app_dp_mgr(mgr->m_app), sp_name_buf);
+    if (mgr->m_incoming_recv_at == NULL) {
         CPE_ERROR(
-            mgr->m_em, "%s: bpg_bind_manage_set_recv_at: create rsp fail!",
+            mgr->m_em, "%s: bpg_bind_manage_set_incoming_recv_at: create rsp fail!",
             bpg_bind_manage_name(mgr));
         return -1;
     }
-    dp_rsp_set_processor(mgr->m_recv_at, bpg_bind_manage_rsp, mgr);
+    dp_rsp_set_processor(mgr->m_incoming_recv_at, bpg_bind_manage_incoming_rsp, mgr);
 
-    if (dp_rsp_bind_string(mgr->m_recv_at, name, mgr->m_em) != 0) {
+    if (dp_rsp_bind_string(mgr->m_incoming_recv_at, name, mgr->m_em) != 0) {
         CPE_ERROR(
-            mgr->m_em, "%s: bpg_bind_manage_set_recv_at: bind rsp to %s fail!",
+            mgr->m_em, "%s: bpg_bind_manage_set_incoming_recv_at: bind rsp to %s fail!",
             bpg_bind_manage_name(mgr), name);
-        dp_rsp_free(mgr->m_recv_at);
-        mgr->m_recv_at = NULL;
+        dp_rsp_free(mgr->m_incoming_recv_at);
+        mgr->m_incoming_recv_at = NULL;
+        return -1;
+    }
+
+    return 0;
+}
+
+int bpg_bind_manage_set_outgoing_send_to(bpg_bind_manage_t mgr, cfg_t cfg) {
+    if (mgr->m_outgoing_send_to != NULL) {
+        bpg_pkg_dsp_free(mgr->m_outgoing_send_to);
+        mgr->m_outgoing_send_to = NULL;
+    }
+
+    mgr->m_outgoing_send_to = bpg_pkg_dsp_create(mgr->m_alloc);
+    if (mgr->m_outgoing_send_to == NULL) return -1;
+
+    if (bpg_pkg_dsp_load(mgr->m_outgoing_send_to, cfg, mgr->m_em) != 0) return -1;
+
+    return 0;
+}
+
+int bpg_bind_manage_set_outgoing_recv_at(bpg_bind_manage_t mgr, const char * name) {
+    char sp_name_buf[128];
+
+    if (mgr->m_outgoing_recv_at != NULL) {
+        dp_rsp_free(mgr->m_outgoing_recv_at);
+        mgr->m_outgoing_recv_at = NULL;
+    }
+
+    snprintf(sp_name_buf, sizeof(sp_name_buf), "%s.outgoing.recv.sp", bpg_bind_manage_name(mgr));
+    mgr->m_outgoing_recv_at = dp_rsp_create(gd_app_dp_mgr(mgr->m_app), sp_name_buf);
+    if (mgr->m_outgoing_recv_at == NULL) {
+        CPE_ERROR(
+            mgr->m_em, "%s: bpg_bind_manage_set_outgoing_recv_at: create rsp fail!",
+            bpg_bind_manage_name(mgr));
+        return -1;
+    }
+    dp_rsp_set_processor(mgr->m_outgoing_recv_at, bpg_bind_manage_outgoing_rsp, mgr);
+
+    if (dp_rsp_bind_string(mgr->m_outgoing_recv_at, name, mgr->m_em) != 0) {
+        CPE_ERROR(
+            mgr->m_em, "%s: bpg_bind_manage_set_outgoing_recv_at: bind rsp to %s fail!",
+            bpg_bind_manage_name(mgr), name);
+        dp_rsp_free(mgr->m_outgoing_recv_at);
+        mgr->m_outgoing_recv_at = NULL;
         return -1;
     }
 
@@ -167,21 +255,18 @@ bpg_pkg_manage_t bpg_bind_manage_pkg_manage(bpg_bind_manage_t mgr) {
     return mgr->m_pkg_manage;
 }
 
-int bpg_bind_manage_set_reply_to(bpg_bind_manage_t mgr, const char * reply_to) {
-	size_t name_len;
+bpg_pkg_t bpg_bind_manage_data_pkg(bpg_bind_manage_t mgr) {
+    if (mgr->m_data_pkg == NULL) {
+        mgr->m_data_pkg = bpg_pkg_create(mgr->m_pkg_manage, 256, NULL, 0);
+    }
 
-	if (mgr->m_reply_to) {
-		mem_free(mgr->m_alloc, mgr->m_reply_to);
-		mgr->m_reply_to = NULL;
-	}
+    return mgr->m_data_pkg;
+}
 
-	if (reply_to) {
-		name_len = cpe_hs_len_to_binary_len(strlen(reply_to));
-		mgr->m_reply_to = (cpe_hash_string_t)mem_alloc(mgr->m_alloc, name_len);
-		if (mgr->m_reply_to == NULL) return -1;
+vnet_control_pkg_t bpg_bind_manage_control_pkg(bpg_bind_manage_t mgr) {
+    if (mgr->m_control_pkg == NULL) {
+        mgr->m_control_pkg = vnet_control_pkg_create(mgr->m_app, 0);
+    }
 
-		cpe_hs_init(mgr->m_reply_to, name_len, reply_to);
-	}
-
-	return 0;
+    return mgr->m_control_pkg;
 }

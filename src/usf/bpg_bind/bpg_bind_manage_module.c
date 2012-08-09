@@ -17,8 +17,10 @@ EXPORT_DIRECTIVE
 int bpg_bind_manage_app_init(gd_app_context_t app, gd_app_module_t module, cfg_t cfg) {
     bpg_bind_manage_t bpg_bind_manage;
     bpg_pkg_manage_t pkg_manage;
-    const char * recv_at;
-	const char * reply_to;
+    const char * incoming_recv_at;
+    cfg_t incoming_send_to;
+    const char * outgoing_recv_at;
+    cfg_t outgoing_send_to;
 
 	pkg_manage = bpg_pkg_manage_find_nc(app, cfg_get_string(cfg, "pkg-manage", NULL));
 	if (pkg_manage == NULL) {
@@ -29,21 +31,31 @@ int bpg_bind_manage_app_init(gd_app_context_t app, gd_app_module_t module, cfg_t
 		return -1;
 	}
 
-    recv_at = cfg_get_string(cfg, "recv-at", NULL);
-    if (recv_at == NULL) {
+    incoming_recv_at = cfg_get_string(cfg, "incoming-recv-at", NULL);
+    incoming_send_to = cfg_find_cfg(cfg, "incoming-send-to");
+    outgoing_recv_at = cfg_get_string(cfg, "outgoing-recv-at", NULL);
+    outgoing_send_to = cfg_find_cfg(cfg, "outgoing-send-to");
+
+    if (incoming_recv_at == NULL) {
         CPE_ERROR(
-            gd_app_em(app), "%s: create: recv-at not configured!",
+            gd_app_em(app), "%s: create: incoming-recv-at not configured!",
             gd_app_module_name(module));
         return -1;
     }
 
-	reply_to = cfg_get_string(cfg, "reply-to", NULL);
-	if (reply_to == NULL) {
-		CPE_ERROR(
-			gd_app_em(app), "%s: create: reply_to not configured!",
-			gd_app_module_name(module));
-		return -1;
-	}
+    if (outgoing_recv_at == NULL) {
+        CPE_ERROR(
+            gd_app_em(app), "%s: create: outgoing-recv-at not configured!",
+            gd_app_module_name(module));
+        return -1;
+    }
+
+    if (outgoing_send_to == NULL) {
+        CPE_ERROR(
+            gd_app_em(app), "%s: create: outgoing-send-to not configured!",
+            gd_app_module_name(module));
+        return -1;
+    }
 
     bpg_bind_manage =
         bpg_bind_manage_create(
@@ -54,20 +66,36 @@ int bpg_bind_manage_app_init(gd_app_context_t app, gd_app_module_t module, cfg_t
             gd_app_em(app));
     if (bpg_bind_manage == NULL) return -1;
 
-    if (bpg_bind_manage_set_recv_at(bpg_bind_manage, recv_at) != 0) {
+    if (bpg_bind_manage_set_incoming_recv_at(bpg_bind_manage, incoming_recv_at) != 0) {
         CPE_ERROR(
-            gd_app_em(app), "%s: create: set recv-at %s fail!",
+            gd_app_em(app), "%s: create: set incoming-recv-at %s fail!",
             gd_app_module_name(module),
-            recv_at);
+            incoming_recv_at);
         bpg_bind_manage_free(bpg_bind_manage);
         return -1;
     }
 
-	if (bpg_bind_manage_set_reply_to(bpg_bind_manage, reply_to) != 0) {
+	if (bpg_bind_manage_set_incoming_send_to(bpg_bind_manage, incoming_send_to) != 0) {
 		CPE_ERROR(
-			gd_app_em(app), "%s: create: set recv-at %s fail!",
-			gd_app_module_name(module),
-			recv_at);
+			gd_app_em(app), "%s: create: set incoming_send_to fail!",
+			gd_app_module_name(module));
+		bpg_bind_manage_free(bpg_bind_manage);
+		return -1;
+	}
+
+    if (bpg_bind_manage_set_outgoing_recv_at(bpg_bind_manage, outgoing_recv_at) != 0) {
+        CPE_ERROR(
+            gd_app_em(app), "%s: create: set outgoing-recv-at %s fail!",
+            gd_app_module_name(module),
+            outgoing_recv_at);
+        bpg_bind_manage_free(bpg_bind_manage);
+        return -1;
+    }
+
+	if (bpg_bind_manage_set_outgoing_send_to(bpg_bind_manage, outgoing_send_to) != 0) {
+		CPE_ERROR(
+			gd_app_em(app), "%s: create: set outgoing_send_to fail!",
+			gd_app_module_name(module));
 		bpg_bind_manage_free(bpg_bind_manage);
 		return -1;
 	}
@@ -77,10 +105,9 @@ int bpg_bind_manage_app_init(gd_app_context_t app, gd_app_module_t module, cfg_t
     if (bpg_bind_manage->m_debug) {
         CPE_INFO(
             gd_app_em(app),
-            "%s: create: done., rsp-manage=%s, recv-at=%s",
+            "%s: create: done., rsp-manage=%s",
             gd_app_module_name(module),
-            bpg_pkg_manage_name(pkg_manage),
-            recv_at);
+            bpg_pkg_manage_name(pkg_manage));
     }
 
     return 0;

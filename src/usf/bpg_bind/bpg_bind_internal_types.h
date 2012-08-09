@@ -2,6 +2,7 @@
 #define USF_BPG_BIND_INTERNAL_TYPES_H
 #include "cpe/utils/hash.h"
 #include "cpe/dp/dp_types.h"
+#include "gd/vnet/vnet_types.h"
 #include "usf/logic/logic_types.h"
 #include "usf/bpg_rsp/bpg_rsp_types.h"
 #include "usf/bpg_bind/bpg_bind_types.h"
@@ -16,9 +17,14 @@ struct bpg_bind_manage {
     error_monitor_t m_em;
     bpg_pkg_manage_t m_pkg_manage;
 
-    dp_rsp_t m_recv_at;
+    dp_rsp_t m_incoming_recv_at;
+    bpg_pkg_dsp_t m_incoming_send_to;
 
-	cpe_hash_string_t m_reply_to;
+    dp_rsp_t m_outgoing_recv_at;
+    bpg_pkg_dsp_t m_outgoing_send_to;
+
+    bpg_pkg_t m_data_pkg;
+    vnet_control_pkg_t m_control_pkg;
 
     struct cpe_hash_table m_cliensts;
     struct cpe_hash_table m_connections;

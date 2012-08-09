@@ -21,16 +21,13 @@ gd_app_context_t bpg_bind_manage_app(bpg_bind_manage_t mgr);
 const char * bpg_bind_manage_name(bpg_bind_manage_t mgr);
 cpe_hash_string_t bpg_bind_manage_name_hs(bpg_bind_manage_t mgr);
 
-int bpg_bind_manage_set_recv_at(bpg_bind_manage_t mgr, const char * name);
 bpg_pkg_manage_t bpg_bind_manage_pkg_manage(bpg_bind_manage_t mgr);
 
-int bpg_bind_manage_set_reply_to(bpg_bind_manage_t mgr, const char * reply_to);
+int bpg_bind_manage_set_incoming_recv_at(bpg_bind_manage_t mgr, const char * name);
+int bpg_bind_manage_set_incoming_send_to(bpg_bind_manage_t mgr, cfg_t replay_to);
 
-//int bpg_bind_manage_remove_user(bpg_bind_manage_t mgr, struct bpg_net_agent_binding* pbind);
-//
-//bpg_net_agent_binding* bpg_bind_manage_find_user(bpg_bind_manage_t mgr, struct bpg_net_agent_binding* pbind);
-//
-//int bpg_bind_manage_sendpacket_to_user(bpg_bind_manage_t mgr, struct bpg_net_agent_binding* pbind, void* packet);
+int bpg_bind_manage_set_outgoing_recv_at(bpg_bind_manage_t mgr, const char * name);
+int bpg_bind_manage_set_outgoing_send_to(bpg_bind_manage_t mgr, cfg_t replay_to);
 
 #ifdef __cplusplus
 }
