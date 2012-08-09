@@ -50,6 +50,10 @@ public:
         pom_grp_obj_mgr_t obj_mgr,
         pom_grp_obj_t obj,
         cfg_t data);
+
+    const char * t_pom_grp_obj_dump(
+        pom_grp_obj_mgr_t obj_mgr,
+        pom_grp_obj_t obj);
 };
 
 }}}

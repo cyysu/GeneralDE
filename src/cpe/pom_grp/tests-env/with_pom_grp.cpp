@@ -158,4 +158,22 @@ int with_pom_grp::t_pom_grp_obj_load(
     return pom_grp_obj_cfg_load(obj, obj_mgr, data, em);
 }
 
+const char * with_pom_grp::t_pom_grp_obj_dump(
+    pom_grp_obj_mgr_t obj_mgr,
+    pom_grp_obj_t obj)
+{
+    mem_buffer buffer;
+    mem_buffer_init(&buffer, 0);
+
+    write_stream_buffer stream = CPE_WRITE_STREAM_BUFFER_INITIALIZER(&buffer);
+    pom_grp_obj_cfg_dump_to_stream((write_stream_t)&stream, obj_mgr, obj, 0);
+    stream_putc((write_stream_t)&stream, 0);
+
+    const char * r = t_tmp_strdup((char *)mem_buffer_make_continuous(&buffer, 0));
+
+    mem_buffer_clear(&buffer);
+
+    return r;
+}
+
 }}}

@@ -128,6 +128,7 @@ int pom_grp_store_table_build(pom_grp_store_t store, const char * main_entry, co
     pom_grp_entry_meta_t main_entry_meta;
     pom_grp_store_table_t main_table;
     uint16_t i, count;
+    LPDRMETA meta;
 
     main_entry_meta = pom_grp_entry_meta_find(store->m_meta, main_entry);
     if (main_entry_meta == NULL) {
@@ -142,7 +143,17 @@ int pom_grp_store_table_build(pom_grp_store_t store, const char * main_entry, co
         return -1;
     }
 
-    main_table = pom_grp_store_table_create(store, pom_grp_entry_meta_normal_meta(main_entry_meta));
+    meta = dr_lib_find_meta_by_name(
+        store->m_store_metalib,
+        dr_meta_name(pom_grp_entry_meta_normal_meta(main_entry_meta)));
+    if (meta == NULL) {
+        CPE_ERROR(
+            store->m_em, "pom_grp_store_table_build: create main table: meta %s not exist in store metalib!",
+            dr_meta_name(pom_grp_entry_meta_normal_meta(main_entry_meta)));
+        return -1;
+    }
+
+    main_table = pom_grp_store_table_create(store, meta);
     if (main_table == NULL) {
         CPE_ERROR(
             store->m_em, "pom_grp_store_table_build: create main table fail!");
@@ -194,7 +205,7 @@ uint32_t pom_grp_store_table_count(pom_grp_store_t store) {
 void pom_grp_store_tables(pom_grp_store_t store, pom_grp_store_table_it_t it) {
     struct cpe_hash_it * stroe_table_it;
 
-    assert(sizeof(struct cpe_hash_it) < sizeof(it->m_data));
+    assert(sizeof(struct cpe_hash_it) >= sizeof(it->m_data));
 
     stroe_table_it = (struct cpe_hash_it *)(it->m_data);
 
