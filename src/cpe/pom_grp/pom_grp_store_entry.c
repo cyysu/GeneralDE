@@ -10,6 +10,7 @@ pom_grp_store_entry_create(pom_grp_store_table_t table, pom_grp_entry_meta_t ent
     if (entry == NULL) return NULL;
 
     entry->m_table = table;
+    entry->m_name = entry_meta->m_name;
     entry->m_entry_meta = entry_meta;
 
     cpe_hash_entry_init(&entry->m_hh);

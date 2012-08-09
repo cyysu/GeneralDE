@@ -173,7 +173,7 @@ int pom_grp_obj_ba_set_ex(pom_grp_obj_mgr_t mgr, pom_grp_obj_t obj, pom_grp_entr
 
     if (pos >= entry->m_data.m_ba.m_bit_capacity) return -1;
 
-    set_page_pos = cpe_ba_bytes_from_bits(pos) / entry->m_obj_size;
+    set_page_pos = pos / cpe_ba_bits_from_bytes(entry->m_obj_size);
     assert(set_page_pos < entry->m_page_count);
     assert(cpe_ba_bits_from_bytes(set_page_pos * entry->m_obj_size) <= pos);
     set_pos_in_page = pos - cpe_ba_bits_from_bytes(set_page_pos * entry->m_obj_size);
@@ -216,7 +216,7 @@ cpe_ba_value_t pom_grp_obj_ba_get_ex(pom_grp_obj_mgr_t mgr, pom_grp_obj_t obj, p
 
     if (pos >= entry->m_data.m_ba.m_bit_capacity) return cpe_ba_false;
 
-    get_page_pos = cpe_ba_bytes_from_bits(pos) / entry->m_obj_size;
+    get_page_pos = pos / cpe_ba_bits_from_bytes(entry->m_obj_size);
     assert(get_page_pos < entry->m_page_count);
     assert(cpe_ba_bits_from_bytes(get_page_pos * entry->m_obj_size) <= pos);
     get_pos_in_page = pos - cpe_ba_bits_from_bytes(get_page_pos * entry->m_obj_size);
