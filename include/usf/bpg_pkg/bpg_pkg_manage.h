@@ -2,6 +2,7 @@
 #define USF_BPG_PKG_MANAGE_H
 #include "cpe/utils/hash_string.h"
 #include "cpe/dr/dr_types.h"
+#include "gd/dr_cvt/dr_cvt_types.h"
 #include "bpg_pkg_types.h"
 
 #ifdef __cplusplus
@@ -42,6 +43,7 @@ LPDRMETA bpg_pkg_manage_basepkg_head_meta(bpg_pkg_manage_t mgr);
 
 int bpg_pkg_manage_set_data_metalib(bpg_pkg_manage_t mgr, const char * metalib_name);
 int bpg_pkg_manage_add_cmd_by_meta(bpg_pkg_manage_t mgr, const char * name);
+int bpg_pkg_manage_add_cmd(bpg_pkg_manage_t mgr, uint32_t cmd, const char * name);
 
 const char * bpg_pkg_manage_data_metalib_name(bpg_pkg_manage_t mgr);
 LPDRMETALIB bpg_pkg_manage_data_metalib(bpg_pkg_manage_t mgr);

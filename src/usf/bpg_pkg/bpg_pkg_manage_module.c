@@ -2,7 +2,6 @@
 #include "cpe/pal/pal_external.h"
 #include "cpe/cfg/cfg_read.h"
 #include "cpe/dr/dr_ctypes_op.h"
-#include "cpe/dr/dr_cvt.h"
 #include "cpe/dr/dr_metalib_manage.h"
 #include "cpe/nm/nm_manage.h"
 #include "cpe/nm/nm_read.h"
@@ -10,6 +9,7 @@
 #include "gd/app/app_context.h"
 #include "gd/dr_store/dr_ref.h"
 #include "gd/dr_store/dr_store_manage.h"
+#include "gd/dr_cvt/dr_cvt.h"
 #include "usf/bpg_pkg/bpg_pkg.h"
 #include "usf/bpg_pkg/bpg_pkg_manage.h"
 #include "bpg_pkg_internal_types.h"
@@ -44,48 +44,73 @@ static int bpg_pkg_manage_app_load_meta(gd_app_context_t app, gd_app_module_t mo
         return -1;
     }
 
-    cmd_meta_cfg = cfg_find_cfg(cfg, "cmd-meta-name");
-    if (cmd_meta_cfg == NULL) {
-        CPE_ERROR(
-            gd_app_em(app), "%s: load meta info: cmd-meta-name not configured!",
-            gd_app_module_name(module));
-        return -1;
-    }
+    if ((cmd_meta_cfg = cfg_find_cfg(cfg, "cmd-meta-name"))) {
+        if (cfg_type(cmd_meta_cfg) == CPE_CFG_TYPE_STRING) {
+            if (bpg_pkg_manage_add_cmd_by_meta(mgr, cfg_as_string(cmd_meta_cfg, NULL)) != 0) {
+                CPE_ERROR(
+                    gd_app_em(app), "%s: load meta info: add cmd-meta-name %s fail!",
+                    gd_app_module_name(module), cfg_as_string(cmd_meta_cfg, NULL));
+                return -1;
+            }
+        }
+        else if (cfg_type(cmd_meta_cfg) == CPE_CFG_TYPE_SEQUENCE) {
+            struct cfg_it it;
+            cfg_t child_cfg;
 
-    if (cfg_type(cmd_meta_cfg) == CPE_CFG_TYPE_STRING) {
-        if (bpg_pkg_manage_add_cmd_by_meta(mgr, cfg_as_string(cmd_meta_cfg, NULL)) != 0) {
+            cfg_it_init(&it, cmd_meta_cfg);
+
+            while((child_cfg = cfg_it_next(&it))) {
+                const char * arg = cfg_as_string(child_cfg, NULL);
+                if (arg == NULL) {
+                    CPE_ERROR(
+                        gd_app_em(app), "%s: load meta info: add cmd-meta-name(sub) type error!",
+                        gd_app_module_name(module));
+                    return -1;
+                }
+
+                if (bpg_pkg_manage_add_cmd_by_meta(mgr, arg)) {
+                    CPE_ERROR(
+                        gd_app_em(app), "%s: load meta info: add cmd-meta-name %s fail!",
+                        gd_app_module_name(module), arg);
+                    return -1;
+                }
+            }
+        }
+        else {
             CPE_ERROR(
-                gd_app_em(app), "%s: load meta info: add cmd-meta-name %s fail!",
-                gd_app_module_name(module), cfg_as_string(cmd_meta_cfg, NULL));
+                gd_app_em(app), "%s: load meta info: cmd-meta-name type error!",
+                gd_app_module_name(module));
             return -1;
         }
     }
-    else if (cfg_type(cmd_meta_cfg) == CPE_CFG_TYPE_SEQUENCE) {
+
+    if ((cmd_meta_cfg = cfg_find_cfg(cfg, "cmds"))) {
         struct cfg_it it;
         cfg_t child_cfg;
 
         cfg_it_init(&it, cmd_meta_cfg);
 
         while((child_cfg = cfg_it_next(&it))) {
-            const char * arg = cfg_as_string(child_cfg, NULL);
-            if (arg == NULL) {
+            child_cfg = cfg_child_only(child_cfg);
+            if (child_cfg == NULL) {
                 CPE_ERROR(
-                    gd_app_em(app), "%s: load meta info: add cmd-meta-name(sub) type error!",
+                    gd_app_em(app), "%s: load meta info: add cmd: config type error!",
                     gd_app_module_name(module));
                 return -1;
             }
 
-            if (bpg_pkg_manage_add_cmd_by_meta(mgr, arg)) {
+            if (bpg_pkg_manage_add_cmd(mgr, cfg_as_uint32(child_cfg, 0), cfg_name(child_cfg))) {
                 CPE_ERROR(
-                    gd_app_em(app), "%s: load meta info: add cmd-meta-name %s fail!",
-                    gd_app_module_name(module), arg);
+                    gd_app_em(app), "%s: load meta info: add cmd fail!",
+                    gd_app_module_name(module));
                 return -1;
             }
         }
     }
-    else {
+
+    if (cpe_hash_table_count(&mgr->m_cmd_info_by_cmd) == 0) {
         CPE_ERROR(
-            gd_app_em(app), "%s: load meta info: cmd-meta-name type error!",
+            gd_app_em(app), "%s: load meta info: no cmd meta info!",
             gd_app_module_name(module));
         return -1;
     }

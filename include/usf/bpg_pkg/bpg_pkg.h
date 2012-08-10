@@ -2,6 +2,7 @@
 #define USF_BPG_PKG_H
 #include "cpe/utils/hash_string.h"
 #include "cpe/dr/dr_types.h"
+#include "gd/dr_cvt/dr_cvt_types.h"
 #include "bpg_pkg_types.h"
 
 #ifdef __cplusplus

@@ -1,7 +1,6 @@
 #include <assert.h>
 #include "cpe/pal/pal_external.h"
 #include "cpe/cfg/cfg_read.h"
-#include "cpe/dr/dr_cvt.h"
 #include "cpe/dr/dr_metalib_init.h"
 #include "cpe/dr/dr_metalib_manage.h"
 #include "cpe/nm/nm_manage.h"
@@ -10,6 +9,7 @@
 #include "gd/app/app_context.h"
 #include "gd/dr_store/dr_ref.h"
 #include "gd/dr_store/dr_store_manage.h"
+#include "gd/dr_cvt/dr_cvt.h"
 #include "usf/bpg_pkg/bpg_pkg.h"
 #include "usf/bpg_pkg/bpg_pkg_manage.h"
 #include "bpg_pkg_internal_ops.h"
@@ -198,7 +198,7 @@ int bpg_pkg_manage_set_base_cvt(bpg_pkg_manage_t mgr, const char * cvt) {
 
     if (mgr->m_base_cvt && strcmp(dr_cvt_name(mgr->m_base_cvt), cvt) == 0) return 0;
 
-    new_cvt = dr_cvt_create(cvt);
+    new_cvt = dr_cvt_create(mgr->m_app, cvt);
     if (new_cvt == NULL) return -1;
 
     if (mgr->m_base_cvt) dr_cvt_free(mgr->m_base_cvt);
@@ -220,7 +220,7 @@ int bpg_pkg_manage_set_data_cvt(bpg_pkg_manage_t mgr, const char * cvt) {
 
     if (mgr->m_data_cvt && strcmp(dr_cvt_name(mgr->m_data_cvt), cvt) == 0) return 0;
 
-    new_cvt = dr_cvt_create(cvt);
+    new_cvt = dr_cvt_create(mgr->m_app, cvt);
     if (new_cvt == NULL) return -1;
 
     if (mgr->m_data_cvt) dr_cvt_free(mgr->m_data_cvt);
@@ -251,6 +251,41 @@ int bpg_pkg_manage_set_data_metalib(bpg_pkg_manage_t mgr, const char * metalib_n
         CPE_ERROR(
             mgr->m_em, "bpg_pkg_manage %s: set metalib %s, create dr_ref fail!", 
             bpg_pkg_manage_name(mgr), metalib_name);
+        return -1;
+    }
+
+    return 0;
+}
+
+int bpg_pkg_manage_add_cmd(bpg_pkg_manage_t mgr, uint32_t cmd, const char * name) {
+    LPDRMETA meta;
+
+    if (mgr->m_metalib_ref == NULL) {
+        CPE_ERROR(
+            mgr->m_em, "bpg_pkg_manage %s: add cmd %d => %s, data metalib not exist!", 
+            bpg_pkg_manage_name(mgr), cmd, name);
+        return -1;
+    }
+
+    if (dr_ref_lib(mgr->m_metalib_ref) == NULL) {
+        CPE_ERROR(
+            mgr->m_em, "bpg_pkg_manage %s: add cmd %d => %s, data metalib no lib!", 
+            bpg_pkg_manage_name(mgr), cmd, name);
+        return -1;
+    }
+
+    meta = dr_lib_find_meta_by_name(dr_ref_lib(mgr->m_metalib_ref), name);
+    if (meta == NULL) {
+        CPE_ERROR(
+            mgr->m_em, "bpg_pkg_manage %s: add cmd %d => %s, meta not exist in lib!", 
+            bpg_pkg_manage_name(mgr), cmd, name);
+        return -1;
+    }
+
+    if (bpg_pkg_cmd_info_create(mgr, cmd, meta) == NULL) {
+        CPE_ERROR(
+            mgr->m_em, "bpg_pkg_manage %s: add cmd %d => %s, create fail!",
+            bpg_pkg_manage_name(mgr), cmd, name);
         return -1;
     }
 

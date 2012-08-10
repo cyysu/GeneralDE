@@ -1,6 +1,6 @@
 #include <assert.h>
 #include "cpe/dr/dr_metalib_manage.h"
-#include "cpe/dr/dr_cvt.h"
+#include "gd/dr_cvt/dr_cvt.h"
 #include "usf/bpg_pkg/bpg_pkg.h"
 #include "protocol/base/base_package.h"
 #include "bpg_pkg_internal_types.h"

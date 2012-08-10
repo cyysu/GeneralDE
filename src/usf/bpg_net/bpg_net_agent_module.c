@@ -1,7 +1,6 @@
 #include <assert.h>
 #include "cpe/pal/pal_external.h"
 #include "cpe/cfg/cfg_read.h"
-#include "cpe/dr/dr_cvt.h"
 #include "cpe/dr/dr_metalib_manage.h"
 #include "cpe/net/net_listener.h"
 #include "cpe/nm/nm_manage.h"
@@ -9,6 +8,7 @@
 #include "cpe/dp/dp_manage.h"
 #include "gd/app/app_context.h"
 #include "gd/app/app_module.h"
+#include "gd/dr_cvt/dr_cvt.h"
 #include "usf/bpg_pkg/bpg_pkg.h"
 #include "usf/bpg_pkg/bpg_pkg_manage.h"
 #include "usf/bpg_net/bpg_net_agent.h"

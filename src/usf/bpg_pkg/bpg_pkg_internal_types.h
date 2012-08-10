@@ -2,6 +2,7 @@
 #define USF_BPG_REQ_INTERNAL_TYPES_H
 #include "cpe/utils/hash.h"
 #include "gd/dr_store/dr_store_types.h"
+#include "gd/dr_cvt/dr_cvt_types.h"
 #include "usf/bpg_pkg/bpg_pkg_types.h"
 
 #ifdef __cplusplus
