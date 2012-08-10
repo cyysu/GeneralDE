@@ -30,6 +30,7 @@ int dr_meta_path_to_off(LPDRMETA meta, const char * path, LPDRMETAENTRY * entry)
 LPDRMETAENTRY dr_meta_find_entry_by_name(LPDRMETA meta, const char* name);
 LPDRMETAENTRY dr_meta_find_entry_by_id(LPDRMETA meta, int id);
 LPDRMETAENTRY dr_meta_find_entry_by_path(LPDRMETA meta, const char* entryPath);
+LPDRMETAENTRY dr_meta_find_entry_by_path_ex(LPDRMETA meta, const char* entryPath, int * off);
 LPDRMETALIB dr_meta_owner_lib(LPDRMETA meta);
 
 int dr_entry_version(LPDRMETAENTRY entry);
