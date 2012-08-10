@@ -2,7 +2,8 @@
 #include "cpe/pal/pal_stdio.h"
 #include "cpe/dr/dr_metalib_manage.h"
 #include "cpe/dr/dr_pbuf.h"
-#include "cpe/dr/dr_cvt.h"
+#include "gd/dr_cvt/dr_cvt.h"
+#include "gd/dr_cvt/dr_cvt_manage.h"
 
 dr_cvt_result_t dr_cvt_fun_pbuf_encode(
     LPDRMETA meta,
@@ -64,11 +65,11 @@ dr_cvt_fun_pbuf_decode(
 }
 
 EXPORT_DIRECTIVE
-int cpe_dr_pbuf_cvt_global_init() {
-    return dr_cvt_type_create("pbuf", dr_cvt_fun_pbuf_encode, dr_cvt_fun_pbuf_decode, NULL);
+int dr_pbuf_cvt_app_init(gd_app_context_t app, gd_app_module_t module, cfg_t cfg) {
+    return dr_cvt_type_create(app, "pbuf", dr_cvt_fun_pbuf_encode, dr_cvt_fun_pbuf_decode, NULL);
 }
 
 EXPORT_DIRECTIVE
-void cpe_dr_pbuf_cvt_global_fini() {
-    dr_cvt_type_free("pbuf");
+void dr_pbuf_cvt_app_fini(gd_app_context_t app, gd_app_module_t module) {
+    dr_cvt_type_free(app, "pbuf");
 }

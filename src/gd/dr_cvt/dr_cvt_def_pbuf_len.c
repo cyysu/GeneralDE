@@ -2,8 +2,8 @@
 #include "cpe/pal/pal_stdio.h"
 #include "cpe/dr/dr_metalib_manage.h"
 #include "cpe/dr/dr_pbuf.h"
-#include "cpe/dr/dr_cvt.h"
-#include "dr_pbuf_internal_ops.h"
+#include "gd/dr_cvt/dr_cvt.h"
+#include "gd/dr_cvt/dr_cvt_manage.h"
 
 dr_cvt_result_t dr_cvt_fun_pbuf_len_encode(
     LPDRMETA meta,
@@ -62,15 +62,12 @@ dr_cvt_fun_pbuf_len_decode(
     void * ctx,
     error_monitor_t em, int debug)
 {
-    union {
-        struct cpe_dr_pbuf_longlong sep;
-        uint64_t u64;
-    } size_buf;
+    uint64_t size_buf;
     int r;
     int size_size;
     size_t data_size;
 
-    size_size = cpe_dr_pbuf_decode(input, &size_buf.sep);
+    size_size = cpe_dr_pbuf_decode_uint64((uint8_t *)input, &size_buf);
     if (size_size < 0) {
         CPE_ERROR(em, "decode %s: pbuf-len: fail, read size fail!", dr_meta_name(meta));
         return dr_cvt_result_error;
@@ -78,7 +75,7 @@ dr_cvt_fun_pbuf_len_decode(
 
     if (size_size > *input_capacity) return dr_cvt_result_not_enough_input;
 
-    data_size = (size_t)size_buf.u64;
+    data_size = (size_t)size_buf;
     if ((data_size + size_size) > *input_capacity) return dr_cvt_result_not_enough_input;
 
     bzero(output, data_size);
@@ -103,11 +100,11 @@ dr_cvt_fun_pbuf_len_decode(
 }
 
 EXPORT_DIRECTIVE
-int cpe_dr_pbuf_len_cvt_global_init() {
-    return dr_cvt_type_create("pbuf-len", dr_cvt_fun_pbuf_len_encode, dr_cvt_fun_pbuf_len_decode, NULL);
+int dr_pbuf_len_cvt_app_init(gd_app_context_t app, gd_app_module_t module, cfg_t cfg) {
+    return dr_cvt_type_create(app, "pbuf-len", dr_cvt_fun_pbuf_len_encode, dr_cvt_fun_pbuf_len_decode, NULL);
 }
 
 EXPORT_DIRECTIVE
-void cpe_dr_pbuf_len_cvt_global_fini() {
-    dr_cvt_type_free("pbuf-len");
+void dr_pbuf_len_cvt_app_fini(gd_app_context_t app, gd_app_module_t module) {
+    dr_cvt_type_free(app, "pbuf-len");
 }
