@@ -1,6 +1,7 @@
 #include <limits.h>
 #include "cpe/dr/dr_ctypes_op.h"
 #include "cpe/dr/dr_metalib_manage.h"
+#include "cpe/dr/dr_data.h"
 #include "../dr_ctype_ops.h"
 
 #if defined _MSC_VER
@@ -458,11 +459,12 @@ struct DRCtypeTypeReadOps g_dr_ctype_read_ops[] = {
         const void * input, LPDRMETA meta, const char * entryName,      \
         error_monitor_t em)                                             \
     {                                                                   \
-        LPDRMETAENTRY entry = dr_meta_find_entry_by_path(meta, entryName); \
+        int pos;                                                        \
+        LPDRMETAENTRY entry = dr_meta_find_entry_by_path_ex(meta, entryName, &pos); \
         if (entry) {                                                    \
             return dr_entry_try_read_ ## __to(                          \
                 result,                                                 \
-                (const char *)input + entry->m_data_start_pos,          \
+                (const char *)input + pos,                              \
                 entry,                                                  \
                 em);                                                    \
         }                                                               \
@@ -475,10 +477,11 @@ struct DRCtypeTypeReadOps g_dr_ctype_read_ops[] = {
     __to ## _t dr_meta_read_ ## __to(                                   \
         const void * input, LPDRMETA meta, const char * entryName)      \
     {                                                                   \
-        LPDRMETAENTRY entry = dr_meta_find_entry_by_path(meta, entryName); \
+        int pos;                                                        \
+        LPDRMETAENTRY entry = dr_meta_find_entry_by_path_ex(meta, entryName, &pos); \
         if (entry) {                                                    \
             return dr_entry_read_ ## __to(                              \
-                (const char *)input + entry->m_data_start_pos,          \
+                (const char *)input + pos,                              \
                 entry);                                                 \
         }                                                               \
         else {                                                          \
@@ -488,14 +491,36 @@ struct DRCtypeTypeReadOps g_dr_ctype_read_ops[] = {
     __to ## _t dr_meta_read_with_dft_ ##__to (                          \
         const void * input, LPDRMETA meta, const char * entryName, __to ## _t dft) \
     {                                                                   \
-        LPDRMETAENTRY entry = dr_meta_find_entry_by_path(meta, entryName); \
+        int pos;                                                        \
+        LPDRMETAENTRY entry = dr_meta_find_entry_by_path_ex(meta, entryName, &pos); \
         if (entry) {                                                    \
-            return dr_entry_read_with_dft_ ## __to(                              \
-                (const char *)input + entry->m_data_start_pos,          \
+            return dr_entry_read_with_dft_ ## __to(                     \
+                (const char *)input + pos,                              \
                 entry, dft);                                            \
         }                                                               \
         else {                                                          \
             return dft;                                                 \
+        }                                                               \
+    }                                                                   \
+    int dr_meta_set_from_ ##__to (                                      \
+        void * output,                                                  \
+        __to ## _t input,                                               \
+        LPDRMETA meta, const char * entryName,                          \
+        error_monitor_t em)                                             \
+    {                                                                   \
+        int pos;                                                        \
+        LPDRMETAENTRY entry = dr_meta_find_entry_by_path_ex(meta, entryName, &pos); \
+        if (entry) {                                                    \
+            return dr_entry_set_from_ ## __to(                          \
+                (char *)output + pos ,                                  \
+                input,                                                  \
+                entry,                                                  \
+                em);                                                    \
+        }                                                               \
+        else {                                                          \
+            CPE_ERROR(em, "entry %s not exist in %s",                   \
+                      entryName, dr_meta_name(meta));                   \
+            return -1;                                                  \
         }                                                               \
     }                                                                   \
 

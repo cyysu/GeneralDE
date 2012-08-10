@@ -321,10 +321,15 @@ LPDRMETAENTRY dr_meta_entry_at(LPDRMETA meta, int a_idxEntry) {
 }
 
 LPDRMETAENTRY dr_meta_find_entry_by_path(LPDRMETA meta, const char* entryPath) {
+    return dr_meta_find_entry_by_path_ex(meta, entryPath, NULL);
+}
+
+LPDRMETAENTRY dr_meta_find_entry_by_path_ex(LPDRMETA meta, const char* entryPath, int * off) {
     char * base;
     LPDRMETA pstCurMeta;
     const char * nameBegin;
     const char * nameEnd;
+    LPDRMETAENTRY pstEntry;
 
     assert(meta);
     assert(entryPath);
@@ -332,13 +337,14 @@ LPDRMETAENTRY dr_meta_find_entry_by_path(LPDRMETA meta, const char* entryPath) {
     base = (char *)(meta) - meta->m_self_pos;
 
     pstCurMeta = meta;
+    if (off) *off = 0;
     for(nameBegin = entryPath, nameEnd = strchr(nameBegin, '.');
         nameEnd;
         nameBegin = nameEnd + 1, nameEnd = strchr(nameBegin, '.'))
     {
         int i;
         LPDRMETAENTRY pstEntryBegin = (LPDRMETAENTRY)(pstCurMeta + 1);
-        LPDRMETAENTRY pstEntry = NULL;
+        pstEntry = NULL;
 
         for(i = 0; i < pstCurMeta->m_entry_count && pstEntry == NULL; ++i) {
             LPDRMETAENTRY pstCheckEntry = pstEntryBegin + i;
@@ -357,9 +363,12 @@ LPDRMETAENTRY dr_meta_find_entry_by_path(LPDRMETA meta, const char* entryPath) {
         }
 
         pstCurMeta = (LPDRMETA)(base + pstEntry->m_ref_type_pos);
+        if (off) *off += pstEntry->m_data_start_pos;
     }
 
-    return dr_meta_find_entry_by_name(pstCurMeta, nameBegin);
+    pstEntry = dr_meta_find_entry_by_name(pstCurMeta, nameBegin);
+    if (pstEntry && off) *off += pstEntry->m_data_start_pos;
+    return pstEntry;
 }
 
 int dr_entry_version(LPDRMETAENTRY entry) {
