@@ -89,12 +89,3 @@ dr_cvt_fun_copy_decode(
 
     return dr_cvt_result_success;
 }
-
-struct dr_cvt_type s_cvt_type_copy = {
-    "copy"
-    , dr_cvt_fun_copy_encode
-    , dr_cvt_fun_copy_decode
-    , NULL
-    , -1
-};
-

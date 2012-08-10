@@ -1,19 +1,34 @@
 #include <assert.h>
-#include "cpe/utils/memory.h"
+#include "cpe/cfg/cfg_manage.h"
+#include "cpe/dr/dr_metalib_manage.h"
+#include "cpe/dr/dr_cfg.h"
+#include "gd/app/app_log.h"
+#include "gd/dr_cvt/dr_cvt.h"
+#include "gd/dr_cvt/dr_cvt_manage.h"
 #include "dr_cvt_internal_ops.h"
 
-dr_cvt_t dr_cvt_create(const char * name) {
+dr_cvt_t dr_cvt_create(gd_app_context_t app, const char * name) {
+    dr_cvt_manage_t cvt_mgr = dr_cvt_manage_default(app);
+    if (cvt_mgr == NULL) {
+        APP_CTX_ERROR(app, "dr_cvt_create: default cvt mgr not exist!");
+        return NULL;
+    }
+
+    return dr_cvt_create_ex(cvt_mgr, name);
+}
+
+dr_cvt_t dr_cvt_create_ex(dr_cvt_manage_t mgr, const char * name) {
     struct dr_cvt_type * type;
     dr_cvt_t cvt;
 
-    type = dr_cvt_type_find(name);
+    type = dr_cvt_type_find(mgr, name);
     if (type == NULL) return NULL;
 
-    cvt = mem_alloc(NULL, sizeof(struct dr_cvt));
+    cvt = mem_alloc(mgr->m_alloc, sizeof(struct dr_cvt));
     if (cvt == NULL) return NULL;
 
     cvt->m_type = type;
-    dr_cvt_type_add_ref(type);
+    cvt->m_type->m_ref_count++;
 
     return cvt;
 }
@@ -22,8 +37,9 @@ void dr_cvt_free(dr_cvt_t cvt) {
     assert(cvt);
     assert(cvt->m_type);
 
-    dr_cvt_type_remove_ref(cvt->m_type);
-    mem_free(NULL, cvt);
+    cvt->m_type->m_ref_count --;
+
+    mem_free(cvt->m_type->m_mgr->m_alloc, cvt);
 }
 
 const char * dr_cvt_name(dr_cvt_t cvt) {
@@ -31,7 +47,7 @@ const char * dr_cvt_name(dr_cvt_t cvt) {
 }
 
 dr_cvt_result_t dr_cvt_encode(
-    dr_cvt_t cvt, 
+    dr_cvt_t cvt,
     LPDRMETA meta,
     void * output, size_t * output_capacity,
     const void * input, size_t * input_capacity,
@@ -68,7 +84,7 @@ dr_cvt_result_t dr_cvt_encode(
 }
 
 dr_cvt_result_t dr_cvt_decode(
-    dr_cvt_t cvt, 
+    dr_cvt_t cvt,
     LPDRMETA meta,
     void * output, size_t * output_capacity,
     const void * input, size_t * input_capacity,

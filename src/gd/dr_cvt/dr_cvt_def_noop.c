@@ -58,12 +58,3 @@ dr_cvt_fun_noop_decode(
 
     return dr_cvt_result_success;
 }
-
-struct dr_cvt_type s_cvt_type_noop = {
-    "noop"
-    , dr_cvt_fun_noop_encode
-    , dr_cvt_fun_noop_decode
-    , NULL
-    , -1
-};
-
