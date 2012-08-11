@@ -2,6 +2,7 @@
 #define USF_POM_GS_TYPES_H
 #include "cpe/utils/error.h"
 #include "cpe/utils/hash_string.h"
+#include "cpe/utils/bitarry.h"
 #include "cpe/cfg/cfg_types.h"
 #include "cpe/pom_grp/pom_grp_types.h"
 #include "usf/logic/logic_types.h"
@@ -19,6 +20,8 @@ typedef struct pom_gs_agent_backend {
         pom_grp_store_table_t table,
         void * data,
         size_t capacity,
+        cpe_ba_t entry_ba,
+        size_t entry_ba_capacity,
         logic_require_t require,
         void * ctx);
 } * pom_gs_agent_backend_t;

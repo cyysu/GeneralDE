@@ -62,6 +62,8 @@ int pom_gs_agent_obj_insert(pom_gs_agent_t agent, pom_grp_obj_mgr_t obj_mgr, pom
                 table,
                 buf,
                 capacity,
+                NULL,
+                0,
                 require,
                 agent->m_backend_ctx) != 0)
         {
@@ -105,12 +107,14 @@ int pom_gs_agent_data_insert(
     for(i = 0; i < pkg->m_entry_count; ++i) {
         data_entry = &pkg->m_entries[i];
 
-        if (data_entry->m_capacity <= 0) continue;
+        if (data_entry->m_data_capacity <= 0) continue;
 
         if (agent->m_backend->insert(
                 data_entry->m_table,
                 pom_gs_pkg_entry_buf(pkg, data_entry),
-                data_entry->m_capacity,
+                data_entry->m_data_capacity,
+                (cpe_ba_t)pom_gs_pkg_mask_buf(pkg, data_entry),
+                dr_meta_entry_num(pom_grp_store_table_meta(data_entry->m_table)),
                 require,
                 agent->m_backend_ctx) != 0)
         {

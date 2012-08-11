@@ -18,7 +18,7 @@ int pom_gs_pkg_cfg_dump(cfg_t cfg, pom_gs_pkg_t pkg, error_monitor_t em) {
     for(i = 0; i < pkg->m_entry_count; ++i) {
         data_entry = &pkg->m_entries[i];
 
-        if (data_entry->m_capacity <= 0) continue;
+        if (data_entry->m_data_capacity <= 0) continue;
 
         child_cfg = cfg_struct_add_struct(cfg, pom_grp_store_table_name(data_entry->m_table), cfg_replace);
         if (child_cfg == NULL) {

@@ -31,13 +31,16 @@ struct pom_gs_agent {
 
 struct pom_gs_pkg_data_entry {
     pom_grp_store_table_t m_table;
-    uint32_t m_start;
-    uint32_t m_capacity;
+    uint32_t m_mask_start;
+    uint32_t m_mask_capacity;
+    uint32_t m_data_start;
+    uint32_t m_data_capacity;
 };
 
 struct pom_gs_pkg {
     pom_gs_agent_t m_agent;
     dp_req_t m_dp_req;
+    uint32_t m_data_start;
     uint32_t m_entry_count;
     struct pom_gs_pkg_data_entry m_entries[0];
 };

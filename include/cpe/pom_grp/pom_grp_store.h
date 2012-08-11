@@ -20,6 +20,7 @@ pom_grp_store_create(
 
 void pom_grp_store_free(pom_grp_store_t store);
 
+/*store table operations*/
 uint32_t pom_grp_store_table_count(pom_grp_store_t store);
 
 void pom_grp_store_tables(pom_grp_store_t store, pom_grp_store_table_it_t it);
