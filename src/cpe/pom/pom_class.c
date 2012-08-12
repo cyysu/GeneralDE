@@ -4,8 +4,7 @@
 #include "cpe/utils/bitarry.h"
 #include "cpe/utils/range_bitarry.h"
 #include "cpe/pom/pom_error.h"
-#include "pom_class_i.h"
-#include "pom_page_head.h"
+#include "pom_internal_ops.h"
 
 uint32_t pom_class_hash_fun(struct pom_class * theClass) {
     return cpe_hs_value(theClass->m_name);
