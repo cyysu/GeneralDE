@@ -3,7 +3,7 @@
 #include "cpe/utils/tests-env/test-fixture.hpp"
 #include "cpe/utils/tests-env/with_em.hpp"
 #include "cpe/pom/pom_error.h"
-#include "../pom_buffer.h"
+#include "../pom_internal_ops.h"
 
 typedef LOKI_TYPELIST_1(
     utils::testenv::with_em) BufMgrTestBase;

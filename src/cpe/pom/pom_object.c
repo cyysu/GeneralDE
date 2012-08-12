@@ -1,9 +1,7 @@
 #include <assert.h>
 #include "cpe/pom/pom_object.h"
 #include "cpe/pom/pom_error.h"
-#include "pom_manage_i.h"
-#include "pom_page_head.h"
-#include "pom_debuger_i.h"
+#include "pom_internal_ops.h"
 
 pom_oid_t pom_obj_alloc(
     pom_mgr_t omm,

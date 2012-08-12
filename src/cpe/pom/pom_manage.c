@@ -1,7 +1,6 @@
 #include <assert.h>
 #include "cpe/pom/pom_manage.h"
-#include "pom_manage_i.h"
-#include "pom_debuger_i.h"
+#include "pom_internal_ops.h"
 
 pom_mgr_t
 pom_mgr_create(

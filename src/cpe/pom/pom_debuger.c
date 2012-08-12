@@ -5,7 +5,7 @@
 #include "cpe/pal/pal_stdlib.h"
 #include "cpe/utils/buffer.h"
 #include "cpe/utils/stream_buffer.h"
-#include "pom_debuger_i.h"
+#include "pom_internal_ops.h"
 
 static uint32_t pom_alloc_info_hash(const struct pom_alloc_info * context) {
     return (uint32_t)context->m_oid;
