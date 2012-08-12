@@ -1,3 +1,4 @@
+#include "cpe/pom/pom_debuger.h"
 #include "MgrTest.hpp"
 
 MgrTest::MgrTest() : m_omm(NULL) {
@@ -8,6 +9,8 @@ void MgrTest::SetUp() {
 
     m_omm = pom_mgr_create(t_allocrator(), 256, 1024);
     ASSERT_TRUE(m_omm);
+
+    pom_debuger_enable(m_omm, 5, t_em());
 
     pom_mgr_set_backend_memory(m_omm, t_allocrator());
 }

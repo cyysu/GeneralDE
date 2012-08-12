@@ -3,6 +3,7 @@
 #include "cpe/pom/pom_error.h"
 #include "pom_manage_i.h"
 #include "pom_page_head.h"
+#include "pom_debuger_i.h"
 
 pom_oid_t pom_obj_alloc(
     pom_mgr_t omm,
@@ -11,6 +12,7 @@ pom_oid_t pom_obj_alloc(
 {
     struct pom_class * theClass;
     int32_t baseOid;
+    pom_oid_t oid;
 
     assert(omm);
     assert(className);
@@ -57,7 +59,11 @@ pom_oid_t pom_obj_alloc(
         return POM_INVALID_OID; 
     }
 
-    return pom_oid_make(theClass->m_id, baseOid);
+    oid = pom_oid_make(theClass->m_id, baseOid);
+
+    if (omm->m_debuger) pom_debuger_on_alloc(omm->m_debuger, oid);
+
+    return oid;
 }
 
 void pom_obj_free(
@@ -78,6 +84,8 @@ void pom_obj_free(
         return;
     }
 
+    if (omm->m_debuger) pom_debuger_on_free(omm->m_debuger, oid);
+    
     pom_class_free_object(theClass, oid & 0xFFFFFF, em);
 }
 
