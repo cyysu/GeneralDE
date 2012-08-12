@@ -1,43 +1,43 @@
-#ifndef CPE_POM_CLASS_H
-#define CPE_POM_CLASS_H
-#include "cpe/utils/hash.h"
-#include "cpe/utils/error.h"
-#include "cpe/utils/range.h"
-#include "cpe/pom/pom_class.h"
-#include "cpe/pom/pom_types.h"
+#ifndef CPE_POM_INTERNAL_OPS_H
+#define CPE_POM_INTERNAL_OPS_H
+#include "pom_internal_types.h"
+#include "pom_page_head.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#define POM_CLASS_BUF_LEN (POM_MAX_TYPE_COUNT + 1)
+/*pom_buffer operations*/
+int pom_buffer_mgr_init(
+    struct pom_buffer_mgr * pgm,
+    size_t page_size,
+    size_t buf_size,
+    mem_allocrator_t alloc);
 
-struct pom_page;
+int pom_buffer_mgr_set_backend(
+    struct pom_buffer_mgr * pgm,
+    pom_backend_t backend,
+    void * backend_ctx);
 
-struct pom_class {
-    pom_class_id_t m_id;
-    char m_name_buf[cpe_hs_len_to_binary_len(POM_MAX_TYPENAME_LEN)];
-    cpe_hash_string_t m_name;
-    struct cpe_hash_entry m_hh;
-    struct cpe_range_mgr m_range_alloc;
-    mem_allocrator_t m_alloc;
-    size_t m_object_size;
+int pom_buffer_mgr_add_new_buffer(
+    struct pom_buffer_mgr * pgm,
+    pom_buffer_id_t buf_id,
+    error_monitor_t em);
 
-    size_t m_page_size;
-    size_t m_object_per_page;
-    size_t m_alloc_buf_capacity;
-    size_t m_object_buf_begin_in_page;
+int pom_buffer_mgr_attach_old_buffer(
+    struct pom_buffer_mgr * pgm,
+    struct pom_class_mgr * classMgr,
+    pom_buffer_id_t buf_id,
+    error_monitor_t em);
 
-    size_t m_page_array_capacity;
-    size_t m_page_array_size;
-    void * * m_page_array;
-};
+void * pom_buffer_mgr_find_page(struct pom_buffer_mgr * pgm, void * address);
+void pom_buffer_mgr_fini(struct pom_buffer_mgr * pgm);
 
-struct pom_class_mgr {
-    struct pom_class m_classes[POM_CLASS_BUF_LEN];
-    struct cpe_hash_table m_classNameIdx;
-};
+void * pom_page_get(struct pom_buffer_mgr * pgm, error_monitor_t em);
 
+void * pom_buffer_mgr_get_buf(struct pom_buffer_mgr * pgm, pom_buffer_id_t buf_id, error_monitor_t em);
+
+/*pom_class operations*/
 int pom_class_mgr_init(struct pom_class_mgr * classMgr, mem_allocrator_t alloc);
 void pom_class_mgr_fini(struct pom_class_mgr * classMgr);
 
@@ -83,6 +83,13 @@ void * pom_class_get_object(struct pom_class *cls, int32_t value, error_monitor_
 
 #define pom_class_ba_of_page(page) (cpe_ba_t)(((char*)(page)) + sizeof(struct pom_data_page_head))
 #define pom_class_page_buf_len(page_count) (sizeof(void*) * (page_count))
+
+/*debuger operations*/
+struct pom_debuger * pom_debuger_create(mem_allocrator_t alloc, uint32_t m_stack_size, error_monitor_t em);
+void pom_debuger_free(struct pom_debuger * debuger);
+
+void pom_debuger_on_alloc(struct pom_debuger * debuger, pom_oid_t oid);
+void pom_debuger_on_free(struct pom_debuger * debuger, pom_oid_t oid);
 
 #ifdef __cplusplus
 }

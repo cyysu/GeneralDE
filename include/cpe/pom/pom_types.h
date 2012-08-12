@@ -22,6 +22,7 @@ typedef struct pom_backend * pom_backend_t;
 typedef struct pom_class * pom_class_t;
 typedef struct pom_mgr * pom_mgr_t;
 typedef struct pom_type * pom_type_t;
+typedef struct pom_debuger * pom_debuger_t;
 
 typedef ptr_int_t pom_buffer_id_t;
 
