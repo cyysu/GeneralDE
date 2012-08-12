@@ -1,9 +1,8 @@
 #include <assert.h>
 #include "cpe/pal/pal_stdio.h"
 #include "cpe/pom/pom_error.h"
-#include "pom_buffer.h"
+#include "pom_internal_ops.h"
 #include "pom_page_head.h"
-#include "pom_class_i.h"
 
 int pom_buffer_mgr_init(
     struct pom_buffer_mgr * pgm,
@@ -99,12 +98,7 @@ pom_buffer_mgr_init_pages(struct pom_buffer_mgr * pgm, void * buf) {
     }
 }
 
-static void *
-pom_buffer_mgr_get_buf(
-    struct pom_buffer_mgr * pgm,
-    pom_buffer_id_t buf_id,
-    error_monitor_t em)
-{
+void * pom_buffer_mgr_get_buf(struct pom_buffer_mgr * pgm, pom_buffer_id_t buf_id, error_monitor_t em) {
     void * buf;
 
     if (pgm->m_backend && pgm->m_backend->buf_get) {

@@ -1,6 +1,6 @@
 #include <assert.h>
 #include "cpe/pom/pom_manage.h"
-#include "pom_manage_i.h"
+#include "pom_internal_ops.h"
 
 pom_mgr_t
 pom_mgr_create(
@@ -28,12 +28,15 @@ pom_mgr_create(
         return NULL;
     }
 
+    omm->m_debuger = NULL;
+
     return omm;
 }
 
 void pom_mgr_free(pom_mgr_t omm) {
     if (omm == NULL) return;
 
+    if (omm->m_debuger) pom_debuger_free(omm->m_debuger);
     pom_class_mgr_fini(&omm->m_classMgr);
     pom_buffer_mgr_fini(&omm->m_bufMgr);
     
@@ -171,4 +174,24 @@ int pom_mgr_add_new_buffer(pom_mgr_t omm, pom_buffer_id_t buf_id, error_monitor_
 
 int pom_mgr_attach_old_buffer(pom_mgr_t omm, pom_buffer_id_t buf_id, error_monitor_t em) {
     return pom_buffer_mgr_attach_old_buffer(&omm->m_bufMgr, &omm->m_classMgr, buf_id, em);
+}
+
+pom_debuger_t
+pom_debuger_enable(
+    pom_mgr_t mgr,
+    uint32_t stack_size,
+    error_monitor_t em)
+{
+    if (mgr->m_debuger) {
+        CPE_ERROR(em, "pom: debuger enable: already exist!");
+        return NULL;
+    }
+
+    mgr->m_debuger = pom_debuger_create(mgr->m_alloc, stack_size, em);
+    return mgr->m_debuger;
+}
+
+pom_debuger_t
+pom_debuger_get(pom_mgr_t mgr) {
+    return mgr->m_debuger;
 }
