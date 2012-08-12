@@ -1,5 +1,6 @@
 #ifndef CPE_POM_GRP_MANAGE_H
 #define CPE_POM_GRP_MANAGE_H
+#include "cpe/utils/stream.h"
 #include "cpe/dr/dr_types.h"
 #include "pom_grp_types.h"
 
