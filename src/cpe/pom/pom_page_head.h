@@ -15,7 +15,7 @@ struct pom_data_page_head {
     pom_class_id_t m_classId;
     int8_t m_reserve;
     int16_t m_page_idx;
-    int16_t m_reserve2;
+    int16_t m_alloc_ba_count;
 };
 
 #pragma pack(pop)
@@ -26,7 +26,7 @@ struct pom_data_page_head {
     __p->m_magic = POM_PAGE_MAGIC;            \
     __p->m_classId = POM_INVALID_CLASSID;     \
     __p->m_reserve = 0;                         \
-    __p->m_reserve2 = 0;                        \
+    __p->m_alloc_ba_count = 0;                  \
     __p->m_page_idx = -1;                       \
 } while(0)
 
