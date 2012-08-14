@@ -10,10 +10,9 @@
 #include "gd/app/app_context.h"
 #include "gd/vnet/vnet_control_pkg.h"
 #include "usf/bpg_pkg/bpg_pkg.h"
-#include "usf/bpg_pkg/bpg_pkg_manage.h"
-#include "usf/bpg_rsp/bpg_rsp_manage.h"
-#include "usf/bpg_bind/bpg_bind_manage.h"
 #include "usf/bpg_pkg/bpg_pkg_dsp.h"
+#include "usf/bpg_pkg/bpg_pkg_manage.h"
+#include "usf/bpg_bind/bpg_bind_manage.h"
 #include "bpg_bind_internal_ops.h"
 
 static void bpg_bind_manage_clear(nm_node_t node);
@@ -257,7 +256,7 @@ bpg_pkg_manage_t bpg_bind_manage_pkg_manage(bpg_bind_manage_t mgr) {
 
 bpg_pkg_t bpg_bind_manage_data_pkg(bpg_bind_manage_t mgr) {
     if (mgr->m_data_pkg == NULL) {
-        mgr->m_data_pkg = bpg_pkg_create(mgr->m_pkg_manage, 256, NULL, 0);
+        mgr->m_data_pkg = bpg_pkg_create(mgr->m_pkg_manage, 1024, NULL, 0);
     }
 
     return mgr->m_data_pkg;

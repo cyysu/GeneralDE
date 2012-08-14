@@ -1,6 +1,8 @@
 #include "zlib.h"
+#include "cpe/dp/dp_request.h"
 #include "usf/bpg_pkg/bpg_pkg.h"
 #include "usf/bpg_pkg/bpg_pkg_dsp.h"
+#include "usf/bpg_zip/bpg_zip_chanel.h"
 #include "bpg_zip_internal_types.h"
 
 int bpg_zip_chanel_zip_rsp(dp_req_t req, void * ctx, error_monitor_t em) {
@@ -16,16 +18,23 @@ int bpg_zip_chanel_zip_rsp(dp_req_t req, void * ctx, error_monitor_t em) {
 
     pkg = bpg_pkg_from_dp_req(req);
     if (pkg == NULL) {
-        CPE_ERROR(em, "bpg_zip_chanel_zip_rsp: cast to pkg fail!");
-        return -1;
+        if (bpg_pkg_dsp_pass(chanel->m_zip_send_to, req, em) != 0) {
+            CPE_ERROR(
+                em, "%s: zip: forward %s pkg fail!",
+                bpg_zip_chanel_name(chanel), dp_req_type(req));
+            return -1;
+        }
+        else {
+            return 0;
+        }
     }
 
     old_flags = bpg_pkg_flags(pkg);
     if (old_flags & (1 << chanel->m_mask_bit)) {
         if (chanel->m_debug) {
             CPE_INFO(
-                em, "bpg_zip_chanel_zip_rsp: compress ignore, flags=%d, bit %d alread set!",
-                old_flags, chanel->m_mask_bit);
+                em, "%s: zip: compress ignore, flags=%d, bit %d alread set!",
+                bpg_zip_chanel_name(chanel), old_flags, chanel->m_mask_bit);
         }
         goto DISPATCH;
     }
@@ -34,15 +43,17 @@ int bpg_zip_chanel_zip_rsp(dp_req_t req, void * ctx, error_monitor_t em) {
     if (mem_buffer_set_size(&chanel->m_data_buf, input_size) != 0
         || (input_buf = mem_buffer_make_continuous(&chanel->m_data_buf, 0)) == NULL)
     {
-        CPE_ERROR(em, "bpg_zip_chanel_zip_rsp: alloc buf fail, size=%d!", (int)input_size);
+        CPE_ERROR(
+            em, "%s: zip: alloc buf fail, size=%d!",
+            bpg_zip_chanel_name(chanel), (int)input_size);
         return -1;
     }
 
     if (input_size < chanel->m_size_threshold) {
         if (chanel->m_debug) {
             CPE_INFO(
-                em, "bpg_zip_chanel_zip_rsp: compress ignore, size=%d, threaded=%d!",
-                (int)input_size, (int)chanel->m_size_threshold);
+                em, "%s: zip: compress ignore, size=%d, threaded=%d!",
+                bpg_zip_chanel_name(chanel), (int)input_size, (int)chanel->m_size_threshold);
         }
         goto DISPATCH;
     }
@@ -55,8 +66,8 @@ int bpg_zip_chanel_zip_rsp(dp_req_t req, void * ctx, error_monitor_t em) {
             input_buf, input_size) != 0)
     {
         CPE_ERROR(
-            em, "bpg_zip_chanel_zip_rsp: compress fail, output_size=%d, input_size=%d!",
-            (int)output_size, (int)input_size);
+            em, "%s: zip: compress fail, output_size=%d, input_size=%d!",
+            bpg_zip_chanel_name(chanel), (int)output_size, (int)input_size);
         return -1;
     }
 
@@ -67,14 +78,15 @@ int bpg_zip_chanel_zip_rsp(dp_req_t req, void * ctx, error_monitor_t em) {
 
     if (chanel->m_debug) {
         CPE_INFO(
-            em, "bpg_zip_chanel_zip_rsp: compress success, size: %d ==> %d, flags 0x%x ==> 0x%x!",
-            (int)input_size, (int)output_size, old_flags, flags);
+            em, "%s: zip: compress success, size: %d ==> %d, flags 0x%x ==> 0x%x!",
+            bpg_zip_chanel_name(chanel), (int)input_size, (int)output_size, old_flags, flags);
     }
 
 DISPATCH:
     if (bpg_pkg_dsp_dispatch(chanel->m_zip_send_to, pkg, chanel->m_em) != 0) {
         CPE_ERROR(
-            em, "bpg_zip_chanel_zip_rsp: compress success, dispatch fail!");
+            em, "%s: zip: compress success, dispatch fail!",
+            bpg_zip_chanel_name(chanel));
         return -1;
     }
 
@@ -94,16 +106,23 @@ int bpg_zip_chanel_unzip_rsp(dp_req_t req, void * ctx, error_monitor_t em) {
 
     pkg = bpg_pkg_from_dp_req(req);
     if (pkg == NULL) {
-        CPE_ERROR(em, "bpg_zip_chanel_unzip_rsp: cast to pkg fail!");
-        return -1;
+        if (bpg_pkg_dsp_pass(chanel->m_unzip_send_to, req, em) != 0) {
+            CPE_ERROR(
+                em, "%s: unzip: forward %s pkg fail!",
+                bpg_zip_chanel_name(chanel), dp_req_type(req));
+            return -1;
+        }
+        else {
+            return 0;
+        }
     }
 
     old_flags = bpg_pkg_flags(pkg);
     if (!(old_flags & (1 << chanel->m_mask_bit))) {
         if (chanel->m_debug) {
             CPE_INFO(
-                em, "bpg_zip_chanel_zip_rsp: uncompress ignore, flags=%d, bit %d not set!",
-                old_flags, chanel->m_mask_bit);
+                em, "%s: unzip: ignore, flags=%d, bit %d not set!",
+                bpg_zip_chanel_name(chanel), old_flags, chanel->m_mask_bit);
         }
         goto DISPATCH;
     }
@@ -112,7 +131,9 @@ int bpg_zip_chanel_unzip_rsp(dp_req_t req, void * ctx, error_monitor_t em) {
     if (mem_buffer_set_size(&chanel->m_data_buf, input_size) != 0
         || (input_buf = mem_buffer_make_continuous(&chanel->m_data_buf, 0)) == NULL)
     {
-        CPE_ERROR(em, "bpg_zip_chanel_unzip_rsp: alloc buf fail, size=%d!", (int)input_size);
+        CPE_ERROR(
+            em, "%s: unzip: alloc buf fail, size=%d!",
+            bpg_zip_chanel_name(chanel), (int)input_size);
         return -1;
     }
 
@@ -124,8 +145,8 @@ int bpg_zip_chanel_unzip_rsp(dp_req_t req, void * ctx, error_monitor_t em) {
             input_buf, input_size) != 0)
     {
         CPE_ERROR(
-            em, "bpg_zip_chanel_unzip_rsp: uncompress fail, output_size=%d, input_size=%d!",
-            (int)output_size, (int)input_size);
+            em, "%s:J unzip: uncompress fail, output_size=%d, input_size=%d!",
+            bpg_zip_chanel_name(chanel), (int)output_size, (int)input_size);
         return -1;
     }
 
@@ -136,14 +157,15 @@ int bpg_zip_chanel_unzip_rsp(dp_req_t req, void * ctx, error_monitor_t em) {
 
     if (chanel->m_debug) {
         CPE_INFO(
-            em, "bpg_zip_chanel_unzip_rsp: uncompress success, size: %d ==> %d, flags 0x%x ==> 0x%x!",
-            (int)input_size, (int)output_size, old_flags, flags);
+            em, "%s: unzip: uncompress success, size: %d ==> %d, flags 0x%x ==> 0x%x!",
+            bpg_zip_chanel_name(chanel), (int)input_size, (int)output_size, old_flags, flags);
     }
 
 DISPATCH:
     if (bpg_pkg_dsp_dispatch(chanel->m_unzip_send_to, pkg, chanel->m_em) != 0) {
         CPE_ERROR(
-            em, "bpg_zip_chanel_zip_rsp: uncompress success, dispatch fail!");
+            em, "%s: unzip: uncompress success, dispatch fail!",
+            bpg_zip_chanel_name(chanel));
         return -1;
     }
 

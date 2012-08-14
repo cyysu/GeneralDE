@@ -47,7 +47,6 @@ bpg_net_agent_create(
     mgr->m_debug = 0;
     mgr->m_read_chanel_size = 2048;
     mgr->m_write_chanel_size = 2048;
-    mgr->m_cmd_disconnect = 0;
     mgr->m_conn_timeout = 0;
     mgr->m_dispatch_to = NULL;
 

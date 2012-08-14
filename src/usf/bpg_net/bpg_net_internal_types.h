@@ -22,7 +22,6 @@ struct bpg_net_agent {
 
     size_t m_read_chanel_size;
     size_t m_write_chanel_size;
-    int32_t m_cmd_disconnect;
 
     tl_time_span_t m_conn_timeout;
 
