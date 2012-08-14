@@ -132,6 +132,8 @@ void * pom_grp_obj_list_at_ex(pom_grp_obj_mgr_t mgr, pom_grp_obj_t obj, pom_grp_
     if (pos >= entry->m_data.m_list.m_capacity) return NULL;
 
     count = pom_grp_obj_list_count_buf(mgr, obj, entry);
+    assert(*count >= 0);
+    assert(*count <= entry->m_data.m_list.m_capacity);
     if (pos >= *count) return NULL;
 
     element_size = dr_meta_size(entry->m_data.m_list.m_data_meta);
@@ -390,6 +392,9 @@ int pom_grp_obj_list_remove_ex(pom_grp_obj_mgr_t mgr, pom_grp_obj_t obj, pom_grp
     }
     
     --(*count);
+    assert(*count >= 0);
+    assert(*count <= entry->m_data.m_list.m_capacity);
+
     return 0;
 }
 
