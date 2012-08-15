@@ -28,9 +28,9 @@ int dr_lib_init(LPDRMETALIB pstLib, const LPDRLIBPARAM pstParam) {
     pstLib->m_version = pstParam->iVersion;
     pstLib->m_startpos_macro = 0; /*guess*/
     pstLib->m_startpos_meta_by_id = pstLib->m_startpos_macro + sizeof(struct tagDRMacro) * pstParam->iMaxMacros;
-    pstLib->m_startpos_meta_by_name = pstLib->m_startpos_meta_by_id + sizeof(struct tagDRMetaIdxById) * pstParam->iMaxMetas;
-    pstLib->m_startpos_meta_by_orig = pstLib->m_startpos_meta_by_name + sizeof(struct tagDRMetaIdxByName) * pstParam->iMaxMetas;
-    pstLib->m_startpos_meta = pstLib->m_startpos_meta_by_orig + sizeof(struct tagDRMetaIdxByOrig /*TODO: change type*/) * pstParam->iMaxMetas;
+    pstLib->m_startpos_meta_by_name = pstLib->m_startpos_meta_by_id + sizeof(struct idx_meta_by_id) * pstParam->iMaxMetas;
+    pstLib->m_startpos_meta_by_orig = pstLib->m_startpos_meta_by_name + sizeof(struct idx_meta_by_name) * pstParam->iMaxMetas;
+    pstLib->m_startpos_meta = pstLib->m_startpos_meta_by_orig + sizeof(struct idx_meta_by_orig /*TODO: change type*/) * pstParam->iMaxMetas;
     pstLib->m_startpos_str = pstLib->m_startpos_meta + pstParam->iMetaSize;
     pstLib->m_buf_size_str = pstParam->iStrBufSize;
     //int8_t reserve7[8];
@@ -78,7 +78,7 @@ static int dr_lib_find_next_meta_pos(LPDRMETALIB metaLib) {
     char * base = (char*)(metaLib + 1);
     int i = 0;
 
-    struct tagDRMetaIdxById * metaIdx = (struct tagDRMetaIdxById *)(base + metaLib->m_startpos_meta_by_id);
+    struct idx_meta_by_id * metaIdx = (struct idx_meta_by_id *)(base + metaLib->m_startpos_meta_by_id);
 
     int newMetaPos = metaLib->m_startpos_meta;
 
@@ -98,15 +98,15 @@ static void dr_lib_add_meta_index_for_name(
 {
     char * base = (char*)(metaLib + 1);
     int beginPos, endPos, curPos;
-    struct tagDRMetaIdxByName * putAt = NULL;
-    struct tagDRMetaIdxByName * searchStart =
-        (struct tagDRMetaIdxByName *)(base + metaLib->m_startpos_meta_by_name);
+    struct idx_meta_by_name * putAt = NULL;
+    struct idx_meta_by_name * searchStart =
+        (struct idx_meta_by_name *)(base + metaLib->m_startpos_meta_by_name);
 
     for(beginPos = 0, endPos = metaLib->m_meta_count, curPos = (endPos - beginPos - 1) / 2;
         beginPos < endPos;
         curPos = beginPos + (endPos - beginPos - 1) / 2)
     {
-        struct tagDRMetaIdxByName * curItem = searchStart + curPos;
+        struct idx_meta_by_name * curItem = searchStart + curPos;
 
         int cmp_result = strcmp(base + newMeta->m_name_pos, base + curItem->m_name_pos);
         if (cmp_result <= 0) {
@@ -127,7 +127,7 @@ static void dr_lib_add_meta_index_for_name(
         memmove(
             searchStart + curPos + 1,
             searchStart + curPos,
-            sizeof(struct tagDRMetaIdxByName) * (metaLib->m_meta_count - curPos));
+            sizeof(struct idx_meta_by_name) * (metaLib->m_meta_count - curPos));
     }
 
     putAt->m_name_pos = newMeta->m_name_pos;
@@ -138,9 +138,9 @@ static void dr_lib_add_meta_index_for_orig(
     LPDRMETALIB metaLib, LPDRMETA newMeta, error_monitor_t em)
 {
     char * base = (char*)(metaLib + 1);
-    struct tagDRMetaIdxByOrig * putAt = NULL;
-    struct tagDRMetaIdxByOrig * begin =
-        (struct tagDRMetaIdxByOrig *)(base + metaLib->m_startpos_meta_by_orig);
+    struct idx_meta_by_orig * putAt = NULL;
+    struct idx_meta_by_orig * begin =
+        (struct idx_meta_by_orig *)(base + metaLib->m_startpos_meta_by_orig);
 
     putAt = begin + metaLib->m_meta_count;
     putAt->m_diff_to_base = newMeta->m_self_pos;
@@ -152,15 +152,15 @@ static void dr_lib_add_meta_index_for_id(
 {
     char * base = (char*)(metaLib + 1);
     int beginPos, endPos, curPos;
-    struct tagDRMetaIdxById * putAt = NULL;
-    struct tagDRMetaIdxById * searchStart =
-        (struct tagDRMetaIdxById *)(base + metaLib->m_startpos_meta_by_id);
+    struct idx_meta_by_id * putAt = NULL;
+    struct idx_meta_by_id * searchStart =
+        (struct idx_meta_by_id *)(base + metaLib->m_startpos_meta_by_id);
 
     for(beginPos = 0, endPos = metaLib->m_meta_count, curPos = (endPos - beginPos - 1) / 2;
         beginPos < endPos;
         curPos = beginPos + (endPos - beginPos - 1) / 2)
     {
-        struct tagDRMetaIdxById * curItem = searchStart + curPos;
+        struct idx_meta_by_id * curItem = searchStart + curPos;
         
         if (newMeta->m_id <= curItem->m_id) {
             endPos = curPos;
@@ -180,7 +180,7 @@ static void dr_lib_add_meta_index_for_id(
         memmove(
             searchStart + curPos + 1,
             searchStart + curPos,
-            sizeof(struct tagDRMetaIdxById) * (metaLib->m_meta_count - curPos));
+            sizeof(struct idx_meta_by_id) * (metaLib->m_meta_count - curPos));
     }
 
     putAt->m_id = newMeta->m_id;

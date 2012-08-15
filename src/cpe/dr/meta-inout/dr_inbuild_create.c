@@ -347,9 +347,9 @@ int dr_inbuild_calc_lib_paras(
     inBuildLib->m_data.iSize
         = sizeof(struct tagDRMetaLib)                                    /*head*/
         + sizeof(struct tagDRMacro) * inBuildLib->m_data.iMaxMacros /*macros*/
-        + (sizeof(struct tagDRMetaIdxById)                               /*meta indexes*/
-           + sizeof(struct tagDRMetaIdxByName)
-           + sizeof(struct tagDRMetaIdxByName/*TODO: unknown*/)
+        + (sizeof(struct idx_meta_by_id)                               /*meta indexes*/
+           + sizeof(struct idx_meta_by_name)
+           + sizeof(struct idx_meta_by_orig)
             ) * inBuildLib->m_data.iMaxMetas
         + inBuildLib->m_data.iMetaSize                              /*metas*/
         + inBuildLib->m_data.iMacrosGroupSize                       /*macro group*/

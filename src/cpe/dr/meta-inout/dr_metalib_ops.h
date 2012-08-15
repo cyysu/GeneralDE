@@ -20,7 +20,6 @@ LPDRMETAENTRY dr_meta_add_entry( LPDRMETA meta, LPDRMETAENTRY entry, error_monit
 
 void dr_meta_do_complete(LPDRMETA meta, error_monitor_t em);
 
-int dr_calc_meta_use_size(int entryCount);
 int dr_lib_addr_to_pos(LPDRMETALIB metaLib, const void * addr);
 
 #ifdef __cplusplus

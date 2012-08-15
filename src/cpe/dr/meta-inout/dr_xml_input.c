@@ -282,6 +282,11 @@ static void dr_build_xml_process_meta(
             if (len > CPE_DR_DESC_LEN) len = CPE_DR_DESC_LEN;
             DR_DO_DUP_STR(newMeta->m_desc);
         }
+        else if (strcmp((char const *)localname, "primarykey") == 0) {
+            char * names;
+            DR_DO_DUP_STR(names);
+            dr_inbuild_meta_add_key_entries(newMeta, names);
+        }
         else if (strcmp((char const *)localname, CPE_DR_TAG_ID) == 0) {
             DR_DO_READ_INT_OR_MACRO(newMeta->m_data.m_id, CPE_DR_ERROR_ENTRY_INVALID_ID_VALUE);
         }

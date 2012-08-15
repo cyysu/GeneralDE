@@ -277,3 +277,27 @@ TEST_F(BuildFromXmlMetaTest, meta_order_origin) {
     EXPECT_STREQ("A2", dr_meta_name(dr_lib_meta_at(m_metaLib, 0)));
     EXPECT_STREQ("A1", dr_meta_name(dr_lib_meta_at(m_metaLib, 1)));
 }
+
+TEST_F(BuildFromXmlMetaTest, meta_key_basic) {
+    EXPECT_EQ(
+        0,
+        parseMeta(
+            "<metalib tagsetversion='1' name='net'  version='10'>"
+            "    <struct name='A1' version='1' primarykey='a1,a2'>"
+            "	     <entry name='a1' type='int8'/>"
+            "	     <entry name='a2' type='int8'/>"
+            "	     <entry name='a3' type='int8'/>"
+            "    </struct>"
+            "</metalib>"
+            ));
+
+    EXPECT_EQ(1, dr_lib_meta_num(m_metaLib));
+
+    LPDRMETA meta = dr_lib_meta_at(m_metaLib, 0);
+    ASSERT_TRUE(meta);
+
+    ASSERT_EQ(2, dr_meta_key_entry_num(meta));
+    
+    EXPECT_STREQ("a1", dr_entry_name(dr_meta_key_entry_at(meta, 0)));
+    EXPECT_STREQ("a2", dr_entry_name(dr_meta_key_entry_at(meta, 1)));
+}

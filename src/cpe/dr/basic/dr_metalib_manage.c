@@ -16,7 +16,7 @@ LPDRMETA dr_lib_meta_at(LPDRMETALIB metaLib, int idx) {
 
     if (idx >= 0 && idx < metaLib->m_meta_count) {
         char * base = (char *)(metaLib + 1);
-        struct tagDRMetaIdxByOrig * idx_start = (struct tagDRMetaIdxByOrig *)(base + metaLib->m_startpos_meta_by_orig);
+        struct idx_meta_by_orig * idx_start = (struct idx_meta_by_orig *)(base + metaLib->m_startpos_meta_by_orig);
 
         return (LPDRMETA)(base + (idx_start + idx)->m_diff_to_base);
     }
@@ -27,7 +27,7 @@ LPDRMETA dr_lib_meta_at(LPDRMETALIB metaLib, int idx) {
 
 LPDRMETA dr_lib_find_meta_by_name(LPDRMETALIB metaLib, const char* name) {
     char * base;
-    struct tagDRMetaIdxByName * searchStart;
+    struct idx_meta_by_name * searchStart;
     int beginPos, endPos, curPos;
 
     assert(metaLib);
@@ -35,14 +35,14 @@ LPDRMETA dr_lib_find_meta_by_name(LPDRMETALIB metaLib, const char* name) {
 
     base = (char *)(metaLib + 1);
 
-    searchStart = (struct tagDRMetaIdxByName * )
+    searchStart = (struct idx_meta_by_name * )
         (base + metaLib->m_startpos_meta_by_name);
 
     for(beginPos = 0, endPos = metaLib->m_meta_count, curPos = (endPos - beginPos - 1) / 2;
         beginPos < endPos;
         curPos = beginPos + (endPos - beginPos - 1) / 2)
     {
-        struct tagDRMetaIdxByName * curItem;
+        struct idx_meta_by_name * curItem;
         int cmp_result;
 
         curItem = searchStart + curPos;
@@ -63,19 +63,19 @@ LPDRMETA dr_lib_find_meta_by_name(LPDRMETALIB metaLib, const char* name) {
 
 LPDRMETA dr_lib_find_meta_by_id(LPDRMETALIB metaLib, int id) {
     char * base;
-    struct tagDRMetaIdxById * searchStart;
+    struct idx_meta_by_id * searchStart;
     int beginPos, endPos, curPos;
 
     base = (char *)(metaLib + 1);
 
-    searchStart = (struct tagDRMetaIdxById * )
+    searchStart = (struct idx_meta_by_id * )
         (base + metaLib->m_startpos_meta_by_id);
 
     for(beginPos = 0, endPos = metaLib->m_meta_count, curPos = (endPos - beginPos - 1) / 2;
         beginPos < endPos;
         curPos = beginPos + (endPos - beginPos - 1) / 2)
     {
-        struct tagDRMetaIdxById * curItem = searchStart + curPos;
+        struct idx_meta_by_id * curItem = searchStart + curPos;
 
         if ((int32_t)id == (int32_t)curItem->m_id) {
             return (LPDRMETA)(base + curItem->m_diff_to_base);
@@ -318,6 +318,75 @@ LPDRMETAENTRY dr_meta_entry_at(LPDRMETA meta, int a_idxEntry) {
     }
 
     return (struct tagDRMetaEntry *)(meta + 1) + a_idxEntry;
+}
+
+int dr_meta_key_entry_num(LPDRMETA meta) {
+    return meta->m_key_num;
+}
+
+dr_idx_entry_info_t dr_meta_key_info_at(LPDRMETA meta, int idx) {
+    if (idx < 0 || idx >= meta->m_key_num) return NULL;
+    return ((dr_idx_entry_info_t)(((char*)meta) + meta->m_key_idx_pos)) + idx;
+}
+
+LPDRMETAENTRY dr_meta_key_entry_at(LPDRMETA meta, int idx) {
+    dr_idx_entry_info_t info;
+    char * base = (char *)(meta) - meta->m_self_pos;
+
+    info = dr_meta_key_info_at(meta, idx);
+    if (info == NULL) return NULL;
+    return (LPDRMETAENTRY)(base + info->m_entry_diff_to_base);
+}
+
+int dr_meta_index_num(LPDRMETA meta) {
+    return meta->m_index_count;
+}
+
+dr_index_info_t dr_meta_index_at(LPDRMETA meta, int idx) {
+    if (idx < 0 || idx >= meta->m_index_count) return NULL;
+
+    return ((dr_index_info_t)(((char*)meta) + meta->m_index_pos_from_meta)) + idx;
+}
+
+LPDRMETA dr_index_meta(dr_index_info_t index) {
+    return (LPDRMETA)(((char *)index) - index->m_diff_to_meta);
+}
+
+const char * dr_index_name(dr_index_info_t index) {
+    if (index->m_name_pos < 0) {
+        return "";
+    }
+    else {
+        LPDRMETA meta = (LPDRMETA)(((char *)index) - index->m_diff_to_meta);
+        char * base = (char *)(meta) - meta->m_self_pos;
+        return base + index->m_name_pos;
+    }
+}
+
+int dr_index_entry_num(dr_index_info_t index) {
+    return index->m_entry_num;
+}
+
+dr_index_entry_info_t dr_index_entry_info_at(dr_index_info_t index, int idx) {
+    LPDRMETA meta;
+
+    if (idx < 0 || idx >= index->m_entry_num) return NULL;
+
+    meta = (LPDRMETA)(((char *)index) - index->m_diff_to_meta);
+
+    return ((dr_index_entry_info_t)(((char*)meta) + index->m_entry_start_pos_to_meta)) + idx;
+}
+
+LPDRMETAENTRY dr_index_entry_at(dr_index_info_t index, int idx) {
+    LPDRMETA meta;
+    char * base;
+    dr_index_entry_info_t info = dr_index_entry_info_at(index, idx);
+
+    if (info == NULL) return NULL;
+
+    meta = (LPDRMETA)(((char *)index) - index->m_diff_to_meta);
+    base = (char *)(meta) - meta->m_self_pos;
+    return (LPDRMETAENTRY)(base + info->m_entry_diff_to_base);
 }
 
 LPDRMETAENTRY dr_meta_find_entry_by_path(LPDRMETA meta, const char* entryPath) {

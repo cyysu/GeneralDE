@@ -25,7 +25,9 @@ typedef struct tagDRData	DRDATA;
 typedef struct tagDRData	*LPDRDATA;
 typedef struct tagDRMacro		*LPDRMACRO;
 typedef struct tagDRMacrosGroup		*LPDRMACROSGROUP;
-
+typedef struct dr_idx_entry_info * dr_idx_entry_info_t;
+typedef struct dr_index_info * dr_index_info_t;
+typedef struct dr_index_entry_info * dr_index_entry_info_t;
 
 struct tagDRLibParam
 {
