@@ -326,7 +326,7 @@ int dr_meta_key_entry_num(LPDRMETA meta) {
 
 dr_idx_entry_info_t dr_meta_key_info_at(LPDRMETA meta, int idx) {
     if (idx < 0 || idx >= meta->m_key_num) return NULL;
-    return ((dr_idx_entry_info_t)(((char*)meta) + meta->m_key_idx_pos)) + idx;
+    return ((dr_idx_entry_info_t)(((char*)meta) + meta->m_key_start_from_meta)) + idx;
 }
 
 LPDRMETAENTRY dr_meta_key_entry_at(LPDRMETA meta, int idx) {

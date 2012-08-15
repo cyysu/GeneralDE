@@ -17,6 +17,7 @@ LPDRMACRO dr_lib_add_macro(LPDRMETALIB metaLib, LPDRMACRO macro, error_monitor_t
 LPDRMETA dr_lib_add_meta(LPDRMETALIB metaLib, LPDRMETA meta, error_monitor_t em);
 
 LPDRMETAENTRY dr_meta_add_entry( LPDRMETA meta, LPDRMETAENTRY entry, error_monitor_t em);
+void dr_meta_add_key(LPDRMETA meta, const char * entry_name, error_monitor_t em);
 
 void dr_meta_do_complete(LPDRMETA meta, error_monitor_t em);
 

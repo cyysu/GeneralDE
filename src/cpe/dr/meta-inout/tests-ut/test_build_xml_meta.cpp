@@ -301,3 +301,31 @@ TEST_F(BuildFromXmlMetaTest, meta_key_basic) {
     EXPECT_STREQ("a1", dr_entry_name(dr_meta_key_entry_at(meta, 0)));
     EXPECT_STREQ("a2", dr_entry_name(dr_meta_key_entry_at(meta, 1)));
 }
+
+TEST_F(BuildFromXmlMetaTest, meta_key_not_exist) {
+    EXPECT_EQ(
+        -1,
+        parseMeta(
+            "<metalib tagsetversion='1' name='net'  version='10'>"
+            "    <struct name='A1' version='1' primarykey='not-exist-key'>"
+            "	     <entry name='a1' type='int8'/>"
+            "	     <entry name='a2' type='int8'/>"
+            "	     <entry name='a3' type='int8'/>"
+            "    </struct>"
+            "</metalib>"
+            ));
+}
+
+TEST_F(BuildFromXmlMetaTest, meta_key_duplicate) {
+    EXPECT_EQ(
+        -1,
+        parseMeta(
+            "<metalib tagsetversion='1' name='net'  version='10'>"
+            "    <struct name='A1' version='1' primarykey='a1:a1'>"
+            "	     <entry name='a1' type='int8'/>"
+            "	     <entry name='a2' type='int8'/>"
+            "	     <entry name='a3' type='int8'/>"
+            "    </struct>"
+            "</metalib>"
+            ));
+}

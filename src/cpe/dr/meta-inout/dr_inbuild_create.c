@@ -163,6 +163,7 @@ static void dr_inbuild_build_add_meta(
 {
     LPDRMETA createdMeta = 0;
     struct DRInBuildMetaEntry * entryEle = 0;
+    struct dr_inbuild_key_entry * key_entry;
 
     metaEle->m_data.m_name_pos = dr_inbuild_build_add_string(ctx, metaEle->m_name);
     metaEle->m_data.m_desc_pos =dr_inbuild_build_add_string(ctx, metaEle->m_desc);
@@ -172,6 +173,10 @@ static void dr_inbuild_build_add_meta(
     /*build entries*/
     TAILQ_FOREACH(entryEle, &metaEle->m_entries, m_next) {
         dr_inbuild_build_add_entry(ctx, createdMeta, entryEle);
+    }
+
+    TAILQ_FOREACH(key_entry, &metaEle->m_key_entries, m_next) {
+        dr_meta_add_key(createdMeta, key_entry->m_entry_name, ctx->m_em);
     }
 
     dr_meta_do_complete(createdMeta, ctx->m_em);
@@ -333,8 +338,16 @@ int dr_inbuild_calc_lib_paras(
     TAILQ_FOREACH(metaEle, &inBuildLib->m_metas, m_next) {
         metaEle->m_data.m_entry_count = metaEle->m_entries_count;
 
+        metaEle->m_data.m_key_start_from_meta = 
+            sizeof(struct tagDRMeta)
+            + sizeof(struct tagDRMetaEntry) * metaEle->m_entries_count;
+
+        metaEle->m_data.m_meta_size = 
+            metaEle->m_data.m_key_start_from_meta
+            + sizeof(struct dr_idx_entry_info) * metaEle->m_key_entrie_count;
+
         inBuildLib->m_data.iMaxMetas++;
-        inBuildLib->m_data.iMetaSize += dr_calc_meta_use_size(metaEle->m_entries_count);
+        inBuildLib->m_data.iMetaSize += metaEle->m_data.m_meta_size;
     }
 
     inBuildLib->m_data.iMaxMacrosGroupNum = 0;

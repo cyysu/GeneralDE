@@ -78,7 +78,7 @@ struct tagDRMeta {
     int8_t reserve_7_1_2[6];
     /**/ /*238*/uint16_t m_key_num;
     dr_int_t reserve_7_2[3];
-    dr_int_t m_key_idx_pos;
+    dr_int_t m_key_start_from_meta;
     dr_int_t reserve_7_3[4];
 }; /**/  /*304*/
 
