@@ -131,13 +131,14 @@ struct dr_index_info {
     dr_int_t m_diff_to_meta;
     dr_int_t m_entry_num;
     dr_int_t m_entry_start_pos_to_meta;
-    dr_int_t m_reserve[5];
+    int32_t m_reserve1[2];
+    dr_int_t m_reserve_2[4];
 };
 
 struct dr_index_entry_info {
     dr_int_t m_data_start_pos;
     dr_int_t m_entry_diff_to_base;
-    dr_int_t m_reserve;
+    int32_t m_reserve[2];
 };
 
 struct idx_meta_by_id {
