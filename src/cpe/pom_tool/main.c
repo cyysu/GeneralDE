@@ -188,7 +188,7 @@ int main(int argc, char * argv[]) {
     int mk_clib_nerrors;
 
     /*mk metalib xml*/
-    struct arg_rex  * metalib_xml =     arg_rex1(NULL, NULL, "metalib-xml", NULL, 0, NULL);
+    struct arg_rex  * metalib_xml =     arg_rex1(NULL, NULL, "^metalib-xml$", NULL, 0, NULL);
     struct arg_file  * metalib_xml_pom_meta =     arg_file1(NULL, "pom-meta", NULL, "input pom meta file");
     struct arg_file  * metalib_xml_dr_file =     arg_filen(NULL, "dr-meta", NULL, 0, 100, "input dr meta file(s)");
     struct arg_file  * metalib_xml_dr_group_root =     arg_file0(NULL, "dr-meta-group-root", NULL, "input dr meta group root");
@@ -204,7 +204,7 @@ int main(int argc, char * argv[]) {
     int metalib_xml_nerrors;
 
     /*mk store_metalib xml*/
-    struct arg_rex  * store_metalib_xml =     arg_rex1(NULL, NULL, "metalib-xml", NULL, 0, NULL);
+    struct arg_rex  * store_metalib_xml =     arg_rex1(NULL, NULL, "^store-metalib-xml$", NULL, 0, NULL);
     struct arg_file  * store_metalib_xml_pom_meta =     arg_file1(NULL, "pom-meta", NULL, "input pom meta file");
     struct arg_file  * store_metalib_xml_dr_file =     arg_filen(NULL, "dr-meta", NULL, 0, 100, "input dr meta file(s)");
     struct arg_file  * store_metalib_xml_dr_group_root =     arg_file0(NULL, "dr-meta-group-root", NULL, "input dr meta group root");

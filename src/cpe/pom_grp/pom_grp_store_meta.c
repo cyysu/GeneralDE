@@ -187,6 +187,7 @@ static int pom_grp_meta_build_store_meta_i(
     dr_inbuild_metalib_set_tagsetversion(builder, dr_lib_tag_set_version(src_metalib));
     dr_inbuild_metalib_set_name(builder, pom_grp_meta_name(meta));
 
+
     if (dr_inbuild_meta_init(main_meta, src_main_meta) != 0
         || dr_inbuild_meta_copy_entrys(main_meta, src_main_meta) != 0
         || dr_inbuild_meta_copy_keys(main_meta, src_main_meta) != 0
