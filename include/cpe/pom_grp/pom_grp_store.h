@@ -46,6 +46,7 @@ int pom_grp_meta_build_store_meta(
 #define pom_grp_store_table_it_next(it) ((it)->next ? (it)->next(it) : NULL)
 #define pom_grp_store_entry_it_next(it) ((it)->next ? (it)->next(it) : NULL)
 
+
 #ifdef __cplusplus
 }
 #endif
