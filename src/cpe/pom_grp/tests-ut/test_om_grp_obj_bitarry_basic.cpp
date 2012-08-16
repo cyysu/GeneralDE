@@ -8,7 +8,8 @@ public:
         
         install(
             "TestObj:\n"
-            "  - entry1: { entry-type: ba, bit-capacity: 30, byte-per-page=2 }\n"
+            "  attributes:\n"
+            "    - entry1: { entry-type: ba, bit-capacity: 30, byte-per-page=2 }\n"
             ,
             "<metalib tagsetversion='1' name='net'  version='1'>"
             "</metalib>"

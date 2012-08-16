@@ -8,10 +8,12 @@ public:
 
         install(
             "TestObj:\n"
-            "  - entry1: { entry-type: normal, data-type: AttrGroup1 }\n"
-            "  - entry2: { entry-type: list, data-type: AttrGroup2, group-count: 3, capacity: 3 }\n"
-            "  - entry3: { entry-type: ba, bit-capacity: 15 }\n"
-            "  - entry4: { entry-type: binary, capacity: 5 }\n"
+            "  main-entry: entry1\n"
+            "  attributes:\n"
+            "    - entry1: { entry-type: normal, data-type: AttrGroup1 }\n"
+            "    - entry2: { entry-type: list, data-type: AttrGroup2, group-count: 3, capacity: 3 }\n"
+            "    - entry3: { entry-type: ba, bit-capacity: 15 }\n"
+            "    - entry4: { entry-type: binary, capacity: 5 }\n"
             ,
             "<metalib tagsetversion='1' name='net'  version='1'>"
             "    <struct name='AttrGroup1' version='1'>"
