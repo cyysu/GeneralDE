@@ -97,6 +97,7 @@ struct logic_require {
     logic_require_id_t m_id;
     logic_require_state_t m_state;
     char * m_name;
+    int32_t m_error;
     logic_data_list_t m_datas;
 
     TAILQ_ENTRY(logic_require) m_next_for_context;

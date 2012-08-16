@@ -23,6 +23,7 @@ logic_require_create(logic_stack_node_t stack, const char * require_name) {
     require->m_stack = stack;
     require->m_state = logic_require_state_waiting;
     require->m_name = (char *)(require + 1);
+    require->m_error = 0;
 
     memcpy(require->m_name, require_name, name_len);
 
@@ -167,7 +168,15 @@ void logic_require_set_done(logic_require_t require) {
     logic_context_do_state_change(ctx, old_state);
 }
 
+int32_t logic_require_error(logic_require_t require) {
+    return require->m_error;
+}
+
 void logic_require_set_error(logic_require_t require) {
+    logic_require_set_error_ex(require, -1);
+}
+
+void logic_require_set_error_ex(logic_require_t require, int32_t err) {
     logic_context_t ctx;
     logic_context_state_t old_state;
 
@@ -183,6 +192,7 @@ void logic_require_set_error(logic_require_t require) {
     --require->m_stack->m_require_waiting_count;
     --ctx->m_require_waiting_count;
     require->m_state = logic_require_state_error;
+    require->m_error = err;
 
     logic_context_do_state_change(ctx, old_state);
 }

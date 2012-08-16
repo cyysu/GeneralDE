@@ -23,7 +23,7 @@ public:
     LogicOpContext const & context(void) const { return *(LogicOpContext*)logic_require_context(*this); }
 
     void cancel(void) { logic_require_cancel(*this); }
-    void setError(void) { logic_require_set_error(*this); }
+    void setError(int32_t err = -1) { logic_require_set_error_ex(*this, err); }
     void setDone(void) { logic_require_set_done(*this); }
 
     LogicOpData & data(const char * name);
