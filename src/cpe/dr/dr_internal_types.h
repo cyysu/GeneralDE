@@ -52,28 +52,34 @@ struct tagDRMetaLib {
 
 struct tagDRMeta {
     int8_t reserve_1[4];
-    /*004*/ int32_t m_id;
-    /*008*/ int32_t m_based_version;
-    /*012*/ int32_t m_current_version;
-    /*016*/ /*016*/dr_int_t m_type;
-    dr_int_t reserve_2[2];
+    /*004*/ /*004*/ int32_t m_id;
+    /*008*/ /*008*/ int32_t m_based_version;
+    /*012*/ /*012*/ int32_t m_current_version;
+    /*016*/ /*016*/ dr_int_t m_type;
+    /*020*/ /*024*/ dr_int_t m_meta_size;
+    /*024*/ /*032*/ dr_int_t reserve_2;
     /*028*/ /*040*/ dr_int_t m_data_size;
     int8_t reserve_3_1[8];
     dr_int_t reserve_3_2[1];
 
 
-    /*044*/ /*064*/dr_int_t m_entry_count;
-    int8_t reserve_4_1[8];
-    dr_int_t reserve_4_2[1];
-    /*060*/ /*088*/dr_int_t m_self_pos;
+    /*044*/ /*064*/ uint32_t m_entry_count;
+    /*048*/ /*068*/ uint32_t m_index_count;
+    /*052*/ /*082*/ dr_int_t m_index_pos_from_meta;
+    /*056*/ /*080*/ dr_int_t m_index_entry_pos_from_meta;
+    /*060*/ /*088*/ dr_int_t m_self_pos;
     int8_t reserve_5[16];
     /*080*/ /*112*/int32_t m_align;
     int8_t reserve_6_1[4];
     dr_int_t reserve_6_2[11];
     /*132*/ /*208*/dr_int_t m_name_pos;
     /*136*/ /*216*/dr_int_t m_desc_pos;
-    int8_t reserve_7_1[8];
-    dr_int_t reserve_7_2[9];
+    dr_int_t reserve_7_1_1;
+    int8_t reserve_7_1_2[6];
+    /**/ /*238*/uint16_t m_key_num;
+    dr_int_t reserve_7_2[3];
+    dr_int_t m_key_start_from_meta;
+    dr_int_t reserve_7_3[4];
 }; /**/  /*304*/
 
 struct tagDRMetaEntry {
@@ -119,19 +125,40 @@ struct tagDRMacrosGroup {
     int8_t a;
 };
 
-struct tagDRMetaIdxById {
+struct dr_index_info {
+    dr_int_t m_reserve_1;
+    dr_int_t m_name_pos;
+    dr_int_t m_diff_to_meta;
+    dr_int_t m_entry_num;
+    dr_int_t m_entry_start_pos_to_meta;
+    int32_t m_reserve1[2];
+    dr_int_t m_reserve_2[4];
+};
+
+struct dr_index_entry_info {
+    dr_int_t m_data_start_pos;
+    dr_int_t m_entry_diff_to_base;
+    int32_t m_reserve[2];
+};
+
+struct idx_meta_by_id {
     dr_int_t m_id;
     dr_int_t m_diff_to_base;
 };
 
-struct tagDRMetaIdxByName {
+struct idx_meta_by_name {
     dr_int_t m_name_pos;
     dr_int_t m_diff_to_base;
 };
 
-struct tagDRMetaIdxByOrig {
+struct idx_meta_by_orig {
     dr_int_t m_diff_to_base;
     dr_int_t m_reserve;
+};
+
+struct dr_idx_entry_info {
+    dr_int_t m_data_start_pos;
+    dr_int_t m_entry_diff_to_base;
 };
 
 #pragma pack(pop)

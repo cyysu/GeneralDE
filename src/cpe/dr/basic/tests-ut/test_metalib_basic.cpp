@@ -89,3 +89,41 @@ TEST_F(MetalibManagerTest, MetaOrder) {
     EXPECT_STREQ("CmdLogin", dr_meta_name(dr_lib_meta_at(m_lib, 1)));
     EXPECT_STREQ("CmdLogout", dr_meta_name(dr_lib_meta_at(m_lib, 2)));
 }
+
+TEST_F(MetalibManagerTest, MetaKey) {
+    EXPECT_EQ(0, dr_meta_key_entry_num(meta("PkgHead")));
+
+    LPDRMETA m = meta("CmdLogin");
+    EXPECT_EQ(2, dr_meta_key_entry_num(m));
+
+    EXPECT_STREQ("name", dr_entry_name(dr_meta_key_entry_at(m, 0)));
+    EXPECT_STREQ("pass", dr_entry_name(dr_meta_key_entry_at(m, 1)));
+}
+
+TEST_F(MetalibManagerTest, MetaIndex) {
+    EXPECT_EQ(0, dr_meta_key_entry_num(meta("PkgHead")));
+
+    LPDRMETA m = meta("CmdLogin");
+
+    dr_index_info_t i1 = dr_meta_index_at(m, 0);
+    ASSERT_TRUE(i1);
+    EXPECT_STREQ("index1", dr_index_name(i1));
+    EXPECT_EQ(2, dr_index_entry_num(i1));
+
+    dr_index_entry_info_t ie1 = dr_index_entry_info_at(i1, 0);
+    ASSERT_TRUE(ie1);
+
+    dr_index_entry_info_t ie2 = dr_index_entry_info_at(i1, 1);
+    ASSERT_TRUE(ie2);
+
+    EXPECT_STREQ("name", dr_entry_name(dr_index_entry_at(i1, 0)));
+    EXPECT_STREQ("pass", dr_entry_name(dr_index_entry_at(i1, 1)));
+
+
+    dr_index_info_t i2 = dr_meta_index_at(m, 1);
+    ASSERT_TRUE(i2);
+    EXPECT_STREQ("index2", dr_index_name(i2));
+    EXPECT_EQ(1, dr_index_entry_num(i2));
+
+    EXPECT_TRUE(NULL == dr_meta_index_at(m, 2));
+}
