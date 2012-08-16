@@ -7,6 +7,9 @@
 
 struct DRInBuildMacro;
 struct DRInBuildMeta;
+struct dr_inbuild_key_entry;
+struct dr_inbuild_index;
+struct dr_inbuild_index_entry;
 
 struct DRInBuildMetaLib {
     struct tagDRLibParam m_data;
@@ -23,6 +26,13 @@ struct DRInBuildMeta {
     struct DRInBuildMetaLib * m_lib;
     TAILQ_ENTRY(DRInBuildMeta) m_next;
     TAILQ_HEAD(DRInBuildMetaEntryList, DRInBuildMetaEntry) m_entries;
+
+    int m_key_entrie_count;
+    TAILQ_HEAD(dr_inbuild_key_entry_list, dr_inbuild_key_entry) m_key_entries;
+
+    int m_index_count;
+    TAILQ_HEAD(dr_inbuild_index_list, dr_inbuild_index) m_indexes;
+    
     struct cpe_hash_entry m_hh;
 
     int m_entries_count;
@@ -30,6 +40,24 @@ struct DRInBuildMeta {
     struct tagDRMeta m_data;
     char const * m_desc;
     char const * m_name;
+};
+
+struct dr_inbuild_key_entry {
+    TAILQ_ENTRY(dr_inbuild_key_entry) m_next;
+    const char * m_entry_name;
+};
+
+struct dr_inbuild_index {
+    TAILQ_ENTRY(dr_inbuild_index) m_next;
+    struct DRInBuildMeta * m_meta;
+    const char * m_index_name;
+    int m_entry_count;
+    TAILQ_HEAD(dr_inbuild_index_entry_list, dr_inbuild_index_entry) m_entries;
+};
+
+struct dr_inbuild_index_entry {
+    TAILQ_ENTRY(dr_inbuild_index_entry) m_next;
+    const char * m_entry_name;
 };
 
 struct DRInBuildMetaEntry {

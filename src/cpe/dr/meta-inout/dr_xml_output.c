@@ -77,6 +77,38 @@ static int dr_save_lib_to_xml_entries(LPDRMETA meta, xmlTextWriterPtr writer, er
     return 0;
 }
 
+static int dr_save_lib_to_xml_indexies(LPDRMETA meta, xmlTextWriterPtr writer, error_monitor_t em) {
+    int i, j;
+    int count;
+    char buf[128];
+    size_t size;
+
+    count = dr_meta_index_num(meta);
+    for(i = 0; i < count; ++i) {
+        dr_index_info_t index = dr_meta_index_at(meta, i);
+
+        DR_SAVE_LIB_TO_XML_WRITE_START_ELEMENT("index");
+
+        DR_SAVE_LIB_TO_XML_WRITE_ATTRIBUTE("name", dr_index_name(index));
+
+        buf[0] = 0;
+        size = 0;
+        if (dr_index_entry_num(index) > 0) {
+            size += snprintf(buf + size, sizeof(buf) - size, "%s", dr_entry_name(dr_index_entry_at(index, 0)));
+            for(j = 1; j < dr_index_entry_num(index); ++j) {
+                size += snprintf(buf + size, sizeof(buf) - size, ",%s", dr_entry_name(dr_index_entry_at(index, j)));
+            }
+
+            DR_SAVE_LIB_TO_XML_WRITE_ATTRIBUTE_FMT("column", "%s", buf);
+        }
+
+
+        DR_SAVE_LIB_TO_XML_WRITE_END_ELEMENT();
+    }
+    
+    return 0;
+}
+
 static int dr_save_lib_to_xml_metas(LPDRMETALIB metaLib, xmlTextWriterPtr writer, error_monitor_t em) {
     int i;
     int count;
@@ -96,7 +128,20 @@ static int dr_save_lib_to_xml_metas(LPDRMETALIB metaLib, xmlTextWriterPtr writer
         DR_SAVE_LIB_TO_XML_WRITE_ATTRIBUTE_FMT("version", "%d", dr_meta_current_version(meta));
         if (strcmp(dr_meta_desc(meta), "") != 0) DR_SAVE_LIB_TO_XML_WRITE_ATTRIBUTE("desc", dr_meta_desc(meta));
 
+        if (dr_meta_key_entry_num(meta) > 0) {
+            char buf[128];
+            size_t size = 0;
+            int i;
+            size += snprintf(buf + size, sizeof(buf) - size, "%s", dr_entry_name(dr_meta_key_entry_at(meta, 0)));
+            for(i = 1; i < dr_meta_key_entry_num(meta); ++i) {
+                size += snprintf(buf + size, sizeof(buf) - size, ",%s", dr_entry_name(dr_meta_key_entry_at(meta, i)));
+            }
+
+            DR_SAVE_LIB_TO_XML_WRITE_ATTRIBUTE_FMT("primarykey", "%s", buf);
+        }
+
         if (dr_save_lib_to_xml_entries(meta, writer, em) != 0) return -1;
+        if (dr_save_lib_to_xml_indexies(meta, writer, em) != 0) return -1;
 
         DR_SAVE_LIB_TO_XML_WRITE_END_ELEMENT();
     }
