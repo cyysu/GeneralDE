@@ -9,6 +9,7 @@ struct DRInBuildMacro;
 struct DRInBuildMeta;
 struct dr_inbuild_key_entry;
 struct dr_inbuild_index;
+struct dr_inbuild_index_entry;
 
 struct DRInBuildMetaLib {
     struct tagDRLibParam m_data;
@@ -48,7 +49,15 @@ struct dr_inbuild_key_entry {
 
 struct dr_inbuild_index {
     TAILQ_ENTRY(dr_inbuild_index) m_next;
-    const char * m_name;
+    struct DRInBuildMeta * m_meta;
+    const char * m_index_name;
+    int m_entry_count;
+    TAILQ_HEAD(dr_inbuild_index_entry_list, dr_inbuild_index_entry) m_entries;
+};
+
+struct dr_inbuild_index_entry {
+    TAILQ_ENTRY(dr_inbuild_index_entry) m_next;
+    const char * m_entry_name;
 };
 
 struct DRInBuildMetaEntry {

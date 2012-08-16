@@ -362,6 +362,63 @@ void dr_meta_add_key(LPDRMETA meta, const char * entry_name, error_monitor_t em)
     entry_info->m_data_start_pos = entry->m_data_start_pos;
 }
 
+struct dr_index_info * dr_meta_add_index(LPDRMETA meta, struct dr_index_info * index_data, error_monitor_t em) {
+    struct dr_index_info * index;
+    int index_pos = meta->m_index_count;
+
+    ++meta->m_index_count;
+    index = dr_meta_index_at(meta, index_pos);
+    memcpy(index, index_data, sizeof(*index));
+
+    index->m_diff_to_meta = (char *)index - (char *)meta;
+    index->m_entry_num = 0;
+
+    if (index_pos == 0) {
+        index->m_entry_start_pos_to_meta = meta->m_index_entry_pos_from_meta;
+    }
+    else {
+        struct dr_index_info * pre_index = dr_meta_index_at(meta, index_pos - 1);
+        index->m_entry_start_pos_to_meta = 
+            pre_index->m_entry_start_pos_to_meta
+            + sizeof(struct dr_index_entry_info) * pre_index->m_entry_num;
+    }
+
+    return index;
+}
+
+void dr_index_add_entry(struct dr_index_info * index, const char * entry_name, error_monitor_t em) {
+    dr_index_entry_info_t entry_info;
+    LPDRMETA meta = (LPDRMETA)( ((char*)index) - index->m_diff_to_meta);
+    char * base = (char*)(meta) - meta->m_self_pos;
+    uint32_t i;
+    LPDRMETAENTRY entry;
+
+    for(i = 0; i < index->m_entry_num; ++i) {
+        entry_info = dr_index_entry_info_at(index, i);
+        LPDRMETAENTRY check_entry = (LPDRMETAENTRY)(base + entry_info->m_entry_diff_to_base);
+
+        if (strcmp(base + check_entry->m_name_pos, entry_name) == 0) {
+            CPE_ERROR_EX(
+                em, CPE_DR_ERROR_META_NO_ENTRY, "index %s.%s have entry %s",
+                dr_meta_name(meta), base + index->m_name_pos, entry_name);
+            return;
+        }
+    }
+
+    entry = dr_meta_find_entry_lsearch(meta, entry_name);
+    if (entry == NULL) {
+        CPE_ERROR(
+            em, "index %s.%s entry %s not exist",
+            dr_meta_name(meta), base + index->m_name_pos, entry_name);
+        return;
+    }
+ 
+    ++index->m_entry_num;
+    entry_info = dr_index_entry_info_at(index, i);
+    entry_info->m_entry_diff_to_base = ((char *)entry) - base;
+    entry_info->m_data_start_pos = entry->m_data_start_pos;
+}
+
 void dr_meta_do_complete(LPDRMETA meta, error_monitor_t em) {
     int panding;
 

@@ -164,6 +164,8 @@ static void dr_inbuild_build_add_meta(
     LPDRMETA createdMeta = 0;
     struct DRInBuildMetaEntry * entryEle = 0;
     struct dr_inbuild_key_entry * key_entry;
+    struct dr_inbuild_index * index;
+    struct dr_inbuild_index_entry * index_entry;
 
     metaEle->m_data.m_name_pos = dr_inbuild_build_add_string(ctx, metaEle->m_name);
     metaEle->m_data.m_desc_pos =dr_inbuild_build_add_string(ctx, metaEle->m_desc);
@@ -177,6 +179,21 @@ static void dr_inbuild_build_add_meta(
 
     TAILQ_FOREACH(key_entry, &metaEle->m_key_entries, m_next) {
         dr_meta_add_key(createdMeta, key_entry->m_entry_name, ctx->m_em);
+    }
+
+    TAILQ_FOREACH(index, &metaEle->m_indexes, m_next) {
+        struct dr_index_info index_data;
+        struct dr_index_info * created_index;
+
+        bzero(&index_data, sizeof(index_data));
+        index_data.m_name_pos = dr_inbuild_build_add_string(ctx, index->m_index_name);
+
+        created_index = dr_meta_add_index(createdMeta, &index_data, ctx->m_em);
+        if (created_index == NULL) continue;
+
+        TAILQ_FOREACH(index_entry, &index->m_entries, m_next) {
+            dr_index_add_entry(created_index, index_entry->m_entry_name, ctx->m_em);
+        }
     }
 
     dr_meta_do_complete(createdMeta, ctx->m_em);
@@ -298,6 +315,7 @@ static int dr_inbuild_calc_strbuf_size(struct DRInBuildMetaLib * inBuildLib) {
     struct DRInBuildMacro * macroEle = 0;
     struct DRInBuildMeta * metaEle = 0;
     struct DRInBuildMetaEntry * entryEle = 0;
+    struct dr_inbuild_index * index;
 
     int strBufSize = 0;
 
@@ -315,6 +333,10 @@ static int dr_inbuild_calc_strbuf_size(struct DRInBuildMetaLib * inBuildLib) {
             strBufSize += dr_inbuild_calc_string_size(entryEle->m_desc);
             strBufSize += dr_inbuild_calc_string_size(entryEle->m_cname);
         }
+
+        TAILQ_FOREACH(index, &metaEle->m_indexes, m_next) {
+            strBufSize += dr_inbuild_calc_string_size(index->m_index_name);
+        }
     }
 
     return strBufSize;
@@ -325,6 +347,7 @@ int dr_inbuild_calc_lib_paras(
 {
     struct DRInBuildMacro * macroEle = 0;
     struct DRInBuildMeta * metaEle = 0;
+    struct dr_inbuild_index * index;
 
     dr_inbuild_build_calc_basic_type_and_size(inBuildLib, em);
 
@@ -336,15 +359,30 @@ int dr_inbuild_calc_lib_paras(
     inBuildLib->m_data.iMetaSize = 0;
     inBuildLib->m_data.iMaxMetas = 0;
     TAILQ_FOREACH(metaEle, &inBuildLib->m_metas, m_next) {
+        int index_entry_use_size;
+
         metaEle->m_data.m_entry_count = metaEle->m_entries_count;
 
         metaEle->m_data.m_key_start_from_meta = 
             sizeof(struct tagDRMeta)
             + sizeof(struct tagDRMetaEntry) * metaEle->m_entries_count;
 
-        metaEle->m_data.m_meta_size = 
+        metaEle->m_data.m_index_pos_from_meta =
             metaEle->m_data.m_key_start_from_meta
             + sizeof(struct dr_idx_entry_info) * metaEle->m_key_entrie_count;
+
+        metaEle->m_data.m_index_entry_pos_from_meta =
+            metaEle->m_data.m_index_pos_from_meta
+            + sizeof(struct dr_index_info) * metaEle->m_index_count;
+            
+        index_entry_use_size = 0;
+        TAILQ_FOREACH(index, &metaEle->m_indexes, m_next) {
+            index_entry_use_size += sizeof(struct dr_index_entry_info) * index->m_entry_count;
+        }
+
+        metaEle->m_data.m_meta_size = 
+            metaEle->m_data.m_index_entry_pos_from_meta
+            + index_entry_use_size;
 
         inBuildLib->m_data.iMaxMetas++;
         inBuildLib->m_data.iMetaSize += metaEle->m_data.m_meta_size;

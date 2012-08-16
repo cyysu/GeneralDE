@@ -19,6 +19,10 @@ LPDRMETA dr_lib_add_meta(LPDRMETALIB metaLib, LPDRMETA meta, error_monitor_t em)
 LPDRMETAENTRY dr_meta_add_entry( LPDRMETA meta, LPDRMETAENTRY entry, error_monitor_t em);
 void dr_meta_add_key(LPDRMETA meta, const char * entry_name, error_monitor_t em);
 
+struct dr_index_info * dr_meta_add_index(LPDRMETA meta, struct dr_index_info * info, error_monitor_t em);
+
+void dr_index_add_entry(struct dr_index_info * index, const char * entry_name, error_monitor_t em);
+
 void dr_meta_do_complete(LPDRMETA meta, error_monitor_t em);
 
 int dr_lib_addr_to_pos(LPDRMETALIB metaLib, const void * addr);

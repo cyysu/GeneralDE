@@ -50,6 +50,9 @@ void dr_inbuild_meta_set_desc(struct DRInBuildMeta * meta, const char * desc);
 
 int dr_inbuild_meta_add_key_entries(struct DRInBuildMeta * meta, const char * names);
 
+struct dr_inbuild_index * dr_inbuild_meta_add_index(struct DRInBuildMeta * meta, const char * name);
+int dr_inbuild_index_add_entries(struct dr_inbuild_index * index, const char * names);
+
 struct DRInBuildMetaEntry * dr_inbuild_meta_add_entry(struct DRInBuildMeta * meta);
 void dr_inbuild_meta_remove_entry(struct DRInBuildMeta * meta, struct DRInBuildMetaEntry * entry);
 struct DRInBuildMetaEntry *

@@ -381,7 +381,6 @@ LPDRMETAENTRY dr_index_entry_at(dr_index_info_t index, int idx) {
     LPDRMETA meta;
     char * base;
     dr_index_entry_info_t info = dr_index_entry_info_at(index, idx);
-
     if (info == NULL) return NULL;
 
     meta = (LPDRMETA)(((char *)index) - index->m_diff_to_meta);

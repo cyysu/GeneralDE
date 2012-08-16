@@ -96,6 +96,7 @@ void dr_inbuild_free_lib(struct DRInBuildMetaLib * inBuildMetaLib) {
 
 void dr_inbuild_meta_clear(struct DRInBuildMeta * meta) {
     struct dr_inbuild_key_entry * key_entry;
+    struct dr_inbuild_index * index;
 
     /*free meta list*/
     while(! TAILQ_EMPTY(&meta->m_entries)) {
@@ -103,6 +104,16 @@ void dr_inbuild_meta_clear(struct DRInBuildMeta * meta) {
     }
 
     TAILQ_FOREACH(key_entry, &meta->m_key_entries, m_next) {
+        free(key_entry);
+    }
+
+    TAILQ_FOREACH(index, &meta->m_indexes, m_next) {
+        struct dr_inbuild_index_entry * index_entry;
+        
+        TAILQ_FOREACH(index_entry, &index->m_entries, m_next) {
+            free(index_entry);
+        }
+
         free(key_entry);
     }
 }
@@ -277,6 +288,57 @@ int dr_inbuild_meta_add_key_entries(struct DRInBuildMeta * meta, const char * na
 
         meta->m_key_entrie_count++;
         TAILQ_INSERT_TAIL(&meta->m_key_entries, key_entry, m_next);
+    }
+
+    return 0;
+}
+
+struct dr_inbuild_index * dr_inbuild_meta_add_index(struct DRInBuildMeta * meta, const char * name) {
+    struct dr_inbuild_index * index = (struct dr_inbuild_index *)malloc(sizeof(struct dr_inbuild_index));
+    if (index == NULL) return NULL;
+
+    index->m_meta = meta;
+    index->m_index_name = mem_buffer_strdup(&meta->m_lib->m_tmp_buf, name);
+    index->m_entry_count = 0;
+    TAILQ_INIT(&index->m_entries);
+
+    ++meta->m_index_count;
+    TAILQ_INSERT_TAIL(&meta->m_indexes, index, m_next);
+
+    return index;
+}
+
+int dr_inbuild_index_add_entries(struct dr_inbuild_index * index, const char * names) {
+    const char * token_begin = names;
+    const char * token_end = strchr(token_begin, ',');
+    char name_buf[128];
+    struct dr_inbuild_index_entry * index_entry;
+    char * entry_name;
+
+    for(; token_begin; token_begin = token_end ? token_end + 1 : NULL, token_end = token_begin ? strchr(token_begin, ',') : NULL) {
+        if (token_end) {
+            size_t len = token_end - token_begin;
+            if ((len + 1) > sizeof(name_buf)) {
+                return -1;
+            }
+
+            memcpy(name_buf, token_begin, len);
+            name_buf[len] = 0;
+        }
+        else {
+            strncpy(name_buf, token_begin, sizeof(name_buf));
+        }
+
+        entry_name = mem_buffer_strdup(&index->m_meta->m_lib->m_tmp_buf, name_buf);
+        if (entry_name == NULL) return -1;
+
+        index_entry = malloc(sizeof(struct dr_inbuild_index_entry));
+        if (index_entry == NULL) return -1;
+
+        index_entry->m_entry_name = entry_name;
+
+        index->m_entry_count++;
+        TAILQ_INSERT_TAIL(&index->m_entries, index_entry, m_next);
     }
 
     return 0;
