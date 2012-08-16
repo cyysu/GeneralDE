@@ -221,6 +221,7 @@ pom_grp_meta_build_from_cfg(
     pom_grp_meta_t meta;
     struct cfg_it entry_it;
     cfg_t entry_cfg;
+    const char * main_entry;
     int rv;
 
     meta = pom_grp_meta_create(alloc, cfg_name(cfg), omm_page_size);
@@ -231,7 +232,7 @@ pom_grp_meta_build_from_cfg(
 
     rv = 0;
 
-    cfg_it_init(&entry_it, cfg);
+    cfg_it_init(&entry_it, cfg_find_cfg(cfg, "attributes"));
     while((entry_cfg = cfg_it_next(&entry_it))) {
         const char * entry_type; 
 
@@ -270,6 +271,14 @@ pom_grp_meta_build_from_cfg(
                 cfg_name(entry_cfg), entry_type);
             ++rv;
             continue;
+        }
+    }
+
+    if ((main_entry = cfg_get_string(cfg, "main-entry", NULL))) {
+        if (pom_grp_meta_set_main_entry(meta, main_entry) != 0) {
+            CPE_ERROR(
+                em, "pom_grp_meta_build_from_cfg: set main_entry %s fail!", main_entry);
+            rv = -1;
         }
     }
 

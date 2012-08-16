@@ -20,6 +20,44 @@ TEST_F(CopySameEntryTest, multi_entry_basic) {
     EXPECT_EQ(67, dr_ctype_read_int16(result(2), CPE_DR_TYPE_INT16));
 }
 
+TEST_F(CopySameEntryTest, multi_entry_part_only) {
+    installMeta(
+        "<metalib tagsetversion='1' name='net' version='1'>"
+        "    <struct name='des' version='1'>"
+        "	     <entry name='a1' type='int16'/>"
+        "	     <entry name='a2' type='int16'/>"
+        "    </struct>"
+        "    <struct name='src' version='1'>"
+        "	     <entry name='a2' type='int16' defaultvalue='67'/>"
+        "	     <entry name='a1' type='int16' defaultvalue='23'/>"
+        "    </struct>"
+        "</metalib>");
+
+    copy_part("des", "src", "a1");
+
+    EXPECT_EQ(23, dr_ctype_read_int16(result(), CPE_DR_TYPE_INT16));
+    EXPECT_EQ(0, dr_ctype_read_int16(result(2), CPE_DR_TYPE_INT16));
+}
+
+TEST_F(CopySameEntryTest, multi_entry_part_middle) {
+    installMeta(
+        "<metalib tagsetversion='1' name='net' version='1'>"
+        "    <struct name='des' version='1'>"
+        "	     <entry name='a1' type='int16'/>"
+        "	     <entry name='a2' type='int16'/>"
+        "    </struct>"
+        "    <struct name='src' version='1'>"
+        "	     <entry name='a2' type='int16' defaultvalue='67'/>"
+        "	     <entry name='a1' type='int16' defaultvalue='23'/>"
+        "    </struct>"
+        "</metalib>");
+
+    copy_part("des", "src", "a0:a1:a3");
+
+    EXPECT_EQ(23, dr_ctype_read_int16(result(), CPE_DR_TYPE_INT16));
+    EXPECT_EQ(0, dr_ctype_read_int16(result(2), CPE_DR_TYPE_INT16));
+}
+
 TEST_F(CopySameEntryTest, type_char_basic) {
     installMeta(
         "<metalib tagsetversion='1' name='net' version='1'>"

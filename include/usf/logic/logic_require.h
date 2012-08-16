@@ -27,9 +27,11 @@ logic_require_state(logic_require_t require);
 logic_stack_node_t logic_require_stack(logic_require_t require);
 void logic_require_disconnect_to_stack(logic_require_t require);
 
+int32_t logic_require_error(logic_require_t require);
 
 void logic_require_set_done(logic_require_t require);
 void logic_require_set_error(logic_require_t require);
+void logic_require_set_error_ex(logic_require_t require, int32_t err);
 void logic_require_cancel(logic_require_t require);
 
 void logic_require_data_dump_to_cfg(logic_require_t require, cfg_t cfg);

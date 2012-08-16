@@ -2,6 +2,7 @@
 #include "cpe/pal/pal_string.h"
 #include "cpe/pal/pal_stdlib.h"
 #include "cpe/pal/pal_strings.h"
+#include "cpe/utils/buffer.h"
 #include "cpe/dr/dr_error.h"
 #include "cpe/dr/dr_metalib_manage.h"
 #include "cpe/dr/dr_metalib_build.h"
@@ -94,9 +95,29 @@ void dr_inbuild_free_lib(struct DRInBuildMetaLib * inBuildMetaLib) {
 }
 
 void dr_inbuild_meta_clear(struct DRInBuildMeta * meta) {
+
     /*free meta list*/
     while(! TAILQ_EMPTY(&meta->m_entries)) {
         dr_inbuild_meta_remove_entry(meta, TAILQ_FIRST(&meta->m_entries));
+    }
+
+    while(! TAILQ_EMPTY(&meta->m_key_entries)) {
+        struct dr_inbuild_key_entry * key_entry = TAILQ_FIRST(&meta->m_key_entries);
+        TAILQ_REMOVE(&meta->m_key_entries, key_entry, m_next);
+        free(key_entry);
+    }
+
+    while(! TAILQ_EMPTY(&meta->m_indexes)) {
+        struct dr_inbuild_index * index = TAILQ_FIRST(&meta->m_indexes);
+        TAILQ_REMOVE(&meta->m_indexes, index, m_next);
+
+        while(! TAILQ_EMPTY(&index->m_entries)) {
+            struct dr_inbuild_index_entry * index_entry = TAILQ_FIRST(&index->m_entries);
+            TAILQ_REMOVE(&index->m_entries, index_entry, m_next);
+            free(index_entry);
+        }
+
+        free(index);
     }
 }
 
@@ -168,7 +189,14 @@ dr_inbuild_metalib_add_meta(struct DRInBuildMetaLib * inBuildMetaLib) {
     newMeta->m_lib = inBuildMetaLib;
     newMeta->m_data.m_id = -1;
 
+    newMeta->m_entries_count = 0;
     TAILQ_INIT(&newMeta->m_entries);
+
+    newMeta->m_key_entrie_count = 0;
+    TAILQ_INIT(&newMeta->m_key_entries);
+
+    newMeta->m_index_count = 0;
+    TAILQ_INIT(&newMeta->m_indexes);
 
     TAILQ_INSERT_TAIL(&inBuildMetaLib->m_metas, newMeta, m_next);
 
@@ -230,6 +258,93 @@ void dr_inbuild_meta_set_name(struct DRInBuildMeta * meta, const char * name) {
 
 void dr_inbuild_meta_set_desc(struct DRInBuildMeta * meta, const char * desc) {
     meta->m_desc = desc;
+}
+
+int dr_inbuild_meta_add_key_entries(struct DRInBuildMeta * meta, const char * names) {
+    const char * token_begin = names;
+    const char * token_end = strchr(token_begin, ',');
+    char name_buf[128];
+    struct dr_inbuild_key_entry * key_entry;
+    char * entry_name;
+
+    for(; token_begin; token_begin = token_end ? token_end + 1 : NULL, token_end = token_begin ? strchr(token_begin, ',') : NULL) {
+        if (token_end) {
+            size_t len = token_end - token_begin;
+            if ((len + 1) > sizeof(name_buf)) {
+                return -1;
+            }
+
+            memcpy(name_buf, token_begin, len);
+            name_buf[len] = 0;
+        }
+        else {
+            strncpy(name_buf, token_begin, sizeof(name_buf));
+        }
+
+        entry_name = mem_buffer_strdup(&meta->m_lib->m_tmp_buf, name_buf);
+        if (entry_name == NULL) return -1;
+
+        key_entry = malloc(sizeof(struct dr_inbuild_key_entry));
+        if (key_entry == NULL) return -1;
+
+        key_entry->m_entry_name = entry_name;
+
+        meta->m_key_entrie_count++;
+        TAILQ_INSERT_TAIL(&meta->m_key_entries, key_entry, m_next);
+    }
+
+    return 0;
+}
+
+struct dr_inbuild_index * dr_inbuild_meta_add_index(struct DRInBuildMeta * meta, const char * name) {
+    struct dr_inbuild_index * index = (struct dr_inbuild_index *)malloc(sizeof(struct dr_inbuild_index));
+    if (index == NULL) return NULL;
+
+    index->m_meta = meta;
+    index->m_index_name = mem_buffer_strdup(&meta->m_lib->m_tmp_buf, name);
+    index->m_entry_count = 0;
+    TAILQ_INIT(&index->m_entries);
+
+    ++meta->m_index_count;
+    TAILQ_INSERT_TAIL(&meta->m_indexes, index, m_next);
+
+    return index;
+}
+
+int dr_inbuild_index_add_entries(struct dr_inbuild_index * index, const char * names) {
+    const char * token_begin = names;
+    const char * token_end = strchr(token_begin, ',');
+    char name_buf[128];
+    struct dr_inbuild_index_entry * index_entry;
+    char * entry_name;
+
+    for(; token_begin; token_begin = token_end ? token_end + 1 : NULL, token_end = token_begin ? strchr(token_begin, ',') : NULL) {
+        if (token_end) {
+            size_t len = token_end - token_begin;
+            if ((len + 1) > sizeof(name_buf)) {
+                return -1;
+            }
+
+            memcpy(name_buf, token_begin, len);
+            name_buf[len] = 0;
+        }
+        else {
+            strncpy(name_buf, token_begin, sizeof(name_buf));
+        }
+
+        entry_name = mem_buffer_strdup(&index->m_meta->m_lib->m_tmp_buf, name_buf);
+        if (entry_name == NULL) return -1;
+
+        index_entry = malloc(sizeof(struct dr_inbuild_index_entry));
+        if (index_entry == NULL) return -1;
+
+        index_entry->m_entry_name = entry_name;
+
+        index->m_entry_count++;
+        TAILQ_INSERT_TAIL(&index->m_entries, index_entry, m_next);
+    }
+
+    return 0;
 }
 
 struct DRInBuildMetaEntry *
@@ -316,12 +431,11 @@ dr_inbuild_metalib_copy_meta(struct DRInBuildMetaLib * inBuildMetaLib, LPDRMETA 
     new_meta = dr_inbuild_metalib_add_meta(inBuildMetaLib);
     if (new_meta == NULL) return NULL;
 
-    if (dr_inbuild_meta_init(new_meta, meta) != 0) {
-        dr_inbuild_metalib_remove_meta(inBuildMetaLib, new_meta);
-        return NULL;
-    }
-
-    if (dr_inbuild_meta_copy_entrys(new_meta, meta) != 0) {
+    if (dr_inbuild_meta_init(new_meta, meta) != 0
+        || dr_inbuild_meta_copy_entrys(new_meta, meta) != 0
+        || dr_inbuild_meta_copy_keys(new_meta, meta) != 0
+        || dr_inbuild_meta_copy_indexes(new_meta, meta) != 0)
+    {
         dr_inbuild_metalib_remove_meta(inBuildMetaLib, new_meta);
         return NULL;
     }
@@ -384,6 +498,57 @@ dr_inbuild_meta_copy_entry(struct DRInBuildMeta * meta, LPDRMETAENTRY entry) {
     return new_entry;
 }
 
+int dr_inbuild_meta_copy_keys(struct DRInBuildMeta * new_meta, LPDRMETA src_meta) {
+    int i, count;
+    int rv;
+
+    rv = 0;
+
+    count = dr_meta_key_entry_num(src_meta);
+    for(i = 0; i < count; ++i) {
+        if (dr_inbuild_meta_add_key_entries(new_meta, dr_entry_name(dr_meta_key_entry_at(src_meta, i))) != 0) {
+            rv = -1;
+        }
+    }
+
+    return rv;
+}
+
+int dr_inbuild_meta_copy_index(struct DRInBuildMeta * new_meta, dr_index_info_t src_index) {
+    int i, count;
+    int rv;
+    struct dr_inbuild_index * new_index;
+
+    rv = 0;
+
+    new_index = dr_inbuild_meta_add_index(new_meta, dr_index_name(src_index));
+
+    count = dr_index_entry_num(src_index);
+    for(i = 0; i < count; ++i) {
+        if (dr_inbuild_index_add_entries(new_index, dr_entry_name(dr_index_entry_at(src_index, i))) != 0) {
+            rv = -1;
+        }
+    }
+
+    return rv;
+}
+
+int dr_inbuild_meta_copy_indexes(struct DRInBuildMeta * new_meta, LPDRMETA src_meta) {
+    int i, count;
+    int rv;
+
+    rv = 0;
+
+    count = dr_meta_index_num(src_meta);
+    for(i = 0; i < count; ++i) {
+        if (dr_inbuild_meta_copy_index(new_meta, dr_meta_index_at(src_meta, i)) != 0) {
+                rv = -1;
+        }
+    }
+
+    return rv;
+}
+
 int dr_inbuild_meta_copy_entrys(struct DRInBuildMeta * new_meta, LPDRMETA src_meta) {
     int i, count;
 
@@ -395,4 +560,20 @@ int dr_inbuild_meta_copy_entrys(struct DRInBuildMeta * new_meta, LPDRMETA src_me
     }
 
     return 0;
+}
+
+int dr_inbuild_meta_copy_key_entrys(struct DRInBuildMeta * new_meta, LPDRMETA src_meta) {
+    int i, count;
+    int rv;
+
+    rv = 0;
+
+    count = dr_meta_key_entry_num(src_meta);
+    for(i = 0; i < count; ++i) {
+        if (dr_inbuild_meta_copy_entry(new_meta, dr_meta_key_entry_at(src_meta, i)) == NULL) {
+            rv = -1;
+        }
+    }
+
+    return rv;
 }

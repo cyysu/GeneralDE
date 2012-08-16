@@ -7,8 +7,6 @@ pom_grp_store_t
 pom_grp_store_create(
     mem_allocrator_t alloc,
     pom_grp_meta_t meta,
-    const char * main_entry,
-    const char * key,
     error_monitor_t em)
 {
     pom_grp_store_t store;
@@ -54,7 +52,7 @@ pom_grp_store_create(
         return NULL;
     }
 
-    if (pom_grp_meta_build_store_meta(&store->m_store_metalib_buffer, meta, main_entry, key, em) != 0) {
+    if (pom_grp_meta_build_store_meta(&store->m_store_metalib_buffer, meta, em) != 0) {
         cpe_hash_table_fini(&store->m_entries);
         cpe_hash_table_fini(&store->m_tables);
         mem_buffer_clear(&store->m_store_metalib_buffer);
@@ -65,7 +63,7 @@ pom_grp_store_create(
     store->m_store_metalib = (LPDRMETALIB)mem_buffer_make_continuous(&store->m_store_metalib_buffer, 0);
     assert(store->m_store_metalib);
 
-    if (pom_grp_store_table_build(store, main_entry, key) != 0) {
+    if (pom_grp_store_table_build(store) != 0) {
         cpe_hash_table_fini(&store->m_entries);
         cpe_hash_table_fini(&store->m_tables);
         mem_buffer_clear(&store->m_store_metalib_buffer);

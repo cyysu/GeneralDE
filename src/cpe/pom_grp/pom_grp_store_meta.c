@@ -17,7 +17,10 @@ static int pom_grp_meta_build_store_meta_on_entry_normal(
     LPDRMETA entry_meta = pom_grp_entry_meta_normal_meta(entry);
     assert(entry_meta);
 
-    return dr_inbuild_meta_copy_entrys(meta, entry_meta);
+    return (dr_inbuild_meta_copy_entrys(meta, entry_meta) != 0
+            || dr_inbuild_meta_copy_indexes(meta, entry_meta) != 0)
+        ? -1
+        : 0;
 }
 
 static int pom_grp_meta_build_store_meta_on_entry_ba(
@@ -63,7 +66,7 @@ static int pom_grp_meta_build_store_meta_on_entry_binary(
 static int pom_grp_meta_build_store_meta_on_entry_list(
     struct DRInBuildMetaLib * builder,
     struct DRInBuildMeta * main_meta,
-    LPDRMETAENTRY key_entry,
+    LPDRMETA src_main_meta,
     pom_grp_entry_meta_t entry,
     mem_buffer_t str_buffer,
     error_monitor_t em)
@@ -82,11 +85,15 @@ static int pom_grp_meta_build_store_meta_on_entry_list(
             return -1;
         }
 
-        dr_inbuild_meta_init(meta, entry_meta);
-
-        if (dr_inbuild_meta_copy_entry(meta, key_entry) == NULL) return -1;
-
-        dr_inbuild_meta_copy_entrys(meta, entry_meta);
+        if (dr_inbuild_meta_init(meta, entry_meta) != 0
+            || dr_inbuild_meta_copy_key_entrys(meta, src_main_meta) != 0
+            || dr_inbuild_meta_copy_entrys(meta, entry_meta) != 0
+            || dr_inbuild_meta_copy_keys(meta, src_main_meta) != 0
+            )
+        {
+            CPE_ERROR(em, "pom_grp_meta_build_store_meta: setup meta for %s fail!", entry->m_name);
+            return -1;
+        }
     }
     else {
         struct DRInBuildMetaEntry * new_entry;
@@ -146,37 +153,28 @@ static int pom_grp_meta_build_calc_version(
 static int pom_grp_meta_build_store_meta_i(
     struct DRInBuildMetaLib * builder,
     pom_grp_meta_t meta,
-    const char * main_entry,
-    const char * key,
     mem_buffer_t str_buffer,
     error_monitor_t em)
 {
     struct DRInBuildMeta * main_meta;
     LPDRMETALIB src_metalib;
-    LPDRMETAENTRY key_entry;
-    pom_grp_entry_meta_t main_entry_meta;
+    LPDRMETA src_main_meta;
     uint16_t i, count;
 
-    main_entry_meta = pom_grp_entry_meta_find(meta, main_entry);
-    if (main_entry_meta == NULL) {
-        CPE_ERROR(em, "pom_grp_meta_build_store_meta: create metalib builder fail!");
+    if (meta->m_main_entry == NULL) {
+        CPE_ERROR(em, "pom_grp_meta_build_store_meta: no main entry!");
         return -1;
     }
 
-    if (main_entry_meta->m_type != pom_grp_entry_type_normal) {
+    if (meta->m_main_entry->m_type != pom_grp_entry_type_normal) {
         CPE_ERROR(
             em, "pom_grp_meta_build_store_meta: main entry %s is not type normal!",
-            main_entry_meta->m_name);
+            meta->m_main_entry->m_name);
         return -1;
     }
 
-    key_entry = dr_meta_find_entry_by_name(pom_grp_entry_meta_normal_meta(main_entry_meta), key);
-    if (key_entry == NULL) {
-        CPE_ERROR(
-            em, "pom_grp_meta_build_store_meta: key %s not exsit in %s(type=%s)!",
-            key, main_entry_meta->m_name, dr_meta_name(pom_grp_entry_meta_normal_meta(main_entry_meta)));
-        return -1;
-    }
+    src_main_meta = meta->m_main_entry->m_data.m_normal.m_data_meta;
+    src_metalib = dr_meta_owner_lib(src_main_meta);
 
     main_meta = dr_inbuild_metalib_add_meta(builder);
     if (main_meta == NULL) {
@@ -184,28 +182,31 @@ static int pom_grp_meta_build_store_meta_i(
         return -1;
     }
     dr_inbuild_meta_set_current_version(
-        main_meta, dr_meta_current_version(dr_entry_self_meta(key_entry)));
-
-    src_metalib = dr_meta_owner_lib(dr_entry_self_meta(key_entry));
+        main_meta, dr_meta_current_version(src_main_meta));
 
     dr_inbuild_metalib_set_tagsetversion(builder, dr_lib_tag_set_version(src_metalib));
     dr_inbuild_metalib_set_name(builder, pom_grp_meta_name(meta));
 
-    if (dr_inbuild_meta_init(main_meta, pom_grp_entry_meta_normal_meta(main_entry_meta)) != 0) return -1;
 
-    if (pom_grp_meta_build_store_meta_on_entry_normal(builder, main_meta, main_entry_meta, str_buffer, em) != 0) return -1;
+    if (dr_inbuild_meta_init(main_meta, src_main_meta) != 0
+        || dr_inbuild_meta_copy_entrys(main_meta, src_main_meta) != 0
+        || dr_inbuild_meta_copy_keys(main_meta, src_main_meta) != 0
+        || dr_inbuild_meta_copy_indexes(main_meta, src_main_meta) != 0)
+    {
+        return -1;
+    }
 
     count = pom_grp_meta_entry_count(meta);
     for(i = 0; i < count; ++i) {
         pom_grp_entry_meta_t entry_meta = pom_grp_meta_entry_at(meta, i);
-        if (entry_meta == main_entry_meta) continue;
+        if (entry_meta == meta->m_main_entry) continue;
 
         switch(entry_meta->m_type) {
         case pom_grp_entry_type_normal:
             if (pom_grp_meta_build_store_meta_on_entry_normal(builder, main_meta, entry_meta, str_buffer, em) != 0) return -1;
             break;
         case pom_grp_entry_type_list:
-            if (pom_grp_meta_build_store_meta_on_entry_list(builder, main_meta, key_entry, entry_meta, str_buffer, em) != 0) return -1;
+            if (pom_grp_meta_build_store_meta_on_entry_list(builder, main_meta, src_main_meta, entry_meta, str_buffer, em) != 0) return -1;
             break;
         case pom_grp_entry_type_ba:
             if (pom_grp_meta_build_store_meta_on_entry_ba(main_meta, entry_meta, str_buffer, em) != 0) return -1;
@@ -221,13 +222,7 @@ static int pom_grp_meta_build_store_meta_i(
     return 0;
 }
 
-int pom_grp_meta_build_store_meta(
-    mem_buffer_t buffer,
-    pom_grp_meta_t meta,
-    const char * main_entry,
-    const char * key,
-    error_monitor_t em)
-{
+int pom_grp_meta_build_store_meta(mem_buffer_t buffer, pom_grp_meta_t meta, error_monitor_t em) {
     struct mem_buffer str_buffer;
 
     struct DRInBuildMetaLib * builder = dr_inbuild_create_lib();
@@ -237,7 +232,7 @@ int pom_grp_meta_build_store_meta(
     }
     mem_buffer_init(&str_buffer, NULL);
 
-    if (pom_grp_meta_build_store_meta_i(builder, meta, main_entry, key, &str_buffer, em) != 0) {
+    if (pom_grp_meta_build_store_meta_i(builder, meta, &str_buffer, em) != 0) {
         goto ERROR;
     }
     

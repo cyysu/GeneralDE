@@ -124,32 +124,30 @@ static int pom_grp_store_table_build_for_entry_list(
     return 0;
 }
 
-int pom_grp_store_table_build(pom_grp_store_t store, const char * main_entry, const char * key) {
-    pom_grp_entry_meta_t main_entry_meta;
+int pom_grp_store_table_build(pom_grp_store_t store) {
     pom_grp_store_table_t main_table;
     uint16_t i, count;
     LPDRMETA meta;
 
-    main_entry_meta = pom_grp_entry_meta_find(store->m_meta, main_entry);
-    if (main_entry_meta == NULL) {
-        CPE_ERROR(store->m_em, "pom_grp_store_table_build: main entry %s not exist!", main_entry);
+    if (store->m_meta->m_main_entry == NULL) {
+        CPE_ERROR(store->m_em, "pom_grp_store_table_build: main entry not exist!");
         return -1;
     }
 
-    if (main_entry_meta->m_type != pom_grp_entry_type_normal) {
+    if (store->m_meta->m_main_entry->m_type != pom_grp_entry_type_normal) {
         CPE_ERROR(
             store->m_em, "pom_grp_store_table_build: main entry %s is not type normal!",
-            main_entry_meta->m_name);
+            store->m_meta->m_main_entry->m_name);
         return -1;
     }
 
     meta = dr_lib_find_meta_by_name(
         store->m_store_metalib,
-        dr_meta_name(pom_grp_entry_meta_normal_meta(main_entry_meta)));
+        dr_meta_name(pom_grp_entry_meta_normal_meta(store->m_meta->m_main_entry)));
     if (meta == NULL) {
         CPE_ERROR(
             store->m_em, "pom_grp_store_table_build: create main table: meta %s not exist in store metalib!",
-            dr_meta_name(pom_grp_entry_meta_normal_meta(main_entry_meta)));
+            dr_meta_name(pom_grp_entry_meta_normal_meta(store->m_meta->m_main_entry)));
         return -1;
     }
 
@@ -160,7 +158,7 @@ int pom_grp_store_table_build(pom_grp_store_t store, const char * main_entry, co
         return -1;
     }
 
-    if (pom_grp_store_entry_create(main_table, main_entry_meta) == NULL) {
+    if (pom_grp_store_entry_create(main_table, store->m_meta->m_main_entry) == NULL) {
         CPE_ERROR(
             store->m_em, "pom_grp_store_table_build: create main entry in table fail!");
         return -1;
@@ -169,7 +167,7 @@ int pom_grp_store_table_build(pom_grp_store_t store, const char * main_entry, co
     count = pom_grp_meta_entry_count(store->m_meta);
     for(i = 0; i < count; ++i) {
         pom_grp_entry_meta_t entry_meta = pom_grp_meta_entry_at(store->m_meta, i);
-        if (entry_meta == main_entry_meta) continue;
+        if (entry_meta == store->m_meta->m_main_entry) continue;
 
         switch(entry_meta->m_type) {
         case pom_grp_entry_type_normal:
@@ -191,11 +189,11 @@ int pom_grp_store_table_build(pom_grp_store_t store, const char * main_entry, co
 }
 
 static pom_grp_store_table_t pom_grp_store_table_next(struct pom_grp_store_table_it * it) {
-    struct cpe_hash_it * stroe_table_it;
+    struct cpe_hash_it * store_table_it;
 
-    stroe_table_it = (struct cpe_hash_it *)(it->m_data);
+    store_table_it = (struct cpe_hash_it *)(it->m_data);
 
-    return (struct pom_grp_store_table *)cpe_hash_it_next(stroe_table_it);
+    return (struct pom_grp_store_table *)cpe_hash_it_next(store_table_it);
 }
 
 uint32_t pom_grp_store_table_count(pom_grp_store_t store) {
@@ -203,13 +201,13 @@ uint32_t pom_grp_store_table_count(pom_grp_store_t store) {
 }
 
 void pom_grp_store_tables(pom_grp_store_t store, pom_grp_store_table_it_t it) {
-    struct cpe_hash_it * stroe_table_it;
+    struct cpe_hash_it * store_table_it;
 
     assert(sizeof(struct cpe_hash_it) >= sizeof(it->m_data));
 
-    stroe_table_it = (struct cpe_hash_it *)(it->m_data);
+    store_table_it = (struct cpe_hash_it *)(it->m_data);
 
-    cpe_hash_it_init(stroe_table_it, &store->m_tables);
+    cpe_hash_it_init(store_table_it, &store->m_tables);
     it->next = pom_grp_store_table_next;
 }
 

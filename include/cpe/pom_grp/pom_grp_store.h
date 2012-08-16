@@ -14,13 +14,10 @@ pom_grp_store_t
 pom_grp_store_create(
     mem_allocrator_t alloc,
     pom_grp_meta_t meta,
-    const char * main_entry,
-    const char * key,
     error_monitor_t em);
 
 void pom_grp_store_free(pom_grp_store_t store);
 
-/*store table operations*/
 uint32_t pom_grp_store_table_count(pom_grp_store_t store);
 
 void pom_grp_store_tables(pom_grp_store_t store, pom_grp_store_table_it_t it);
@@ -44,8 +41,6 @@ LPDRMETALIB pom_grp_store_metalib(pom_grp_store_t store);
 int pom_grp_meta_build_store_meta(
     mem_buffer_t buffer,
     pom_grp_meta_t meta,
-    const char * main_entry,
-    const char * key,
     error_monitor_t em);
 
 #define pom_grp_store_table_it_next(it) ((it)->next ? (it)->next(it) : NULL)

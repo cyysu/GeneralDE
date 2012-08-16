@@ -282,6 +282,11 @@ static void dr_build_xml_process_meta(
             if (len > CPE_DR_DESC_LEN) len = CPE_DR_DESC_LEN;
             DR_DO_DUP_STR(newMeta->m_desc);
         }
+        else if (strcmp((char const *)localname, "primarykey") == 0) {
+            char * names;
+            DR_DO_DUP_STR(names);
+            dr_inbuild_meta_add_key_entries(newMeta, names);
+        }
         else if (strcmp((char const *)localname, CPE_DR_TAG_ID) == 0) {
             DR_DO_READ_INT_OR_MACRO(newMeta->m_data.m_id, CPE_DR_ERROR_ENTRY_INVALID_ID_VALUE);
         }
@@ -469,6 +474,61 @@ static void dr_build_xml_process_entry(
     }
 }
 
+static void dr_build_xml_process_index(
+    struct DRXmlParseCtx * ctx,
+    int nb_attributes,
+    const xmlChar** attributes)
+{
+    int indexAttribute = 0;
+    int index = 0;
+    const char * name = NULL;
+    const char * columns = NULL;
+
+    if (ctx->m_state != PS_InMeta || ctx->m_curentMeta == NULL) {
+        return;
+    }
+
+    for(index = 0, indexAttribute = 0;
+        indexAttribute < nb_attributes;
+        ++indexAttribute, index += 5)
+    {
+        const xmlChar *localname = attributes[index];
+        /*const xmlChar *prefix = attributes[index+1];*/
+        /*const xmlChar *nsURI = attributes[index+2];*/
+        const xmlChar *valueBegin = attributes[index+3];
+        const xmlChar *valueEnd = attributes[index+4];
+
+        int len = valueEnd - valueBegin;
+
+        if (strcmp((char const *)localname, "name") == 0) {
+            DR_DO_DUP_STR(name);
+        }
+        else if (strcmp((char const *)localname, "column") == 0) {
+            DR_DO_DUP_STR(columns);
+        }
+        else {
+        }
+    }
+
+    if (name == NULL) {
+        CPE_ERROR(ctx->m_em, "build index for meta %s, name not configured!", ctx->m_curentMeta->m_name);
+    }
+
+    if (columns == NULL) {
+        CPE_ERROR(ctx->m_em, "build index for meta %s, column not configured!", ctx->m_curentMeta->m_name);
+    }
+
+    if (name && columns) {
+        struct dr_inbuild_index * inbuild_index = dr_inbuild_meta_add_index(ctx->m_curentMeta, name);
+        if (inbuild_index == NULL) {
+            CPE_ERROR(ctx->m_em, "build index for meta %s, add index %s fail!", ctx->m_curentMeta->m_name, name);
+        }
+        else if (dr_inbuild_index_add_entries(inbuild_index, columns) != 0) {
+            CPE_ERROR(ctx->m_em, "build index for meta %s, add columns %s to index %s fail!", ctx->m_curentMeta->m_name, columns, name);
+        }
+    }
+}
+
 static void dr_build_xml_process_include(
     struct DRXmlParseCtx * ctx,
     int nb_attributes,
@@ -536,6 +596,9 @@ static void dr_build_xml_startElement(
 
     if (strcmp((const char *)localname, CPE_DR_TAG_ENTRY) == 0) {
         dr_build_xml_process_entry(ctx, nb_attributes, attributes);
+    }
+    else if (strcmp((const char *)localname, "index") == 0) {
+        dr_build_xml_process_index(ctx, nb_attributes, attributes);
     }
     else if (strcmp((const char *)localname, CPE_DR_TAG_STRUCT) == 0) {
         dr_build_xml_process_meta(ctx, nb_attributes, attributes, CPE_DR_TYPE_STRUCT);

@@ -5,6 +5,7 @@
 class CopySameEntryTest : public DataBasicTest {
 public:
     void copy(const char * desMeta, const char * srcMeta, int policy = 0, size_t capacity = 0);
+    void copy_part(const char * desMeta, const char * srcMeta, const char * columsn, int policy = 0, size_t capacity = 0);
 };
 
 #endif

@@ -221,7 +221,7 @@ sub analize_entry_processor_struct {
           my $col_fun = sub {
             my ($row, $value, $input_row) = @_;
 
-            return if (not $value) or ($value eq "");
+            return if (not defined $value) or ($value eq "");
 
             $row->{$entry->{name}} = []
               if not exists $row->{$entry->{name}};

@@ -13,7 +13,9 @@ public:
         
         install(
             "TestObj:\n"
-            "  - entry1: { entry-type: list, data-type: AttrGroup1, group-count: 3, capacity: 5 }\n"
+            "  main-entry: entry1\n"
+            "  attributes:\n"
+            "    - entry1: { entry-type: list, data-type: AttrGroup1, group-count: 3, capacity: 5 }\n"
             ,
             "<metalib tagsetversion='1' name='net'  version='1'>"
             "    <struct name='AttrGroup1' version='1'>"

@@ -113,9 +113,20 @@ int dr_entry_set_defaults(void * inout, size_t capacity, LPDRMETAENTRY entry, in
 void dr_meta_set_defaults(void * inout, size_t capacity, LPDRMETA meta, int policy);
 
 
-void dr_meta_copy_same_entry(
+int dr_meta_copy_same_entry(
     void * desData, size_t desCapacity, LPDRMETA desMeta,
     void const * srcData, size_t srcCapacity, LPDRMETA srcMeta,
+    int policy, error_monitor_t em);
+
+int dr_meta_copy_same_entry_part(
+    void * desData, size_t desCapacity, LPDRMETA desMeta,
+    void const * srcData, size_t srcCapacity, LPDRMETA srcMeta,
+    const char * columns,
+    int policy, error_monitor_t em);
+
+int dr_entry_copy_same_entry(
+    void * desData, size_t desCapacity, LPDRMETAENTRY desEntry,
+    void const * srcData, size_t srcCapacity, LPDRMETAENTRY srcEntry,
     int policy, error_monitor_t em);
 
 uint32_t dr_entry_hash(const void * input, LPDRMETAENTRY entry);

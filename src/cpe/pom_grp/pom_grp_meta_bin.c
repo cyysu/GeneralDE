@@ -8,6 +8,7 @@ struct pom_grp_meta_data {
     uint16_t m_magic;
     uint16_t m_size;
     uint16_t m_name_pos;
+    uint16_t m_main_entry_name_pos;
     uint16_t m_entry_count;
     pom_class_id_t m_omm_control_class_id;
     uint32_t m_omm_page_size;
@@ -251,6 +252,7 @@ void pom_grp_meta_write_to_bin(void * data, size_t capacity, pom_grp_meta_t meta
     meta_data->m_size = data_size;
     meta_data->m_name_pos = 
         pom_grp_entry_meta_build_to_bin_write_string(&string_write_pos, data, capacity, meta->m_name);
+    meta_data->m_main_entry_name_pos = 0;
     meta_data->m_entry_count = cpe_hash_table_count(&meta->m_entry_ht);
     meta_data->m_omm_page_size = meta->m_omm_page_size;
     meta_data->m_omm_control_class_id = meta->m_control_class_id;
@@ -270,6 +272,10 @@ void pom_grp_meta_write_to_bin(void * data, size_t capacity, pom_grp_meta_t meta
         entry_meta_data->m_obj_align = entry->m_obj_align;
         entry_meta_data->m_standalone = 0;
         entry_meta_data->m_reserve1 = 0;
+
+        if (entry == meta->m_main_entry) {
+            meta_data->m_main_entry_name_pos = entry_meta_data->m_meta_name_pos;
+        }
 
         switch(entry->m_type) {
         case pom_grp_entry_type_normal:

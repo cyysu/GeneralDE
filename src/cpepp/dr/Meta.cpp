@@ -158,4 +158,26 @@ void Meta::copy_same_entries(
         policy, em);
 }
 
+void Meta::copy_same_entries_part(
+    void * data, size_t capacity,
+    const void * src, LPDRMETA srcMeta, const char * columns, size_t srcCapacity,
+    int policy, error_monitor_t em) const
+{
+    dr_meta_copy_same_entry_part(
+        data, capacity, *this,
+        src, (srcCapacity == 0 ? dr_meta_size(srcMeta) : srcCapacity), srcMeta, columns,
+        policy, em);
+}
+
+void Meta::copy_same_entries_part(
+    void * data, size_t capacity,
+    const void * srcData, const char * srcMeta, const char * columns, size_t srcCapacity,
+    int policy, error_monitor_t em) const
+{
+    copy_same_entries_part(
+        data, capacity,
+        srcData, MetaLib::_cast(dr_meta_owner_lib(*this)).meta(srcMeta), columns, srcCapacity,
+        policy, em);
+}
+
 }}

@@ -36,6 +36,7 @@ pom_grp_meta_create(
     meta->m_entry_count = 0;
     meta->m_entry_capacity = 0;
     meta->m_entry_buf = NULL; 
+    meta->m_main_entry = NULL;
 
     if (cpe_hash_table_init(
             &meta->m_entry_ht,
@@ -75,6 +76,15 @@ pom_grp_entry_meta_t pom_grp_meta_entry_at(pom_grp_meta_t meta, uint16_t pos) {
 
 const char * pom_grp_meta_name(pom_grp_meta_t meta) {
     return meta->m_name;
+}
+
+int pom_grp_meta_set_main_entry(pom_grp_meta_t meta, const char * entry_name) {
+    if (meta->m_main_entry) return -1;
+
+    meta->m_main_entry = pom_grp_entry_meta_find(meta, entry_name);
+    if (meta->m_main_entry == NULL) return -1;
+
+    return 0;
 }
 
 pom_grp_entry_meta_t
