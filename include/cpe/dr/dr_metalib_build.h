@@ -60,6 +60,10 @@ dr_inbuild_meta_copy_entry(struct DRInBuildMeta * meta, LPDRMETAENTRY entry);
 
 int dr_inbuild_meta_init(struct DRInBuildMeta * new_meta, LPDRMETA src_meta);
 int dr_inbuild_meta_copy_entrys(struct DRInBuildMeta * new_meta, LPDRMETA src_meta);
+int dr_inbuild_meta_copy_key_entrys(struct DRInBuildMeta * new_meta, LPDRMETA src_meta);
+int dr_inbuild_meta_copy_keys(struct DRInBuildMeta * new_meta, LPDRMETA src_meta);
+int dr_inbuild_meta_copy_index(struct DRInBuildMeta * new_meta, dr_index_info_t src_index);
+int dr_inbuild_meta_copy_indexes(struct DRInBuildMeta * new_meta, LPDRMETA src_meta);
 
 int dr_inbuild_entry_version(struct DRInBuildMetaEntry * entry);
 void dr_inbuild_entry_set_type(struct DRInBuildMetaEntry * entry, const char * type_name);

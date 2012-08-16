@@ -95,26 +95,29 @@ void dr_inbuild_free_lib(struct DRInBuildMetaLib * inBuildMetaLib) {
 }
 
 void dr_inbuild_meta_clear(struct DRInBuildMeta * meta) {
-    struct dr_inbuild_key_entry * key_entry;
-    struct dr_inbuild_index * index;
 
     /*free meta list*/
     while(! TAILQ_EMPTY(&meta->m_entries)) {
         dr_inbuild_meta_remove_entry(meta, TAILQ_FIRST(&meta->m_entries));
     }
 
-    TAILQ_FOREACH(key_entry, &meta->m_key_entries, m_next) {
+    while(! TAILQ_EMPTY(&meta->m_key_entries)) {
+        struct dr_inbuild_key_entry * key_entry = TAILQ_FIRST(&meta->m_key_entries);
+        TAILQ_REMOVE(&meta->m_key_entries, key_entry, m_next);
         free(key_entry);
     }
 
-    TAILQ_FOREACH(index, &meta->m_indexes, m_next) {
-        struct dr_inbuild_index_entry * index_entry;
-        
-        TAILQ_FOREACH(index_entry, &index->m_entries, m_next) {
+    while(! TAILQ_EMPTY(&meta->m_indexes)) {
+        struct dr_inbuild_index * index = TAILQ_FIRST(&meta->m_indexes);
+        TAILQ_REMOVE(&meta->m_indexes, index, m_next);
+
+        while(! TAILQ_EMPTY(&index->m_entries)) {
+            struct dr_inbuild_index_entry * index_entry = TAILQ_FIRST(&index->m_entries);
+            TAILQ_REMOVE(&index->m_entries, index_entry, m_next);
             free(index_entry);
         }
 
-        free(key_entry);
+        free(index);
     }
 }
 
@@ -428,12 +431,11 @@ dr_inbuild_metalib_copy_meta(struct DRInBuildMetaLib * inBuildMetaLib, LPDRMETA 
     new_meta = dr_inbuild_metalib_add_meta(inBuildMetaLib);
     if (new_meta == NULL) return NULL;
 
-    if (dr_inbuild_meta_init(new_meta, meta) != 0) {
-        dr_inbuild_metalib_remove_meta(inBuildMetaLib, new_meta);
-        return NULL;
-    }
-
-    if (dr_inbuild_meta_copy_entrys(new_meta, meta) != 0) {
+    if (dr_inbuild_meta_init(new_meta, meta) != 0
+        || dr_inbuild_meta_copy_entrys(new_meta, meta) != 0
+        || dr_inbuild_meta_copy_keys(new_meta, meta) != 0
+        || dr_inbuild_meta_copy_indexes(new_meta, meta) != 0)
+    {
         dr_inbuild_metalib_remove_meta(inBuildMetaLib, new_meta);
         return NULL;
     }
@@ -496,6 +498,57 @@ dr_inbuild_meta_copy_entry(struct DRInBuildMeta * meta, LPDRMETAENTRY entry) {
     return new_entry;
 }
 
+int dr_inbuild_meta_copy_keys(struct DRInBuildMeta * new_meta, LPDRMETA src_meta) {
+    int i, count;
+    int rv;
+
+    rv = 0;
+
+    count = dr_meta_key_entry_num(src_meta);
+    for(i = 0; i < count; ++i) {
+        if (dr_inbuild_meta_add_key_entries(new_meta, dr_entry_name(dr_meta_key_entry_at(src_meta, i))) != 0) {
+            rv = -1;
+        }
+    }
+
+    return rv;
+}
+
+int dr_inbuild_meta_copy_index(struct DRInBuildMeta * new_meta, dr_index_info_t src_index) {
+    int i, count;
+    int rv;
+    struct dr_inbuild_index * new_index;
+
+    rv = 0;
+
+    new_index = dr_inbuild_meta_add_index(new_meta, dr_index_name(src_index));
+
+    count = dr_index_entry_num(src_index);
+    for(i = 0; i < count; ++i) {
+        if (dr_inbuild_index_add_entries(new_index, dr_entry_name(dr_index_entry_at(src_index, i))) != 0) {
+            rv = -1;
+        }
+    }
+
+    return rv;
+}
+
+int dr_inbuild_meta_copy_indexes(struct DRInBuildMeta * new_meta, LPDRMETA src_meta) {
+    int i, count;
+    int rv;
+
+    rv = 0;
+
+    count = dr_meta_index_num(src_meta);
+    for(i = 0; i < count; ++i) {
+        if (dr_inbuild_meta_copy_index(new_meta, dr_meta_index_at(src_meta, i)) != 0) {
+                rv = -1;
+        }
+    }
+
+    return rv;
+}
+
 int dr_inbuild_meta_copy_entrys(struct DRInBuildMeta * new_meta, LPDRMETA src_meta) {
     int i, count;
 
@@ -507,4 +560,20 @@ int dr_inbuild_meta_copy_entrys(struct DRInBuildMeta * new_meta, LPDRMETA src_me
     }
 
     return 0;
+}
+
+int dr_inbuild_meta_copy_key_entrys(struct DRInBuildMeta * new_meta, LPDRMETA src_meta) {
+    int i, count;
+    int rv;
+
+    rv = 0;
+
+    count = dr_meta_key_entry_num(src_meta);
+    for(i = 0; i < count; ++i) {
+        if (dr_inbuild_meta_copy_entry(new_meta, dr_meta_key_entry_at(src_meta, i)) == NULL) {
+            rv = -1;
+        }
+    }
+
+    return rv;
 }

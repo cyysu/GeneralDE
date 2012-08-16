@@ -33,14 +33,13 @@ void OmGrpStoreTest::install(const char * om_meta, const char * metalib, const c
         m_meta = NULL;
     }
 
+    t_em_set_print();
     m_meta = t_pom_grp_meta_create(om_meta, metalib, 1024);
     ASSERT_TRUE(m_meta);
 
     m_store = pom_grp_store_create(
         t_allocrator(),
         m_meta,
-        main_entry,
-        key,
         t_em());
     ASSERT_TRUE(m_store);
 }

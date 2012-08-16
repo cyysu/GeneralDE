@@ -18,6 +18,7 @@ void pom_grp_meta_free(pom_grp_meta_t);
 const char * pom_grp_meta_name(pom_grp_meta_t meta);
 uint16_t pom_grp_meta_entry_count(pom_grp_meta_t meta);
 pom_grp_entry_meta_t pom_grp_meta_entry_at(pom_grp_meta_t meta, uint16_t pos);
+int pom_grp_meta_set_main_entry(pom_grp_meta_t meta, const char * entry_name);
 
 void pom_grp_meta_dump(write_stream_t stream, pom_grp_meta_t meta, int ident);
 

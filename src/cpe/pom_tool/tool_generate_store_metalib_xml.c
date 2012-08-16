@@ -9,7 +9,7 @@
 #include "cpe/pom_grp/pom_grp_store.h"
 #include "tool_env.h"
 
-int pom_tool_generate_store_metalib_xml(struct pom_tool_env * env, const char * main_entry, const char * key, const char * filename) {
+int pom_tool_generate_store_metalib_xml(struct pom_tool_env * env, const char * filename) {
     struct mem_buffer buffer;
     int rv;
 
@@ -22,7 +22,7 @@ int pom_tool_generate_store_metalib_xml(struct pom_tool_env * env, const char * 
 
     mem_buffer_init(&buffer, NULL);
 
-    if (pom_grp_meta_build_store_meta(&buffer, env->m_pom_grp_meta, main_entry, key, env->m_em) != 0) {
+    if (pom_grp_meta_build_store_meta(&buffer, env->m_pom_grp_meta, env->m_em) != 0) {
         CPE_ERROR(env->m_em, "generate store metalib xml: build store metalib fail!");
         rv = -1;
         goto COMPLETE;
