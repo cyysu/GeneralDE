@@ -277,3 +277,86 @@ TEST_F(BuildFromXmlMetaTest, meta_order_origin) {
     EXPECT_STREQ("A2", dr_meta_name(dr_lib_meta_at(m_metaLib, 0)));
     EXPECT_STREQ("A1", dr_meta_name(dr_lib_meta_at(m_metaLib, 1)));
 }
+
+TEST_F(BuildFromXmlMetaTest, meta_key_basic) {
+    EXPECT_EQ(
+        0,
+        parseMeta(
+            "<metalib tagsetversion='1' name='net'  version='10'>"
+            "    <struct name='A1' version='1' primarykey='a1,a2'>"
+            "	     <entry name='a1' type='int8'/>"
+            "	     <entry name='a2' type='int8'/>"
+            "	     <entry name='a3' type='int8'/>"
+            "    </struct>"
+            "</metalib>"
+            ));
+
+    EXPECT_EQ(1, dr_lib_meta_num(m_metaLib));
+
+    LPDRMETA meta = dr_lib_meta_at(m_metaLib, 0);
+    ASSERT_TRUE(meta);
+
+    ASSERT_EQ(2, dr_meta_key_entry_num(meta));
+    
+    EXPECT_STREQ("a1", dr_entry_name(dr_meta_key_entry_at(meta, 0)));
+    EXPECT_STREQ("a2", dr_entry_name(dr_meta_key_entry_at(meta, 1)));
+}
+
+TEST_F(BuildFromXmlMetaTest, meta_key_not_exist) {
+    EXPECT_EQ(
+        -1,
+        parseMeta(
+            "<metalib tagsetversion='1' name='net'  version='10'>"
+            "    <struct name='A1' version='1' primarykey='not-exist-key'>"
+            "	     <entry name='a1' type='int8'/>"
+            "	     <entry name='a2' type='int8'/>"
+            "	     <entry name='a3' type='int8'/>"
+            "    </struct>"
+            "</metalib>"
+            ));
+}
+
+TEST_F(BuildFromXmlMetaTest, meta_key_duplicate) {
+    EXPECT_NE(
+        0,
+        parseMeta(
+            "<metalib tagsetversion='1' name='net'  version='10'>"
+            "    <struct name='A1' version='1' primarykey='a1,a1'>"
+            "	     <entry name='a1' type='int8'/>"
+            "	     <entry name='a2' type='int8'/>"
+            "	     <entry name='a3' type='int8'/>"
+            "    </struct>"
+            "</metalib>"
+            ));
+}
+
+TEST_F(BuildFromXmlMetaTest, meta_index_basic) {
+    EXPECT_EQ(
+        0,
+        parseMeta(
+            "<metalib tagsetversion='1' name='net'  version='10'>"
+            "    <struct name='A1' version='1'>"
+            "	     <entry name='a1' type='int8'/>"
+            "	     <entry name='a2' type='int8'/>"
+            "	     <entry name='a3' type='int8'/>"
+            "        <index name='index1' column='a1,a2'/>"
+            "    </struct>"
+            "</metalib>"
+            ));
+
+    EXPECT_EQ(1, dr_lib_meta_num(m_metaLib));
+
+    LPDRMETA meta = dr_lib_meta_at(m_metaLib, 0);
+    ASSERT_TRUE(meta);
+
+    ASSERT_EQ(1, dr_meta_index_num(meta));
+
+    dr_index_info_t i1 = dr_meta_index_at(meta, 0);
+
+    EXPECT_STREQ("index1", dr_index_name(i1));
+    ASSERT_EQ(2, dr_index_entry_num(i1));
+    
+    EXPECT_STREQ("a1", dr_entry_name(dr_index_entry_at(i1, 0)));
+    EXPECT_STREQ("a2", dr_entry_name(dr_index_entry_at(i1, 1)));
+}
+

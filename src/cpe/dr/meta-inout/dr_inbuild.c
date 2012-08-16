@@ -2,6 +2,7 @@
 #include "cpe/pal/pal_string.h"
 #include "cpe/pal/pal_stdlib.h"
 #include "cpe/pal/pal_strings.h"
+#include "cpe/utils/buffer.h"
 #include "cpe/dr/dr_error.h"
 #include "cpe/dr/dr_metalib_manage.h"
 #include "cpe/dr/dr_metalib_build.h"
@@ -94,9 +95,26 @@ void dr_inbuild_free_lib(struct DRInBuildMetaLib * inBuildMetaLib) {
 }
 
 void dr_inbuild_meta_clear(struct DRInBuildMeta * meta) {
+    struct dr_inbuild_key_entry * key_entry;
+    struct dr_inbuild_index * index;
+
     /*free meta list*/
     while(! TAILQ_EMPTY(&meta->m_entries)) {
         dr_inbuild_meta_remove_entry(meta, TAILQ_FIRST(&meta->m_entries));
+    }
+
+    TAILQ_FOREACH(key_entry, &meta->m_key_entries, m_next) {
+        free(key_entry);
+    }
+
+    TAILQ_FOREACH(index, &meta->m_indexes, m_next) {
+        struct dr_inbuild_index_entry * index_entry;
+        
+        TAILQ_FOREACH(index_entry, &index->m_entries, m_next) {
+            free(index_entry);
+        }
+
+        free(key_entry);
     }
 }
 
@@ -168,7 +186,14 @@ dr_inbuild_metalib_add_meta(struct DRInBuildMetaLib * inBuildMetaLib) {
     newMeta->m_lib = inBuildMetaLib;
     newMeta->m_data.m_id = -1;
 
+    newMeta->m_entries_count = 0;
     TAILQ_INIT(&newMeta->m_entries);
+
+    newMeta->m_key_entrie_count = 0;
+    TAILQ_INIT(&newMeta->m_key_entries);
+
+    newMeta->m_index_count = 0;
+    TAILQ_INIT(&newMeta->m_indexes);
 
     TAILQ_INSERT_TAIL(&inBuildMetaLib->m_metas, newMeta, m_next);
 
@@ -230,6 +255,93 @@ void dr_inbuild_meta_set_name(struct DRInBuildMeta * meta, const char * name) {
 
 void dr_inbuild_meta_set_desc(struct DRInBuildMeta * meta, const char * desc) {
     meta->m_desc = desc;
+}
+
+int dr_inbuild_meta_add_key_entries(struct DRInBuildMeta * meta, const char * names) {
+    const char * token_begin = names;
+    const char * token_end = strchr(token_begin, ',');
+    char name_buf[128];
+    struct dr_inbuild_key_entry * key_entry;
+    char * entry_name;
+
+    for(; token_begin; token_begin = token_end ? token_end + 1 : NULL, token_end = token_begin ? strchr(token_begin, ',') : NULL) {
+        if (token_end) {
+            size_t len = token_end - token_begin;
+            if ((len + 1) > sizeof(name_buf)) {
+                return -1;
+            }
+
+            memcpy(name_buf, token_begin, len);
+            name_buf[len] = 0;
+        }
+        else {
+            strncpy(name_buf, token_begin, sizeof(name_buf));
+        }
+
+        entry_name = mem_buffer_strdup(&meta->m_lib->m_tmp_buf, name_buf);
+        if (entry_name == NULL) return -1;
+
+        key_entry = malloc(sizeof(struct dr_inbuild_key_entry));
+        if (key_entry == NULL) return -1;
+
+        key_entry->m_entry_name = entry_name;
+
+        meta->m_key_entrie_count++;
+        TAILQ_INSERT_TAIL(&meta->m_key_entries, key_entry, m_next);
+    }
+
+    return 0;
+}
+
+struct dr_inbuild_index * dr_inbuild_meta_add_index(struct DRInBuildMeta * meta, const char * name) {
+    struct dr_inbuild_index * index = (struct dr_inbuild_index *)malloc(sizeof(struct dr_inbuild_index));
+    if (index == NULL) return NULL;
+
+    index->m_meta = meta;
+    index->m_index_name = mem_buffer_strdup(&meta->m_lib->m_tmp_buf, name);
+    index->m_entry_count = 0;
+    TAILQ_INIT(&index->m_entries);
+
+    ++meta->m_index_count;
+    TAILQ_INSERT_TAIL(&meta->m_indexes, index, m_next);
+
+    return index;
+}
+
+int dr_inbuild_index_add_entries(struct dr_inbuild_index * index, const char * names) {
+    const char * token_begin = names;
+    const char * token_end = strchr(token_begin, ',');
+    char name_buf[128];
+    struct dr_inbuild_index_entry * index_entry;
+    char * entry_name;
+
+    for(; token_begin; token_begin = token_end ? token_end + 1 : NULL, token_end = token_begin ? strchr(token_begin, ',') : NULL) {
+        if (token_end) {
+            size_t len = token_end - token_begin;
+            if ((len + 1) > sizeof(name_buf)) {
+                return -1;
+            }
+
+            memcpy(name_buf, token_begin, len);
+            name_buf[len] = 0;
+        }
+        else {
+            strncpy(name_buf, token_begin, sizeof(name_buf));
+        }
+
+        entry_name = mem_buffer_strdup(&index->m_meta->m_lib->m_tmp_buf, name_buf);
+        if (entry_name == NULL) return -1;
+
+        index_entry = malloc(sizeof(struct dr_inbuild_index_entry));
+        if (index_entry == NULL) return -1;
+
+        index_entry->m_entry_name = entry_name;
+
+        index->m_entry_count++;
+        TAILQ_INSERT_TAIL(&index->m_entries, index_entry, m_next);
+    }
+
+    return 0;
 }
 
 struct DRInBuildMetaEntry *

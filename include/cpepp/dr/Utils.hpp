@@ -18,6 +18,15 @@ inline void copy_same_entries(T1 & target, T2 const & src, int policy = 0, error
         sizeof(src), policy, em);
 }
 
+template<class T1, typename T2>
+inline void copy_same_entries_part(T1 & target, T2 const & src, const char * columns, int policy = 0, error_monitor_t em = 0) {
+    MetaTraits<T1>::META.copy_same_entries_part(
+        &target, sizeof(target),
+        &src, MetaTraits<T2>::META,
+        columns,
+        sizeof(src), policy, em);
+}
+
 template<class T>
 inline void set_defaults(T & data, int policy = 0) {
     MetaTraits<T>::META.set_defaults(&data, sizeof(data), policy);
