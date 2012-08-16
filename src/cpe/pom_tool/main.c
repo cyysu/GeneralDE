@@ -209,14 +209,11 @@ int main(int argc, char * argv[]) {
     struct arg_file  * store_metalib_xml_dr_file =     arg_filen(NULL, "dr-meta", NULL, 0, 100, "input dr meta file(s)");
     struct arg_file  * store_metalib_xml_dr_group_root =     arg_file0(NULL, "dr-meta-group-root", NULL, "input dr meta group root");
     struct arg_file  * store_metalib_xml_dr_group =     arg_file0(NULL, "dr-meta-group", NULL, "input dr meta group file");
-    struct arg_str  * store_metalib_xml_main_entry =     arg_str1(NULL, "main-entry", NULL, "store main entry");
-    struct arg_str  * store_metalib_xml_key =     arg_str1(NULL, "key", NULL, "store key");
     struct arg_file  * store_metalib_xml_o_file =     arg_file1(NULL, "output-metalib-xml", NULL, "output metalib xml file");
     struct arg_end  * store_metalib_xml_end = arg_end(20);
     void* store_metalib_xml_argtable[] = { 
         store_metalib_xml, store_metalib_xml_pom_meta,
         store_metalib_xml_dr_file, store_metalib_xml_dr_group_root, store_metalib_xml_dr_group,
-        store_metalib_xml_main_entry, store_metalib_xml_key, 
         store_metalib_xml_o_file,
         store_metalib_xml_end
     };
@@ -344,8 +341,6 @@ int main(int argc, char * argv[]) {
 
         rv = pom_tool_generate_store_metalib_xml(
             &env,
-            store_metalib_xml_main_entry->sval[0],
-            store_metalib_xml_key->sval[0],
             store_metalib_xml_o_file->filename[0]);
     }
     else if (mk_hpp_nerrors == 0) {

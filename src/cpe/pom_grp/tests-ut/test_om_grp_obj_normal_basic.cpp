@@ -8,7 +8,9 @@ public:
         
         install(
             "TestObj:\n"
-            "  - entry1: { entry-type: normal, data-type: AttrGroup1 }\n"
+            "  main-entry: entry1\n"
+            "  attributes:\n"
+            "    - entry1: { entry-type: normal, data-type: AttrGroup1 }\n"
             ,
             "<metalib tagsetversion='1' name='net'  version='1'>"
             "    <struct name='AttrGroup1' version='1'>"
