@@ -3,7 +3,8 @@
 TEST_F(OmGrpMetaTest, normal_basic) {
     install(
         "TestObj:\n"
-        "  - entry1: { entry-type: normal, data-type: AttrGroup1 }\n"
+        "  attributes:\n"
+        "    - entry1: { entry-type: normal, data-type: AttrGroup1 }\n"
         ,
         "<metalib tagsetversion='1' name='net'  version='1'>"
         "    <struct name='AttrGroup1' version='1'>"
@@ -23,7 +24,8 @@ TEST_F(OmGrpMetaTest, normal_basic) {
 TEST_F(OmGrpMetaTest, list_basic) {
     install(
         "TestObj:\n"
-        "  - entry1: { entry-type: list, data-type: AttrGroup1, group-count: 3, capacity: 3 }\n"
+        "  attributes:\n"
+        "    - entry1: { entry-type: list, data-type: AttrGroup1, group-count: 3, capacity: 3 }\n"
         ,
         "<metalib tagsetversion='1' name='net'  version='1'>"
         "    <struct name='AttrGroup1' version='1'>"
@@ -43,8 +45,9 @@ TEST_F(OmGrpMetaTest, list_basic) {
 TEST_F(OmGrpMetaTest, list_multi) {
     install(
         "TestObj:\n"
-        "  - entry1: { entry-type: list, data-type: AttrGroup1, group-count: 3, capacity: 3 }\n"
-        "  - entry2: { entry-type: list, data-type: AttrGroup1, group-count: 3, capacity: 3 }\n"
+        "  attributes:\n"
+        "    - entry1: { entry-type: list, data-type: AttrGroup1, group-count: 3, capacity: 3 }\n"
+        "    - entry2: { entry-type: list, data-type: AttrGroup1, group-count: 3, capacity: 3 }\n"
         ,
         "<metalib tagsetversion='1' name='net'  version='1'>"
         "    <struct name='AttrGroup1' version='1'>"
@@ -55,7 +58,7 @@ TEST_F(OmGrpMetaTest, list_multi) {
 
 
     EXPECT_STREQ(
-        "pom_grp_meta: name=TestObj, page-size=256, class-id=1, obj-size=6, page-count=1, size-buf-start=4, size-buf-count=1\n"
+        "pom_grp_meta: name=TestObj, page-size=256, class-id=1, obj-size=12, page-count=2, size-buf-start=8, size-buf-count=2\n"
         "    entry1: entry-type=list, data=type=AttrGroup1, capacity=3, size-idx=0, page-begin=0, page-count=1, class-id=2, obj-size=12, obj-align=1\n"
         "    entry2: entry-type=list, data=type=AttrGroup1, capacity=3, size-idx=1, page-begin=1, page-count=1, class-id=3, obj-size=12, obj-align=1"
         ,
@@ -66,7 +69,8 @@ TEST_F(OmGrpMetaTest, bitarry_basic) {
     t_em_set_print();
     install(
         "TestObj:\n"
-        "  - entry1: { entry-type: ba, bit-capacity: 15 }\n"
+        "  attributes:\n"
+        "    - entry1: { entry-type: ba, bit-capacity: 15 }\n"
         ,
         "<metalib tagsetversion='1' name='net'  version='1'>"
         "</metalib>"
@@ -83,7 +87,8 @@ TEST_F(OmGrpMetaTest, bitarry_multi_page) {
     t_em_set_print();
     install(
         "TestObj:\n"
-        "  - entry1: { entry-type: ba, byte-per-page: 3, bit-capacity: 38 }\n"
+        "  attributes:\n"
+        "    - entry1: { entry-type: ba, byte-per-page: 3, bit-capacity: 38 }\n"
         ,
         "<metalib tagsetversion='1' name='net'  version='1'>"
         "</metalib>"
@@ -99,7 +104,8 @@ TEST_F(OmGrpMetaTest, bitarry_multi_page) {
 TEST_F(OmGrpMetaTest, binary_basic) {
     install(
         "TestObj:\n"
-        "  - entry1: { entry-type: binary, capacity: 7 }\n"
+        "  attributes:\n"
+        "    - entry1: { entry-type: binary, capacity: 7 }\n"
         ,
         "<metalib tagsetversion='1' name='net'  version='1'>"
         "</metalib>"
@@ -116,10 +122,11 @@ TEST_F(OmGrpMetaTest, binary_basic) {
 TEST_F(OmGrpMetaTest, basic_multi) {
     install(
         "TestObj:\n"
-        "  - entry1: { entry-type: normal, data-type: AttrGroup1 }\n"
-        "  - entry2: { entry-type: list, data-type: AttrGroup2, group-count: 3, capacity: 3 }\n"
-        "  - entry3: { entry-type: ba, bit-capacity: 15 }\n"
-        "  - entry4: { entry-type: binary, capacity: 5 }\n"
+        "  attributes:\n"
+        "    - entry1: { entry-type: normal, data-type: AttrGroup1 }\n"
+        "    - entry2: { entry-type: list, data-type: AttrGroup2, group-count: 3, capacity: 3 }\n"
+        "    - entry3: { entry-type: ba, bit-capacity: 15 }\n"
+        "    - entry4: { entry-type: binary, capacity: 5 }\n"
         ,
         "<metalib tagsetversion='1' name='net'  version='1'>"
         "    <struct name='AttrGroup1' version='1'>"

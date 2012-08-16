@@ -37,6 +37,7 @@ struct pom_grp_meta {
     uint16_t m_entry_capacity;
     struct pom_grp_entry_meta * * m_entry_buf;
 
+    pom_grp_entry_meta_t m_main_entry;
     struct cpe_hash_table m_entry_ht;
 };
 
