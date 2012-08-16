@@ -317,11 +317,11 @@ TEST_F(BuildFromXmlMetaTest, meta_key_not_exist) {
 }
 
 TEST_F(BuildFromXmlMetaTest, meta_key_duplicate) {
-    EXPECT_EQ(
-        -1,
+    EXPECT_NE(
+        0,
         parseMeta(
             "<metalib tagsetversion='1' name='net'  version='10'>"
-            "    <struct name='A1' version='1' primarykey='a1:a1'>"
+            "    <struct name='A1' version='1' primarykey='a1,a1'>"
             "	     <entry name='a1' type='int8'/>"
             "	     <entry name='a2' type='int8'/>"
             "	     <entry name='a3' type='int8'/>"
