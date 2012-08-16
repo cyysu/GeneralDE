@@ -260,7 +260,7 @@ int pom_class_add_new_page(
     head->m_classId = theClass->m_id;
     head->m_reserve = 0;
     head->m_page_idx = theClass->m_page_array_size;
-    head->m_alloc_ba_count = theClass->m_object_per_page * theClass->m_page_array_size;
+    head->m_alloc_ba_count = theClass->m_object_per_page;
     cpe_ba_set_all(alloc_arry, theClass->m_object_per_page, cpe_ba_false);
 
     newRangeStart = theClass->m_object_per_page * theClass->m_page_array_size;
@@ -286,12 +286,12 @@ int pom_class_add_old_page(
 
     alloc_arry = pom_class_ba_of_page(page);
 
-    assert(head->m_alloc_ba_count == theClass->m_object_per_page * theClass->m_page_array_size);
+    assert(head->m_alloc_ba_count == theClass->m_object_per_page);
 
     if (cpe_range_free_from_bitarray(
             &theClass->m_range_alloc,
             alloc_arry,
-            head->m_alloc_ba_count,
+            head->m_alloc_ba_count * theClass->m_page_array_size,
             theClass->m_object_per_page) != 0)
     {
         size_t i;

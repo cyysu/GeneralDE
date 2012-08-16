@@ -231,7 +231,7 @@ pom_grp_meta_build_from_cfg(
 
     rv = 0;
 
-    cfg_it_init(&entry_it, cfg);
+    cfg_it_init(&entry_it, cfg_find_cfg(cfg, "attributes"));
     while((entry_cfg = cfg_it_next(&entry_it))) {
         const char * entry_type; 
 

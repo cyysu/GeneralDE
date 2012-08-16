@@ -23,7 +23,7 @@ static cfg_t pom_tool_do_generate_hpp_get_entry_cfg(struct pom_tool_env * env, c
     root_cfg = cfg_child_only(env->m_pom_cfg);
     if (root_cfg == NULL) return NULL;
 
-    cfg_it_init(&it, root_cfg);
+    cfg_it_init(&it, cfg_find_cfg(root_cfg, "attributes"));
     while((cfg = cfg_it_next(&it))) {
         cfg = cfg_child_only(cfg);
         if (strcmp(cfg_name(cfg), entryName) == 0) return cfg;
