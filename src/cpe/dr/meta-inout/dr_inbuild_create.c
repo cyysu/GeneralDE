@@ -429,6 +429,11 @@ int dr_inbuild_tsort(
         struct DRInBuildMeta * metaEle = TAILQ_FIRST(&inBuildLib->m_metas);
         struct DRInBuildMetaEntry * entryEle;
 
+        if (metaEle->m_name == NULL) {
+            dr_inbuild_metalib_remove_meta(inBuildLib, metaEle);
+            continue;
+        }
+
         TAILQ_REMOVE(&inBuildLib->m_metas, metaEle, m_next);
 
         if (tsorter_str_add_element(tsorter, metaEle->m_name) != 0) {
