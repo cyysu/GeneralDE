@@ -29,6 +29,14 @@ typedef struct dr_idx_entry_info * dr_idx_entry_info_t;
 typedef struct dr_index_info * dr_index_info_t;
 typedef struct dr_index_entry_info * dr_index_entry_info_t;
 
+typedef struct dr_meta_dyn_info {
+    LPDRMETAENTRY m_array_entry;
+    uint32_t m_array_start;
+
+    LPDRMETAENTRY m_refer_entry;
+    uint32_t m_refer_start;
+} * dr_meta_dyn_info_t;
+
 struct tagDRLibParam
 {
 	int iID;

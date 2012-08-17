@@ -714,3 +714,37 @@ LPDRMACRO dr_macrosgroup_macro_at(LPDRMETALIB metaLib, LPDRMACROSGROUP a_pstGrou
     //TODO
     return NULL;
 }
+
+int dr_meta_find_dyn_info(LPDRMETA meta, dr_meta_dyn_info_t dyn_info) {
+    LPDRMETAENTRY last_entry;
+
+    if (dr_meta_entry_num(meta) == 0) return -1;
+
+    last_entry = dr_meta_entry_at(meta, dr_meta_entry_num(meta) - 1);
+    assert(last_entry);
+
+    if (dr_entry_array_count(last_entry) != 1) {
+        dyn_info->m_array_entry = last_entry;
+        dyn_info->m_array_start = dr_entry_data_start_pos(last_entry);
+
+        dyn_info->m_refer_entry = dr_entry_array_refer_entry(last_entry);
+        if (dyn_info->m_refer_entry) {
+            dyn_info->m_refer_start = dr_entry_data_start_pos(dyn_info->m_refer_entry);
+        }
+
+        return 0;
+    }
+    else if (dr_entry_type(last_entry) <= CPE_DR_TYPE_COMPOSITE) {
+        if (dr_meta_find_dyn_info(dr_entry_ref_meta(last_entry), dyn_info) == 0) {
+            dyn_info->m_array_start += dr_entry_data_start_pos(last_entry);
+            if (dyn_info->m_refer_entry) dyn_info->m_refer_start += dr_entry_data_start_pos(last_entry);
+            return 0;
+        }
+        else {
+            return -1;
+        }
+    }
+    else {
+        return -1;
+    }
+}
