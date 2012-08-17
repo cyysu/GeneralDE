@@ -63,6 +63,8 @@ struct dr_inbuild_index_entry {
 struct DRInBuildMetaEntry {
     TAILQ_ENTRY(DRInBuildMetaEntry) m_next;
 
+    struct DRInBuildMeta * m_meta;
+
     struct tagDRMetaEntry m_data;
     int m_ignore;
     char const * m_name;
