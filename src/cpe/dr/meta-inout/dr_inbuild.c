@@ -210,6 +210,10 @@ void dr_inbuild_metalib_remove_meta(struct DRInBuildMetaLib * inBuildMetaLib, st
 
     dr_inbuild_meta_clear(meta);
 
+    if (meta->m_name) {
+        cpe_hash_table_remove_by_ins(&meta->m_lib->m_index_metas, meta);
+    }
+
     TAILQ_REMOVE(&inBuildMetaLib->m_metas, meta, m_next);
 
     free(meta);
@@ -252,12 +256,12 @@ void dr_inbuild_meta_set_name(struct DRInBuildMeta * meta, const char * name) {
         cpe_hash_table_remove_by_ins(&meta->m_lib->m_index_metas, meta);
     }
 
-    meta->m_name = name;
+    meta->m_name = mem_buffer_strdup(&meta->m_lib->m_tmp_buf, name);
     cpe_hash_table_insert_unique(&meta->m_lib->m_index_metas, meta);
 }
 
 void dr_inbuild_meta_set_desc(struct DRInBuildMeta * meta, const char * desc) {
-    meta->m_desc = desc;
+    meta->m_desc = mem_buffer_strdup(&meta->m_lib->m_tmp_buf, desc);
 }
 
 int dr_inbuild_meta_add_key_entries(struct DRInBuildMeta * meta, const char * names) {
@@ -355,6 +359,7 @@ dr_inbuild_meta_add_entry(struct DRInBuildMeta * meta) {
     }
 
     bzero(newEntry, sizeof(struct DRInBuildMetaEntry));
+    newEntry->m_meta = meta;
     newEntry->m_data.m_id = -1;
     newEntry->m_data.m_array_count = 1;
     newEntry->m_data.m_array_refer_data_start_pos = -1;
@@ -387,7 +392,7 @@ int dr_inbuild_entry_version(struct DRInBuildMetaEntry * entry) {
 }
 
 void dr_inbuild_entry_set_type(struct DRInBuildMetaEntry * entry, const char * type_name) {
-    entry->m_ref_type_name = type_name;
+    entry->m_ref_type_name = mem_buffer_strdup(&entry->m_meta->m_lib->m_tmp_buf, type_name);
 }
 
 void dr_inbuild_entry_set_id(struct DRInBuildMetaEntry * entry, int id) {
@@ -403,19 +408,19 @@ void dr_inbuild_entry_set_array_count(struct DRInBuildMetaEntry * entry, int arr
 }
 
 void dr_inbuild_entry_set_array_refer(struct DRInBuildMetaEntry * entry, const char * refer) {
-    entry->m_refer_path = refer;
+    entry->m_refer_path = mem_buffer_strdup(&entry->m_meta->m_lib->m_tmp_buf, refer);
 }
 
 void dr_inbuild_entry_set_selector(struct DRInBuildMetaEntry * entry, const char * selector) {
-    entry->m_selector_path = selector;
+    entry->m_selector_path = mem_buffer_strdup(&entry->m_meta->m_lib->m_tmp_buf, selector);
 }
 
 void dr_inbuild_entry_set_name(struct DRInBuildMetaEntry * entry, const char * name) {
-    entry->m_name = name;
+    entry->m_name = mem_buffer_strdup(&entry->m_meta->m_lib->m_tmp_buf, name);
 }
 
 void dr_inbuild_entry_set_desc(struct DRInBuildMetaEntry * entry, const char * desc) {
-    entry->m_desc = desc;
+    entry->m_desc = mem_buffer_strdup(&entry->m_meta->m_lib->m_tmp_buf, desc);
 }
 
 void dr_inbuild_entry_set_size(struct DRInBuildMetaEntry * entry, int size) {
@@ -426,13 +431,52 @@ struct DRInBuildMeta *
 dr_inbuild_metalib_copy_meta(struct DRInBuildMetaLib * inBuildMetaLib, LPDRMETA meta) {
     struct DRInBuildMeta * new_meta;
 
-    if (dr_inbuild_metalib_find_meta(inBuildMetaLib, dr_meta_name(meta)) != NULL) return NULL;
+    new_meta = dr_inbuild_metalib_find_meta(inBuildMetaLib, dr_meta_name(meta));
+    if (new_meta != NULL) return new_meta;
 
     new_meta = dr_inbuild_metalib_add_meta(inBuildMetaLib);
     if (new_meta == NULL) return NULL;
 
     if (dr_inbuild_meta_init(new_meta, meta) != 0
         || dr_inbuild_meta_copy_entrys(new_meta, meta) != 0
+        || dr_inbuild_meta_copy_keys(new_meta, meta) != 0
+        || dr_inbuild_meta_copy_indexes(new_meta, meta) != 0)
+    {
+        dr_inbuild_metalib_remove_meta(inBuildMetaLib, new_meta);
+        return NULL;
+    }
+
+    return new_meta;
+}
+
+struct DRInBuildMeta *
+dr_inbuild_metalib_copy_meta_r(struct DRInBuildMetaLib * inBuildMetaLib, LPDRMETA meta) {
+    int i, count;
+    struct DRInBuildMeta * new_meta;
+
+    new_meta = dr_inbuild_metalib_find_meta(inBuildMetaLib, dr_meta_name(meta));
+    if (new_meta != NULL) return new_meta;
+
+    new_meta = dr_inbuild_metalib_add_meta(inBuildMetaLib);
+    if (new_meta == NULL) return NULL;
+
+    if (dr_inbuild_meta_init(new_meta, meta) != 0) {
+        dr_inbuild_metalib_remove_meta(inBuildMetaLib, new_meta);
+        return NULL;
+    }
+
+    count = dr_meta_entry_num(meta);
+    for(i = 0; i < count; ++i) {
+        LPDRMETA ref_meta = dr_entry_ref_meta(dr_meta_entry_at(meta, i));
+        if (ref_meta) {
+            if (dr_inbuild_metalib_copy_meta_r(inBuildMetaLib, ref_meta) == NULL) {
+                dr_inbuild_metalib_remove_meta(inBuildMetaLib, new_meta);
+                return NULL;
+            }
+        }
+    }
+
+    if (dr_inbuild_meta_copy_entrys(new_meta, meta) != 0
         || dr_inbuild_meta_copy_keys(new_meta, meta) != 0
         || dr_inbuild_meta_copy_indexes(new_meta, meta) != 0)
     {
