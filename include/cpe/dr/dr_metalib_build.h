@@ -34,6 +34,9 @@ struct DRInBuildMeta * dr_inbuild_metalib_find_meta(struct DRInBuildMetaLib * in
 struct DRInBuildMeta *
 dr_inbuild_metalib_copy_meta(struct DRInBuildMetaLib * inBuildMetaLib, LPDRMETA meta);
 
+struct DRInBuildMeta *
+dr_inbuild_metalib_copy_meta_r(struct DRInBuildMetaLib * inBuildMetaLib, LPDRMETA meta);
+
 int dr_inbuild_metalib_version(struct DRInBuildMetaLib * inBuildMetaLib);
 void dr_inbuild_metalib_set_version(struct DRInBuildMetaLib * inBuildMetaLib, int version);
 void dr_inbuild_metalib_set_tagsetversion(struct DRInBuildMetaLib * inBuildMetaLib, int version);

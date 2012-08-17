@@ -161,41 +161,6 @@ static void cpe_dr_generate_h_metas(write_stream_t stream, dr_metalib_source_t s
     }
 }
 
-static int cpe_dr_generate_h_find_dyn_info(LPDRMETA meta, LPDRMETAENTRY * dyn_entry, uint32_t * data_start_pos, LPDRMETAENTRY * refer_entry, uint32_t * refer_start_pos, uint32_t * count) {
-    LPDRMETAENTRY last_entry;
-
-    if (dr_meta_entry_num(meta) == 0) return 0;
-
-    last_entry = dr_meta_entry_at(meta, dr_meta_entry_num(meta) - 1);
-    assert(last_entry);
-
-    if (dr_entry_array_count(last_entry) != 1) {
-        *dyn_entry = last_entry;
-        *data_start_pos = dr_entry_data_start_pos(last_entry);
-        *count = dr_entry_array_count(last_entry);
-
-        *refer_entry = dr_entry_array_refer_entry(last_entry);
-        if (*refer_entry) {
-            *refer_start_pos = dr_entry_data_start_pos(*refer_entry);
-        }
-
-        return 1;
-    }
-    else if (dr_entry_type(last_entry) <= CPE_DR_TYPE_COMPOSITE) {
-        if (cpe_dr_generate_h_find_dyn_info(dr_entry_ref_meta(last_entry), dyn_entry, data_start_pos, refer_entry, refer_start_pos, count)) {
-            *data_start_pos += dr_entry_data_start_pos(last_entry);
-            if (*refer_entry) *refer_start_pos += dr_entry_data_start_pos(last_entry);
-            return 1;
-        }
-        else {
-            return 0;
-        }
-    }
-    else {
-        return 0;
-    }
-}
-
 static void cpe_dr_generate_h_traits(write_stream_t stream, dr_metalib_source_t source, cpe_dr_generate_ctx_t ctx) {
     struct dr_metalib_source_element_it element_it;
     dr_metalib_source_element_t element;
@@ -211,11 +176,7 @@ static void cpe_dr_generate_h_traits(write_stream_t stream, dr_metalib_source_t 
     dr_metalib_source_elements(&element_it, source);
     while((element = dr_metalib_source_element_next(&element_it))) {
         LPDRMETA meta;
-        LPDRMETAENTRY dyn_entry;
-        LPDRMETAENTRY refer_entry;
-        uint32_t refer_start_pos;
-        uint32_t data_start_pos;
-        uint32_t data_count;
+        struct dr_meta_dyn_info dyn_info;
 
         const char * meta_name;
 
@@ -235,22 +196,20 @@ static void cpe_dr_generate_h_traits(write_stream_t stream, dr_metalib_source_t 
         stream_printf(stream, "    static Meta const & META;\n");
         stream_printf(stream, "    static const char * const NAME;\n");
 
-        if (cpe_dr_generate_h_find_dyn_info(
-                meta, &dyn_entry, &data_start_pos, &refer_entry, &refer_start_pos, &data_count))
-        {
+        if (dr_meta_find_dyn_info(meta, &dyn_info) == 0) {
             stream_printf(stream, "    typedef ");
-            cpe_dr_generate_h_print_type(stream, dyn_entry);
+            cpe_dr_generate_h_print_type(stream, dyn_info.m_array_entry);
             stream_printf(stream, " dyn_element_type;\n");
 
-            stream_printf(stream, "    static const int dyn_data_start_pos = %d;\n", data_start_pos);
-            stream_printf(stream, "    static const int dyn_count = %d;\n", data_count);
+            stream_printf(stream, "    static const int dyn_data_start_pos = %d;\n", dyn_info.m_array_start);
+            stream_printf(stream, "    static const int dyn_count = %d;\n", dr_entry_array_count(dyn_info.m_array_entry));
 
-            if (refer_entry) {
+            if (dyn_info.m_refer_entry) {
                 stream_printf(stream, "    typedef ");
-                cpe_dr_generate_h_print_type(stream, refer_entry);
+                cpe_dr_generate_h_print_type(stream, dyn_info.m_refer_entry);
                 stream_printf(stream, " dyn_size_type;\n");
 
-                stream_printf(stream, "    static const int dyn_refer_start_pos = %d;\n", refer_start_pos);
+                stream_printf(stream, "    static const int dyn_refer_start_pos = %d;\n", dyn_info.m_refer_start);
             }
         }
         
