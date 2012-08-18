@@ -47,21 +47,7 @@ mongo_agent_create(
 
     agent->m_dump_buffer_capacity = 4 * 1024;
 
-    if (cpe_hash_table_init(
-            &agent->m_results,
-            alloc,
-            (cpe_hash_fun_t) mongo_result_hash,
-            (cpe_hash_cmp_t) mongo_result_cmp,
-            CPE_HASH_OBJ2ENTRY(mongo_result, m_hh),
-            -1) != 0)
-    {
-        nm_node_free(agent_node);
-        return NULL;
-    }
-
-
     if (gd_app_tick_add(app, mongo_agent_tick, agent, (ptr_int_t)500) != 0) {
-        cpe_hash_table_fini(&agent->m_results);
         nm_node_free(agent_node);
         return NULL;
     }
@@ -84,9 +70,6 @@ static void mongo_agent_clear(nm_node_t node) {
         mem_free(agent->m_alloc, agent->m_runing_requires);
         agent->m_runing_requires = NULL;
     }
-
-    mongo_result_free_all(agent);
-    cpe_hash_table_fini(&agent->m_results);
 }
 
 void mongo_agent_free(mongo_agent_t agent) {

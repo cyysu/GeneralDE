@@ -11,7 +11,6 @@ extern "C" {
 
 typedef struct mongo_agent * mongo_agent_t;
 typedef struct mongo_request * mongo_request_t;
-typedef struct mongo_result * mongo_result_t;
 
 
 #ifdef __cplusplus

@@ -6,8 +6,6 @@
 namespace Usf { namespace Mongo {
 
 class Agent;
-class Request;
-class Table;
 
 }}
 

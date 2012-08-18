@@ -14,8 +14,6 @@ struct mongo_agent {
 
     char m_password[64];
 
-    struct cpe_hash_table m_results;
-
     uint32_t m_runing_require_capacity;
     uint32_t m_runing_require_count;
     uint32_t m_runing_require_op_count;
@@ -26,14 +24,6 @@ struct mongo_agent {
     uint32_t m_dump_buffer_capacity;
 
     int m_debug;
-};
-
-struct mongo_result {
-    mongo_agent_t m_agent;
-    const char * m_name;
-    logic_data_t m_data;
-
-    struct cpe_hash_entry m_hh;
 };
 
 #endif
