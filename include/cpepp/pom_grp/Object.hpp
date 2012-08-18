@@ -88,7 +88,7 @@ public:
     }
 
     int listEntryRemove(int entryPos, uint16_t listPos) {
-        return pom_grp_obj_list_remove_ex(m_obj_mgr, m_obj, entry_meta(entryPos), listPos);
+        return pom_grp_obj_list_remove_ex(m_obj_mgr, m_obj, entry_meta(entryPos), listPos) == 0;
     }
 
     void listEntryClear(int entryPos) {
