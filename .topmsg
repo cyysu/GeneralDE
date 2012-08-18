@@ -1,6 +1,6 @@
-From: lokiwang <wangjian1009@gmail.com>
-Subject: [PATCH] t/support/game
+From: Lokiwang <wangjian1009@gmail.com>
+Subject: [PATCH] t/support/usf2
 
-game develop support component
+统一请求调度框架
 
-Signed-off-by: lokiwang <wangjian1009@gmail.com>
+Signed-off-by: Lokiwang <wangjian1009@gmail.com>
