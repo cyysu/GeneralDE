@@ -4,7 +4,7 @@
 
 namespace Cpe { namespace PomGrp {
 
-class Entry;
+class ObjectRef;
 
 }}
 
