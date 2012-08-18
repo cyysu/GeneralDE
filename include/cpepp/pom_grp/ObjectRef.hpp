@@ -10,13 +10,21 @@
 
 namespace Cpe { namespace PomGrp {
 
-class Object {
+class ObjectRef {
 public:
-    Object(pom_grp_obj_mgr_t obj_mgr, pom_grp_obj_t obj)
+    ObjectRef(pom_grp_obj_mgr_t obj_mgr, pom_grp_obj_t obj)
         : m_obj_mgr(obj_mgr)
         , m_obj(obj)
     {
     }
+
+    ObjectRef(ObjectRef const & o)
+        : m_obj_mgr(o.m_obj_mgr)
+        , m_obj(o.m_obj)
+    {
+    }
+
+    bool isValid(void) const { return m_obj != NULL; }
 
     /*normal entries*/
     template<typename T>
@@ -29,6 +37,20 @@ public:
     template<typename T>
     T const & normalEntry(int entryPos) const {
         void * buf = pom_grp_obj_normal_check_or_create_ex(m_obj_mgr, m_obj, entry_meta(entryPos));
+        if (buf == NULL) throw ::std::bad_alloc();
+        return *(T const *)buf;
+    }
+
+    template<typename T>
+    T & normalEntry(const char * entryName) {
+        void * buf = pom_grp_obj_normal_check_or_create(m_obj_mgr, m_obj, entryName);
+        if (buf == NULL) throw ::std::bad_alloc();
+        return *(T*)buf;
+    }
+
+    template<typename T>
+    T const & normalEntry(const char * entryName) const {
+        void * buf = pom_grp_obj_normal_check_or_create(m_obj_mgr, m_obj, entryName);
         if (buf == NULL) throw ::std::bad_alloc();
         return *(T const *)buf;
     }
@@ -220,6 +242,12 @@ public:
     pom_grp_entry_meta_t entry_meta(int entryPos) const {
         return pom_grp_entry_meta_at(pom_grp_obj_mgr_meta(m_obj_mgr), entryPos);
     }
+
+    pom_grp_obj_t _obj(void) { return m_obj; }
+    pom_grp_obj_mgr_t _obj_mgr(void) { return m_obj_mgr; }
+    void _free(void) { if (m_obj) { pom_grp_obj_free(m_obj_mgr, m_obj); m_obj = 0;} }
+
+    operator pom_grp_obj_t() { return m_obj; }
 
 private:
     pom_grp_obj_mgr_t m_obj_mgr;
