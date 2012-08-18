@@ -1,5 +1,6 @@
 #ifndef USF_LOGIC_DATA_H
 #define USF_LOGIC_DATA_H
+#include "cpe/utils/buffer.h"
 #include "logic_types.h"
 
 #ifdef __cplusplus
@@ -35,6 +36,10 @@ LPDRMETA logic_data_meta(logic_data_t data);
 const char * logic_data_name(logic_data_t data);
 void * logic_data_data(logic_data_t data);
 size_t logic_data_capacity(logic_data_t data);
+
+logic_data_t logic_data_resize(logic_data_t data, size_t capacity);
+
+const char * logic_data_dump(logic_data_t data, mem_buffer_t buffer);
 
 /*从context上读取数据的接口集合*/
 int logic_context_try_read_int8(int8_t * result, logic_context_t context, const char * path, error_monitor_t em);
@@ -107,6 +112,8 @@ uint64_t logic_require_read_with_dft_uint64(logic_require_t require, const char 
 float logic_require_read_with_dft_float(logic_require_t require, const char * path, float dft);
 double logic_require_read_with_dft_double(logic_require_t require, const char * path, double dft);
 const char * logic_require_read_with_dft_string(logic_require_t require, const char * path, const char * dft);
+
+logic_require_t logic_data_require(logic_data_t data);
 
 /*从stack上读取数据的接口集合*/
 int logic_stack_try_read_int8(int8_t * result, logic_stack_node_t stack, const char * path, error_monitor_t em);

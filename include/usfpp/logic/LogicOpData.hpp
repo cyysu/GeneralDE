@@ -47,6 +47,8 @@ public:
     template<typename T>
     T const & as(void) const { return *(T const *)data(); }
 
+    const char * dump(mem_buffer_t buffer) const { return logic_data_dump(*this, buffer); }
+
     void destory(void) { logic_data_free(*this); }
 };
 

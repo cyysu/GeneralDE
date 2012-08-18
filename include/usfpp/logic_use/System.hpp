@@ -7,12 +7,14 @@
 namespace Usf { namespace Logic {
 
 class LogicAsyncOp;
+class LogicOpDynData;
+class LogicUniRes;
 
 template<typename ListT, typename EleT>
 class LogicOpDynList;
 
 template<typename DataT, int count = Cpe::Dr::MetaTraits<DataT>::dyn_count>
-class LogicOpDynData;
+class LogicOpDynDataT;
 
 }}
 

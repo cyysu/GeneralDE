@@ -111,6 +111,10 @@ logic_stack_node_t logic_require_stack(logic_require_t require) {
     return require->m_stack;
 }
 
+logic_manage_t logic_require_mgr(logic_require_t require) {
+    return require->m_context->m_mgr;
+}
+
 logic_context_t logic_require_context(logic_require_t require) {
     return require->m_context;
 }
