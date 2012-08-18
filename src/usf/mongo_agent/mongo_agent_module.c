@@ -6,7 +6,6 @@
 #include "gd/app/app_context.h"
 #include "usf/logic/logic_manage.h"
 #include "usf/mongo_agent/mongo_agent.h"
-#include "usf/mongo_agent/mongo_table.h"
 #include "mongo_internal_ops.h"
 
 EXPORT_DIRECTIVE
@@ -35,13 +34,6 @@ int mongo_agent_app_init(gd_app_context_t app, gd_app_module_t module, cfg_t cfg
     agent = mongo_agent_create(app, gd_app_module_name(module), logic_manage, gd_app_alloc(app), gd_app_em(app));
     if (agent == NULL) return -1;
 
-    if (mongo_agent_build_reulst_metalib(agent) != 0) {
-        CPE_ERROR(
-            gd_app_em(app), "%s create: create result metalib fail!",
-            gd_app_module_name(module));
-        goto CREATE_ERROR;
-    }
-
     agent->m_runing_require_check_span = 
         cfg_get_uint32(cfg, "runing-require-check-span", agent->m_runing_require_check_span);
 
@@ -55,10 +47,6 @@ int mongo_agent_app_init(gd_app_context_t app, gd_app_module_t module, cfg_t cfg
     /* } */
 
     return 0;
-
-CREATE_ERROR:
-    mongo_agent_free(agent);
-    return -1;
 }
 
 EXPORT_DIRECTIVE

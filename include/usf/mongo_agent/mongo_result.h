@@ -7,15 +7,11 @@ extern "C" {
 #endif
 
 mongo_result_t
-mongo_result_get(
-    mongo_agent_t agent,
-    logic_require_t require,
-    const char * table_name);
+mongo_result_get(mongo_agent_t agent, logic_require_t require);
 
 void mongo_result_free(mongo_result_t result);
 
 mongo_agent_t mongo_result_agent(mongo_result_t result);
-mongo_table_t mongo_result_table(mongo_result_t result);
 
 LPDRMETA mongo_result_meta(mongo_result_t result);
 void * mongo_result_data(mongo_result_t result);

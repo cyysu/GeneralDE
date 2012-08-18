@@ -8,7 +8,6 @@
 #include "gd/app/app_context.h"
 #include "usf/logic/logic_require.h"
 #include "usf/mongo_agent/mongo_agent.h"
-#include "usf/mongo_agent/mongo_table.h"
 #include "mongo_internal_ops.h"
 
 int mongo_agent_send_request(mongo_agent_t agent, mongo_request_t request, logic_require_t require) {

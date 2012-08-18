@@ -10,7 +10,6 @@ extern "C" {
 #endif
 
 typedef struct mongo_agent * mongo_agent_t;
-typedef struct mongo_table * mongo_table_t;
 typedef struct mongo_request * mongo_request_t;
 typedef struct mongo_result * mongo_result_t;
 
