@@ -1,7 +1,10 @@
 #include <assert.h>
 #include "cpe/pal/pal_strings.h"
+#include "cpe/utils/stream_buffer.h"
+#include "cpe/cfg/cfg.h"
 #include "cpe/dr/dr_metalib_manage.h"
 #include "cpe/dr/dr_data.h"
+#include "cpe/dr/dr_cfg.h"
 #include "usf/logic/logic_data.h"
 #include "logic_internal_ops.h"
 
@@ -245,6 +248,30 @@ const char * logic_data_name(logic_data_t data) {
     return data->m_name;
 }
 
+logic_data_t logic_data_resize(logic_data_t data, size_t capacity) {
+    switch(data->m_owner_type) {
+    case logic_data_owner_context:
+        return logic_context_data_get_or_create(
+            data->m_owner_data.m_context,
+            data->m_meta,
+            capacity);
+    case logic_data_owner_stack:
+        return logic_stack_data_get_or_create(
+            data->m_owner_data.m_stack,
+            data->m_meta,
+            capacity);
+    case logic_data_owner_require:
+        return logic_require_data_get_or_create(
+            data->m_owner_data.m_require,
+            data->m_meta,
+            capacity);
+
+    default:
+        assert(0);
+        return NULL;
+    }
+}
+
 uint32_t logic_data_hash(const struct logic_data * data) {
     switch(data->m_owner_type) {
     case logic_data_owner_context:
@@ -332,3 +359,19 @@ void logic_require_datas(logic_require_t require, logic_data_it_t it) {
     it->next = logic_data_it_next;
 }
 
+const char * logic_data_dump(logic_data_t data, mem_buffer_t buffer) {
+    struct write_stream_buffer stream = CPE_WRITE_STREAM_BUFFER_INITIALIZER(buffer);
+    cfg_t dump_data = cfg_create(logic_data_mgr(data)->m_alloc);
+
+    if (dump_data == NULL) return "";
+    dr_cfg_write(dump_data, logic_data_data(data), data->m_meta, NULL);
+
+    mem_buffer_clear_data(buffer);
+    stream_printf((write_stream_t)&stream, "%s: ", data->m_name);
+    cfg_dump_inline(dump_data, (write_stream_t)&stream);
+    stream_putc((write_stream_t)&stream, 0);
+
+    cfg_free(dump_data);
+    
+    return(const char *)mem_buffer_make_continuous(buffer, 0);
+}

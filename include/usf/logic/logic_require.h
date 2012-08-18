@@ -16,6 +16,7 @@ logic_require_find(logic_manage_t mgr, logic_require_id_t id);
 
 logic_require_id_t logic_require_id(logic_require_t require);
 const char * logic_require_name(logic_require_t require);
+logic_manage_t logic_require_mgr(logic_require_t require);
 logic_context_t logic_require_context(logic_require_t require);
 logic_stack_node_t logic_require_stack(logic_require_t require);
 

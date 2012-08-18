@@ -305,17 +305,17 @@ static void pom_tool_do_generate_hpp(write_stream_t stream, struct pom_tool_env 
     stream_printf(stream, "_");
     stream_toupper(stream, classname);
     stream_printf(stream, "_INCLEDED\n");
-    stream_printf(stream, "#include \"cpepp/pom_grp/Object.hpp\"\n");
+    stream_printf(stream, "#include \"cpepp/pom_grp/ObjectRef.hpp\"\n");
     stream_printf(stream, "\n");
 
     pom_tool_do_generate_hpp_print_ns(stream, namespace, pom_tool_do_generate_hpp_print_ns_normal, "namespace ", " {");
     stream_printf(stream, "\n");
     stream_printf(stream, "\n");
 
-    stream_printf(stream, "class %s : public Cpe::PomGrp::Object {\n", classname);
+    stream_printf(stream, "class %s : public Cpe::PomGrp::ObjectRef {\n", classname);
     stream_printf(stream, "public:\n");
     stream_printf(stream, "    %s(pom_grp_obj_mgr_t obj_mgr, pom_grp_obj_t obj)\n", classname);
-    stream_printf(stream, "        : Cpe::PomGrp::Object(obj_mgr, obj)\n");
+    stream_printf(stream, "        : Cpe::PomGrp::ObjectRef(obj_mgr, obj)\n");
     stream_printf(stream, "    {\n");
     stream_printf(stream, "    }\n");
 

@@ -183,6 +183,10 @@ gd_app_context_t logic_manage_app(logic_manage_t mgr) {
     return mgr->m_app;
 }
 
+error_monitor_t logic_manage_em(logic_manage_t mgr) {
+    return gd_app_em(mgr->m_app);
+}
+
 const char * logic_manage_name(logic_manage_t mgr) {
     return nm_node_name(nm_node_from_data(mgr));
 }
