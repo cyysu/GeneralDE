@@ -11,16 +11,7 @@
 EXPORT_DIRECTIVE
 int mongo_agent_app_init(gd_app_context_t app, gd_app_module_t module, cfg_t cfg) {
     mongo_agent_t agent;
-    dr_store_manage_t store_mgr;
     logic_manage_t logic_manage;
-
-    store_mgr = dr_store_manage_default(app);
-    if (store_mgr == NULL) {
-        CPE_ERROR(
-            gd_app_em(app), "%s create: get default dr_sotre_manage fail!",
-            gd_app_module_name(module));
-        return -1;
-    }
 
     logic_manage = logic_manage_find_nc(app, cfg_get_string(cfg, "logic-manage", NULL));
     if (logic_manage == NULL) {
