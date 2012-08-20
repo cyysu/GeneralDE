@@ -204,7 +204,7 @@ int pom_grp_obj_list_append_ex(pom_grp_obj_mgr_t mgr, pom_grp_obj_t obj, pom_grp
     page_buf = ((char*)pom_obj_get(mgr->m_omm, *oid, mgr->m_em));
     assert(page_buf);
 
-    memcpy(page_buf + pos_in_page * element_size, data, element_size);
+    if (data) memcpy(page_buf + pos_in_page * element_size, data, element_size);
     (*count)++;
     return 0;
 }
@@ -302,7 +302,7 @@ int pom_grp_obj_list_insert_ex(pom_grp_obj_mgr_t mgr, pom_grp_obj_t obj, pom_grp
             element_size * (count_in_page - (insert_pos_in_page + 1)));
     }
 
-    memcpy(page_buf + element_size * insert_pos_in_page, data, element_size);
+    if (data) memcpy(page_buf + element_size * insert_pos_in_page, data, element_size);
     ++(*count);
     return 0;
 }
