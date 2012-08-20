@@ -1,4 +1,5 @@
 #include <assert.h>
+#include "cpe/pal/pal_stdio.h"
 #include "cpe/dr/dr_data.h"
 #include "cpe/dr/dr_metalib_manage.h"
 #include "cpe/pom_grp/pom_grp_obj.h"

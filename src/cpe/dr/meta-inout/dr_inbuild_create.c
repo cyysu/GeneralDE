@@ -145,7 +145,7 @@ static void dr_inbuild_build_add_entry(
 {
     entryEle->m_data.m_name_pos = dr_inbuild_build_add_string(ctx, entryEle->m_name);
     entryEle->m_data.m_desc_pos = dr_inbuild_build_add_string(ctx, entryEle->m_desc);
-    entryEle->m_data.m_cname_pos =dr_inbuild_build_add_string(ctx, entryEle->m_cname);
+    entryEle->m_data.m_cname_pos = dr_inbuild_build_add_string(ctx, entryEle->m_cname);
 
     dr_inbuild_build_calc_entry_defaultvalue(ctx, createdMeta, entryEle);
     dr_inbuild_build_calc_entry_composite_type(ctx, createdMeta, entryEle) ;
@@ -171,6 +171,7 @@ static void dr_inbuild_build_add_meta(
     metaEle->m_data.m_desc_pos =dr_inbuild_build_add_string(ctx, metaEle->m_desc);
 
     createdMeta = dr_lib_add_meta(ctx->m_metaLib, &metaEle->m_data, ctx->m_em);
+    if (createdMeta == NULL) return;
 
     /*build entries*/
     TAILQ_FOREACH(entryEle, &metaEle->m_entries, m_next) {
