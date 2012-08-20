@@ -215,6 +215,17 @@ pom_grp_meta_build_from_bin(mem_allocrator_t alloc, void const * data, LPDRMETAL
         }
     }
 
+    if (meta_data->m_main_entry_name_pos) {
+        meta->m_main_entry = pom_grp_entry_meta_find(meta, ((const char *)data) + meta_data->m_main_entry_name_pos);
+        if (meta->m_main_entry == NULL) {
+            CPE_ERROR(
+                em, "pom_grp_entry_meta_build_from_bin: load main entry: main entry %s not exist!",
+                ((const char *)data) + meta_data->m_main_entry_name_pos);
+            pom_grp_meta_free(meta);
+            return NULL;
+        }
+    }
+
     return meta;
 }
 
@@ -274,7 +285,7 @@ void pom_grp_meta_write_to_bin(void * data, size_t capacity, pom_grp_meta_t meta
         entry_meta_data->m_reserve1 = 0;
 
         if (entry == meta->m_main_entry) {
-            meta_data->m_main_entry_name_pos = entry_meta_data->m_meta_name_pos;
+            meta_data->m_main_entry_name_pos = entry_meta_data->m_name_pos;
         }
 
         switch(entry->m_type) {
