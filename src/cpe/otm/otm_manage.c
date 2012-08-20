@@ -3,6 +3,7 @@
 #include "cpe/pal/pal_stdlib.h"
 #include "cpe/otm/otm_manage.h"
 #include "cpe/otm/otm_timer.h"
+#include "cpe/otm/otm_memo.h"
 #include "otm_internal_ops.h"
 
 otm_manage_t
@@ -223,4 +224,10 @@ void otm_manage_timers(otm_manage_t mgr, otm_timer_it_t it) {
     cpe_hash_it_init(&data->timer_it, &mgr->m_timers);
 
     it->next = otm_timer_it_next;
+}
+
+otm_memo_t otm_memo_find(otm_timer_id_t id, otm_memo_t memo_buf, size_t memo_capacitiy) {
+    struct otm_memo key;
+    key.m_id = id;
+    return (otm_memo_t)bsearch(&key, memo_buf, memo_capacitiy, sizeof(struct otm_memo), otm_memo_cmp);
 }
