@@ -113,3 +113,30 @@ int pom_grp_obj_binary_set_ex(pom_grp_obj_mgr_t mgr, pom_grp_obj_t obj, pom_grp_
 
     return 0;
 }
+
+int pom_grp_obj_binary_get_ex(pom_grp_obj_mgr_t mgr, pom_grp_obj_t obj, pom_grp_entry_meta_t entry, void * data, uint16_t capacity) {
+    pom_oid_t * oid;
+    void * r;
+
+    assert(entry);
+    assert(obj);
+    assert(entry->m_type == pom_grp_entry_type_binary);
+
+    oid = ((pom_oid_t *)obj) + entry->m_page_begin;
+
+    if (capacity > entry->m_obj_size) {
+        bzero(((char*)data) + entry->m_obj_size, capacity - entry->m_obj_size);
+        capacity = entry->m_obj_size;
+    }
+
+    if (*oid == POM_INVALID_OID) {
+        bzero(data, capacity);
+    }
+    else {
+        r = pom_obj_get(mgr->m_omm, *oid, mgr->m_em);
+        assert(r);
+        memcpy(data, r, capacity);
+    }
+
+    return 0;
+}
