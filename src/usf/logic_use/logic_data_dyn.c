@@ -63,11 +63,12 @@ int logic_data_record_count(logic_data_t data) {
     }
 }
 
-#define LOGIC_DATA_RECORD_DYN_CAPACITY(data, dyninfo)               \
-    ( ( (logic_data_capacity(data)                                  \
-         - dr_meta_size(logic_data_meta(data)))                     \
-        / dr_meta_size(dr_entry_ref_meta(dyn_info.m_array_entry)))  \
-      + 1)
+static size_t logic_data_record_capacity_i(logic_data_t data, dr_meta_dyn_info_t dyn_info) {
+    size_t element_size = dr_meta_size(dr_entry_ref_meta(dyn_info->m_array_entry));
+
+    return  ((logic_data_capacity(data) - (dr_meta_size(logic_data_meta(data)) - element_size))
+             / element_size);
+}
 
 size_t logic_data_record_capacity(logic_data_t data) {
     LPDRMETA meta;
@@ -76,7 +77,7 @@ size_t logic_data_record_capacity(logic_data_t data) {
     meta = logic_data_meta(data);
 
     if (dr_meta_find_dyn_info(logic_data_meta(data), &dyn_info) == 0) {
-        return LOGIC_DATA_RECORD_DYN_CAPACITY(data, dyn_info);
+        return logic_data_record_capacity_i(data, &dyn_info);
     }
     else {
         return 1;
@@ -91,7 +92,7 @@ void * logic_data_record_at(logic_data_t data, int pos) {
 
     if (dr_meta_find_dyn_info(logic_data_meta(data), &dyn_info) == 0) {
         size_t record_size = dr_entry_element_size(dyn_info.m_array_entry);
-        size_t record_capacity = LOGIC_DATA_RECORD_DYN_CAPACITY(data, dyn_info);
+        size_t record_capacity = logic_data_record_capacity_i(data, &dyn_info);
         if (pos >= record_capacity) {
             CPE_ERROR(
                 logic_manage_em(logic_data_mgr(data)),
@@ -146,7 +147,7 @@ int logic_data_record_set_count(logic_data_t data, size_t record_count) {
             return -1;
         }
 
-        record_capacity = LOGIC_DATA_RECORD_DYN_CAPACITY(data, dyn_info);
+        record_capacity = logic_data_record_capacity_i(data, &dyn_info);
 
         if (record_count > record_capacity) {
             CPE_ERROR(
@@ -189,7 +190,7 @@ void * logic_data_record_append(logic_data_t data) {
             return NULL;
         }
 
-        record_capacity = LOGIC_DATA_RECORD_DYN_CAPACITY(data, dyn_info);
+        record_capacity = logic_data_record_capacity_i(data, &dyn_info);
         record_count = logic_data_record_count_i(data, &dyn_info);
         if (record_count < 0) return NULL;
 
@@ -271,7 +272,7 @@ logic_data_t logic_data_record_reserve(logic_data_t data, size_t new_record_capa
         int new_data_capacity;
         error_monitor_t em = logic_manage_em(logic_data_mgr(data));
 
-        record_capacity = LOGIC_DATA_RECORD_DYN_CAPACITY(data, dyn_info);
+        record_capacity = logic_data_record_capacity_i(data, &dyn_info);
         if (new_record_capacity <= record_capacity) return data;
 
 
@@ -279,7 +280,6 @@ logic_data_t logic_data_record_reserve(logic_data_t data, size_t new_record_capa
             CPE_ERROR(em, "logic_data_record_reserve: can`t reserve to not refer array!");
             return NULL;
         }
-
 
         new_data_capacity = logic_data_calc_dyn_capacity(meta, new_record_capacity, &dyn_info, em);
         if (new_data_capacity < 0) {
