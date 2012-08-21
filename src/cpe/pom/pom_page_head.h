@@ -14,8 +14,8 @@ struct pom_data_page_head {
     uint16_t m_magic;
     pom_class_id_t m_classId;
     int8_t m_reserve;
-    int16_t m_page_idx;
-    int16_t m_alloc_ba_count;
+    uint16_t m_page_idx;
+    uint32_t m_alloc_ba_count;
 };
 
 #pragma pack(pop)
