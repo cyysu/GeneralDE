@@ -332,6 +332,7 @@ pom_class_alloc_object(struct pom_class * theClass) {
 
         alloc_arry = pom_class_ba_of_page(theClass->m_page_array[pagePos]);
 
+        assert(cpe_ba_get(alloc_arry, r % theClass->m_object_per_page) == cpe_ba_false);
         cpe_ba_set(alloc_arry, r % theClass->m_object_per_page, cpe_ba_true);
     }
 
