@@ -11,27 +11,27 @@ TEST_F(BufMgrTest, init_buf_size_too_small) {
 }
 
 TEST_F(BufMgrTest, get_page_empty_no_source) {
-    init(10, 40);
+    ASSERT_EQ(0, init(12, 40));
     EXPECT_TRUE(NULL == page_get());
 
     EXPECT_TRUE(t_em_have_errno(pom_no_buffer));
 }
 
 TEST_F(BufMgrTest, get_page_auto_create) {
-    init(10, 40);
+    ASSERT_EQ(0, init(12, 40));
     EXPECT_EQ(0, pom_buffer_mgr_set_backend(&m_bufMgr, &g_pom_backend_mem, t_allocrator()));
 
     EXPECT_TRUE(page_get());
 }
 
 TEST_F(BufMgrTest, set_source_no_buf) {
-    init(10, 40);
+    ASSERT_EQ(0, init(12, 40));
     EXPECT_EQ(0, pom_buffer_mgr_set_backend(&m_bufMgr, &g_pom_backend_mem, t_allocrator()));
     EXPECT_EQ(0, pom_buffer_mgr_set_backend(&m_bufMgr, NULL, NULL));
 }
 
 TEST_F(BufMgrTest, get_page_buf_left) {
-    init(10, 40);
+    ASSERT_EQ(0, init(12, 48));
 
     char * p = (char *)t_tmp_alloc(49);
 
@@ -40,14 +40,14 @@ TEST_F(BufMgrTest, get_page_buf_left) {
         , pom_buffer_mgr_add_new_buffer(&m_bufMgr, (pom_buffer_id_t)p, t_em()));
 
     EXPECT_TRUE(p == page_get());
-    EXPECT_TRUE(p + 10 == page_get());
-    EXPECT_TRUE(p + 20 == page_get());
-    EXPECT_TRUE(p + 30 == page_get());
+    EXPECT_TRUE(p + 12 == page_get());
+    EXPECT_TRUE(p + 24 == page_get());
+    EXPECT_TRUE(p + 36 == page_get());
     EXPECT_TRUE(NULL == page_get());
 }
 
 TEST_F(BufMgrTest, set_source_have_buf) {
-    init(10, 40);
+    init(12, 40);
     EXPECT_EQ(0, pom_buffer_mgr_set_backend(&m_bufMgr, &g_pom_backend_mem, t_allocrator()));
 
     EXPECT_TRUE(page_get());
@@ -56,23 +56,23 @@ TEST_F(BufMgrTest, set_source_have_buf) {
 }
 
 TEST_F(BufMgrTest, add_page_no_source) {
-    init(10, 40);
+    init(12, 48);
 
-    char * p = (char *)t_tmp_alloc(40);
+    char * p = (char *)t_tmp_alloc(48);
 
     EXPECT_EQ(
         0
         , pom_buffer_mgr_add_new_buffer(&m_bufMgr, (pom_buffer_id_t)p, t_em()));
 
     EXPECT_TRUE(p == page_get());
-    EXPECT_TRUE(p + 10 == page_get());
-    EXPECT_TRUE(p + 20 == page_get());
-    EXPECT_TRUE(p + 30 == page_get());
+    EXPECT_TRUE(p + 12 == page_get());
+    EXPECT_TRUE(p + 24 == page_get());
+    EXPECT_TRUE(p + 36 == page_get());
     EXPECT_TRUE(NULL == page_get());
 }
 
 TEST_F(BufMgrTest, find_page_empty) {
-    init(10, 40);
+    init(12, 40);
 
     EXPECT_TRUE(
         NULL ==
@@ -80,9 +80,9 @@ TEST_F(BufMgrTest, find_page_empty) {
 }
 
 TEST_F(BufMgrTest, find_page_buf_begin) {
-    init(10, 40);
+    init(12, 48);
 
-    char * p = (char *)t_tmp_alloc(40);
+    char * p = (char *)t_tmp_alloc(48);
 
     EXPECT_EQ(
         0
@@ -94,37 +94,37 @@ TEST_F(BufMgrTest, find_page_buf_begin) {
 }
 
 TEST_F(BufMgrTest, find_page_buf_middle) {
-    init(10, 40);
+    init(12, 48);
 
-    char * p = (char *)t_tmp_alloc(40);
+    char * p = (char *)t_tmp_alloc(48);
 
     EXPECT_EQ(
         0
         , pom_buffer_mgr_add_new_buffer(&m_bufMgr, (pom_buffer_id_t)p, t_em()));
 
     EXPECT_TRUE(
-        (p + 20) ==
-        pom_buffer_mgr_find_page(&m_bufMgr, p + 20));
+        (p + 24) ==
+        pom_buffer_mgr_find_page(&m_bufMgr, p + 24));
 }
 
 TEST_F(BufMgrTest, find_page_buf_last_page) {
-    init(10, 40);
+    init(12, 48);
 
-    char * p = (char *)t_tmp_alloc(40);
+    char * p = (char *)t_tmp_alloc(48);
 
     EXPECT_EQ(
         0
         , pom_buffer_mgr_add_new_buffer(&m_bufMgr, (pom_buffer_id_t)p, t_em()));
 
     EXPECT_TRUE(
-        (p + 30) ==
-        pom_buffer_mgr_find_page(&m_bufMgr, p + 30));
+        (p + 36) ==
+        pom_buffer_mgr_find_page(&m_bufMgr, p + 36));
 }
 
 TEST_F(BufMgrTest, find_page_buf_after_buf) {
-    init(10, 40);
+    init(12, 48);
 
-    char * p = (char *)t_tmp_alloc(40);
+    char * p = (char *)t_tmp_alloc(48);
 
     EXPECT_EQ(
         0
@@ -132,13 +132,13 @@ TEST_F(BufMgrTest, find_page_buf_after_buf) {
 
     EXPECT_TRUE(
         NULL ==
-        pom_buffer_mgr_find_page(&m_bufMgr, p + 40));
+        pom_buffer_mgr_find_page(&m_bufMgr, p + 48));
 }
 
 TEST_F(BufMgrTest, find_page_buf_before_buf) {
-    init(10, 40);
+    init(12, 48);
 
-    char * p = (char *)t_tmp_alloc(40);
+    char * p = (char *)t_tmp_alloc(48);
 
     EXPECT_EQ(
         0
@@ -150,9 +150,9 @@ TEST_F(BufMgrTest, find_page_buf_before_buf) {
 }
 
 TEST_F(BufMgrTest, find_page_page_middle) {
-    init(10, 40);
+    init(12, 48);
 
-    char * p = (char *)t_tmp_alloc(40);
+    char * p = (char *)t_tmp_alloc(48);
 
     EXPECT_EQ(
         0
@@ -164,9 +164,9 @@ TEST_F(BufMgrTest, find_page_page_middle) {
 }
 
 TEST_F(BufMgrTest, find_page_page_last) {
-    init(10, 40);
+    init(12, 48);
 
-    char * p = (char *)t_tmp_alloc(40);
+    char * p = (char *)t_tmp_alloc(48);
 
     EXPECT_EQ(
         0
@@ -178,9 +178,9 @@ TEST_F(BufMgrTest, find_page_page_last) {
 }
 
 TEST_F(BufMgrTest, find_page_multi_buf) {
-    init(10, 40);
+    init(12, 48);
 
-    char * p = (char *)t_tmp_alloc(80);
+    char * p = (char *)t_tmp_alloc(96);
 
     EXPECT_EQ(
         0
@@ -191,18 +191,18 @@ TEST_F(BufMgrTest, find_page_multi_buf) {
         , pom_buffer_mgr_add_new_buffer(&m_bufMgr, (pom_buffer_id_t)(p + 40), t_em()));
 
     EXPECT_TRUE(
-        (p + 40) ==
-        pom_buffer_mgr_find_page(&m_bufMgr, p + 40));
+        (p + 48) ==
+        pom_buffer_mgr_find_page(&m_bufMgr, p + 48));
 
     EXPECT_TRUE(
-        (p + 70) ==
-        pom_buffer_mgr_find_page(&m_bufMgr, p + 79));
+        (p + 84) ==
+        pom_buffer_mgr_find_page(&m_bufMgr, p + 84));
 }
 
 TEST_F(BufMgrTest, find_page_multi_buf_buf_page_left) {
-    init(10, 43);
+    init(12, 50);
 
-    char * p = (char *)t_tmp_alloc(86);
+    char * p = (char *)t_tmp_alloc(100);
 
     EXPECT_EQ(
         0
@@ -210,17 +210,17 @@ TEST_F(BufMgrTest, find_page_multi_buf_buf_page_left) {
 
     EXPECT_EQ(
         0
-        , pom_buffer_mgr_add_new_buffer(&m_bufMgr, (pom_buffer_id_t)(p + 43), t_em()));
+        , pom_buffer_mgr_add_new_buffer(&m_bufMgr, (pom_buffer_id_t)(p + 50), t_em()));
 
     EXPECT_TRUE(
         NULL ==
-        pom_buffer_mgr_find_page(&m_bufMgr, p + 40));
+        pom_buffer_mgr_find_page(&m_bufMgr, p + 48));
 
     EXPECT_TRUE(
         NULL ==
-        pom_buffer_mgr_find_page(&m_bufMgr, p + 42));
+        pom_buffer_mgr_find_page(&m_bufMgr, p + 49));
 
     EXPECT_TRUE(
-        (p + 43) ==
-        pom_buffer_mgr_find_page(&m_bufMgr, p + 43));
+        (p + 50) ==
+        pom_buffer_mgr_find_page(&m_bufMgr, p + 50));
 }
