@@ -1,6 +1,7 @@
 #include <assert.h>
 #include "cpe/pom/pom_object.h"
 #include "cpe/pom/pom_error.h"
+#include "cpe/pom/pom_manage.h"
 #include "pom_internal_ops.h"
 
 pom_oid_t pom_obj_alloc(
@@ -60,6 +61,7 @@ pom_oid_t pom_obj_alloc(
     oid = pom_oid_make(theClass->m_id, baseOid);
 
     if (omm->m_debuger) pom_debuger_on_alloc(omm->m_debuger, oid);
+    assert(omm->m_auto_validate == 0 || pom_mgr_validate(omm, em) == 0);
 
     return oid;
 }
@@ -83,7 +85,9 @@ void pom_obj_free(
     }
 
     if (omm->m_debuger) pom_debuger_on_free(omm->m_debuger, oid);
-    
+
+    assert(omm->m_auto_validate == 0 || pom_mgr_validate(omm, em) == 0);
+
     pom_class_free_object(theClass, oid & 0xFFFFFF, em);
 }
 

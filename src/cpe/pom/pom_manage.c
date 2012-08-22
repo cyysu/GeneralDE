@@ -12,6 +12,7 @@ pom_mgr_create(
     if (omm == NULL) return NULL;
 
     omm->m_alloc = alloc;
+    omm->m_auto_validate = 0;
 
     if (
         pom_buffer_mgr_init(
@@ -110,6 +111,14 @@ size_t pom_mgr_page_size(pom_mgr_t omm) {
 size_t pom_mgr_buf_size(pom_mgr_t omm) {
     assert(omm);
     return omm->m_bufMgr.m_buf_size;
+}
+
+void pom_mgr_set_auto_validate(pom_mgr_t omm, int auto_validate) {
+    omm->m_auto_validate = auto_validate;
+}
+
+int pom_mgr_auto_validate(pom_mgr_t omm) {
+    return omm->m_auto_validate; 
 }
 
 void pom_mgr_buffers(struct pom_buffer_it * it, pom_mgr_t omm) {
