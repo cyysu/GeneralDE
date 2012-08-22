@@ -15,6 +15,7 @@ struct pom_data_page_head {
     pom_class_id_t m_classId;
     int8_t m_reserve;
     uint16_t m_page_idx;
+    uint16_t m_reserve2;
     uint32_t m_alloc_ba_count;
 };
 

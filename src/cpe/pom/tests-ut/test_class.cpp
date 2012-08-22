@@ -13,7 +13,7 @@ TEST_F(ClassTest, create_first_basic) {
     EXPECT_EQ((size_t)12, cls->m_object_size);
     EXPECT_EQ((size_t)256, cls->m_page_size);
     EXPECT_EQ((size_t)20, cls->m_object_per_page);
-    EXPECT_EQ((size_t)12, cls->m_object_buf_begin_in_page);
+    EXPECT_EQ((size_t)16, cls->m_object_buf_begin_in_page);
 }
 
 TEST_F(ClassTest, create_name_max) {
@@ -115,5 +115,5 @@ TEST_F(ClassTest, add_new_page_basic) {
     EXPECT_EQ(classId, head->m_classId);
     EXPECT_EQ(0, head->m_reserve);
     EXPECT_EQ(0, head->m_page_idx);
-    EXPECT_EQ(0, head->m_alloc_ba_count);
+    EXPECT_EQ(20, head->m_alloc_ba_count);
 }
