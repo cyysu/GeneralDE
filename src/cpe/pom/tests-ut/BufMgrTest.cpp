@@ -37,6 +37,7 @@ int BufMgrTest::init(size_t page_size, size_t buf_size) {
 
 void * BufMgrTest::page_get(void) {
     EXPECT_TRUE(m_inited);
+    if (!m_inited) return NULL;
 
     return pom_page_get(&m_bufMgr, t_em());
 }
