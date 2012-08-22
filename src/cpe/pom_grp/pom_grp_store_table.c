@@ -47,7 +47,7 @@ uint32_t pom_grp_store_table_hash(const struct pom_grp_store_table * store_table
 }
 
 int pom_grp_store_table_cmp(const struct pom_grp_store_table * l, const struct pom_grp_store_table * r) {
-    return l->m_meta == r->m_meta;
+    return strcmp(l->m_name, r->m_name) == 0;
 }
 
 void pom_grp_store_table_free_all(pom_grp_store_t store) {
