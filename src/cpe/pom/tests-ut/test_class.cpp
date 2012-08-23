@@ -115,5 +115,5 @@ TEST_F(ClassTest, add_new_page_basic) {
     EXPECT_EQ(classId, head->m_classId);
     EXPECT_EQ(0, head->m_reserve);
     EXPECT_EQ(0, head->m_page_idx);
-    EXPECT_EQ(20, head->m_alloc_ba_count);
+    EXPECT_EQ(20, head->m_obj_per_page);
 }

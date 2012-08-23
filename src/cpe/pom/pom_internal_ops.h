@@ -27,6 +27,7 @@ int pom_buffer_mgr_add_new_buffer(
 int pom_buffer_mgr_attach_old_buffer(
     struct pom_buffer_mgr * pgm,
     struct pom_class_mgr * classMgr,
+    struct pom_debuger * debuger,
     pom_buffer_id_t buf_id,
     error_monitor_t em);
 
@@ -90,6 +91,7 @@ void pom_debuger_free(struct pom_debuger * debuger);
 
 void pom_debuger_on_alloc(struct pom_debuger * debuger, pom_oid_t oid);
 void pom_debuger_on_free(struct pom_debuger * debuger, pom_oid_t oid);
+void pom_debuger_restore_one_page(struct pom_debuger * debuger, void * page_data);
 
 #ifdef __cplusplus
 }

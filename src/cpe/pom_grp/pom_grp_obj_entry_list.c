@@ -6,6 +6,7 @@
 #include "cpe/pom/pom_manage.h"
 #include "cpe/pom_grp/pom_grp_meta.h"
 #include "cpe/pom_grp/pom_grp_obj.h"
+#include "cpe/pom_grp/pom_grp_obj_mgr.h"
 #include "pom_grp_internal_ops.h"
 
 uint16_t pom_grp_obj_list_count(pom_grp_obj_mgr_t mgr, pom_grp_obj_t obj, const char * entry) {
@@ -138,9 +139,9 @@ void * pom_grp_obj_list_at_ex(pom_grp_obj_mgr_t mgr, pom_grp_obj_t obj, pom_grp_
 
     element_size = dr_meta_size(entry->m_data.m_list.m_data_meta);
     assert(element_size > 0);
-    assert(entry->m_obj_size % element_size == 0);
+    assert(entry->m_page_size % element_size == 0);
 
-    count_in_page = entry->m_obj_size / element_size;
+    count_in_page = entry->m_page_size / element_size;
     assert(count_in_page > 0);
 
     page_pos = pos / count_in_page;
@@ -178,13 +179,14 @@ int pom_grp_obj_list_append_ex(pom_grp_obj_mgr_t mgr, pom_grp_obj_t obj, pom_grp
         return -1;
     }
 
+
     next_pos = *count;
 
     element_size = dr_meta_size(entry->m_data.m_list.m_data_meta);
     assert(element_size > 0);
-    assert(entry->m_obj_size % element_size == 0);
+    assert(entry->m_page_size % element_size == 0);
 
-    count_in_page = entry->m_obj_size / element_size;
+    count_in_page = entry->m_page_size / element_size;
     assert(count_in_page > 0);
 
     page_pos = next_pos / count_in_page;
@@ -206,6 +208,9 @@ int pom_grp_obj_list_append_ex(pom_grp_obj_mgr_t mgr, pom_grp_obj_t obj, pom_grp
 
     if (data) memcpy(page_buf + pos_in_page * element_size, data, element_size);
     (*count)++;
+
+    POM_GRP_VALIDATE_OBJ(mgr, obj);
+
     return 0;
 }
 
@@ -243,9 +248,9 @@ int pom_grp_obj_list_insert_ex(pom_grp_obj_mgr_t mgr, pom_grp_obj_t obj, pom_grp
 
     element_size = dr_meta_size(entry->m_data.m_list.m_data_meta);
     assert(element_size > 0);
-    assert(entry->m_obj_size % element_size == 0);
+    assert(entry->m_page_size % element_size == 0);
 
-    count_in_page = entry->m_obj_size / element_size;
+    count_in_page = entry->m_page_size / element_size;
     assert(count_in_page > 0);
 
     insert_page_pos = pos / count_in_page;
@@ -304,6 +309,9 @@ int pom_grp_obj_list_insert_ex(pom_grp_obj_mgr_t mgr, pom_grp_obj_t obj, pom_grp
 
     if (data) memcpy(page_buf + element_size * insert_pos_in_page, data, element_size);
     ++(*count);
+
+    POM_GRP_VALIDATE_OBJ(mgr, obj);
+
     return 0;
 }
 
@@ -328,9 +336,9 @@ int pom_grp_obj_list_remove_ex(pom_grp_obj_mgr_t mgr, pom_grp_obj_t obj, pom_grp
 
     element_size = dr_meta_size(entry->m_data.m_list.m_data_meta);
     assert(element_size > 0);
-    assert(entry->m_obj_size % element_size == 0);
+    assert(entry->m_page_size % element_size == 0);
 
-    count_in_page = entry->m_obj_size / element_size;
+    count_in_page = entry->m_page_size / element_size;
     assert(count_in_page > 0);
 
     remove_page_pos = pos / count_in_page;
@@ -394,6 +402,8 @@ int pom_grp_obj_list_remove_ex(pom_grp_obj_mgr_t mgr, pom_grp_obj_t obj, pom_grp
     assert(*count >= 0);
     assert(*count <= entry->m_data.m_list.m_capacity);
 
+    POM_GRP_VALIDATE_OBJ(mgr, obj);
+
     return 0;
 }
 
@@ -406,6 +416,8 @@ int pom_grp_obj_list_clear_ex(pom_grp_obj_mgr_t mgr, pom_grp_obj_t obj, pom_grp_
 
     count = pom_grp_obj_list_count_buf(mgr, obj, entry);
     *count = 0;
+
+    POM_GRP_VALIDATE_OBJ(mgr, obj);
 
     return 0;
 }

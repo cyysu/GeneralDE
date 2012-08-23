@@ -3,6 +3,7 @@
 #include "cpe/utils/tests-env/with_em.hpp"
 #include "cpe/cfg/tests-env/with_cfg.hpp"
 #include "cpe/dr/tests-env/with_dr.hpp"
+#include "cpe/pom/pom_manage.h"
 #include "cpe/pom_grp/pom_grp_meta_build.h"
 #include "cpe/pom_grp/pom_grp_cfg.h"
 #include "cpe/pom_grp/tests-env/with_pom_grp.hpp"
@@ -101,6 +102,10 @@ with_pom_grp::t_pom_grp_obj_mgr_create(
 
     pom_grp_obj_mgr_t mgr = pom_grp_obj_mgr_create(t_allocrator(), buf, capacity, em);
     EXPECT_TRUE(mgr) << "om_mgr_obj_mgr create fail!";
+
+    pom_grp_obj_mgr_set_auto_validate(mgr, 2);
+    pom_mgr_set_auto_validate(pom_grp_obj_mgr_pom(mgr), 1);
+
     return mgr;
 }
 
