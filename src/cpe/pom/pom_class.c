@@ -288,22 +288,24 @@ int pom_class_add_old_page(
 
     assert(head->m_obj_per_page == theClass->m_object_per_page);
 
-    if (cpe_range_free_from_bitarray(
+    if (cpe_range_put_from_ba(
             &theClass->m_range_alloc,
             alloc_arry,
             head->m_obj_per_page * theClass->m_page_array_size,
-            theClass->m_object_per_page) != 0)
+            theClass->m_object_per_page,
+            cpe_ba_false) != 0)
     {
         size_t i;
         CPE_ERROR_EX(em, pom_no_memory, "alloc page range no memory!");
 
         cpe_range_mgr_clear(&theClass->m_range_alloc);
         for(i = 0; i < theClass->m_page_array_size; ++i) {
-            cpe_range_free_from_bitarray(
+            cpe_range_put_from_ba(
                 &theClass->m_range_alloc,
                 pom_class_ba_of_page(theClass->m_page_array[i]),
                 theClass->m_object_per_page * i,
-                theClass->m_object_per_page);
+                theClass->m_object_per_page,
+                cpe_ba_false);
         }
 
         return -1;
@@ -343,6 +345,8 @@ void pom_class_free_object(struct pom_class * theClass, int32_t oid, error_monit
     cpe_ba_t alloc_arry;
     int32_t pagePos;
     assert(theClass);
+
+    assert(oid == (oid & 0xFFFFFF));
 
     pagePos = (int32_t)(oid / theClass->m_object_per_page);
 

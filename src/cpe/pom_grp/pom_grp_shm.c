@@ -2,9 +2,11 @@
 #include "cpe/pal/pal_stdio.h"
 #include "cpe/pal/pal_stdlib.h"
 #include "cpe/utils/stream.h"
+#include "cpe/pom/pom_manage.h"
 #include "cpe/pom_grp/pom_grp_shm.h"
 #include "cpe/pom_grp/pom_grp_cfg.h"
 #include "cpe/pom_grp/pom_grp_obj_mgr.h"
+#include "pom_grp_internal_types.h"
 
 int pom_grp_shm_init(
     LPDRMETALIB metalib, pom_grp_meta_t grp_meta,
@@ -112,6 +114,8 @@ int pom_grp_shm_info(int shm_key, write_stream_t stream, int ident, error_monito
         return -1;
     }
 
+    pom_mgr_dump_page_info(stream, pom_grp_obj_mgr->m_omm, ident);
+    pom_mgr_dump_alloc_info(stream, pom_grp_obj_mgr->m_omm, ident);
     pom_grp_obj_mgr_info(pom_grp_obj_mgr, stream, ident);
 
     pom_grp_obj_mgr_free(pom_grp_obj_mgr);
