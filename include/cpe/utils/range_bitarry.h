@@ -7,11 +7,12 @@
 extern "C" {
 #endif
 
-int cpe_range_free_from_bitarray(
+int cpe_range_put_from_ba(
     cpe_range_mgr_t ra,
     cpe_ba_t ba,
     int32_t baStartPos,
-    size_t ba_capacity);
+    size_t ba_capacity,
+    cpe_ba_value_t require);
 
 #ifdef __cplusplus
 }
