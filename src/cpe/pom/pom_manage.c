@@ -1,5 +1,6 @@
 #include <assert.h>
 #include "cpe/pom/pom_manage.h"
+#include "cpe/pom/pom_object.h"
 #include "pom_internal_ops.h"
 
 pom_mgr_t
@@ -12,6 +13,7 @@ pom_mgr_create(
     if (omm == NULL) return NULL;
 
     omm->m_alloc = alloc;
+    omm->m_auto_validate = 0;
 
     if (
         pom_buffer_mgr_init(
@@ -112,6 +114,14 @@ size_t pom_mgr_buf_size(pom_mgr_t omm) {
     return omm->m_bufMgr.m_buf_size;
 }
 
+void pom_mgr_set_auto_validate(pom_mgr_t omm, int auto_validate) {
+    omm->m_auto_validate = auto_validate;
+}
+
+int pom_mgr_auto_validate(pom_mgr_t omm) {
+    return omm->m_auto_validate; 
+}
+
 void pom_mgr_buffers(struct pom_buffer_it * it, pom_mgr_t omm) {
     assert(it);
     assert(omm);
@@ -173,7 +183,7 @@ int pom_mgr_add_new_buffer(pom_mgr_t omm, pom_buffer_id_t buf_id, error_monitor_
 }
 
 int pom_mgr_attach_old_buffer(pom_mgr_t omm, pom_buffer_id_t buf_id, error_monitor_t em) {
-    return pom_buffer_mgr_attach_old_buffer(&omm->m_bufMgr, &omm->m_classMgr, buf_id, em);
+    return pom_buffer_mgr_attach_old_buffer(&omm->m_bufMgr, &omm->m_classMgr, omm->m_debuger, buf_id, em);
 }
 
 pom_debuger_t
@@ -182,12 +192,30 @@ pom_debuger_enable(
     uint32_t stack_size,
     error_monitor_t em)
 {
+    size_t i;
+
     if (mgr->m_debuger) {
         CPE_ERROR(em, "pom: debuger enable: already exist!");
         return NULL;
     }
 
     mgr->m_debuger = pom_debuger_create(mgr->m_alloc, stack_size, em);
+    if (mgr->m_debuger == NULL) {
+        CPE_ERROR(em, "pom: debuger enable: create fail, stack_size=%d!", stack_size);
+        return NULL;
+    }
+
+    for(i = 0; i < (sizeof(mgr->m_classMgr.m_classes) / sizeof(mgr->m_classMgr.m_classes[0])); ++i) {
+        struct pom_class * pom_class = &mgr->m_classMgr.m_classes[i];
+        size_t page_pos;
+
+        if (pom_class->m_id == POM_INVALID_CLASSID) continue;
+
+        for(page_pos = 0; page_pos < pom_class->m_page_array_size; ++page_pos) {
+            pom_debuger_restore_one_page(mgr->m_debuger, pom_class->m_page_array[page_pos]);
+        }            
+    }    
+
     return mgr->m_debuger;
 }
 

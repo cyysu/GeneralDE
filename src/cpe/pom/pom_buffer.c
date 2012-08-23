@@ -195,6 +195,7 @@ static int pom_buffer_mgr_reserve_for_attach_buffer(struct pom_buffer_mgr * pgm,
 int pom_buffer_mgr_attach_old_buffer(
     struct pom_buffer_mgr * pgm,
     struct pom_class_mgr * classMgr,
+    struct pom_debuger * debuger,
     pom_buffer_id_t buf_id,
     error_monitor_t em)
 {
@@ -233,6 +234,8 @@ int pom_buffer_mgr_attach_old_buffer(
             }
 
             pom_class_add_old_page(the_class, buf, em);
+
+            if (debuger) pom_debuger_restore_one_page(debuger, page_head);
         }
     }
 

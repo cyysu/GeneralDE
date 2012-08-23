@@ -72,6 +72,7 @@ pom_grp_obj_mgr_create(
 
     obj_mgr->m_alloc = alloc;
     obj_mgr->m_em = em;
+    obj_mgr->m_auto_validate = 0;
     obj_mgr->m_full_base = (char *)data;
     obj_mgr->m_full_capacity = data_capacity;
     obj_mgr->m_metalib = (LPDRMETALIB)(obj_mgr->m_full_base + control->m_metalib_start);
@@ -146,6 +147,14 @@ pom_grp_meta_t pom_grp_obj_mgr_meta(pom_grp_obj_mgr_t mgr) {
     return mgr->m_meta;
 }
 
+void pom_grp_obj_mgr_set_auto_validate(pom_grp_obj_mgr_t mgr, int auto_validate) {
+    mgr->m_auto_validate = auto_validate;
+}
+
+int pom_grp_obj_mgr_auto_validate(pom_grp_obj_mgr_t mgr) {
+    return mgr->m_auto_validate;
+}
+
 int pom_grp_meta_init_omm(pom_mgr_t omm, pom_grp_meta_t meta, error_monitor_t em) {
     pom_grp_entry_meta_t entry;
     uint16_t i;
@@ -169,13 +178,13 @@ int pom_grp_meta_init_omm(pom_mgr_t omm, pom_grp_meta_t meta, error_monitor_t em
                 omm,
                 entry->m_class_id,
                 entry->m_name,
-                entry->m_obj_size,
+                entry->m_page_size,
                 entry->m_obj_align,
                 em) != 0)
         {
             CPE_ERROR(
-                em, "pom_grp_meta_init_omm: register page for %s(id=%d, obj-size=%d, obj-align=%d) fail!",
-                entry->m_name, entry->m_class_id, entry->m_obj_size, entry->m_obj_align);
+                em, "pom_grp_meta_init_omm: register page for %s(id=%d, page-size=%d, obj-align=%d) fail!",
+                entry->m_name, entry->m_class_id, entry->m_page_size, entry->m_obj_align);
             return -1;
         }
     }
