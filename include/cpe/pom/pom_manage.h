@@ -55,6 +55,7 @@ int pom_mgr_add_new_buffer(pom_mgr_t omm, pom_buffer_id_t buf_id, error_monitor_
 int pom_mgr_attach_old_buffer(pom_mgr_t omm, pom_buffer_id_t buf_id, error_monitor_t em);
 
 void pom_mgr_dump_page_info(write_stream_t stream, pom_mgr_t mgr, int level);
+void pom_mgr_dump_alloc_info(write_stream_t stream, pom_mgr_t mgr, int level);
 
 int pom_mgr_validate(pom_mgr_t mgr, error_monitor_t em);
 
