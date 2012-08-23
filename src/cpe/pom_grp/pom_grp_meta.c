@@ -169,8 +169,8 @@ void pom_grp_meta_dump(write_stream_t stream, pom_grp_meta_t meta, int ident) {
         }
 
         stream_printf(
-            stream, ", page-begin=%d, page-count=%d, class-id=%d, obj-size=%d, obj-align=%d",
-            entry->m_page_begin, entry->m_page_count, entry->m_class_id, entry->m_obj_size, entry->m_obj_align);
+            stream, ", page-begin=%d, page-count=%d, class-id=%d, page-size=%d, obj-align=%d",
+            entry->m_page_begin, entry->m_page_count, entry->m_class_id, entry->m_page_size, entry->m_obj_align);
     }
 }
 
@@ -203,7 +203,7 @@ int pom_grp_meta_compatable(pom_grp_meta_t l, pom_grp_meta_t r) {
             || l_em->m_page_begin != r_em->m_page_begin
             || l_em->m_page_count != r_em->m_page_count
             || l_em->m_class_id != r_em->m_class_id
-            || l_em->m_obj_size != r_em->m_obj_size
+            || l_em->m_page_size != r_em->m_page_size
             || l_em->m_obj_align != r_em->m_obj_align
             || strcmp(l_em->m_name, r_em->m_name) != 0)
         {

@@ -4,6 +4,7 @@
 #include "cpe/pom/pom_object.h"
 #include "cpe/pom/pom_manage.h"
 #include "cpe/pom_grp/pom_grp_obj.h"
+#include "cpe/pom_grp/pom_grp_obj_mgr.h"
 #include "pom_grp_internal_ops.h"
 
 pom_grp_obj_t
@@ -27,6 +28,7 @@ pom_grp_obj_alloc(pom_grp_obj_mgr_t mgr) {
 
     bzero(obj, mgr->m_meta->m_control_obj_size);
 
+    POM_GRP_VALIDATE_OBJ(mgr, obj);
     return obj;
 }
 

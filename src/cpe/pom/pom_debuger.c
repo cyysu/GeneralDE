@@ -3,9 +3,12 @@
 #include <execinfo.h>
 #endif
 #include "cpe/pal/pal_stdlib.h"
+#include "cpe/utils/bitarry.h"
 #include "cpe/utils/buffer.h"
 #include "cpe/utils/stream_buffer.h"
+#include "cpe/pom/pom_object.h"
 #include "pom_internal_ops.h"
+#include "pom_page_head.h"
 
 static uint32_t pom_alloc_info_hash(const struct pom_alloc_info * context) {
     return (uint32_t)context->m_oid;
@@ -180,5 +183,17 @@ void pom_debuger_on_free(struct pom_debuger * debuger, pom_oid_t oid) {
     }
 }
 
+void pom_debuger_restore_one_page(struct pom_debuger * debuger, void * page_data) {
+    struct pom_data_page_head * page = page_data;
+    size_t obj_pos;
+    cpe_ba_t alloc_arry = pom_class_ba_of_page(page_data);
 
+    if (page->m_classId == POM_INVALID_CLASSID) return;
 
+    for(obj_pos = 0; obj_pos < page->m_obj_per_page; ++obj_pos) {
+        if (cpe_ba_get(alloc_arry, obj_pos) == cpe_ba_true) {
+            pom_oid_t base_oid = page->m_obj_per_page * page->m_page_idx + obj_pos;
+            pom_debuger_on_alloc(debuger, pom_oid_make(page->m_classId, base_oid));
+        }
+    }
+}

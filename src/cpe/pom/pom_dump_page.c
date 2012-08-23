@@ -13,14 +13,14 @@ static void pom_mgr_dump_page_info_one_buf(write_stream_t stream, char const * b
         stream_putc_count(stream, ' ', level << 2);
 
         stream_printf(
-            stream, "page (class=%d, index=%d, alloc_ba_count=%d): %p ~ %p\n",
-            head->m_classId, head->m_page_idx, head->m_alloc_ba_count,
-            ((char*)(head + 1)) + cpe_ba_bytes_from_bits(head->m_alloc_ba_count), buf + page_size);
+            stream, "page (class=%d, index=%d, obj-per-page=%d): %p ~ %p\n",
+            head->m_classId, head->m_page_idx, head->m_obj_per_page,
+            ((char*)(head + 1)) + cpe_ba_bytes_from_bits(head->m_obj_per_page), buf + page_size);
 
         alloc_arry = pom_class_ba_of_page(buf);
 
         stream_putc_count(stream, ' ', (level + 1) << 2);
-        for(i = 0; i < head->m_alloc_ba_count; ++i) {
+        for(i = 0; i < head->m_obj_per_page; ++i) {
             stream_putc(stream, cpe_ba_get(alloc_arry, i) ? '1' : '0');
         }
         stream_putc(stream, '\n');
