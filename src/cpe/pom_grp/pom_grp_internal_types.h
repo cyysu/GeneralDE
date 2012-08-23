@@ -18,6 +18,7 @@ struct pom_grp_obj_mgr {
     LPDRMETALIB m_metalib;
     char * m_full_base;
     uint32_t m_full_capacity;
+    int m_auto_validate;
 };
 
 struct pom_grp_meta {
@@ -77,7 +78,7 @@ struct pom_grp_entry_meta {
     uint16_t m_page_begin;
     uint16_t m_page_count;
     pom_class_id_t m_class_id;
-    uint16_t m_obj_size;
+    uint16_t m_page_size;
     uint16_t m_obj_align;
 
     struct cpe_hash_entry m_hh;

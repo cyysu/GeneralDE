@@ -1,5 +1,5 @@
-#ifndef CPE_POM_GRP_OBJ_H
-#define CPE_POM_GRP_OBJ_H
+#ifndef CPE_POM_GRP_SHM_H
+#define CPE_POM_GRP_SHM_H
 #include "cpe/utils/error.h"
 #include "cpe/dr/dr_types.h"
 #include "pom_grp_types.h"

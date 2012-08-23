@@ -10,11 +10,11 @@ struct pom_validating_page {
 };
 
 static uint32_t pom_validating_page_hash(const struct pom_validating_page * p) {
-    return (uint32_t)(((ptr_int_t)p) & 0xFFFFFFFF);
+    return (uint32_t)(((ptr_int_t)p->m_page) & 0xFFFFFFFF);
 }
 
 static int pom_validating_page_eq(const struct pom_validating_page * l, const struct pom_validating_page * r) {
-    return l->m_page == r->m_page;
+    return l->m_page == r->m_page ? 1 : 0;
 }
 
 static void pom_grp_validate_build_pages_from_buf(cpe_hash_table_t pages, pom_mgr_t mgr, error_monitor_t em) {
@@ -128,7 +128,7 @@ static void pom_mgr_validate_free_pages(pom_mgr_t mgr, cpe_hash_table_t pages, e
             struct pom_data_page_head * page = (struct pom_data_page_head * )page_buf;
             page_buf += buf_mgr->m_page_size;
 
-            if (((char*)range.m_end - (char*)page) > buf_mgr->m_page_size) {
+            if (((char*)range.m_end - (char*)page) < buf_mgr->m_page_size) {
                 CPE_ERROR(
                     em, "page %p: page-size overflow, page-size=%d, left-size=%d!",
                     page, (int)buf_mgr->m_page_size, (int)((char*)range.m_end - (char*)page));
@@ -142,7 +142,7 @@ static void pom_mgr_validate_free_pages(pom_mgr_t mgr, cpe_hash_table_t pages, e
                 CPE_ERROR(em, "page %p: free page, class id error, class-id=%d!", page, page->m_classId);
             }
 
-            if (page->m_page_idx != -1) {
+            if (page->m_page_idx != (uint16_t)-1) {
                 CPE_ERROR(em, "page %p: free page index error, index=%d!", page, page->m_page_idx);
             }
 
@@ -174,7 +174,7 @@ static void pom_mgr_validate_bad_pages(pom_mgr_t mgr, cpe_hash_table_t pages, er
     page = cpe_hash_it_next(&page_it);
     while (page) {
         struct pom_validating_page * next = cpe_hash_it_next(&page_it);
-        CPE_ERROR(em, "page %p: not allocked or free!", page);
+        CPE_ERROR(em, "page %p: not allocked or free!", page->m_page);
         cpe_hash_table_remove_by_ins(pages, page);
         mem_free(mgr->m_alloc, page);
         page = next;

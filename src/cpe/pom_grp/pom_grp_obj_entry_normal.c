@@ -51,7 +51,7 @@ uint16_t pom_grp_obj_normal_capacity_ex(pom_grp_obj_mgr_t mgr, pom_grp_obj_t obj
     assert(obj);
     assert(entry->m_type == pom_grp_entry_type_normal);
 
-    return entry->m_obj_size;
+    return entry->m_page_size;
 }
 
 void * pom_grp_obj_normal_ex(pom_grp_obj_mgr_t mgr, pom_grp_obj_t obj, pom_grp_entry_meta_t entry) {
@@ -85,6 +85,8 @@ void * pom_grp_obj_normal_check_or_create_ex(pom_grp_obj_mgr_t mgr, pom_grp_obj_
         }
     }
 
+    POM_GRP_VALIDATE_OBJ(mgr, obj);
+
     return pom_obj_get(mgr->m_omm, *oid, mgr->m_em);
 }
 
@@ -109,10 +111,7 @@ int pom_grp_obj_normal_set_ex(pom_grp_obj_mgr_t mgr, pom_grp_obj_t obj, pom_grp_
     r = pom_obj_get(mgr->m_omm, *oid, mgr->m_em);
     assert(r);
 
-    memcpy(r, data, entry->m_obj_size);
+    memcpy(r, data, entry->m_page_size);
 
     return 0;
 }
-
-
-
