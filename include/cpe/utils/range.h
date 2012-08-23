@@ -32,6 +32,8 @@ void cpe_range_mgr_dump(write_stream_t stream, cpe_range_mgr_t ra);
 int cpe_range_mgr_reserve_for_put(cpe_range_mgr_t ra, int put_count);
 int cpe_range_mgr_is_empty(cpe_range_mgr_t ra);
 
+int cpe_range_is_conflict(cpe_range_mgr_t ra, ptr_int_t start, ptr_int_t end);
+
 int cpe_range_is_valid(struct cpe_range r);
 int cpe_range_size(struct cpe_range r);
 

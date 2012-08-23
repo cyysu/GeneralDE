@@ -20,6 +20,15 @@ void pom_grp_store_entry_free_all(pom_grp_store_t store);
 pom_grp_store_entry_t pom_grp_store_entry_create(pom_grp_store_table_t table, pom_grp_entry_meta_t entry_meta);
 void pom_grp_store_entry_free(struct pom_grp_store_entry * store_entry);
 
+#define POM_GRP_VALIDATE_OBJ(__mgr, __obj) \
+    assert( __mgr->m_auto_validate == 0                                 \
+            || (__mgr->m_auto_validate == 1 && pom_grp_obj_validate(__mgr, __obj, __mgr->m_em) == 0) \
+            || (__mgr->m_auto_validate >= 2 && pom_grp_obj_mgr_validate(__mgr, __mgr->m_em) == 0) )
+
+#define POM_GRP_VALIDATE_MGR(__mgr, __obj) \
+    assert( __mgr->m_auto_validate < 2                                 \
+            || (__mgr->m_auto_validate >= 2 && pom_grp_obj_mgr_validate(__mgr, __mgr->m_em) == 0) )
+
 #endif
 
 

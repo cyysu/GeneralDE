@@ -55,7 +55,7 @@ pom_grp_entry_meta_create_i(
     entry_meta->m_name = cpe_hs_data((cpe_hash_string_t)buf);
     entry_meta->m_index = meta->m_entry_count;
     entry_meta->m_type = type;
-    entry_meta->m_obj_size = obj_size;
+    entry_meta->m_page_size = obj_size;
     entry_meta->m_obj_align = obj_align;
 
     entry_meta->m_page_begin = 
@@ -226,7 +226,7 @@ uint16_t pom_grp_entry_meta_page_count(pom_grp_entry_meta_t entry_meta) {
 }
 
 uint16_t pom_grp_entry_meta_page_size(pom_grp_entry_meta_t entry_meta) {
-    return entry_meta->m_obj_size;
+    return entry_meta->m_page_size;
 }
 
 LPDRMETA pom_grp_entry_meta_normal_meta(pom_grp_entry_meta_t entry_meta) {
@@ -236,7 +236,7 @@ LPDRMETA pom_grp_entry_meta_normal_meta(pom_grp_entry_meta_t entry_meta) {
 
 uint16_t pom_grp_entry_meta_normal_capacity(pom_grp_entry_meta_t entry_meta) {
     assert(entry_meta->m_type == pom_grp_entry_type_normal);
-    return entry_meta->m_obj_size;
+    return entry_meta->m_page_size;
 }
 
 LPDRMETA pom_grp_entry_meta_list_meta(pom_grp_entry_meta_t entry_meta) {

@@ -163,6 +163,29 @@ static int cpe_range_find_next_pos(cpe_range_mgr_t ra, ptr_int_t start) {
         : ra->m_range_count;
 }
 
+int cpe_range_is_conflict(cpe_range_mgr_t ra, ptr_int_t start, ptr_int_t end) {
+    assert(ra);
+    int next_pos;
+    int pre_pos;
+    struct cpe_range * next_range;
+    struct cpe_range * pre_range;
+
+    if (start < 0 || end <= 0 || end < start) return 0;
+    if (end == start) return 0;
+    if (ra->m_range_count == 0) return 0;
+
+    next_pos = cpe_range_find_next_pos(ra, start);
+    pre_pos = next_pos - 1;
+
+    next_range = next_pos < (int)ra->m_range_count ? ra->m_ranges + next_pos : NULL;
+    pre_range = (pre_pos >= 0 && pre_pos < (int)ra->m_range_count) ? ra->m_ranges + pre_pos : NULL;
+
+    if (next_range && end > next_range->m_start) return 1;
+    if (pre_range && pre_range->m_end > start) return 1;
+
+    return 0;
+}
+
 int cpe_range_put_range(cpe_range_mgr_t ra, ptr_int_t start, ptr_int_t end) {
     if (start < 0 || end <= 0 || end < start) return -1;
     if (end == start) return 0;
