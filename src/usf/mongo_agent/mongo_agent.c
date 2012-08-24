@@ -39,6 +39,8 @@ mongo_agent_create(
     agent->m_em = em;
     agent->m_debug = 0;
     agent->m_logic_mgr = logic_mgr;
+    agent->m_state = mongo_agent_state_disable;
+ 
     agent->m_runing_require_capacity = 0;
     agent->m_runing_require_count = 0;
     agent->m_runing_require_op_count = 0;
@@ -47,10 +49,8 @@ mongo_agent_create(
 
     agent->m_dump_buffer_capacity = 4 * 1024;
 
-    if (gd_app_tick_add(app, mongo_agent_tick, agent, (ptr_int_t)500) != 0) {
-        nm_node_free(agent_node);
-        return NULL;
-    }
+    TAILQ_INIT(&agent->m_seeds);
+    TAILQ_INIT(&agent->m_servers);
 
     mem_buffer_init(&agent->m_dump_buffer, agent->m_alloc);
 
@@ -69,6 +69,18 @@ static void mongo_agent_clear(nm_node_t node) {
     if (agent->m_runing_requires) {
         mem_free(agent->m_alloc, agent->m_runing_requires);
         agent->m_runing_requires = NULL;
+    }
+
+    while(!TAILQ_EMPTY(&agent->m_servers)) {
+        struct mongo_host_port * host = TAILQ_FIRST(&agent->m_servers);
+        TAILQ_REMOVE(&agent->m_servers, host, m_next);
+        mem_free(agent->m_alloc, host);
+    }
+
+    while(!TAILQ_EMPTY(&agent->m_seeds)) {
+        struct mongo_host_port * host = TAILQ_FIRST(&agent->m_seeds);
+        TAILQ_REMOVE(&agent->m_seeds, host, m_next);
+        mem_free(agent->m_alloc, host);
     }
 }
 
@@ -105,6 +117,46 @@ gd_app_context_t mongo_agent_app(mongo_agent_t agent) {
 
 const char * mongo_agent_name(mongo_agent_t mgr) {
     return nm_node_name(nm_node_from_data(mgr));
+}
+
+int mongo_agent_add_seed(mongo_agent_t agent, const char * host, int port) {
+    struct mongo_host_port * host_port;
+
+    TAILQ_FOREACH(host_port, &agent->m_seeds, m_next) {
+        if (strcmp(host_port->m_host, host) == 0 && host_port->m_port == port) return -1;
+    }
+
+    host_port = mem_alloc(agent->m_alloc, sizeof(struct mongo_host_port));
+    if (host_port == NULL) return -1;
+
+    strncpy(host_port->m_host, host, sizeof(host_port->m_host));
+    host_port->m_port = port;
+
+    TAILQ_INSERT_TAIL(&agent->m_seeds, host_port, m_next);
+
+    return 0;
+}
+
+int mongo_agent_add_server(mongo_agent_t agent, const char * host, int port) {
+    struct mongo_host_port * host_port;
+
+    TAILQ_FOREACH(host_port, &agent->m_servers, m_next) {
+        if (strcmp(host_port->m_host, host) == 0 && host_port->m_port == port) return -1;
+    }
+
+    host_port = mem_alloc(agent->m_alloc, sizeof(struct mongo_host_port));
+    if (host_port == NULL) return -1;
+
+    strncpy(host_port->m_host, host, sizeof(host_port->m_host));
+    host_port->m_port = port;
+
+    TAILQ_INSERT_TAIL(&agent->m_servers, host_port, m_next);
+
+    return 0;
+}
+
+int mongo_agent_enable(mongo_agent_t agent) {
+    return 0;
 }
 
 cpe_hash_string_t

@@ -29,10 +29,12 @@ gd_app_context_t mongo_agent_app(mongo_agent_t agent);
 const char * mongo_agent_name(mongo_agent_t agent);
 cpe_hash_string_t mongo_agent_name_hs(mongo_agent_t agent);
 
-const char * mongo_agent_password(mongo_agent_t agent);
-int mongo_agent_set_password(mongo_agent_t agent, const char * password);
+mongo_agent_state_t mongo_agent_state(mongo_agent_t agent);
 
-int mongo_agent_connect(mongo_agent_t agent);
+int mongo_agent_add_seed(mongo_agent_t agent, const char * host, int port);
+int mongo_agent_add_server(mongo_agent_t agent, const char * host, int port);
+
+int mongo_agent_enable(mongo_agent_t agent);
 
 int mongo_agent_send_request(mongo_agent_t agent, mongo_request_t request, logic_require_t require);
 
