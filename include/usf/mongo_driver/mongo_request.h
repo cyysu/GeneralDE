@@ -1,11 +1,10 @@
-#ifndef USF_MONGO_REQUEST_H
-#define USF_MONGO_REQUEST_H
+#ifndef USF_MONGO_DRIVER_REQUEST_H
+#define USF_MONGO_DRIVER_REQUEST_H
 #include "bson.h"
 #include "cpe/utils/hash_string.h"
 #include "cpe/utils/buffer.h"
 #include "cpe/dr/dr_types.h"
-#include "gd/dr_cvt/dr_cvt_types.h"
-#include "mongo_types.h"
+#include "mongo_driver_types.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -14,11 +13,11 @@ extern "C" {
 extern cpe_hash_string_t mongo_request_type_name;
 
 mongo_request_t
-mongo_request_create(mongo_agent_t agent, size_t capacity);
+mongo_request_create(mongo_driver_t agent, size_t capacity);
 
 void mongo_request_free(mongo_request_t pkg);
 
-mongo_agent_t mongo_request_agent(mongo_request_t pkg);
+mongo_driver_t mongo_request_driver(mongo_request_t pkg);
 
 dp_req_t mongo_request_to_dp_req(mongo_request_t pkg);
 mongo_request_t mongo_request_from_dp_req(dp_req_t pkg);

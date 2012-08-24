@@ -3,7 +3,7 @@
 #include "usf/logic/logic_require.h"
 #include "usf/logic/logic_manage.h"
 #include "usf/mongo_agent/mongo_agent.h"
-#include "mongo_internal_ops.h"
+#include "mongo_agent_internal_ops.h"
 
 static void mongo_agent_check_requires(mongo_agent_t agent) {
     uint32_t i;

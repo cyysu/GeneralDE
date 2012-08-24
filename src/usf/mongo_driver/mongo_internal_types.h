@@ -5,7 +5,7 @@
 #include "cpe/utils/hash.h"
 #include "cpe/dp/dp_types.h"
 #include "cpe/net/net_types.h"
-#include "usf/mongo_agent/mongo_types.h"
+#include "usf/mongo_driver/mongo_driver_types.h"
 #include "mongo_protocol.h"
 
 struct mongo_host_port {
@@ -17,12 +17,11 @@ struct mongo_host_port {
 
 typedef TAILQ_HEAD(mongo_host_port_list, mongo_host_port) mongo_host_port_list_t;
 
-struct mongo_agent {
+struct mongo_driver {
     gd_app_context_t m_app;
     mem_allocrator_t m_alloc;
     error_monitor_t m_em;
-    logic_manage_t m_logic_mgr;
-    mongo_agent_state_t m_state;
+    mongo_driver_state_t m_state;
 
     net_connector_t m_connector;
 
@@ -32,12 +31,6 @@ struct mongo_agent {
     int m_op_timeout_ms;
     int m_max_bson_size;
 
-    uint32_t m_runing_require_capacity;
-    uint32_t m_runing_require_count;
-    uint32_t m_runing_require_op_count;
-    uint32_t m_runing_require_check_span;
-    logic_require_id_t * m_runing_requires;
-
     struct mem_buffer m_dump_buffer;
     uint32_t m_dump_buffer_capacity;
 
@@ -45,7 +38,7 @@ struct mongo_agent {
 };
 
 struct mongo_request {
-    mongo_agent_t m_agent;
+    mongo_driver_t m_driver;
     dp_req_t m_dp_req;
     int32_t m_finished;
     int32_t m_stack[32];

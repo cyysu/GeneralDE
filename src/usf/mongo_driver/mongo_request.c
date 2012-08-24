@@ -5,24 +5,24 @@
 #include "cpe/dp/dp_request.h"
 #include "gd/app/app_log.h"
 #include "gd/app/app_context.h"
-#include "usf/mongo_agent/mongo_agent.h"
-#include "usf/mongo_agent/mongo_request.h"
+#include "usf/mongo_driver/mongo_driver.h"
+#include "usf/mongo_driver/mongo_request.h"
 #include "mongo_internal_ops.h"
 
 mongo_request_t
-mongo_request_create(mongo_agent_t agent, size_t capacity) {
+mongo_request_create(mongo_driver_t driver, size_t capacity) {
     dp_req_t dp_req;
     mongo_request_t pkg;
 
     dp_req = dp_req_create(
-        gd_app_dp_mgr(agent->m_app),
+        gd_app_dp_mgr(driver->m_app),
         mongo_request_type_name,
         sizeof(struct mongo_request) + capacity);
     if (dp_req == NULL) return NULL;
 
     pkg = (mongo_request_t)dp_req_data(dp_req);
 
-    pkg->m_agent = agent;
+    pkg->m_driver = driver;
     pkg->m_dp_req = dp_req;
 
     mongo_request_init(pkg);
@@ -44,8 +44,8 @@ mongo_request_t mongo_request_from_dp_req(dp_req_t req) {
 }
 
 
-mongo_agent_t mongo_request_agent(mongo_request_t req) {
-    return req->m_agent;
+mongo_driver_t mongo_request_driver(mongo_request_t req) {
+    return req->m_driver;
 }
 
 void mongo_request_init(mongo_request_t pkg) {

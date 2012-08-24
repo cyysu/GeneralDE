@@ -1,15 +1,15 @@
 #include "cpe/pal/pal_platform.h"
 #include "cpe/dr/dr_bson.h"
-#include "usf/mongo_agent/mongo_request.h"
+#include "usf/mongo_driver/mongo_request.h"
 #include "mongo_internal_ops.h"
 
 #define MONGO_REQUREST_CHECK_NOT_FINISH(__pkg) \
-    if ((__pkg)->m_finished) { CPE_ERROR((__pkg)->m_agent->m_em, "mongo_request: already finished!"); return -1; }
+    if ((__pkg)->m_finished) { CPE_ERROR((__pkg)->m_driver->m_em, "mongo_request: already finished!"); return -1; }
 
 #define MONGO_REQUREST_CHECK_SPACE(__pkg, __len)                        \
     if ((__len) > (mongo_request_capacity(__pkg) - mongo_request_size(__pkg))) { \
         CPE_ERROR(                                                      \
-            (__pkg)->m_agent->m_em,                                     \
+            (__pkg)->m_driver->m_em,                                     \
             "mongo_request: append data len overflow, len=%d, size=%d, capacity=%d!", \
             (int)(__len), (int)mongo_request_size(__pkg), (int)mongo_request_capacity(__pkg)); \
         return -1;                                                      \
