@@ -4,6 +4,7 @@
 #include "cpe/pom/pom_manage.h"
 #include "cpe/pom_grp/pom_grp_meta.h"
 #include "cpe/pom_grp/pom_grp_obj.h"
+#include "cpe/pom_grp/pom_grp_obj_mgr.h"
 #include "pom_grp_internal_ops.h"
 
 uint16_t pom_grp_obj_normal_capacity(pom_grp_obj_mgr_t mgr, pom_grp_obj_t obj, const char * entry) {
