@@ -188,6 +188,7 @@ dr_inbuild_metalib_add_meta(struct DRInBuildMetaLib * inBuildMetaLib) {
     bzero(newMeta, sizeof(struct DRInBuildMeta));
     newMeta->m_lib = inBuildMetaLib;
     newMeta->m_data.m_id = -1;
+    newMeta->m_data.m_align = 1;
 
     newMeta->m_entries_count = 0;
     TAILQ_INIT(&newMeta->m_entries);
@@ -361,6 +362,7 @@ dr_inbuild_meta_add_entry(struct DRInBuildMeta * meta) {
     bzero(newEntry, sizeof(struct DRInBuildMetaEntry));
     newEntry->m_meta = meta;
     newEntry->m_data.m_id = -1;
+    newEntry->m_data.m_type = -1;
     newEntry->m_data.m_array_count = 1;
     newEntry->m_data.m_array_refer_data_start_pos = -1;
     newEntry->m_data.m_array_refer_entry_pos = -1;

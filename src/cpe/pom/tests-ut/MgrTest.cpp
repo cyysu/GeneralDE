@@ -13,6 +13,8 @@ void MgrTest::SetUp() {
     pom_debuger_enable(m_omm, 5, t_em());
 
     pom_mgr_set_backend_memory(m_omm, t_allocrator());
+
+    pom_mgr_set_auto_validate(m_omm, 1);
 }
 
 void MgrTest::TearDown() {

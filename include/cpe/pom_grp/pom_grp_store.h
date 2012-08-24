@@ -43,6 +43,14 @@ int pom_grp_meta_build_store_meta(
     pom_grp_meta_t meta,
     error_monitor_t em);
 
+int pom_grp_store_build_obj(
+    pom_grp_store_t store, pom_grp_obj_mgr_t obj_mgr, pom_grp_obj_t obj,
+    void const * data_buf, size_t data_size, LPDRMETA data_meta);
+
+int pom_grp_store_write_obj(
+    pom_grp_store_t store, pom_grp_obj_mgr_t obj_mgr, pom_grp_obj_t obj,
+    void * data_buf, size_t data_capacity, LPDRMETA data_meta);
+
 #define pom_grp_store_table_it_next(it) ((it)->next ? (it)->next(it) : NULL)
 #define pom_grp_store_entry_it_next(it) ((it)->next ? (it)->next(it) : NULL)
 

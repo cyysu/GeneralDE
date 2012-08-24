@@ -1,5 +1,24 @@
 #include "RangeMgrTest.hpp"
 
+
+TEST_F(RangeMgrTest, get_one_basic) {
+    EXPECT_EQ(0, cpe_range_put_range(&m_ra, 18, 20));
+
+    EXPECT_EQ((ptr_int_t)18, cpe_range_get_one(&m_ra));
+    EXPECT_EQ((ptr_int_t)19, cpe_range_get_one(&m_ra));
+    EXPECT_EQ((ptr_int_t)-1, cpe_range_get_one(&m_ra));
+}
+
+TEST_F(RangeMgrTest, get_one_basic_with_multi_range) {
+    EXPECT_EQ(0, cpe_range_put_range(&m_ra, 18, 20));
+    EXPECT_EQ(0, cpe_range_put_range(&m_ra, 22, 23));
+
+    EXPECT_EQ((ptr_int_t)18, cpe_range_get_one(&m_ra));
+    EXPECT_EQ((ptr_int_t)19, cpe_range_get_one(&m_ra));
+    EXPECT_EQ((ptr_int_t)22, cpe_range_get_one(&m_ra));
+    EXPECT_EQ((ptr_int_t)-1, cpe_range_get_one(&m_ra));
+}
+
 TEST_F(RangeMgrTest, get_one_from_empty) {
     EXPECT_EQ(-1, cpe_range_get_one(&m_ra));
 }
@@ -463,4 +482,3 @@ TEST_F(RangeMgrTest, size_lenght_error) {
     struct cpe_range r = {2, 1};
     EXPECT_EQ(-1, cpe_range_size(r));
 }
-

@@ -20,7 +20,10 @@ uint16_t pom_grp_obj_page_count(pom_grp_obj_mgr_t mgr, pom_grp_obj_t obj);
 uint16_t pom_grp_obj_page_capacity(pom_grp_obj_mgr_t mgr, pom_grp_obj_t obj);
 pom_oid_t pom_grp_obj_page_oid(pom_grp_obj_mgr_t mgr, pom_grp_obj_t obj, uint16_t pos);
 
+int pom_grp_obj_validate(pom_grp_obj_mgr_t mgr, pom_grp_obj_t obj, error_monitor_t em);
+
 void pom_grp_objs(pom_grp_obj_mgr_t mgr, pom_grp_obj_it_t it);
+
 #define pom_grp_obj_it_next(it) ((pom_grp_obj_t)pom_obj_it_next(&((it)->m_data)))
 
 /*normal data ops*/
@@ -86,6 +89,7 @@ uint16_t pom_grp_obj_binary_capacity_ex(pom_grp_obj_mgr_t mgr, pom_grp_obj_t obj
 void * pom_grp_obj_binary_ex(pom_grp_obj_mgr_t mgr, pom_grp_obj_t obj, pom_grp_entry_meta_t entry);
 void * pom_grp_obj_binary_check_or_create_ex(pom_grp_obj_mgr_t mgr, pom_grp_obj_t obj, pom_grp_entry_meta_t entry);
 int pom_grp_obj_binary_set_ex(pom_grp_obj_mgr_t mgr, pom_grp_obj_t obj, pom_grp_entry_meta_t entry, void const * data, uint16_t capacity);
+int pom_grp_obj_binary_get_ex(pom_grp_obj_mgr_t mgr, pom_grp_obj_t obj, pom_grp_entry_meta_t entry, void * data, uint16_t capacity);
 
 #ifdef __cplusplus
 }

@@ -67,6 +67,7 @@ struct pom_mgr {
     struct pom_class_mgr m_classMgr;
     struct pom_buffer_mgr m_bufMgr;
     struct pom_debuger * m_debuger;
+    int m_auto_validate;
 };
 
 #ifdef __cplusplus

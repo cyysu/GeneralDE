@@ -31,6 +31,11 @@ int pom_grp_obj_mgr_buf_init(
 
 void pom_grp_obj_mgr_info(pom_grp_obj_mgr_t mgr, write_stream_t stream, int ident);
 
+void pom_grp_obj_mgr_set_auto_validate(pom_grp_obj_mgr_t mgr, int auto_validate);
+int pom_grp_obj_mgr_auto_validate(pom_grp_obj_mgr_t mgr);
+
+int pom_grp_obj_mgr_validate(pom_grp_obj_mgr_t mgr, error_monitor_t em);
+
 #ifdef __cplusplus
 }
 #endif

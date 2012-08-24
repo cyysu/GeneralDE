@@ -40,6 +40,9 @@ int pom_mgr_add_class_with_id(
 size_t pom_mgr_page_size(pom_mgr_t omm);
 size_t pom_mgr_buf_size(pom_mgr_t omm);
 
+void pom_mgr_set_auto_validate(pom_mgr_t omm, int auto_validate);
+int pom_mgr_auto_validate(pom_mgr_t omm);
+
 void pom_mgr_buffers(struct pom_buffer_it * it, pom_mgr_t omm);
 void * pom_next_buffer(struct pom_buffer_it * it);
 
@@ -52,6 +55,9 @@ int pom_mgr_add_new_buffer(pom_mgr_t omm, pom_buffer_id_t buf_id, error_monitor_
 int pom_mgr_attach_old_buffer(pom_mgr_t omm, pom_buffer_id_t buf_id, error_monitor_t em);
 
 void pom_mgr_dump_page_info(write_stream_t stream, pom_mgr_t mgr, int level);
+void pom_mgr_dump_alloc_info(write_stream_t stream, pom_mgr_t mgr, int level);
+
+int pom_mgr_validate(pom_mgr_t mgr, error_monitor_t em);
 
 #ifdef __cplusplus
 }

@@ -5,6 +5,7 @@
 #include "cpe/pom/pom_manage.h"
 #include "cpe/pom_grp/pom_grp_meta.h"
 #include "cpe/pom_grp/pom_grp_obj.h"
+#include "cpe/pom_grp/pom_grp_obj_mgr.h"
 #include "pom_grp_internal_ops.h"
 
 uint16_t pom_grp_obj_ba_bit_capacity(pom_grp_obj_mgr_t mgr, pom_grp_obj_t obj, const char * entry) {
@@ -100,7 +101,7 @@ uint16_t pom_grp_obj_ba_byte_capacity_ex(pom_grp_obj_mgr_t mgr, pom_grp_obj_t ob
     assert(obj);
     assert(entry->m_type == pom_grp_entry_type_ba);
     
-    return entry->m_obj_size * entry->m_page_count;
+    return entry->m_page_size * entry->m_page_count;
 }
 
 uint16_t pom_grp_obj_ba_bit_count_ex(pom_grp_obj_mgr_t mgr, pom_grp_obj_t obj, pom_grp_entry_meta_t entry) {
@@ -120,7 +121,7 @@ uint16_t pom_grp_obj_ba_bit_count_ex(pom_grp_obj_mgr_t mgr, pom_grp_obj_t obj, p
         if (*oid == POM_INVALID_OID) continue;
 
         page_buf = ((char*)pom_obj_get(mgr->m_omm, *oid, mgr->m_em));
-        count += cpe_ba_count((cpe_ba_t)page_buf, cpe_ba_bits_from_bytes(entry->m_obj_size));
+        count += cpe_ba_count((cpe_ba_t)page_buf, cpe_ba_bits_from_bytes(entry->m_page_size));
     }
 
     return (uint16_t)count;
@@ -147,7 +148,7 @@ int pom_grp_obj_ba_set_all_ex(pom_grp_obj_mgr_t mgr, pom_grp_obj_t obj, pom_grp_
         }
 
         page_buf = ((char*)pom_obj_get(mgr->m_omm, *oid, mgr->m_em));
-        memset(page_buf, entry->m_obj_size, 0xff);
+        memset(page_buf, entry->m_page_size, 0xff);
     }
     else {
         for(i = 0; i < entry->m_page_count; ++i, ++oid) {
@@ -157,6 +158,8 @@ int pom_grp_obj_ba_set_all_ex(pom_grp_obj_mgr_t mgr, pom_grp_obj_t obj, pom_grp_
             *oid = POM_INVALID_OID;
         }
     }
+
+    POM_GRP_VALIDATE_OBJ(mgr, obj);
 
     return 0;
 }
@@ -173,10 +176,10 @@ int pom_grp_obj_ba_set_ex(pom_grp_obj_mgr_t mgr, pom_grp_obj_t obj, pom_grp_entr
 
     if (pos >= entry->m_data.m_ba.m_bit_capacity) return -1;
 
-    set_page_pos = pos / cpe_ba_bits_from_bytes(entry->m_obj_size);
+    set_page_pos = pos / cpe_ba_bits_from_bytes(entry->m_page_size);
     assert(set_page_pos < entry->m_page_count);
-    assert(cpe_ba_bits_from_bytes(set_page_pos * entry->m_obj_size) <= pos);
-    set_pos_in_page = pos - cpe_ba_bits_from_bytes(set_page_pos * entry->m_obj_size);
+    assert(cpe_ba_bits_from_bytes(set_page_pos * entry->m_page_size) <= pos);
+    set_pos_in_page = pos - cpe_ba_bits_from_bytes(set_page_pos * entry->m_page_size);
 
     oid = ((pom_oid_t *)obj) + entry->m_page_begin + set_page_pos;
 
@@ -190,7 +193,7 @@ int pom_grp_obj_ba_set_ex(pom_grp_obj_mgr_t mgr, pom_grp_obj_t obj, pom_grp_entr
         }
 
         page_buf = ((char*)pom_obj_get(mgr->m_omm, *oid, mgr->m_em));
-        bzero(page_buf, entry->m_obj_size);
+        bzero(page_buf, entry->m_page_size);
     }
     else {
         page_buf = ((char*)pom_obj_get(mgr->m_omm, *oid, mgr->m_em));
@@ -200,6 +203,8 @@ int pom_grp_obj_ba_set_ex(pom_grp_obj_mgr_t mgr, pom_grp_obj_t obj, pom_grp_entr
 
     assert(value == cpe_ba_true);
     cpe_ba_set((cpe_ba_t)page_buf, set_pos_in_page, cpe_ba_true);
+
+    POM_GRP_VALIDATE_OBJ(mgr, obj);
 
     return 0;
 }
@@ -216,10 +221,10 @@ cpe_ba_value_t pom_grp_obj_ba_get_ex(pom_grp_obj_mgr_t mgr, pom_grp_obj_t obj, p
 
     if (pos >= entry->m_data.m_ba.m_bit_capacity) return cpe_ba_false;
 
-    get_page_pos = pos / cpe_ba_bits_from_bytes(entry->m_obj_size);
+    get_page_pos = pos / cpe_ba_bits_from_bytes(entry->m_page_size);
     assert(get_page_pos < entry->m_page_count);
-    assert(cpe_ba_bits_from_bytes(get_page_pos * entry->m_obj_size) <= pos);
-    get_pos_in_page = pos - cpe_ba_bits_from_bytes(get_page_pos * entry->m_obj_size);
+    assert(cpe_ba_bits_from_bytes(get_page_pos * entry->m_page_size) <= pos);
+    get_pos_in_page = pos - cpe_ba_bits_from_bytes(get_page_pos * entry->m_page_size);
 
     oid = ((pom_oid_t *)obj) + entry->m_page_begin + get_page_pos;
     if (*oid == POM_INVALID_OID) return cpe_ba_false;
@@ -241,7 +246,7 @@ int pom_grp_obj_ba_get_binary_ex(pom_grp_obj_mgr_t mgr, pom_grp_obj_t obj, pom_g
 
     oid = ((pom_oid_t *)obj) + entry->m_page_begin;
     while(capacity > 0) {
-        uint32_t copy_size = entry->m_obj_size;
+        uint32_t copy_size = entry->m_page_size;
         if (copy_size > capacity) copy_size = capacity;
 
         if (*oid == POM_INVALID_OID) {
@@ -272,7 +277,7 @@ int pom_grp_obj_ba_set_binary_ex(pom_grp_obj_mgr_t mgr, pom_grp_obj_t obj, pom_g
     oid = ((pom_oid_t *)obj) + entry->m_page_begin;
     while(capacity > 0) {
         char * page_buf;
-        uint32_t copy_size = entry->m_obj_size;
+        uint32_t copy_size = entry->m_page_size;
         if (copy_size > capacity) copy_size = capacity;
 
         if (*oid == POM_INVALID_OID) {
@@ -290,6 +295,8 @@ int pom_grp_obj_ba_set_binary_ex(pom_grp_obj_mgr_t mgr, pom_grp_obj_t obj, pom_g
         capacity -= copy_size;
         data = ((const char *)data) + copy_size;
     }
+
+    POM_GRP_VALIDATE_OBJ(mgr, obj);
 
     return 0;
 }

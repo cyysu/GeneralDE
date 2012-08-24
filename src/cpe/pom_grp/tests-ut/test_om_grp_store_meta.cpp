@@ -1,3 +1,4 @@
+#include "cpe/dr/dr_metalib_manage.h"
 #include "OmGrpStoreTest.hpp" 
 
 TEST_F(OmGrpStoreTest, basic) {
@@ -156,6 +157,13 @@ TEST_F(OmGrpStoreTest, multi_list) {
         "</metalib>\n"
         ,
         store_meta());
+
+    LPDRMETA data_meta = dr_lib_find_meta_by_name(pom_grp_store_metalib(m_store), "AttrGroup1");
+    ASSERT_TRUE(data_meta);
+
+    LPDRMETAENTRY data_entry = dr_meta_find_entry_by_name(data_meta, "entry2");
+    ASSERT_TRUE(data_entry);
+    EXPECT_EQ((size_t)8, dr_entry_data_start_pos(data_entry));
 }
 
 TEST_F(OmGrpStoreTest, multi_list_standalone) {

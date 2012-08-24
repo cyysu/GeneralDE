@@ -19,7 +19,7 @@ struct pom_grp_entry_meta_data {
     uint16_t m_meta_name_pos;
     uint16_t m_capacity;
     uint16_t m_type;
-    uint16_t m_obj_size;
+    uint16_t m_page_size;
     uint16_t m_obj_align;
     uint16_t m_standalone;
     uint16_t m_reserve1;
@@ -161,7 +161,7 @@ pom_grp_meta_build_from_bin(mem_allocrator_t alloc, void const * data, LPDRMETAL
 
             entry_meta = pom_grp_entry_meta_list_create(
                 meta, entry_name, data_meta,
-                entry_meta_data->m_obj_size / dr_meta_size(data_meta),
+                entry_meta_data->m_page_size / dr_meta_size(data_meta),
                 entry_meta_data->m_capacity,
                 entry_meta_data->m_standalone,
                 em);
@@ -169,7 +169,7 @@ pom_grp_meta_build_from_bin(mem_allocrator_t alloc, void const * data, LPDRMETAL
         case pom_grp_entry_type_ba:
             entry_meta = pom_grp_entry_meta_ba_create(
                 meta, entry_name,
-                entry_meta_data->m_obj_size, entry_meta_data->m_capacity,
+                entry_meta_data->m_page_size, entry_meta_data->m_capacity,
                 em);
             break;
         case pom_grp_entry_type_binary:
@@ -190,10 +190,10 @@ pom_grp_meta_build_from_bin(mem_allocrator_t alloc, void const * data, LPDRMETAL
             return NULL;
         }
 
-        if (entry_meta->m_obj_size != entry_meta_data->m_obj_size) {
+        if (entry_meta->m_page_size != entry_meta_data->m_page_size) {
             CPE_ERROR(
                 em, "pom_grp_entry_meta_build_from_bin: create entry %s: obj-size mismatch! %d and %d"
-                , entry_name, entry_meta->m_obj_size, entry_meta_data->m_obj_size);
+                , entry_name, entry_meta->m_page_size, entry_meta_data->m_page_size);
             pom_grp_meta_free(meta);
             return NULL;
         }
@@ -210,6 +210,17 @@ pom_grp_meta_build_from_bin(mem_allocrator_t alloc, void const * data, LPDRMETAL
             CPE_ERROR(
                 em, "pom_grp_entry_meta_build_from_bin: create entry %s: class-id mismatch! %d and %d"
                 , entry_name, entry_meta->m_class_id, entry_meta_data->m_class_id);
+            pom_grp_meta_free(meta);
+            return NULL;
+        }
+    }
+
+    if (meta_data->m_main_entry_name_pos) {
+        meta->m_main_entry = pom_grp_entry_meta_find(meta, ((const char *)data) + meta_data->m_main_entry_name_pos);
+        if (meta->m_main_entry == NULL) {
+            CPE_ERROR(
+                em, "pom_grp_entry_meta_build_from_bin: load main entry: main entry %s not exist!",
+                ((const char *)data) + meta_data->m_main_entry_name_pos);
             pom_grp_meta_free(meta);
             return NULL;
         }
@@ -268,13 +279,13 @@ void pom_grp_meta_write_to_bin(void * data, size_t capacity, pom_grp_meta_t meta
         entry_meta_data->m_meta_name_pos = 0;
         entry_meta_data->m_capacity = 0;
         entry_meta_data->m_class_id = entry->m_class_id;
-        entry_meta_data->m_obj_size = entry->m_obj_size;
+        entry_meta_data->m_page_size = entry->m_page_size;
         entry_meta_data->m_obj_align = entry->m_obj_align;
         entry_meta_data->m_standalone = 0;
         entry_meta_data->m_reserve1 = 0;
 
         if (entry == meta->m_main_entry) {
-            meta_data->m_main_entry_name_pos = entry_meta_data->m_meta_name_pos;
+            meta_data->m_main_entry_name_pos = entry_meta_data->m_name_pos;
         }
 
         switch(entry->m_type) {
