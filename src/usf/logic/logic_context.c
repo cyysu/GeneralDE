@@ -296,6 +296,9 @@ void logic_context_do_state_change(logic_context_t context, logic_context_state_
         if (context->m_commit_op) {
             context->m_commit_op(context, context->m_commit_ctx);
         }
+        else {
+            logic_context_free(context);
+        }
     }
 }
 
