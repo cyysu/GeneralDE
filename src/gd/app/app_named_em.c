@@ -13,6 +13,8 @@ error_monitor_t gd_app_named_em(gd_app_context_t context, const char * name) {
     struct gd_app_em key;
     struct gd_app_em * app_em;
 
+    if (name == NULL) return context->m_em;
+
     key.m_name = name;
 
     app_em = (struct gd_app_em *)cpe_hash_table_find(&context->m_named_ems, &key);
