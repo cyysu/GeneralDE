@@ -6,76 +6,76 @@
 #include "gd/app/app_log.h"
 #include "gd/app/app_context.h"
 #include "usf/mongo_driver/mongo_driver.h"
-#include "usf/mongo_driver/mongo_request.h"
+#include "usf/mongo_driver/mongo_pkg.h"
 #include "mongo_internal_ops.h"
 
-mongo_request_t
-mongo_request_create(mongo_driver_t driver, size_t capacity) {
+mongo_pkg_t
+mongo_pkg_create(mongo_driver_t driver, size_t capacity) {
     dp_req_t dp_req;
-    mongo_request_t pkg;
+    mongo_pkg_t pkg;
 
     dp_req = dp_req_create(
         gd_app_dp_mgr(driver->m_app),
-        mongo_request_type_name,
-        sizeof(struct mongo_request) + capacity);
+        mongo_pkg_type_name,
+        sizeof(struct mongo_pkg) + capacity);
     if (dp_req == NULL) return NULL;
 
-    pkg = (mongo_request_t)dp_req_data(dp_req);
+    pkg = (mongo_pkg_t)dp_req_data(dp_req);
 
     pkg->m_driver = driver;
     pkg->m_dp_req = dp_req;
 
-    mongo_request_init(pkg);
+    mongo_pkg_init(pkg);
 
     return pkg;
 }
 
-void mongo_request_free(mongo_request_t req) {
+void mongo_pkg_free(mongo_pkg_t req) {
     dp_req_free(req->m_dp_req);
 }
 
-dp_req_t mongo_request_to_dp_req(mongo_request_t req) {
+dp_req_t mongo_pkg_to_dp_req(mongo_pkg_t req) {
     return req->m_dp_req;
 }
 
-mongo_request_t mongo_request_from_dp_req(dp_req_t req) {
-    if (cpe_hs_cmp(dp_req_type_hs(req), mongo_request_type_name) != 0) return NULL;
-    return (mongo_request_t)dp_req_data(req);
+mongo_pkg_t mongo_pkg_from_dp_req(dp_req_t req) {
+    if (cpe_hs_cmp(dp_req_type_hs(req), mongo_pkg_type_name) != 0) return NULL;
+    return (mongo_pkg_t)dp_req_data(req);
 }
 
 
-mongo_driver_t mongo_request_driver(mongo_request_t req) {
+mongo_driver_t mongo_pkg_driver(mongo_pkg_t req) {
     return req->m_driver;
 }
 
-void mongo_request_init(mongo_request_t pkg) {
+void mongo_pkg_init(mongo_pkg_t pkg) {
     pkg->m_finished = 0;
     pkg->m_stackPos = 0;
     bzero(&pkg->m_pro_head, sizeof(pkg->m_pro_head));
-    dp_req_set_size(pkg->m_dp_req, sizeof(struct mongo_request));
+    dp_req_set_size(pkg->m_dp_req, sizeof(struct mongo_pkg));
 }
 
-uint32_t mongo_request_op(mongo_request_t pkg) {
+uint32_t mongo_pkg_op(mongo_pkg_t pkg) {
     return pkg->m_pro_head.m_op;
 }
 
-void mongo_request_set_op(mongo_request_t pkg, uint32_t op) {
+void mongo_pkg_set_op(mongo_pkg_t pkg, uint32_t op) {
     pkg->m_pro_head.m_op = op;
 }
 
-int mongo_request_set_size(mongo_request_t pkg, size_t size) {
-    return dp_req_set_size(pkg->m_dp_req, sizeof(struct mongo_request) + size);
+int mongo_pkg_set_size(mongo_pkg_t pkg, size_t size) {
+    return dp_req_set_size(pkg->m_dp_req, sizeof(struct mongo_pkg) + size);
 }
 
-size_t mongo_request_size(mongo_request_t pkg) {
-    return dp_req_size(pkg->m_dp_req) - sizeof(struct mongo_request);
+size_t mongo_pkg_size(mongo_pkg_t pkg) {
+    return dp_req_size(pkg->m_dp_req) - sizeof(struct mongo_pkg);
 }
 
-size_t mongo_request_capacity(mongo_request_t pkg) {
-    return dp_req_capacity(pkg->m_dp_req) - sizeof(struct mongo_request);
+size_t mongo_pkg_capacity(mongo_pkg_t pkg) {
+    return dp_req_capacity(pkg->m_dp_req) - sizeof(struct mongo_pkg);
 }
 
-static void mongo_request_dump_i(write_stream_t stream, const char *data , int depth) {
+static void mongo_pkg_dump_i(write_stream_t stream, const char *data , int depth) {
     bson_iterator i;
     const char *key;
     int temp;
@@ -148,7 +148,7 @@ static void mongo_request_dump_i(write_stream_t stream, const char *data , int d
         case BSON_OBJECT:
         case BSON_ARRAY:
             stream_printf(stream,  "\n");
-            mongo_request_dump_i(stream, bson_iterator_value(&i), depth + 1);
+            mongo_pkg_dump_i(stream, bson_iterator_value(&i), depth + 1);
             break;
         default:
             stream_printf(stream, "can't print type : %d\n" , t);
@@ -157,19 +157,19 @@ static void mongo_request_dump_i(write_stream_t stream, const char *data , int d
     }
 }
 
-const char * mongo_request_dump(mongo_request_t req, mem_buffer_t buffer) {
+const char * mongo_pkg_dump(mongo_pkg_t req, mem_buffer_t buffer) {
     struct write_stream_buffer stream;
 
     mem_buffer_clear_data(buffer);
 
     write_stream_buffer_init(&stream, buffer);
 
-    mongo_request_dump_i((write_stream_t)&stream, mongo_request_data(req), 0);
+    mongo_pkg_dump_i((write_stream_t)&stream, mongo_pkg_data(req), 0);
 
     stream_putc((write_stream_t)&stream, 0);
 
     return mem_buffer_make_continuous(buffer, 0);
 }
 
-CPE_HS_DEF_VAR(mongo_request_type_name, "mongo_request_type");
+CPE_HS_DEF_VAR(mongo_pkg_type_name, "mongo_pkg_type");
 

@@ -7,6 +7,7 @@
 #include "gd/app/app_log.h"
 #include "gd/app/app_context.h"
 #include "usf/mongo_driver/mongo_driver.h"
+#include "usf/mongo_driver/mongo_pkg.h"
 #include "mongo_internal_ops.h"
 
 static void mongo_driver_clear(nm_node_t node);
@@ -37,6 +38,21 @@ mongo_driver_create(
     driver->m_em = em;
     driver->m_debug = 0;
     driver->m_state = mongo_driver_state_disable;
+
+    driver->m_req_max_size = 4 * 1024;
+    driver->m_req_buf = NULL;
+
+    if (cpe_hash_table_init(
+            &driver->m_source_infos,
+            alloc,
+            (cpe_hash_fun_t) mongo_source_info_hash,
+            (cpe_hash_cmp_t) mongo_source_info_eq,
+            CPE_HASH_OBJ2ENTRY(mongo_source_info, m_hh),
+            -1) != 0)
+    {
+        nm_node_free(driver_node);
+        return NULL;
+    }
  
     driver->m_dump_buffer_capacity = 4 * 1024;
 
@@ -54,6 +70,14 @@ static void mongo_driver_clear(nm_node_t node) {
     mongo_driver_t driver;
 
     driver = (mongo_driver_t)nm_node_data(node);
+
+    if (driver->m_req_buf) {
+        mongo_pkg_free(driver->m_req_buf);
+        driver->m_req_buf = NULL;
+    }
+
+    mongo_source_info_free_all(driver);
+    cpe_hash_table_fini(&driver->m_source_infos);
 
     mem_buffer_clear(&driver->m_dump_buffer);
 

@@ -90,6 +90,9 @@ int mongo_driver_app_init(gd_app_context_t app, gd_app_module_t module, cfg_t cf
         return -1;
     }
 
+    driver->m_req_max_size =
+        cfg_get_uint32(cfg, "req-max-size", driver->m_req_max_size);
+
     driver->m_debug = cfg_get_int32(cfg, "debug", driver->m_debug);
 
     if (cfg_get_int32(cfg, "auto-enable", 0)) {

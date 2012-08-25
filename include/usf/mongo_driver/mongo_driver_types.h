@@ -23,7 +23,7 @@ typedef enum mongo_driver_error {
 
 typedef struct mongo_host_port * mongo_host_port_t;
 typedef struct mongo_driver * mongo_driver_t;
-typedef struct mongo_request * mongo_request_t;
+typedef struct mongo_pkg * mongo_pkg_t;
 
 #ifdef __cplusplus
 }
