@@ -19,6 +19,7 @@ struct mongo_source_info * mongo_source_info_find(mongo_driver_t driver, int32_t
 int mongo_driver_send(dp_req_t req, void * ctx, error_monitor_t em);
 void mongo_driver_recv(net_ep_t ep, void * ctx, net_ep_event_t event);
 
-void mongo_driver_process_connect(mongo_driver_t driver, mongo_pkg_t pkg);
+int mongo_driver_send_internal(mongo_driver_t driver, mongo_pkg_t pkg);
+void mongo_driver_process_internal(mongo_driver_t driver, mongo_pkg_t pkg);
 
 #endif

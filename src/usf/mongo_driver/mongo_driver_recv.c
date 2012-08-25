@@ -115,7 +115,7 @@ static void mongo_driver_on_read(mongo_driver_t driver, net_ep_t ep) {
             }
         }
         else {
-            mongo_driver_process_connect(driver, req_buf);
+            mongo_driver_process_internal(driver, req_buf);
         }
     }
 }
