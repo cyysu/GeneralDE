@@ -1,6 +1,7 @@
 #include <assert.h>
 #include "cpe/pal/pal_platform.h"
 #include "cpe/pal/pal_string.h"
+#include "cpe/net/net_connector.h"
 #include "cpe/net/net_endpoint.h"
 #include "cpe/dp/dp_request.h"
 #include "gd/app/app_log.h"
@@ -11,6 +12,7 @@
 
 int mongo_driver_send_internal(mongo_driver_t driver, mongo_pkg_t pkg) {
     struct mongo_pro_header head;
+    net_ep_t ep;
 
     pkg->m_pro_head.m_len = mongo_pkg_size(pkg) + sizeof(head);
 
@@ -19,13 +21,19 @@ int mongo_driver_send_internal(mongo_driver_t driver, mongo_pkg_t pkg) {
     CPE_COPY_HTON32(&head.m_response_to, &pkg->m_pro_head.m_response_to);
     CPE_COPY_HTON32(&head.m_op, &pkg->m_pro_head.m_op);
 
-    if (net_ep_send(ep, &head, sizeof(head)) != 0) {
-        CPE_ERROR(em, "%s: send: write to net fail!", mongo_driver_name(driver));
+    ep = net_connector_ep(driver->m_connector);
+    if (ep == NULL) {
+        CPE_ERROR(driver->m_em, "%s: send: ep is NULL!", mongo_driver_name(driver));
         goto ERROR;
     }
 
     if (net_ep_send(ep, &head, sizeof(head)) != 0) {
-        CPE_ERROR(em, "%s: send: write to net fail!", mongo_driver_name(driver));
+        CPE_ERROR(driver->m_em, "%s: send: write to net fail!", mongo_driver_name(driver));
+        goto ERROR;
+    }
+
+    if (net_ep_send(ep, &head, sizeof(head)) != 0) {
+        CPE_ERROR(driver->m_em, "%s: send: write to net fail!", mongo_driver_name(driver));
         goto ERROR;
     }
     
