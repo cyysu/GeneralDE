@@ -47,7 +47,7 @@ public:
         {
             stream_putc_count(stream, ' ', level << 2);
 
-            Cpe::Dr::MetaTraits<ElementT>::META.dump_data(stream, (void const *)&*it);
+            Cpe::Dr::MetaTraits<ElementT>::META.dump_data(stream, (void const *)&*it, sizeof(*it));
 
             stream_putc(stream, '\n');
         }
