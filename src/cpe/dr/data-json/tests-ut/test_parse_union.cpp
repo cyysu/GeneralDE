@@ -157,3 +157,41 @@ TEST_F(ParseTest, type_union_selector_basic) {
 
 }
 
+TEST_F(ParseTest, type_union_selector_in_sub) {
+    installMeta(
+        "<metalib tagsetversion='1' name='net'  version='1'>"
+        "    <struct name='Select' version='1'>"
+        "	     <entry name='v' type='int16' id='3'/>"
+        "    </struct>"
+        "    <union name='S' version='1'>"
+        "	     <entry name='a1' type='int16' id='3'/>"
+        "	     <entry name='a2' type='int32' id='4'/>"
+        "    </union>"
+        "    <struct name='S2' version='1'>"
+        "	     <entry name='s' type='Select'/>"
+        "	     <entry name='u' type='S' select='s.v'/>"
+        "    </struct>"
+        "</metalib>"
+        );
+
+#pragma pack(push,1)
+    struct T {
+        int16_t s;
+        union {
+            int16_t a1;
+            int32_t a2;
+        } u;
+    };
+#pragma pack(pop)
+
+    ASSERT_EQ(
+        4,
+        read("{ \"s\" : { \"v\": 3 }, \"u\" : { \"a1\" : 12, \"a2\" : 13 } }", "S2"));
+
+    struct T * r = (struct T*)result();
+    ASSERT_TRUE(r);
+    EXPECT_EQ(3, r->s);
+    EXPECT_EQ(12, r->u.a1);
+
+}
+
