@@ -21,7 +21,7 @@ public:
     error_list_t m_errorList;
 
     void installMeta(const char * data);
-    int print(const void * data, const char * typeName);
+    int print(const void * data, size_t size, const char * typeName);
     const char * result(void);
 };
 
