@@ -14,7 +14,7 @@
         __type a1;                                                      \
     } input = { __input };                                              \
                                                                         \
-    EXPECT_EQ(0, print(&input, "S"));                                   \
+    EXPECT_EQ(0, print(&input, sizeof(input), "S"));                    \
     EXPECT_STREQ("{\"a1\":" __expect "}", result());                    \
 }
 
@@ -42,7 +42,7 @@ TEST_F(PrintTest, print_string) {
     } input = { "abcd"  };
 #pragma pack(pop)
 
-    EXPECT_EQ(0, print(&input, "S"));
+    EXPECT_EQ(0, print(&input, sizeof(input), "S"));
     EXPECT_STREQ("{\"a1\":\"abcd\"}", result());
 }
 
