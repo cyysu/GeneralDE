@@ -135,7 +135,7 @@ const char * gd_evt_type(gd_evt_t evt) {
 }
 
 void gd_evt_dump(write_stream_t stream, gd_evt_t evt) {
-    dr_json_print(stream, gd_evt_data(evt), gd_evt_meta(evt), DR_JSON_PRINT_MINIMIZE, NULL);
+    dr_json_print(stream, gd_evt_data(evt), gd_evt_data_capacity(evt), gd_evt_meta(evt), DR_JSON_PRINT_MINIMIZE, NULL);
 }
 
 int gd_evt_set_from_string(gd_evt_t evt, const char * arg, const char * data, error_monitor_t em) {
