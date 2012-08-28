@@ -10,7 +10,6 @@ extern "C" {
 
 typedef enum mongo_driver_state {
     mongo_driver_state_disable = -1
-    , mongo_driver_state_idle = 0
     , mongo_driver_state_connecting
     , mongo_driver_state_connected
     , mongo_driver_state_error

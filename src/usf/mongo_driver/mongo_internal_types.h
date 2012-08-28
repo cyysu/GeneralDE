@@ -8,23 +8,35 @@
 #include "usf/mongo_driver/mongo_driver_types.h"
 #include "mongo_protocol.h"
 
-struct mongo_host_port {
+struct mongo_seed {
+    mongo_driver_t m_driver;
     char m_host[255];
     int m_port;
-
-    TAILQ_ENTRY(mongo_host_port) m_next;
+    net_connector_t m_connector;
+    TAILQ_ENTRY(mongo_seed) m_next;
 };
 
-typedef TAILQ_HEAD(mongo_host_port_list, mongo_host_port) mongo_host_port_list_t;
+typedef TAILQ_HEAD(mongo_seed_list, mongo_seed) mongo_seed_list_t;
 
-struct mongo_source_info {
+enum mongo_server_state {
+    mongo_server_state_init
+    , mongo_server_state_connecting
+    , mongo_server_state_checking_is_master
+    , mongo_server_state_connected
+    , mongo_server_state_error
+};
+
+struct mongo_server {
     mongo_driver_t m_driver;
-    int32_t m_source;
-    cpe_hash_string_t m_incoming_dsp_to;
-    dp_rsp_t m_outgoing_rsp;
+    char m_host[255];
+    int m_port;
+    net_connector_t m_connector;
+    enum mongo_server_state m_state;
 
-    struct cpe_hash_entry m_hh;
+    TAILQ_ENTRY(mongo_server) m_next;
 };
+
+typedef TAILQ_HEAD(mongo_server_list, mongo_server) mongo_server_list_t;
 
 struct mongo_driver {
     gd_app_context_t m_app;
@@ -32,18 +44,26 @@ struct mongo_driver {
     error_monitor_t m_em;
     mongo_driver_state_t m_state;
 
-    net_connector_t m_connector;
+    int m_connecting_seed_count;
+    int m_connecting_server_count;
 
-    mongo_host_port_list_t m_seeds;
-    mongo_host_port_list_t m_servers;
+    int m_seed_count;
+    mongo_seed_list_t m_seeds;
+    int m_server_count;
+    mongo_server_list_t m_servers;
+    struct mongo_server * m_master_server;
+    size_t m_server_read_chanel_size;
+    size_t m_server_write_chanel_size;
+
     int m_conn_timeout_ms;
     int m_op_timeout_ms;
     int m_max_bson_size;
 
-    struct cpe_hash_table m_source_infos;
+    cpe_hash_string_t m_incoming_send_to;
+    dp_rsp_t m_outgoing_recv_at;
 
-    size_t m_req_max_size;
-    mongo_pkg_t m_req_buf;
+    size_t m_pkg_buf_max_size;
+    mongo_pkg_t m_pkg_buf;
 
     struct mem_buffer m_dump_buffer;
     uint32_t m_dump_buffer_capacity;
@@ -58,6 +78,7 @@ struct mongo_pkg {
     int32_t m_stack[32];
     int32_t m_stackPos;
     uint32_t m_reserve;
+    char m_db[32];
     struct mongo_pro_header m_pro_head;
     struct mongo_pro_reply_fields m_pro_replay_fields;
 };

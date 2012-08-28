@@ -4,6 +4,7 @@
 #include "cpe/dp/dp.h"
 #include "cpe/nm/nm_manage.h"
 #include "cpe/nm/nm_read.h"
+#include "cpe/net/net_connector.h"
 #include "gd/app/app_log.h"
 #include "gd/app/app_context.h"
 #include "usf/mongo_driver/mongo_driver.h"
@@ -38,26 +39,25 @@ mongo_driver_create(
     driver->m_em = em;
     driver->m_debug = 0;
     driver->m_state = mongo_driver_state_disable;
+    driver->m_connecting_seed_count = 0;
+    driver->m_connecting_server_count = 0;
 
-    driver->m_req_max_size = 4 * 1024;
-    driver->m_req_buf = NULL;
+    driver->m_pkg_buf_max_size = 4 * 1024;
+    driver->m_pkg_buf = NULL;
 
-    if (cpe_hash_table_init(
-            &driver->m_source_infos,
-            alloc,
-            (cpe_hash_fun_t) mongo_source_info_hash,
-            (cpe_hash_cmp_t) mongo_source_info_eq,
-            CPE_HASH_OBJ2ENTRY(mongo_source_info, m_hh),
-            -1) != 0)
-    {
-        nm_node_free(driver_node);
-        return NULL;
-    }
+    driver->m_incoming_send_to = NULL;
+    driver->m_outgoing_recv_at = NULL;
  
     driver->m_dump_buffer_capacity = 4 * 1024;
 
+    driver->m_seed_count = 0;
     TAILQ_INIT(&driver->m_seeds);
+
+    driver->m_server_count = 0;
     TAILQ_INIT(&driver->m_servers);
+    driver->m_master_server = NULL;
+    driver->m_server_read_chanel_size = 4 * 1024 * 10;
+    driver->m_server_write_chanel_size = 4 * 1024;
 
     mem_buffer_init(&driver->m_dump_buffer, driver->m_alloc);
 
@@ -71,27 +71,25 @@ static void mongo_driver_clear(nm_node_t node) {
 
     driver = (mongo_driver_t)nm_node_data(node);
 
-    if (driver->m_req_buf) {
-        mongo_pkg_free(driver->m_req_buf);
-        driver->m_req_buf = NULL;
+    if (driver->m_pkg_buf) {
+        mongo_pkg_free(driver->m_pkg_buf);
+        driver->m_pkg_buf = NULL;
     }
 
-    mongo_source_info_free_all(driver);
-    cpe_hash_table_fini(&driver->m_source_infos);
+    if (driver->m_incoming_send_to) {
+        mem_free(driver->m_alloc, driver->m_incoming_send_to);
+        driver->m_incoming_send_to = NULL;
+    }
+
+    if (driver->m_outgoing_recv_at) {
+        dp_rsp_free(driver->m_outgoing_recv_at);
+        driver->m_outgoing_recv_at = NULL;
+    }
 
     mem_buffer_clear(&driver->m_dump_buffer);
 
-    while(!TAILQ_EMPTY(&driver->m_servers)) {
-        struct mongo_host_port * host = TAILQ_FIRST(&driver->m_servers);
-        TAILQ_REMOVE(&driver->m_servers, host, m_next);
-        mem_free(driver->m_alloc, host);
-    }
-
-    while(!TAILQ_EMPTY(&driver->m_seeds)) {
-        struct mongo_host_port * host = TAILQ_FIRST(&driver->m_seeds);
-        TAILQ_REMOVE(&driver->m_seeds, host, m_next);
-        mem_free(driver->m_alloc, host);
-    }
+    mongo_server_free_all(driver);
+    mongo_seed_free_all(driver);
 }
 
 void mongo_driver_free(mongo_driver_t driver) {
@@ -129,47 +127,136 @@ const char * mongo_driver_name(mongo_driver_t mgr) {
     return nm_node_name(nm_node_from_data(mgr));
 }
 
-int mongo_driver_add_seed(mongo_driver_t driver, const char * host, int port) {
-    struct mongo_host_port * host_port;
+int mongo_driver_set_incoming_send_to(mongo_driver_t driver, const char * incoming_send_to) {
+    size_t name_len = cpe_hs_len_to_binary_len(strlen(incoming_send_to));
+    cpe_hash_string_t buf;
 
-    TAILQ_FOREACH(host_port, &driver->m_seeds, m_next) {
-        if (strcmp(host_port->m_host, host) == 0 && host_port->m_port == port) return -1;
-    }
+    buf = mem_alloc(driver->m_alloc, name_len);
+    if (buf == NULL) return -1;
 
-    host_port = mem_alloc(driver->m_alloc, sizeof(struct mongo_host_port));
-    if (host_port == NULL) return -1;
+    cpe_hs_init(buf, name_len, incoming_send_to);
 
-    strncpy(host_port->m_host, host, sizeof(host_port->m_host));
-    host_port->m_port = port;
+    if (driver->m_incoming_send_to) mem_free(driver->m_alloc, driver->m_incoming_send_to);
 
-    TAILQ_INSERT_TAIL(&driver->m_seeds, host_port, m_next);
+    driver->m_incoming_send_to = buf;
 
     return 0;
 }
 
-int mongo_driver_add_server(mongo_driver_t driver, const char * host, int port) {
-    struct mongo_host_port * host_port;
+int mongo_driver_set_outgoing_recv_at(mongo_driver_t driver, const char * outgoing_recv_at) {
+    char name_buf[128];
 
-    TAILQ_FOREACH(host_port, &driver->m_servers, m_next) {
-        if (strcmp(host_port->m_host, host) == 0 && host_port->m_port == port) return -1;
-    }
+    snprintf(name_buf, sizeof(name_buf), "%s.outgoing-recv-rsp", outgoing_recv_at);
 
-    host_port = mem_alloc(driver->m_alloc, sizeof(struct mongo_host_port));
-    if (host_port == NULL) return -1;
+    if (driver->m_outgoing_recv_at) dp_rsp_free(driver->m_outgoing_recv_at);
 
-    strncpy(host_port->m_host, host, sizeof(host_port->m_host));
-    host_port->m_port = port;
+    driver->m_outgoing_recv_at = dp_rsp_create(gd_app_dp_mgr(driver->m_app), name_buf);
+    if (driver->m_outgoing_recv_at == NULL) return -1;
 
-    TAILQ_INSERT_TAIL(&driver->m_servers, host_port, m_next);
+    dp_rsp_set_processor(driver->m_outgoing_recv_at, mongo_driver_send, driver);
 
-    return 0;
-}
-
-int mongo_driver_enable(mongo_driver_t driver) {
     return 0;
 }
 
 cpe_hash_string_t
 mongo_driver_name_hs(mongo_driver_t mgr) {
     return nm_node_name_hs(nm_node_from_data(mgr));
+}
+
+mongo_pkg_t mongo_driver_pkg_buf(mongo_driver_t driver) {
+    if (driver->m_pkg_buf) {
+        if (mongo_pkg_capacity(driver->m_pkg_buf) < driver->m_pkg_buf_max_size) {
+            mongo_pkg_free(driver->m_pkg_buf);
+            driver->m_pkg_buf = NULL;
+        }
+    }
+
+    if (driver->m_pkg_buf == NULL) {
+        driver->m_pkg_buf = mongo_pkg_create(driver, driver->m_pkg_buf_max_size);
+    }
+
+    mongo_pkg_init(driver->m_pkg_buf);
+
+    return driver->m_pkg_buf;
+}
+
+int mongo_driver_connect_i(mongo_driver_t driver) {
+    struct mongo_server * server;
+    struct mongo_seed * seed;
+
+    driver->m_state = mongo_driver_state_connecting;
+
+    TAILQ_FOREACH(server, &driver->m_servers, m_next) {
+        mongo_server_disable(server);
+    }
+
+    driver->m_connecting_seed_count = 0;
+    driver->m_connecting_server_count = 0;
+    driver->m_master_server = NULL;
+
+    TAILQ_FOREACH(seed, &driver->m_seeds, m_next) {
+        mongo_seed_connect(seed);
+    }
+
+    TAILQ_FOREACH(server, &driver->m_servers, m_next) {
+        mongo_server_connect(server);
+    }
+
+    mongo_driver_update_state(driver);
+
+    return 0;
+}
+
+void mongo_driver_update_state(mongo_driver_t driver) {
+    if (driver->m_state == mongo_driver_state_connecting) {
+        if (driver->m_connecting_seed_count == 0 && driver->m_connecting_server_count == 0) {
+            if (driver->m_master_server == NULL) {
+                driver->m_state = mongo_driver_state_error;
+                CPE_ERROR(
+                    driver->m_em, "%s: update state: no any seed and server left, can`t find mast server!",
+                    mongo_driver_name(driver));
+            }
+            else {
+                driver->m_state = mongo_driver_state_connected;
+                CPE_INFO(
+                    driver->m_em, "%s: update state: connect success, master server: %s:%d!",
+                    mongo_driver_name(driver), driver->m_master_server->m_host, driver->m_master_server->m_port);
+            }
+        }
+        else {
+            if (driver->m_debug) {
+                driver->m_state = mongo_driver_state_error;
+                CPE_ERROR(
+                    driver->m_em, "%s: update_state: %d seed %d server still processing, keep connectiong!",
+                    mongo_driver_name(driver), driver->m_connecting_seed_count, driver->m_connecting_server_count);
+            }
+        }
+    }
+}
+
+int mongo_driver_enable(mongo_driver_t driver) {
+    switch(driver->m_state) {
+    case mongo_driver_state_disable:
+        break;
+    case mongo_driver_state_connecting:
+        if (driver->m_debug) {
+            CPE_INFO(
+                driver->m_em, "%s: enable: is already connecting!",
+                mongo_driver_name(driver));
+            return 0;
+        }
+        break;
+    case mongo_driver_state_connected:
+        if (driver->m_debug) {
+            CPE_INFO(
+                driver->m_em, "%s: enable: is already connected!",
+                mongo_driver_name(driver));
+            return 0;
+        }
+        break;
+    case mongo_driver_state_error:
+        break;
+    }
+
+    return mongo_driver_connect_i(driver);
 }

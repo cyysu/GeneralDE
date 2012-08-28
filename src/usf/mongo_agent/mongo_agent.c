@@ -7,6 +7,7 @@
 #include "gd/app/app_log.h"
 #include "gd/app/app_context.h"
 #include "usf/logic/logic_require.h"
+#include "usf/logic_use/logic_require_queue.h"
 #include "usf/mongo_agent/mongo_agent.h"
 #include "mongo_agent_internal_ops.h"
 
@@ -22,7 +23,6 @@ mongo_agent_create(
     gd_app_context_t app,
     const char * name,
     logic_manage_t logic_mgr,
-    mongo_driver_t mongo_driver,
     mem_allocrator_t alloc,
     error_monitor_t em)
 {
@@ -39,13 +39,15 @@ mongo_agent_create(
     agent->m_alloc = alloc;
     agent->m_em = em;
     agent->m_debug = 0;
-    agent->m_logic_mgr = logic_mgr;
- 
-    agent->m_runing_require_capacity = 0;
-    agent->m_runing_require_count = 0;
-    agent->m_runing_require_op_count = 0;
-    agent->m_runing_require_check_span = 20000;
-    agent->m_runing_requires = NULL;
+    agent->m_outgoing_send_to = NULL;
+    agent->m_incoming_recv_at = NULL;
+
+    agent->m_require_queue = logic_require_queue_create(app, alloc, em, name, logic_mgr);
+    if (agent->m_require_queue == NULL) {
+        CPE_ERROR(em, "%s: create: create logic_require_queue fail!", name);
+        nm_node_free(agent_node);
+        return NULL;
+    }
 
     nm_node_set_type(agent_node, &s_nm_node_type_mongo_agent);
 
@@ -57,9 +59,16 @@ static void mongo_agent_clear(nm_node_t node) {
 
     agent = (mongo_agent_t)nm_node_data(node);
 
-    if (agent->m_runing_requires) {
-        mem_free(agent->m_alloc, agent->m_runing_requires);
-        agent->m_runing_requires = NULL;
+    logic_require_queue_free(agent->m_require_queue);
+
+    if (agent->m_outgoing_send_to) {
+        mem_free(agent->m_alloc, agent->m_outgoing_send_to);
+        agent->m_outgoing_send_to = NULL;
+    }
+
+    if (agent->m_incoming_recv_at) {
+        dp_rsp_free(agent->m_incoming_recv_at);
+        agent->m_incoming_recv_at = NULL;
     }
 }
 
@@ -101,4 +110,35 @@ const char * mongo_agent_name(mongo_agent_t mgr) {
 cpe_hash_string_t
 mongo_agent_name_hs(mongo_agent_t mgr) {
     return nm_node_name_hs(nm_node_from_data(mgr));
+}
+
+int mongo_agent_set_outgoing_send_to(mongo_agent_t agent, const char * outgoing_send_to) {
+    size_t name_len = cpe_hs_len_to_binary_len(strlen(outgoing_send_to));
+    cpe_hash_string_t buf;
+
+    buf = mem_alloc(agent->m_alloc, name_len);
+    if (buf == NULL) return -1;
+
+    cpe_hs_init(buf, name_len, outgoing_send_to);
+
+    if (agent->m_outgoing_send_to) mem_free(agent->m_alloc, agent->m_outgoing_send_to);
+
+    agent->m_outgoing_send_to = buf;
+
+    return 0;
+}
+
+int mongo_agent_set_incoming_recv_at(mongo_agent_t agent, const char * incoming_recv_at) {
+    char name_buf[128];
+
+    snprintf(name_buf, sizeof(name_buf), "%s.incoming-recv-rsp", incoming_recv_at);
+
+    if (agent->m_incoming_recv_at) dp_rsp_free(agent->m_incoming_recv_at);
+
+    agent->m_incoming_recv_at = dp_rsp_create(gd_app_dp_mgr(agent->m_app), name_buf);
+    if (agent->m_incoming_recv_at == NULL) return -1;
+
+    dp_rsp_set_processor(agent->m_incoming_recv_at, mongo_agent_recv, agent);
+
+    return 0;
 }

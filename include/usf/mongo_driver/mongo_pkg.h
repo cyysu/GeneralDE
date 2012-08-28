@@ -32,6 +32,12 @@ size_t mongo_pkg_capacity(mongo_pkg_t pkg);
 uint32_t mongo_pkg_op(mongo_pkg_t pkg);
 void mongo_pkg_set_op(mongo_pkg_t pkg, uint32_t cmd);
 
+uint32_t mongo_pkg_id(mongo_pkg_t pkg);
+void mongo_pkg_set_id(mongo_pkg_t pkg, uint32_t id);
+
+const char *mongo_pkg_db(mongo_pkg_t pkg);
+void mongo_pkg_set_db(mongo_pkg_t pkg, const char * db);
+
 const char * mongo_pkg_dump(mongo_pkg_t req, mem_buffer_t buffer);
 int mongo_pkg_build_from_cfg(mongo_pkg_t req, cfg_t cfg, error_monitor_t em);
 

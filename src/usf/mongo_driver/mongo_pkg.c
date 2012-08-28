@@ -1,5 +1,6 @@
 #include <assert.h>
 #include "cpe/pal/pal_stdio.h"
+#include "cpe/pal/pal_string.h"
 #include "cpe/utils/stream_buffer.h"
 #include "cpe/dr/dr_data.h"
 #include "cpe/dp/dp_request.h"
@@ -51,6 +52,7 @@ mongo_driver_t mongo_pkg_driver(mongo_pkg_t req) {
 void mongo_pkg_init(mongo_pkg_t pkg) {
     pkg->m_finished = 0;
     pkg->m_stackPos = 0;
+    pkg->m_db[0] = 0;
     bzero(&pkg->m_pro_head, sizeof(pkg->m_pro_head));
     dp_req_set_size(pkg->m_dp_req, sizeof(struct mongo_pkg));
 }
@@ -61,6 +63,26 @@ uint32_t mongo_pkg_op(mongo_pkg_t pkg) {
 
 void mongo_pkg_set_op(mongo_pkg_t pkg, uint32_t op) {
     pkg->m_pro_head.m_op = op;
+}
+
+uint32_t mongo_pkg_id(mongo_pkg_t pkg) {
+    return pkg->m_pro_head.m_id;
+}
+
+void mongo_pkg_set_id(mongo_pkg_t pkg, uint32_t id) {
+    pkg->m_pro_head.m_id = id;
+}
+
+const char * mongo_pkg_db(mongo_pkg_t pkg) {
+    return pkg->m_db;
+}
+
+void mongo_pkg_set_db(mongo_pkg_t pkg, const char * db) {
+    strncpy(pkg->m_db, db, sizeof(pkg->m_db));
+}
+
+void * mongo_pkg_data(mongo_pkg_t pkg) {
+    return (pkg + 1);
 }
 
 int mongo_pkg_set_size(mongo_pkg_t pkg, size_t size) {

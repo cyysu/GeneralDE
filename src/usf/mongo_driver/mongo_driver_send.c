@@ -10,9 +10,8 @@
 #include "usf/mongo_driver/mongo_pkg.h"
 #include "mongo_internal_ops.h"
 
-int mongo_driver_send_internal(mongo_driver_t driver, mongo_pkg_t pkg) {
+int mongo_driver_send_internal(mongo_driver_t driver, net_ep_t ep, mongo_pkg_t pkg) {
     struct mongo_pro_header head;
-    net_ep_t ep;
 
     pkg->m_pro_head.m_len = mongo_pkg_size(pkg) + sizeof(head);
 
@@ -20,12 +19,6 @@ int mongo_driver_send_internal(mongo_driver_t driver, mongo_pkg_t pkg) {
     CPE_COPY_HTON32(&head.m_id, &pkg->m_pro_head.m_id);
     CPE_COPY_HTON32(&head.m_response_to, &pkg->m_pro_head.m_response_to);
     CPE_COPY_HTON32(&head.m_op, &pkg->m_pro_head.m_op);
-
-    ep = net_connector_ep(driver->m_connector);
-    if (ep == NULL) {
-        CPE_ERROR(driver->m_em, "%s: send: ep is NULL!", mongo_driver_name(driver));
-        goto ERROR;
-    }
 
     if (net_ep_send(ep, &head, sizeof(head)) != 0) {
         CPE_ERROR(driver->m_em, "%s: send: write to net fail!", mongo_driver_name(driver));
@@ -44,9 +37,9 @@ ERROR:
 }
 
 int mongo_driver_send(dp_req_t req, void * ctx, error_monitor_t em) {
-    struct mongo_source_info * source_info = ctx;
-    mongo_driver_t driver = source_info->m_driver;
+    mongo_driver_t driver = ctx;
     mongo_pkg_t pkg;
+    net_ep_t ep;
 
     pkg = mongo_pkg_from_dp_req(req);
     if (pkg == NULL) {
@@ -63,5 +56,16 @@ int mongo_driver_send(dp_req_t req, void * ctx, error_monitor_t em) {
         return -1;
     }
  
-    return mongo_driver_send_internal(driver, pkg);
+    if (driver->m_master_server == NULL) {
+        CPE_ERROR(driver->m_em, "%s: send: master server not exist!", mongo_driver_name(driver));
+        return -1;
+    }
+
+    ep = net_connector_ep(driver->m_master_server->m_connector);
+    if (ep == NULL) {
+        CPE_ERROR(driver->m_em, "%s: send: ep is NULL!", mongo_driver_name(driver));
+        return -1;
+    }
+
+    return mongo_driver_send_internal(driver, ep, pkg);
 }

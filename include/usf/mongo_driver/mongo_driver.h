@@ -33,11 +33,12 @@ mongo_driver_state_t mongo_driver_state(mongo_driver_t driver);
 int mongo_driver_add_seed(mongo_driver_t driver, const char * host, int port);
 int mongo_driver_add_server(mongo_driver_t driver, const char * host, int port);
 
-int mongo_driver_add_dispatch(mongo_driver_t driver, const char * host, int port);
+int mongo_driver_set_incoming_send_to(mongo_driver_t driver, const char * incoming_send_to);
+int mongo_driver_set_outgoing_recv_at(mongo_driver_t driver, const char * outgoing_recv_at);
 
 int mongo_driver_enable(mongo_driver_t driver);
 
-mongo_pkg_t mongo_driver_req_buf(mongo_driver_t driver);
+mongo_pkg_t mongo_driver_pkg_buf(mongo_driver_t driver);
 
 #ifdef __cplusplus
 }

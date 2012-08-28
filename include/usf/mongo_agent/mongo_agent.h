@@ -13,7 +13,6 @@ mongo_agent_create(
     gd_app_context_t app,
     const char * name,
     logic_manage_t logic_mgr,
-    mongo_driver_t mongo_driver,
     mem_allocrator_t alloc,
     error_monitor_t em);
 
@@ -29,7 +28,10 @@ gd_app_context_t mongo_agent_app(mongo_agent_t agent);
 const char * mongo_agent_name(mongo_agent_t agent);
 cpe_hash_string_t mongo_agent_name_hs(mongo_agent_t agent);
 
-int mongo_agent_send_request(mongo_agent_t agent, mongo_request_t request, logic_require_t require);
+int mongo_agent_set_outgoing_send_to(mongo_agent_t agent, const char * outgoing_send_to);
+int mongo_agent_set_incoming_recv_at(mongo_agent_t agent, const char * outgoing_send_to);
+
+int mongo_agent_send(mongo_agent_t agent, mongo_pkg_t pkg, logic_require_t require);
 
 #ifdef __cplusplus
 }

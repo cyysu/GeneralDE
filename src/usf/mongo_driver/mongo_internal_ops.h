@@ -15,11 +15,25 @@ int mongo_source_info_eq(const struct mongo_source_info * l, const struct mongo_
 void mongo_source_info_free_all(mongo_driver_t driver);
 struct mongo_source_info * mongo_source_info_find(mongo_driver_t driver, int32_t source);
 
+/*seed ops*/
+void mongo_seed_free_all(mongo_driver_t driver);
+void mongo_seed_disable(struct mongo_seed * seed);
+int mongo_seed_connect(struct mongo_seed * seed);
+
+/*server ops*/
+void mongo_server_free_all(mongo_driver_t driver);
+void mongo_server_disable(struct mongo_server * server);
+int mongo_server_connect(struct mongo_server * server);
+
 /*process ops*/
+int mongo_driver_connect_i(mongo_driver_t driver);
+int mongo_driver_recv_internal(mongo_driver_t driver, net_ep_t ep, mongo_pkg_t pkg); /*return 0: not enouth data, 1: get pkg, -1: error*/
+int mongo_driver_send_internal(mongo_driver_t driver, net_ep_t ep, mongo_pkg_t pkg);
 int mongo_driver_send(dp_req_t req, void * ctx, error_monitor_t em);
 void mongo_driver_recv(net_ep_t ep, void * ctx, net_ep_event_t event);
 
-int mongo_driver_send_internal(mongo_driver_t driver, mongo_pkg_t pkg);
+void mongo_driver_update_state(mongo_driver_t driver);
+
 void mongo_driver_process_internal(mongo_driver_t driver, mongo_pkg_t pkg);
 
 #endif

@@ -24,8 +24,8 @@ Agent & Agent::instance(gd_app_context_t app, const char * name) {
     return *(Agent*)agent;
 }
 
-void Agent::send(mongo_request_t request, logic_require_t require) {
-    if (mongo_agent_send_request(*this, request, require) != 0) {
+void Agent::send(mongo_pkg_t pkg, logic_require_t require) {
+    if (mongo_agent_send(*this, pkg, require) != 0) {
         APP_CTX_THROW_EXCEPTION(
             app(),
             ::std::runtime_error,

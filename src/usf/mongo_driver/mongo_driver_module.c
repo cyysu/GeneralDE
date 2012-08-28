@@ -77,21 +77,43 @@ static int mongo_driver_app_init_load_servers(gd_app_context_t app, mongo_driver
 
 EXPORT_DIRECTIVE
 int mongo_driver_app_init(gd_app_context_t app, gd_app_module_t module, cfg_t cfg) {
+    const char * incoming_send_to;
+    const char * outgoing_recv_at;
     mongo_driver_t driver;
+
+    incoming_send_to = cfg_get_string(cfg, "incoming-send-to", NULL);
+    if (incoming_send_to == NULL) {
+        CPE_ERROR(
+            gd_app_em(app), "%s: create: incoming-send-to not configured!",
+            gd_app_module_name(module));
+        return -1;
+    }
+
+    outgoing_recv_at = cfg_get_string(cfg, "outgoing-recv-at", NULL);
+    if (outgoing_recv_at == NULL) {
+        CPE_ERROR(
+            gd_app_em(app), "%s: create: outgoing-recv-at not configured!",
+            gd_app_module_name(module));
+        return -1;
+    }
 
     driver = mongo_driver_create(app, gd_app_module_name(module), gd_app_alloc(app), gd_app_em(app));
     if (driver == NULL) return -1;
 
     if (mongo_driver_app_init_load_seeds(app, driver, cfg_find_cfg(cfg, "seeds")) != 0
         || mongo_driver_app_init_load_servers(app, driver, cfg_find_cfg(cfg, "servers")) != 0
+        || mongo_driver_set_incoming_send_to(driver, incoming_send_to) != 0
+        || mongo_driver_set_outgoing_recv_at(driver, outgoing_recv_at) != 0
         )
     {
         mongo_driver_free(driver);
         return -1;
     }
 
-    driver->m_req_max_size =
-        cfg_get_uint32(cfg, "req-max-size", driver->m_req_max_size);
+    driver->m_pkg_buf_max_size = cfg_get_uint32(cfg, "pkg-buf-max-size", driver->m_pkg_buf_max_size);
+
+    driver->m_server_read_chanel_size = cfg_get_uint32(cfg, "read-chanel-size", driver->m_server_read_chanel_size);
+    driver->m_server_write_chanel_size = cfg_get_uint32(cfg, "write-chanel-size", driver->m_server_write_chanel_size);
 
     driver->m_debug = cfg_get_int32(cfg, "debug", driver->m_debug);
 

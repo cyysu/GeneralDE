@@ -1,21 +1,19 @@
 #ifndef USF_MONGO_AGENT_INTERNAL_TYPES_H
 #define USF_MONGO_AGENT_INTERNAL_TYPES_H
+#include "cpe/dp/dp_types.h"
 #include "usf/logic/logic_types.h"
+#include "usf/logic_use/logic_use_types.h"
 #include "usf/mongo_agent/mongo_agent_types.h"
 
 struct mongo_agent {
     gd_app_context_t m_app;
     mem_allocrator_t m_alloc;
     error_monitor_t m_em;
-    logic_manage_t m_logic_mgr;
-    mongo_driver_t m_driver;
+    logic_require_queue_t m_require_queue;
 
-    uint32_t m_runing_require_capacity;
-    uint32_t m_runing_require_count;
-    uint32_t m_runing_require_op_count;
-    uint32_t m_runing_require_check_span;
-    logic_require_id_t * m_runing_requires;
-
+    cpe_hash_string_t m_outgoing_send_to;
+    dp_rsp_t m_incoming_recv_at;
+    
     int m_debug;
 };
 
