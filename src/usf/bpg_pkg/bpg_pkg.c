@@ -360,7 +360,7 @@ const char * bpg_pkg_dump(bpg_pkg_t req, mem_buffer_t buffer) {
 
     metalib = dr_ref_lib(req->m_mgr->m_metalib_basepkg_ref);
     if ((meta = metalib ? dr_lib_find_meta_by_name(metalib, "basepkg_head") : NULL)) {
-        dr_json_print((write_stream_t)&stream, &pkg->head, meta, DR_JSON_PRINT_BEAUTIFY, 0);
+        dr_json_print((write_stream_t)&stream, &pkg->head, sizeof(pkg->head), meta, DR_JSON_PRINT_BEAUTIFY, 0);
     }
     else {
         stream_printf((write_stream_t)&stream, "[no meta] cmd=%d", pkg->head.cmd);
@@ -378,6 +378,7 @@ const char * bpg_pkg_dump(bpg_pkg_t req, mem_buffer_t buffer) {
                 dr_json_print(
                     (write_stream_t)&stream,
                     mem_buffer_make_continuous(&decode_buffer, 0),
+                    mem_buffer_size(&decode_buffer),
                     meta,
                     DR_JSON_PRINT_BEAUTIFY, 0);
             }
@@ -403,7 +404,7 @@ const char * bpg_pkg_dump(bpg_pkg_t req, mem_buffer_t buffer) {
             mem_buffer_set_size(&decode_buffer, bpg_pkg_append_info_origin_size(append_info));
             buf_size = mem_buffer_size(&decode_buffer);
             if (bpg_pkg_get_append_data(req, append_info, meta, mem_buffer_make_continuous(&decode_buffer, 0), &buf_size, NULL) == 0) {
-                dr_json_print((write_stream_t)&stream, mem_buffer_make_continuous(&decode_buffer, 0), meta, DR_JSON_PRINT_BEAUTIFY, 0);
+                dr_json_print((write_stream_t)&stream, mem_buffer_make_continuous(&decode_buffer, 0), mem_buffer_size(&decode_buffer), meta, DR_JSON_PRINT_BEAUTIFY, 0);
             }
             else {
                 stream_printf(
