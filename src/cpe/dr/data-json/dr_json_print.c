@@ -18,6 +18,7 @@ struct DrJsonPrintProcessStack {
     int m_entry_count;
     int m_array_pos;
     const char * m_src_data;
+    size_t m_src_capacity;
 };
 
 static const char * yajl_errno_to_string(yajl_gen_status s) {
@@ -112,6 +113,7 @@ static void dr_print_print_basic_data(yajl_gen g, LPDRMETAENTRY entry, const voi
 void dr_json_print_i(
     write_stream_t output,
     const void * input,
+    size_t capacity,
     LPDRMETA meta,
     yajl_gen g,
     error_monitor_t em)
@@ -125,6 +127,7 @@ void dr_json_print_i(
     processStack[0].m_entry_count = meta->m_entry_count;
     processStack[0].m_array_pos = 0;
     processStack[0].m_src_data = (const char *)input;
+    processStack[0].m_src_capacity = capacity;
 
     yajl_gen_map_open(g);
 
@@ -180,6 +183,13 @@ void dr_json_print_i(
 
             for(; curStack->m_array_pos < array_count; ++curStack->m_array_pos) {
                 const char * entryData = curStack->m_src_data + curStack->m_entry->m_data_start_pos + (elementSize * curStack->m_array_pos);
+                if (entryData + elementSize - curStack->m_src_data > curStack->m_src_capacity) {
+                    CPE_ERROR(
+                        em, "%s.%s[%d]: read size overflow, capacity=%d",
+                        dr_meta_name(dr_entry_self_meta(curStack->m_entry)), dr_entry_name(curStack->m_entry),
+                        curStack->m_array_pos, (int)curStack->m_src_capacity);
+                    break;
+                }
 
                 if (curStack->m_entry->m_type <= CPE_DR_TYPE_COMPOSITE) {
                     if (stackPos + 1 < CPE_DR_MAX_LEVEL) {
@@ -195,6 +205,13 @@ void dr_json_print_i(
                         }
 
                         nextStack->m_src_data = entryData;
+                        if (curStack->m_entry_pos + 1 == curStack->m_entry_count && curStack->m_array_pos + 1 == array_count) {
+                            nextStack->m_src_capacity = curStack->m_src_capacity - (entryData - curStack->m_src_data);
+                        }
+                        else {
+                            nextStack->m_src_capacity = elementSize;
+                        }
+
                         nextStack->m_entry_pos = 0;
                         nextStack->m_entry_count = nextStack->m_meta->m_entry_count;
 
@@ -208,7 +225,6 @@ void dr_json_print_i(
                                     curStack->m_src_data + curStack->m_entry->m_select_data_start_pos,
                                     select_entry,
                                     em);
-                                
                                 nextStack->m_entry_pos =
                                     dr_meta_find_entry_idx_by_id(nextStack->m_meta, union_entry_id);
                                 if (nextStack->m_entry_pos < 0) {
@@ -254,6 +270,7 @@ void dr_json_print_i(
 int dr_json_print(
     write_stream_t output,
     const void * input,
+    size_t capacity,
     LPDRMETA meta,
     int flag,
     error_monitor_t em)
@@ -279,12 +296,12 @@ int dr_json_print(
 
     if (em) {
         CPE_DEF_ERROR_MONITOR_ADD(logError, em, cpe_error_save_last_errno, &ret);
-        dr_json_print_i(output, input, meta, g, em);
+        dr_json_print_i(output, input, capacity, meta, g, em);
         CPE_DEF_ERROR_MONITOR_REMOVE(logError, em);
     }
     else {
         CPE_DEF_ERROR_MONITOR(logError, cpe_error_save_last_errno, &ret);
-        dr_json_print_i(output, input, meta, g, &logError);
+        dr_json_print_i(output, input, capacity, meta, g, &logError);
     }
 
     yajl_gen_free(g);    

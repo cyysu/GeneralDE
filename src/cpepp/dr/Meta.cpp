@@ -85,20 +85,21 @@ Meta const & Meta::_cast(LPDRMETA meta) {
     return *(Meta const *)meta;
 }
 
-const char * Meta::dump_data(mem_buffer_t buffer, const void * data) const {
+const char * Meta::dump_data(mem_buffer_t buffer, const void * data, size_t capacity) const {
     write_stream_buffer stream = CPE_WRITE_STREAM_BUFFER_INITIALIZER(buffer);
 
-    dump_data((write_stream_t)&stream, data);
+    dump_data((write_stream_t)&stream, data, capacity);
 
     stream_putc((write_stream_t)&stream, 0);
 
     return (const char *)mem_buffer_make_continuous(buffer, 0);
 }
 
-void Meta::dump_data(write_stream_t stream, const void * data) const {
+void Meta::dump_data(write_stream_t stream, const void * data, size_t capacity) const {
     dr_json_print(
         stream,
         data,
+        capacity, 
         *this,
         DR_JSON_PRINT_BEAUTIFY,
         0);
