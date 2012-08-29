@@ -272,7 +272,7 @@ static int pom_grp_store_write_obj_list(
     src_element_meta = pom_grp_entry_meta_list_meta(entry->m_entry_meta);
     src_element_size = dr_meta_size(des_element_meta);
 
-    for(i = 0; i < count; ++i, src_element_buf += src_element_size) {
+    for(i = 0; i < count; ++i, des_element_buf += des_element_size) {
         src_element_buf = pom_grp_obj_list_at_ex(obj_mgr, obj, entry->m_entry_meta, i);
         assert(src_element_buf);
 
