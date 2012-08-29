@@ -201,8 +201,7 @@ int pom_grp_obj_ba_set_ex(pom_grp_obj_mgr_t mgr, pom_grp_obj_t obj, pom_grp_entr
 
     assert(page_buf);
 
-    assert(value == cpe_ba_true);
-    cpe_ba_set((cpe_ba_t)page_buf, set_pos_in_page, cpe_ba_true);
+    cpe_ba_set((cpe_ba_t)page_buf, set_pos_in_page, value);
 
     POM_GRP_VALIDATE_OBJ(mgr, obj);
 
