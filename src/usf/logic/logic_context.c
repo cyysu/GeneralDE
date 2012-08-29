@@ -331,13 +331,6 @@ static void logic_context_do_timeout(void * ctx, gd_timer_id_t timer_id, void * 
         logic_manage_name(context->m_mgr), logic_context_id(context));
 
     logic_context_timeout(context);
-
-    if (context->m_commit_op) {
-        context->m_commit_op(context, context->m_commit_ctx);
-    }
-    else {
-        logic_context_free(context);
-    }
 }
 
 void logic_context_timeout_stop(logic_context_t context) {
@@ -354,8 +347,6 @@ void logic_context_timeout_stop(logic_context_t context) {
 
 int logic_context_timeout_start(logic_context_t context, tl_time_span_t timeout_ms) {
     logic_manage_t mgr;
-
-    if (context->m_state != logic_context_state_waiting) return -1;
 
     mgr = context->m_mgr;
     if (mgr->m_timer_mgr == NULL) return -1;

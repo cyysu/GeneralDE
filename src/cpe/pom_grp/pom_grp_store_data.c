@@ -77,7 +77,7 @@ static int pom_grp_store_build_obj_list(
     des_element_meta = pom_grp_entry_meta_list_meta(entry->m_entry_meta);
     des_element_size = dr_meta_size(des_element_meta);
 
-    for(i = 0; i < count; ++i, src_element_buf += src_element_size) {
+    for(i = 0; i < count; ++i, src_element_buf += src_element_size, des_element_buf += des_element_size) {
         if (pom_grp_obj_list_append_ex(obj_mgr, obj, entry->m_entry_meta, NULL) != 0) {
             CPE_ERROR(
                 obj_mgr->m_em, "pom_grp_store_build_obj: list entry %s: %d: append entry fail!",
