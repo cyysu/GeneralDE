@@ -34,6 +34,7 @@ bpg_rsp_t bpg_rsp_create(bpg_rsp_manage_t mgr, const char * name) {
     rsp->m_queue_info = NULL;
     rsp->m_flags = 0;
     rsp->m_executor_ref = NULL;
+    rsp->m_timeout_ms = 0;
 
     TAILQ_INIT(&rsp->m_ctx_to_pdu);
 
@@ -114,6 +115,14 @@ int bpg_rsp_set_queue(bpg_rsp_t rsp, const char * queue_name) {
 
 const char * bpg_rsp_name(bpg_rsp_t rsp) {
     return rsp->m_name;
+}
+
+tl_time_span_t bpg_rsp_timeout_ms(bpg_rsp_t rsp) {
+    return rsp->m_timeout_ms;
+}
+
+void bpg_rsp_set_timeout_ms(bpg_rsp_t rsp, tl_time_span_t timeout_ms) {
+    rsp->m_timeout_ms = timeout_ms;
 }
 
 uint32_t bpg_rsp_flags(bpg_rsp_t rsp) {

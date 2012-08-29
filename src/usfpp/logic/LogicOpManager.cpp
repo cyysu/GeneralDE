@@ -1,5 +1,6 @@
 #include "gd/app/app_context.h"
 #include "gdpp/app/Log.hpp"
+#include "gd/timer/timer_manage.h"
 #include "usf/logic/logic_context.h"
 #include "usfpp/logic/LogicOpManager.hpp"
 
@@ -122,8 +123,8 @@ LogicOpManager::createContext(
 }
 
 LogicOpManager &
-LogicOpManager::install(gd_app_context_t app, mem_allocrator_t alloc, const char * name) {
-    logic_manage_t manager = logic_manage_create(app, name, alloc);
+LogicOpManager::install(gd_app_context_t app, gd_timer_mgr_t timer_mgr, mem_allocrator_t alloc, const char * name) {
+    logic_manage_t manager = logic_manage_create(app, timer_mgr, name, alloc);
     if (manager == 0) {
         APP_CTX_THROW_EXCEPTION(
             app,
@@ -132,6 +133,11 @@ LogicOpManager::install(gd_app_context_t app, mem_allocrator_t alloc, const char
     }
 
     return *(LogicOpManager*)manager;
+}
+
+LogicOpManager &
+LogicOpManager::install(gd_app_context_t app, mem_allocrator_t alloc, const char * name) {
+    return install(app, gd_timer_mgr_default(app), alloc, name);
 }
 
 void LogicOpManager::uninstall(gd_app_context_t app, cpe_hash_string_t name) {

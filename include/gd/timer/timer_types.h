@@ -15,6 +15,8 @@ typedef struct gd_evt_processor * gd_evt_responser_t;
 
 typedef void (*gd_timer_process_fun_t)(void * ctx, gd_timer_id_t timer_id, void * arg);
 
+#define GD_TIMER_ID_INVALID ((gd_timer_id_t)-1)
+
 #ifdef __cplusplus
 }
 #endif

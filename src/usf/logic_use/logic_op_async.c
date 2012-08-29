@@ -35,7 +35,7 @@ logic_op_asnyc_exec(
     cfg_t args)
 {
     struct logic_require_it require_it;
-    logic_require_t require, next_require;
+    logic_require_t require;
     logic_executor_t executor;
     logic_op_exec_result_t tmp_rv;
     LPDRMETA meta;
@@ -82,11 +82,11 @@ logic_op_asnyc_exec(
     assert(asnyc_info);
 
     logic_stack_node_requires(stack_node, &require_it);
-    require = logic_require_next(&require_it);
-    for(; require; require = next_require) {
+    for(require = logic_require_next(&require_it);
+        require;
+        require = logic_require_next(&require_it))
+    {
         logic_require_state_t require_state;
-
-        next_require = logic_require_next(&require_it);
 
         assert(logic_require_stack(require) == stack_node);
 
@@ -97,12 +97,15 @@ logic_op_asnyc_exec(
             continue;
         }
 
-        tmp_rv = recv_fun(context, stack_node, require, user_data, args);
         logic_require_disconnect_to_stack(require);
+
+        tmp_rv = recv_fun(context, stack_node, require, user_data, args);
 
         if (tmp_rv == logic_op_exec_result_null) return logic_op_exec_result_null;
 
         if (tmp_rv == logic_op_exec_result_false) asnyc_info->res_rv = logic_op_exec_result_false;
+
+        logic_stack_node_requires(stack_node, &require_it);
     }
 
     /*最后检查还有没有require*/

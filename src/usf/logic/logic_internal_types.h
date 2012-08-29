@@ -4,6 +4,7 @@
 #include "cpe/utils/memory.h"
 #include "cpe/utils/hash.h"
 #include "cpe/utils/hash_string.h"
+#include "gd/timer/timer_types.h"
 #include "usf/logic/logic_types.h"
 
 #ifdef __cplusplus
@@ -18,6 +19,10 @@ typedef TAILQ_HEAD(logic_context_list, logic_context) logic_context_list_t;
 struct logic_manage {
     mem_allocrator_t m_alloc;
     gd_app_context_t m_app;
+    gd_timer_mgr_t m_timer_mgr;
+    tl_time_span_t m_require_timout_ms;
+    tl_time_span_t m_context_timout_ms;
+
     int m_debug;
 
     uint32_t m_context_id;
@@ -60,6 +65,8 @@ struct logic_context {
     logic_manage_t m_mgr;
     logic_context_id_t m_id;
     logic_context_state_t m_state;
+    gd_timer_id_t m_timer_id;
+
     logic_context_commit_fun_t m_commit_op;
     void * m_commit_ctx;
     size_t m_capacity;
@@ -99,6 +106,7 @@ struct logic_require {
     char * m_name;
     int32_t m_error;
     logic_data_list_t m_datas;
+    gd_timer_id_t m_timer_id;
 
     TAILQ_ENTRY(logic_require) m_next_for_context;
     TAILQ_ENTRY(logic_require) m_next_for_stack;

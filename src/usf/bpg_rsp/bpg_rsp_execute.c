@@ -368,13 +368,13 @@ logic_context_t bpg_rsp_manage_create_context(bpg_rsp_manage_t bpg_mgr, bpg_pkg_
             bpg_mgr->m_ctx_capacity);
     }
     else {
-        op_context =
-            logic_context_create(
-                bpg_mgr->m_logic_mgr,
-                bpg_rsp_manage_flag_is_enable(bpg_mgr, bpg_rsp_manage_flag_sn_use_client)
-                ? bpg_pkg_sn(req)
-                : INVALID_LOGIC_CONTEXT_ID,
-                bpg_mgr->m_ctx_capacity);
+        uint32_t sn =
+            bpg_rsp_manage_flag_is_enable(bpg_mgr, bpg_rsp_manage_flag_sn_use_client)
+            ? bpg_pkg_sn(req)
+            : INVALID_LOGIC_CONTEXT_ID;
+
+        op_context = logic_context_create(bpg_mgr->m_logic_mgr, sn, bpg_mgr->m_ctx_capacity);
+
         if (op_context == NULL) {
             CPE_ERROR(
                 em, "%s: create context: fail, capacity is %d!",

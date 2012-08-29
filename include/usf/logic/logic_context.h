@@ -12,6 +12,13 @@ logic_context_create(
     logic_require_id_t id,
     size_t capacity);
 
+logic_context_t
+logic_context_create_ex(
+    logic_manage_t mgr,
+    logic_require_id_t id,
+    size_t capacity,
+    tl_time_span_t timeout);
+
 void logic_context_free(logic_context_t context);
 
 logic_context_t logic_context_find(logic_manage_t mgr, logic_context_id_t id);
@@ -26,6 +33,10 @@ size_t logic_context_capacity(logic_context_t context);
 void * logic_context_data(logic_context_t context);
 
 void logic_context_set_commit(logic_context_t context, logic_context_commit_fun_t op, void * ctx);
+
+int logic_context_timeout_is_start(logic_context_t context);
+int logic_context_timeout_start(logic_context_t context, tl_time_span_t timeout_ms);
+void logic_context_timeout_stop(logic_context_t context);
 
 uint32_t logic_context_flags(logic_context_t context);
 void logic_context_flags_set(logic_context_t context, uint32_t flag);
