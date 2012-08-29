@@ -5,6 +5,7 @@
 #include "cpe/nm/nm_read.h"
 #include "gd/app/app_context.h"
 #include "gd/app/app_module.h"
+#include "gd/timer/timer_manage.h"
 #include "usf/logic/logic_manage.h"
 #include "usf/logic/logic_context.h"
 #include "logic_internal_ops.h"
@@ -23,6 +24,7 @@ struct nm_node_type s_nm_node_type_logic_manage = {
 logic_manage_t
 logic_manage_create(
     gd_app_context_t app,
+    gd_timer_mgr_t timer_mgr,
     const char * name,
     mem_allocrator_t alloc)
 {
@@ -37,6 +39,9 @@ logic_manage_create(
     mgr = (logic_manage_t)nm_node_data(mgr_node);
     mgr->m_alloc = alloc;
     mgr->m_app = app;
+    mgr->m_timer_mgr = timer_mgr;
+    mgr->m_require_timout_ms = 0;
+    mgr->m_context_timout_ms = 0;
     mgr->m_context_id = 1;
     mgr->m_require_id = 1;
     mgr->m_debug = 0;
@@ -227,10 +232,15 @@ EXPORT_DIRECTIVE
 int logic_manage_app_init(gd_app_context_t app, gd_app_module_t module, cfg_t cfg) {
     logic_manage_t logic_manage;
 
-    logic_manage = logic_manage_create(app, gd_app_module_name(module), gd_app_alloc(app));
+    logic_manage = logic_manage_create(
+        app,
+        gd_timer_mgr_find_nc(app, cfg_get_string(cfg, "timer-mgr", NULL)),
+        gd_app_module_name(module), gd_app_alloc(app));
     if (logic_manage == NULL) return -1;
 
     logic_manage->m_debug = cfg_get_int32(cfg, "debug", 0);
+    logic_manage->m_require_timout_ms = cfg_get_uint64(cfg, "require-timeout-ms", logic_manage->m_require_timout_ms);
+    logic_manage->m_context_timout_ms = cfg_get_uint64(cfg, "context-timeout-ms", logic_manage->m_context_timout_ms);
 
     if (logic_manage->m_debug) {
         CPE_INFO(

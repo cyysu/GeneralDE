@@ -3,6 +3,7 @@
 #include "cpe/utils/memory.h"
 #include "cpe/utils/error.h"
 #include "cpe/utils/hash_string.h"
+#include "gd/timer/timer_types.h"
 #include "logic_types.h"
 
 #ifdef __cplusplus
@@ -12,6 +13,7 @@ extern "C" {
 logic_manage_t
 logic_manage_create(
     gd_app_context_t app,
+    gd_timer_mgr_t timer_mgr,
     const char * name,
     mem_allocrator_t alloc);
 

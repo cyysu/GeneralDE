@@ -39,6 +39,7 @@ with_logic::t_logic_manage(const char * name) {
         mgr =
             logic_manage_create(
                 envOf<gd::app::testenv::with_app>().t_app(),
+                NULL,
                 name,
                 t_allocrator());
         EXPECT_TRUE(mgr) << "logic_manager create fail!";

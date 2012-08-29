@@ -1,20 +1,25 @@
 #include <assert.h>
 #include "cpe/pal/pal_stdio.h"
+#include "gd/app/app_log.h"
+#include "gd/timer/timer_manage.h"
 #include "usf/logic/logic_data.h"
 #include "usf/logic/logic_context.h"
 #include "usf/logic/logic_require.h"
+#include "usf/logic/logic_manage.h"
 #include "logic_internal_ops.h"
 
 static void logic_require_do_cancel(logic_require_t require);
 
 logic_require_t
 logic_require_create(logic_stack_node_t stack, const char * require_name) {
+    logic_manage_t mgr;
     logic_require_t require;
     logic_context_t context;
     int id_try_count;
     size_t name_len = strlen(require_name) + 1;
 
     context = stack->m_context;
+    mgr = context->m_mgr;
 
     require = mem_alloc(context->m_mgr->m_alloc, sizeof(struct logic_require) + name_len);
     if (require == NULL) return NULL;
@@ -24,6 +29,7 @@ logic_require_create(logic_stack_node_t stack, const char * require_name) {
     require->m_state = logic_require_state_waiting;
     require->m_name = (char *)(require + 1);
     require->m_error = 0;
+    require->m_timer_id = GD_TIMER_ID_INVALID;
 
     memcpy(require->m_name, require_name, name_len);
 
@@ -39,6 +45,13 @@ logic_require_create(logic_stack_node_t stack, const char * require_name) {
         mem_free(context->m_mgr->m_alloc, require);
         return NULL;
     }
+
+    if (mgr->m_timer_mgr && mgr->m_require_timout_ms > 0) {
+        if (logic_require_timeout_start(require, mgr->m_require_timout_ms) != 0) {
+            mem_free(context->m_mgr->m_alloc, require);
+            return NULL;
+        }
+    }
     
     TAILQ_INIT(&require->m_datas);
 
@@ -52,7 +65,13 @@ logic_require_create(logic_stack_node_t stack, const char * require_name) {
 }
 
 void logic_require_free(logic_require_t require) {
+    logic_manage_t mgr;
+
     assert(require);
+
+    mgr = require->m_context->m_mgr;
+
+    logic_require_timeout_stop(require);
 
     if (require->m_state == logic_require_state_waiting) {
         logic_require_do_cancel(require);
@@ -70,7 +89,7 @@ void logic_require_free(logic_require_t require) {
 
     cpe_hash_table_remove_by_ins(&require->m_context->m_mgr->m_requires, require);
 
-    mem_free(require->m_context->m_mgr->m_alloc, require);
+    mem_free(mgr->m_alloc, require);
 }
 
 void logic_require_free_all(logic_manage_t mgr) {
@@ -169,6 +188,29 @@ void logic_require_set_done(logic_require_t require) {
     --ctx->m_require_waiting_count;
     require->m_state = logic_require_state_done;
 
+    logic_require_timeout_stop(require);
+
+    logic_context_do_state_change(ctx, old_state);
+}
+
+void logic_require_set_timeout(logic_require_t require) {
+    logic_context_t ctx;
+    logic_context_state_t old_state;
+
+    if (require->m_state != logic_require_state_waiting) {
+        return;
+    }
+
+    ctx = require->m_context;
+    old_state = logic_context_state_i(ctx);
+
+    assert(require->m_stack);
+    --require->m_stack->m_require_waiting_count;
+    --ctx->m_require_waiting_count;
+    require->m_state = logic_require_state_timeout;
+
+    logic_require_timeout_stop(require);
+
     logic_context_do_state_change(ctx, old_state);
 }
 
@@ -181,6 +223,7 @@ void logic_require_set_error(logic_require_t require) {
 }
 
 void logic_require_set_error_ex(logic_require_t require, int32_t err) {
+    logic_manage_t mgr;
     logic_context_t ctx;
     logic_context_state_t old_state;
 
@@ -190,6 +233,7 @@ void logic_require_set_error_ex(logic_require_t require, int32_t err) {
     }
 
     ctx = require->m_context;
+    mgr = ctx->m_mgr;
     old_state = logic_context_state_i(ctx);
 
     assert(require->m_stack);
@@ -198,7 +242,58 @@ void logic_require_set_error_ex(logic_require_t require, int32_t err) {
     require->m_state = logic_require_state_error;
     require->m_error = err;
 
+    logic_require_timeout_stop(require);
+
     logic_context_do_state_change(ctx, old_state);
+}
+
+int logic_require_timeout_is_start(logic_require_t require) {
+    return require->m_timer_id != GD_TIMER_ID_INVALID;
+}
+
+static void logic_require_do_timeout(void * ctx, gd_timer_id_t timer_id, void * arg) {
+    logic_require_t require = ctx;
+
+    APP_CTX_ERROR(
+        require->m_context->m_mgr->m_app, "%s: require "FMT_UINT32_T" timeout",
+        logic_manage_name(require->m_context->m_mgr), logic_require_id(require));
+
+    logic_require_set_timeout(require);
+}
+
+void logic_require_timeout_stop(logic_require_t require) {
+    logic_manage_t mgr;
+
+    if (require->m_timer_id != GD_TIMER_ID_INVALID) {
+        mgr = require->m_context->m_mgr;
+        assert(mgr->m_timer_mgr);
+
+        gd_timer_mgr_unregist_timer_by_id(mgr->m_timer_mgr, require->m_timer_id);
+        require->m_timer_id = GD_TIMER_ID_INVALID;
+    }
+}
+
+int logic_require_timeout_start(logic_require_t require, tl_time_span_t timeout_ms) {
+    logic_manage_t mgr;
+
+    if (require->m_state != logic_require_state_waiting) return -1;
+
+    mgr = require->m_context->m_mgr;
+    if (mgr->m_timer_mgr == NULL) return -1;
+
+    logic_require_timeout_stop(require);
+
+    if (gd_timer_mgr_regist_timer(
+            mgr->m_timer_mgr,
+            &require->m_timer_id,
+            logic_require_do_timeout, require, NULL, NULL, timeout_ms, timeout_ms, 1) != 0)
+    {
+        require->m_timer_id = GD_TIMER_ID_INVALID;
+        return -1;
+    }
+
+    assert(require->m_timer_id != GD_TIMER_ID_INVALID);
+    return 0;
 }
 
 uint32_t logic_require_hash(const struct logic_require * require) {

@@ -4,6 +4,7 @@
 #include "cpe/dr/dr_metalib_manage.h"
 #include "cpe/dr/dr_cfg.h"
 #include "gd/app/app_log.h"
+#include "gd/timer/timer_manage.h"
 #include "usf/logic/logic_context.h"
 #include "usf/logic/logic_require.h"
 #include "usf/logic/logic_data.h"
@@ -14,6 +15,11 @@
 
 logic_context_t
 logic_context_create(logic_manage_t mgr, logic_context_id_t id, size_t capacity) {
+    return logic_context_create_ex(mgr, id, capacity, mgr->m_context_timout_ms);
+}
+
+logic_context_t
+logic_context_create_ex(logic_manage_t mgr, logic_context_id_t id, size_t capacity, tl_time_span_t timeout) {
     char * buf;
     logic_context_t context;
 
@@ -52,6 +58,7 @@ logic_context_create(logic_manage_t mgr, logic_context_id_t id, size_t capacity)
     context->m_errno = 0;
     context->m_state = logic_context_state_init;
     context->m_capacity = capacity;
+    context->m_timer_id = GD_TIMER_ID_INVALID;
     context->m_flags = 0;
     context->m_runing = 0;
     context->m_commit_op = NULL;
@@ -65,6 +72,13 @@ logic_context_create(logic_manage_t mgr, logic_context_id_t id, size_t capacity)
 
     logic_context_enqueue(context, logic_context_queue_pending);
 
+    if (mgr->m_timer_mgr && timeout > 0) {
+        if (logic_context_timeout_start(context, timeout) != 0) {
+            logic_context_free(context);
+            return NULL;
+        }
+    }
+
     if (context->m_mgr->m_debug >= 3) {
         APP_CTX_INFO(
             context->m_mgr->m_app, "%s: context "FMT_UINT32_T" create",
@@ -76,6 +90,9 @@ logic_context_create(logic_manage_t mgr, logic_context_id_t id, size_t capacity)
 
 void logic_context_free(logic_context_t context) {
     assert(context);
+
+    logic_context_timeout_stop(context);
+
     while(!TAILQ_EMPTY(&context->m_requires)) {
         logic_require_free(TAILQ_FIRST(&context->m_requires));
     }
@@ -301,6 +318,63 @@ void logic_context_do_state_change(logic_context_t context, logic_context_state_
         }
     }
 }
+
+int logic_context_timeout_is_start(logic_context_t context) {
+    return context->m_timer_id != GD_TIMER_ID_INVALID;
+}
+
+static void logic_context_do_timeout(void * ctx, gd_timer_id_t timer_id, void * arg) {
+    logic_context_t context = ctx;
+
+    APP_CTX_ERROR(
+        context->m_mgr->m_app, "%s: context "FMT_UINT32_T" timeout",
+        logic_manage_name(context->m_mgr), logic_context_id(context));
+
+    logic_context_timeout(context);
+
+    if (context->m_commit_op) {
+        context->m_commit_op(context, context->m_commit_ctx);
+    }
+    else {
+        logic_context_free(context);
+    }
+}
+
+void logic_context_timeout_stop(logic_context_t context) {
+    logic_manage_t mgr;
+
+    if (context->m_timer_id != GD_TIMER_ID_INVALID) {
+        mgr = context->m_mgr;
+        assert(mgr->m_timer_mgr);
+
+        gd_timer_mgr_unregist_timer_by_id(mgr->m_timer_mgr, context->m_timer_id);
+        context->m_timer_id = GD_TIMER_ID_INVALID;
+    }
+}
+
+int logic_context_timeout_start(logic_context_t context, tl_time_span_t timeout_ms) {
+    logic_manage_t mgr;
+
+    if (context->m_state != logic_context_state_waiting) return -1;
+
+    mgr = context->m_mgr;
+    if (mgr->m_timer_mgr == NULL) return -1;
+
+    logic_context_timeout_stop(context);
+
+    if (gd_timer_mgr_regist_timer(
+            mgr->m_timer_mgr,
+            &context->m_timer_id,
+            logic_context_do_timeout, context, NULL, NULL, timeout_ms, timeout_ms, 1) != 0)
+    {
+        context->m_timer_id = GD_TIMER_ID_INVALID;
+        return -1;
+    }
+
+    assert(context->m_timer_id != GD_TIMER_ID_INVALID);
+    return 0;
+}
+
 
 void logic_context_dequeue(logic_context_t context) {
     switch(context->m_queue_state) {

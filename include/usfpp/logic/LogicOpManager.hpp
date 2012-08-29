@@ -52,6 +52,7 @@ public:
     static LogicOpManager * find(gd_app_context_t app, const char * name);
 
     static LogicOpManager & install(gd_app_context_t app, mem_allocrator_t alloc = 0, const char * name = 0);
+    static LogicOpManager & install(gd_app_context_t app, gd_timer_mgr_t timer_mgr, mem_allocrator_t alloc = 0, const char * name = 0);
     static void uninstall(gd_app_context_t app, cpe_hash_string_t name = 0);
 };
 

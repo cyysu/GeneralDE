@@ -22,6 +22,10 @@ logic_stack_node_t logic_require_stack(logic_require_t require);
 
 logic_require_state_t logic_require_state(logic_require_t require);
 
+int logic_require_timeout_is_start(logic_require_t require);
+int logic_require_timeout_start(logic_require_t require, tl_time_span_t timeout_ms);
+void logic_require_timeout_stop(logic_require_t require);
+
 logic_require_state_t
 logic_require_state(logic_require_t require);
 
@@ -32,6 +36,7 @@ int32_t logic_require_error(logic_require_t require);
 
 void logic_require_set_done(logic_require_t require);
 void logic_require_set_error(logic_require_t require);
+void logic_require_set_timeout(logic_require_t require);
 void logic_require_set_error_ex(logic_require_t require, int32_t err);
 void logic_require_cancel(logic_require_t require);
 

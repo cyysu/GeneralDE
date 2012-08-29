@@ -2,6 +2,7 @@
 #define USF_LOGIC_TYPES_H
 #include "cpe/utils/error.h"
 #include "cpe/cfg/cfg_types.h"
+#include "cpe/tl/tl_types.h"
 #include "gd/app/app_types.h"
 #include "cpe/dr/dr_types.h"
 
@@ -36,6 +37,7 @@ typedef enum logic_require_state {
     , logic_require_state_error
     , logic_require_state_done
     , logic_require_state_canceled
+    , logic_require_state_timeout
 } logic_require_state_t;
 
 typedef enum logic_executor_category {
