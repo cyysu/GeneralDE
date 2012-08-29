@@ -74,23 +74,30 @@ static int tl_manage_dispatch_event(tl_manage_t tm, int maxCount) {
         }
 
         TAILQ_REMOVE(&tm->m_event_queue, node, m_next);
-        node->m_state = tl_event_node_state_free;
+        node->m_state = tl_event_node_state_runing;
 
         tl_event_do_dispatch(&node->m_event, rv);
 
-        if (node->m_repeatCount > 0) {
-            --node->m_repeatCount;
-        }
-
-        if (node->m_repeatCount != 0) {
-            node->m_execute_time += node->m_span;
-            if (tl_event_node_insert(node) != 0) {
-                tl_event_node_free(node);
-            }
-            
+        if (node->m_state == tl_event_node_state_deleting) {
+            tl_event_node_free(node);
         }
         else {
-            tl_event_node_free(node);
+            assert(node->m_state == tl_event_node_state_runing);
+
+            if (node->m_repeatCount > 0) {
+                --node->m_repeatCount;
+            }
+
+            if (node->m_repeatCount != 0) {
+                node->m_execute_time += node->m_span;
+                if (tl_event_node_insert(node) != 0) {
+                    tl_event_node_free(node);
+                }
+            
+            }
+            else {
+                tl_event_node_free(node);
+            }
         }
 
         tl_event_queue_clear(&tm->m_event_building_queue);
