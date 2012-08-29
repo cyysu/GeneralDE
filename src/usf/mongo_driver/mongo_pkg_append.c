@@ -3,9 +3,6 @@
 #include "usf/mongo_driver/mongo_pkg.h"
 #include "mongo_internal_ops.h"
 
-#define MONGO_REQUREST_CHECK_NOT_FINISH(__pkg) \
-    if ((__pkg)->m_finished) { CPE_ERROR((__pkg)->m_driver->m_em, "mongo_pkg: already finished!"); return -1; }
-
 #define MONGO_REQUREST_CHECK_SPACE(__pkg, __len)                        \
     if ((__len) > (mongo_pkg_capacity(__pkg) - mongo_pkg_size(__pkg))) { \
         CPE_ERROR(                                                      \
@@ -15,34 +12,35 @@
         return -1;                                                      \
     }
 
+#define MONGO_REQUEST_APPEND_POS(__pkg, __cur_len) (((char*)(pkg + 1)) + __cur_len - 1)
+
 static void mongo_pkg_append(mongo_pkg_t pkg, const void *data, int len) {
     size_t cur_len = mongo_pkg_size(pkg);
-    memcpy(((char*)(pkg + 1)) + cur_len, data, len);
+    memcpy(MONGO_REQUEST_APPEND_POS(pkg, cur_len), data, len);
     mongo_pkg_set_size(pkg, cur_len + len);
 }
 
 static void mongo_pkg_append_byte(mongo_pkg_t pkg, char data) {
     size_t cur_len = mongo_pkg_size(pkg);
-    *(((char*)(pkg + 1)) + cur_len) = data;
+    *MONGO_REQUEST_APPEND_POS(pkg, cur_len) = data;
     mongo_pkg_set_size(pkg, cur_len + 1);
 }
 
 static void mongo_pkg_append_32(mongo_pkg_t pkg, const void * data) {
     size_t cur_len = mongo_pkg_size(pkg);
-    CPE_COPY_HTON32((((char*)(pkg + 1)) + cur_len), data);
+    CPE_COPY_HTON32(MONGO_REQUEST_APPEND_POS(pkg, cur_len), data);
     mongo_pkg_set_size(pkg, cur_len + 4);
 }
 
 static void mongo_pkg_append_64(mongo_pkg_t pkg, const void * data) {
     size_t cur_len = mongo_pkg_size(pkg);
-    CPE_COPY_HTON64((((char*)(pkg + 1)) + cur_len), data);
+    CPE_COPY_HTON64(MONGO_REQUEST_APPEND_POS(pkg, cur_len), data);
     mongo_pkg_set_size(pkg, cur_len + 8);
 }
 
 static int mongo_pkg_append_estart(mongo_pkg_t pkg, int type, const char *name, const int dataSize ) {
     const int len = strlen(name) + 1;
 
-    MONGO_REQUREST_CHECK_NOT_FINISH(pkg);
     MONGO_REQUREST_CHECK_SPACE(pkg, 1 + len + dataSize);
 
     mongo_pkg_append_byte(pkg, (char)type);

@@ -23,23 +23,29 @@ dp_req_t mongo_pkg_to_dp_req(mongo_pkg_t pkg);
 mongo_pkg_t mongo_pkg_from_dp_req(dp_req_t pkg);
 
 void mongo_pkg_init(mongo_pkg_t pkg);
-size_t mongo_pkg_size(mongo_pkg_t pkg);
+uint32_t mongo_pkg_size(mongo_pkg_t pkg);
 void * mongo_pkg_data(mongo_pkg_t pkg);
-int mongo_pkg_set_size(mongo_pkg_t pkg, size_t size);
+int mongo_pkg_set_size(mongo_pkg_t pkg, uint32_t size);
 size_t mongo_pkg_capacity(mongo_pkg_t pkg);
 
 /*pkg operations*/
-uint32_t mongo_pkg_op(mongo_pkg_t pkg);
-void mongo_pkg_set_op(mongo_pkg_t pkg, uint32_t cmd);
+mongo_db_op_t mongo_pkg_op(mongo_pkg_t pkg);
+void mongo_pkg_set_op(mongo_pkg_t pkg, mongo_db_op_t op);
 
 uint32_t mongo_pkg_id(mongo_pkg_t pkg);
 void mongo_pkg_set_id(mongo_pkg_t pkg, uint32_t id);
 
-const char *mongo_pkg_db(mongo_pkg_t pkg);
-void mongo_pkg_set_db(mongo_pkg_t pkg, const char * db);
+const char *mongo_pkg_ns(mongo_pkg_t pkg);
+void mongo_pkg_set_ns(mongo_pkg_t pkg, const char * ns);
 
-const char * mongo_pkg_dump(mongo_pkg_t req, mem_buffer_t buffer);
+const char * mongo_pkg_dump(mongo_pkg_t req, mem_buffer_t buffer, int level);
+const char * mongo_pkg_data_dump(mongo_pkg_t req, mem_buffer_t buffer, int level);
 int mongo_pkg_build_from_cfg(mongo_pkg_t req, cfg_t cfg, error_monitor_t em);
+
+void mongo_pkg_it(mongo_pkg_t pkg, bson_iterator * it);
+int mongo_pkg_find(mongo_pkg_t pkg, bson_iterator * it, const char * path);
+
+int mongo_pkg_validate(mongo_pkg_t pkg, error_monitor_t em);
 
 int mongo_pkg_append_int32(mongo_pkg_t pkg, const char *name, const int32_t i);
 int mongo_pkg_append_int64(mongo_pkg_t pkg, const char *name, const int64_t i);

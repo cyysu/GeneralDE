@@ -1,4 +1,5 @@
 #include <assert.h>
+#include "cpe/utils/buffer.h"
 #include "cpe/net/net_connector.h"
 #include "cpe/net/net_chanel.h"
 #include "cpe/net/net_endpoint.h"
@@ -26,6 +27,7 @@ int mongo_driver_add_server(mongo_driver_t driver, const char * host, int port) 
     server->m_port = port;
     server->m_connector = NULL;
     server->m_state = mongo_server_state_init;
+    server->m_max_bson_size = MONGO_DEFAULT_MAX_BSON_SIZE;
 
     server->m_connector =
         net_connector_create_with_ep(gd_app_net_mgr(driver->m_app), server->m_host, server->m_host, server->m_port);
@@ -135,7 +137,8 @@ static void mongo_server_check_is_master(struct mongo_server * server) {
 
     server->m_state = mongo_server_state_checking_is_master;
 
-    mongo_pkg_set_db(pkg_buf, "master");
+    mongo_pkg_set_ns(pkg_buf, "admin.$cmd");
+    mongo_pkg_set_op(pkg_buf, mongo_db_op_query);
     if (mongo_pkg_append_int32(pkg_buf, "ismaster", 1) != 0
         || mongo_driver_send_internal(driver, ep, pkg_buf))
     {
@@ -153,34 +156,43 @@ static void mongo_server_check_is_master(struct mongo_server * server) {
     }
 }
 
-static int mongo_server_on_check_is_master(struct mongo_server * server, mongo_pkg_t pkg) {
-    /* bson out; */
-    /* bson_iterator it; */
-    /* bson_bool_t ismaster = 0; */
-    /* int max_bson_size = MONGO_DEFAULT_MAX_BSON_SIZE; */
+static void mongo_server_on_check_is_master(struct mongo_server * server, mongo_pkg_t pkg) {
+    mongo_driver_t driver = server->m_driver;
+    bson_iterator it;
 
-    /* out.data = NULL; */
+    mongo_pkg_it(pkg, &it);
 
-    /* if ( mongo_simple_int_command( conn, "admin", "ismaster", 1, &out ) == MONGO_OK ) { */
-    /*     if( bson_find( &it, &out, "ismaster" ) ) */
-    /*         ismaster = bson_iterator_bool( &it ); */
-    /*     if( bson_find( &it, &out, "maxBsonObjectSize" ) ) { */
-    /*         max_bson_size = bson_iterator_int( &it );  */
-    /*     } */
-    /*     conn->max_bson_size = max_bson_size; */
-    /* } else { */
-    /*     return MONGO_ERROR; */
-    /* } */
+    if(mongo_pkg_find(pkg, &it, "maxBsonObjectSize")) {
+        server->m_max_bson_size = bson_iterator_int(&it);
+    }
+    else {
+        server->m_max_bson_size = MONGO_DEFAULT_MAX_BSON_SIZE;
+    }
 
-    /* bson_destroy( &out ); */
-
-    /* if( ismaster ) */
-    /*     return MONGO_OK; */
-    /* else { */
-    /*     conn->err = MONGO_CONN_NOT_MASTER; */
-    /*     return MONGO_ERROR; */
-    /* } */
-    return 0;
+    if(mongo_pkg_find(pkg, &it, "ismaster")) {
+        if (bson_iterator_bool( &it ) ) {
+            if (driver->m_master_server) {
+                CPE_INFO(
+                    driver->m_em, "%s: server %s %d: is master, replace old master %s %d!",
+                    mongo_driver_name(driver), server->m_host, server->m_port, driver->m_master_server->m_host, driver->m_master_server->m_port);
+            }
+            else {
+                if (driver->m_debug) {
+                    CPE_INFO(
+                        driver->m_em, "%s: server %s %d: is master, set to driver!",
+                        mongo_driver_name(driver), server->m_host, server->m_port);
+                }
+            }
+            server->m_state = mongo_server_state_connected;
+            mongo_driver_update_state(driver);
+        }
+        else {
+            mongo_server_error(server);
+        }
+    }
+    else {
+        mongo_server_error(server);
+    }
 }
 
 static void mongo_server_connector_state_monitor(net_connector_t connector, void * ctx) {
@@ -241,12 +253,25 @@ static void mongo_server_on_read(struct mongo_server * server, net_ep_t ep) {
     }
 
     while(1) {
-        int r = mongo_driver_recv_internal(driver, ep, req_buf);
-        if (r == 0) break;
+        enum mongo_pkg_recv_result r = mongo_driver_recv_internal(driver, ep, req_buf);
 
-        if (r < 0) {
+        if (r == mongo_pkg_recv_not_enough_data) {
+            break;
+        }
+        else if (r == mongo_pkg_recv_error) {
             mongo_server_error(server);
             return;
+        }
+
+        if (driver->m_debug >= 2) {
+            struct mem_buffer buffer;
+            mem_buffer_init(&buffer, driver->m_alloc);
+
+            CPE_INFO(
+                driver->m_em, "%s: server %s %d: receive one pkg:\n%s",
+                mongo_driver_name(driver), server->m_host, server->m_port, mongo_pkg_dump(req_buf, &buffer, 1));
+
+            mem_buffer_clear(&buffer);
         }
 
         switch(server->m_state) {
@@ -258,9 +283,7 @@ static void mongo_server_on_read(struct mongo_server * server, net_ep_t ep) {
                 mongo_driver_name(driver), server->m_host, server->m_port, server->m_state);
             break;
         case mongo_server_state_checking_is_master:
-            if (mongo_server_on_check_is_master(server, req_buf) != 0) {
-                return;
-            }
+            mongo_server_on_check_is_master(server, req_buf);
             break;
         case mongo_server_state_connected:
             if (dp_dispatch_by_string(driver->m_incoming_send_to, mongo_pkg_to_dp_req(req_buf), driver->m_em) != 0) {

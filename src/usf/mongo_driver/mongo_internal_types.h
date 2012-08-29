@@ -32,6 +32,7 @@ struct mongo_server {
     int m_port;
     net_connector_t m_connector;
     enum mongo_server_state m_state;
+    uint32_t m_max_bson_size;
 
     TAILQ_ENTRY(mongo_server) m_next;
 };
@@ -74,13 +75,21 @@ struct mongo_driver {
 struct mongo_pkg {
     mongo_driver_t m_driver;
     dp_req_t m_dp_req;
-    int32_t m_finished;
     int32_t m_stack[32];
     int32_t m_stackPos;
     uint32_t m_reserve;
-    char m_db[32];
+    char m_ns[32];
     struct mongo_pro_header m_pro_head;
     struct mongo_pro_reply_fields m_pro_replay_fields;
 };
+
+enum mongo_pkg_recv_result {
+    mongo_pkg_recv_error = -1
+    , mongo_pkg_recv_ok = 0
+    , mongo_pkg_recv_not_enough_data = 1
+};
+
+#define MONGO_EMPTY_DOCUMENT_SIZE (5)
+#define MONGO_DEFAULT_MAX_BSON_SIZE 4 * 1024 * 1024
 
 #endif
