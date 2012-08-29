@@ -182,8 +182,7 @@ int gd_timer_mgr_regist_timer(
 
     newProcessorData->m_tl_event = tl_event_create(mgr->m_tl, sizeof(gd_timer_id_t));
     if (newProcessorData->m_tl_event == NULL) {
-        gd_timer_processor_free_basic(mgr, newProcessorData);
-        gd_timer_processor_free_id(mgr, newProcessorId);
+        gd_timer_processor_free(mgr, newProcessorData);
         CPE_ERROR(
             mgr->m_em, "%s: regist processor: create tl_event fail!",
             gd_timer_mgr_name(mgr));
@@ -192,8 +191,7 @@ int gd_timer_mgr_regist_timer(
     *(gd_timer_id_t*)tl_event_data(newProcessorData->m_tl_event) = newProcessorId;
 
     if (cpe_hash_table_insert(&mgr->m_responser_to_processor, newProcessorData) != 0) {
-        gd_timer_processor_free_basic(mgr, newProcessorData);
-        gd_timer_processor_free_id(mgr, newProcessorId);
+        gd_timer_processor_free(mgr, newProcessorData);
         CPE_ERROR(
             mgr->m_em, "%s: regist processor: insert to responser processor list fail!",
             gd_timer_mgr_name(mgr));
@@ -202,8 +200,7 @@ int gd_timer_mgr_regist_timer(
     newProcessorData->m_state = timer_processor_state_InResponserHash;
 
     if (tl_event_send_ex(newProcessorData->m_tl_event, delay, span, repeatCount) != 0) {
-        gd_timer_processor_free_basic(mgr, newProcessorData);
-        gd_timer_processor_free_id(mgr, newProcessorId);
+        gd_timer_processor_free(mgr, newProcessorData);
         CPE_ERROR(
             mgr->m_em, "%s: regist processor: send event to tl fail!",
             gd_timer_mgr_name(mgr));
@@ -227,8 +224,7 @@ void gd_timer_mgr_unregist_timer_by_ctx(gd_timer_mgr_t mgr, void * ctx) {
             cpe_hash_table_find_next(&mgr->m_responser_to_processor, node);
         assert(node->m_process_ctx);
 
-        gd_timer_processor_free_id(mgr, node->m_id);
-        gd_timer_processor_free_basic(mgr, node);
+        gd_timer_processor_free(mgr, node);
 
         node = next;
     }
@@ -250,8 +246,7 @@ void gd_timer_mgr_unregist_timer_by_id(gd_timer_mgr_t mgr, gd_timer_id_t timer_i
     }
     else {
         assert(timer->m_process_ctx);
-        gd_timer_processor_free_id(mgr, timer->m_id);
-        gd_timer_processor_free_basic(mgr, timer);
+        gd_timer_processor_free(mgr, timer);
     }
 }
 
@@ -288,8 +283,7 @@ static void gd_timer_mgr_destory_timer(tl_event_t event, void * context) {
     }
 
     timer->m_tl_event = NULL;
-    gd_timer_processor_free_basic(mgr, timer);
-    gd_timer_processor_free_id(mgr, timerId);
+    gd_timer_processor_free(mgr, timer);
 }
 
 static void gd_timer_mgr_dispatch_timer(tl_event_t input, void * context) {
