@@ -23,6 +23,8 @@ struct tl_free_event {
 
 enum tl_event_node_state {
     tl_event_node_state_free
+    , tl_event_node_state_runing
+    , tl_event_node_state_deleting
     , tl_event_node_state_in_building_queue
     , tl_event_node_state_in_event_queue
 };

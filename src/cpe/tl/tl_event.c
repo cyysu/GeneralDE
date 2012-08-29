@@ -26,6 +26,22 @@ tl_event_node_alloc(tl_t tl, size_t capacity) {
 void tl_event_node_free(struct tl_event_node * node) {
     if (node == NULL) return;
 
+    switch(node->m_state) {
+    case tl_event_node_state_deleting:
+        return;
+    case tl_event_node_state_runing:
+        node->m_state = tl_event_node_state_deleting;
+        return;
+    case tl_event_node_state_free:
+        break;
+    case tl_event_node_state_in_building_queue:
+        TAILQ_REMOVE(&node->m_event.m_tl->m_manage->m_event_building_queue, node, m_next);
+        break;
+    case tl_event_node_state_in_event_queue:
+        TAILQ_REMOVE(&node->m_event.m_tl->m_manage->m_event_queue, node, m_next);
+        break;
+    }
+
     if (node->m_event.m_tl->m_event_destory) {
         node->m_event.m_tl->m_event_destory(
             &node->m_event,
@@ -33,13 +49,6 @@ void tl_event_node_free(struct tl_event_node * node) {
     }
 
     TAILQ_REMOVE(&node->m_event.m_tl->m_events, node, m_next_in_tl);
-
-    if (node->m_state == tl_event_node_state_in_building_queue) {
-        TAILQ_REMOVE(&node->m_event.m_tl->m_manage->m_event_building_queue, node, m_next);
-    }
-    else if (node->m_state == tl_event_node_state_in_event_queue) {
-        TAILQ_REMOVE(&node->m_event.m_tl->m_manage->m_event_queue, node, m_next);
-    }
 
     mem_free(node->m_event.m_tl->m_manage->m_alloc, node);
 }
