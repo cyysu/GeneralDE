@@ -44,12 +44,12 @@ inline bool try_load_from_cfg(T & data, cfg_t cfg, error_monitor_t em = 0, int p
 
 template<typename T>
 inline const char * dump_data(mem_buffer_t buffer, T const & data) {
-    return MetaTraits<T>::META.dump_data(buffer, &data);
+    return MetaTraits<T>::META.dump_data(buffer, &data, sizeof(data));
 }
 
 template<typename T>
 inline void dump_data(write_stream_t stream, T const & data) {
-    MetaTraits<T>::META.dump_data(stream, &data);
+    MetaTraits<T>::META.dump_data(stream, &data, sizeof(data));
 }
 
 template<typename T>
