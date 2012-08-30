@@ -1,4 +1,4 @@
-product:=usf_mongo_agent
+product:=usf_mongo_cli
 $(product).type:=lib
 $(product).depends:=usf_mongo_driver usf_logic_use
 $(product).product.c.flags.ld:=

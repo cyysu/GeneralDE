@@ -1,9 +1,7 @@
-#ifndef USFPP_MONGO_AGENT_H
-#define USFPP_MONGO_AGENT_H
+#ifndef USFPP_MONGO_PACKAGE_H
+#define USFPP_MONGO_PACKAGE_H
 #include "cpepp/utils/ClassCategory.hpp"
-#include "cpepp/utils/CString.hpp"
-#include "gdpp/app/Application.hpp"
-#include "usf/mongo_agent/mongo_agent.h"
+#include "usf/mongo_driver/mongo_pkg.h"
 #include "System.hpp"
 
 namespace Usf { namespace Mongo {

@@ -7,7 +7,7 @@
 extern "C" {
 #endif
 
-typedef struct mongo_agent * mongo_agent_t;
+typedef struct mongo_cli_proxy * mongo_cli_proxy_t;
 
 #ifdef __cplusplus
 }
