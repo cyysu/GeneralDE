@@ -61,6 +61,10 @@ int logic_require_queue_require_count(logic_require_queue_t queue) {
     return queue->m_runing_require_count;
 }
 
+logic_manage_t logic_require_queue_get_mgr(logic_require_queue_t queue) {
+    return queue->m_logic_manage;
+}
+
 /* static void logic_require_queue_check_requires(logic_require_queue_t queue) { */
 /*     uint32_t i; */
 /*     int remove_count = 0; */
@@ -89,7 +93,7 @@ int logic_require_queue_require_count(logic_require_queue_t queue) {
 /*     } */
 /* } */
 
-int logic_require_queue_add_require_id(logic_require_queue_t queue, logic_require_id_t id) {
+int logic_require_queue_add(logic_require_queue_t queue, logic_require_id_t id) {
     int i;
 
     if (queue->m_runing_require_count >= queue->m_runing_require_capacity) {
@@ -143,7 +147,7 @@ int logic_require_queue_require_id_cmp(const void * l, const void * r) {
         : 1;
 }
 
-int logic_require_queue_remove_require_id(logic_require_queue_t queue, logic_require_id_t id) {
+int logic_require_queue_remove(logic_require_queue_t queue, logic_require_id_t id) {
     logic_require_id_t * found;
     int found_pos;
 
@@ -190,6 +194,15 @@ int logic_require_queue_remove_require_id(logic_require_queue_t queue, logic_req
     }
 
     return 0;
+}
+
+logic_require_t logic_require_queue_remove_get(logic_require_queue_t queue, logic_require_id_t id) {
+    if (logic_require_queue_remove(queue, id) == 0) {
+        return logic_require_find(queue->m_logic_manage, id);
+    }
+    else {
+        return NULL;
+    }
 }
 
 void logic_require_queue_notify_all(logic_require_queue_t queue, int32_t error) {

@@ -18,8 +18,9 @@ void logic_require_queue_free(logic_require_queue_t require_queue);
 
 int logic_require_queue_require_count(logic_require_queue_t queue);
 
-int logic_require_queue_add_require_id(logic_require_queue_t queue, logic_require_id_t id);
-int logic_require_queue_remove_require_id(logic_require_queue_t queue, logic_require_id_t id);
+int logic_require_queue_add(logic_require_queue_t queue, logic_require_id_t id);
+int logic_require_queue_remove(logic_require_queue_t queue, logic_require_id_t id);
+logic_require_t logic_require_queue_remove_get(logic_require_queue_t queue, logic_require_id_t id);
 void logic_require_queue_notify_all(logic_require_queue_t queue, int32_t error);
 
 logic_require_t logic_require_queue_notify(logic_require_queue_t queue, logic_require_id_t id, int32_t error);
