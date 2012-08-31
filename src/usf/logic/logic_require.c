@@ -208,6 +208,9 @@ void logic_require_set_timeout(logic_require_t require) {
     --require->m_stack->m_require_waiting_count;
     --ctx->m_require_waiting_count;
     require->m_state = logic_require_state_timeout;
+    if (require->m_error == 0) {
+        require->m_error = -1;
+    }
 
     logic_require_timeout_stop(require);
 
