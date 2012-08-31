@@ -24,7 +24,6 @@ int gd_timer_processor_alloc(gd_timer_mgr_t mgr, gd_timer_id_t * id) {
 
     if (!cpe_range_mgr_is_empty(&mgr->m_ids)) {
         *id = (gd_timer_id_t)cpe_range_get_one(&mgr->m_ids);
-        printf("alloc id %d\n", *id);
         return 0;
     }
 
@@ -78,7 +77,6 @@ int gd_timer_processor_alloc(gd_timer_mgr_t mgr, gd_timer_id_t * id) {
 
     *id = (gd_timer_id_t)cpe_range_get_one(&mgr->m_ids);
 
-    printf("alloc id %d\n", *id);
     return 0;
 }
 
@@ -114,7 +112,6 @@ void gd_timer_processor_free(gd_timer_mgr_t mgr, struct gd_timer_processor * dat
         data->m_process_arg_free = NULL;
         data->m_process_fun = NULL;
 
-        printf("free id %d\n", data->m_id);
         cpe_range_put_one(&mgr->m_ids, data->m_id);
     }
 }
