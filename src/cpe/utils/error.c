@@ -7,6 +7,9 @@
 #endif
 
 void cpe_error_do_notify(error_monitor_t monitor, const char * fmt, ...) {
+    
+    //return; /// temp;
+    //*
     struct error_monitor_node * node = &monitor->m_node;
     va_list args;
 
@@ -16,6 +19,7 @@ void cpe_error_do_notify(error_monitor_t monitor, const char * fmt, ...) {
         node = node->m_next;
         va_end(args);
     }
+    //*/
 }
 
 void cpe_error_do_notify_var(error_monitor_t monitor, const char * fmt, va_list args) {
