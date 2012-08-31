@@ -47,8 +47,6 @@ TimerCenter::registerTimer(
             timer_process_fun, &realResponser, ctx, timer_ctx_free,
             delay, span, repeatCount) != 0)
     {
-        delete ctx;
-
         APP_CTX_THROW_EXCEPTION(
             app(),
             ::std::runtime_error,
