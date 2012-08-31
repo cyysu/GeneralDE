@@ -167,6 +167,7 @@ int gd_timer_mgr_regist_timer(
     struct gd_timer_processor * newProcessorData;
 
     if (gd_timer_processor_alloc(mgr, &newProcessorId) != 0) {
+        if (arg && arg_fini) arg_fini(arg);
         return -1;
     }
 
