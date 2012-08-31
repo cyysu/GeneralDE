@@ -19,6 +19,8 @@ public:
 
     logic_require_state_t state(void) const { return logic_require_state(*this); }
 
+	Cpe::Utils::CString const & name(void) const { return Cpe::Utils::CString::_cast(logic_require_name(*this)); }
+
     LogicOpContext & context(void) { return *(LogicOpContext*)logic_require_context(*this); }
     LogicOpContext const & context(void) const { return *(LogicOpContext*)logic_require_context(*this); }
 
