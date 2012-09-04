@@ -1,5 +1,6 @@
 #include <assert.h>
 #include "cpe/pal/pal_external.h"
+#include "cpe/pal/pal_strings.h"
 #include "cpe/pal/pal_stdio.h"
 #include "cpe/cfg/cfg_read.h"
 #include "cpe/dr/dr_metalib_manage.h"
