@@ -33,7 +33,7 @@ struct dr_pbuf_read_ctx {
     error_monitor_t m_em;
 };
 
-inline static
+static
 struct dr_pbuf_read_array_info *
 dr_pbuf_read_get_array_info(
     struct dr_pbuf_read_stack * stackInfo,
@@ -58,7 +58,7 @@ dr_pbuf_read_get_array_info(
     return NULL;
 }
 
-inline static char * dr_pbuf_read_get_write_pos(
+static char * dr_pbuf_read_get_write_pos(
     struct dr_pbuf_read_ctx * ctx,
     struct dr_pbuf_read_stack * stackInfo,
     int start_pos,
@@ -97,7 +97,7 @@ inline static char * dr_pbuf_read_get_write_pos(
     }
 }
 
-inline static char * dr_pbuf_read_get_read_pos(
+static char * dr_pbuf_read_get_read_pos(
     struct dr_pbuf_read_ctx * ctx,
     struct dr_pbuf_read_stack * stackInfo,
     int start_pos,

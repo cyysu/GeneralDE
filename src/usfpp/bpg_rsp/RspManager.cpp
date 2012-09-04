@@ -27,7 +27,7 @@ RspManager & RspManager::instance(gd_app_context_t app, const char * name) {
 }
 
 bool RspManager::hasOp(const char * rspName) const {
-    return bpg_rsp_find(*this, rspName);
+    return bpg_rsp_find(*this, rspName) != NULL;
 }
 
 RspOpContext &
