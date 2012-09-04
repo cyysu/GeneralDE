@@ -45,7 +45,6 @@ mongo_pkg_t mongo_pkg_from_dp_req(dp_req_t req) {
     return (mongo_pkg_t)dp_req_data(req);
 }
 
-
 mongo_driver_t mongo_pkg_driver(mongo_pkg_t req) {
     return req->m_driver;
 }
@@ -53,8 +52,11 @@ mongo_driver_t mongo_pkg_driver(mongo_pkg_t req) {
 void mongo_pkg_init(mongo_pkg_t pkg) {
     pkg->m_stackPos = 0;
     pkg->m_ns[0] = 0;
+    pkg->m_doc_count = -1;
+    pkg->m_cur_doc_start = -1;
+    pkg->m_cur_doc_pos = -1;
     bzero(&pkg->m_pro_head, sizeof(pkg->m_pro_head));
-    mongo_pkg_set_size(pkg, MONGO_EMPTY_DOCUMENT_SIZE);
+    mongo_pkg_set_size(pkg, 0);
 }
 
 mongo_db_op_t mongo_pkg_op(mongo_pkg_t pkg) {
@@ -85,14 +87,80 @@ void * mongo_pkg_data(mongo_pkg_t pkg) {
     return (pkg + 1);
 }
 
-int mongo_pkg_set_size(mongo_pkg_t pkg, uint32_t size) {
-    assert(size >= MONGO_EMPTY_DOCUMENT_SIZE);
-    if (dp_req_set_size(pkg->m_dp_req, sizeof(struct mongo_pkg) + size) != 0) {
+<<<<<<< HEAD
+int mongo_pkg_doc_add(mongo_pkg_t pkg) {
+=======
+int mongo_pkg_doc_open(mongo_pkg_t pkg) {
+>>>>>>> 5aebc81cb0ca2f0d0a569701c102fa4cf9abd362
+    uint32_t new_size;
+
+    if (pkg->m_cur_doc_start >= 0) {
+        CPE_ERROR(
+            pkg->m_driver->m_em, "%s: mongo_pkg_doc_start: pkg is already started",
+            mongo_driver_name(pkg->m_driver));
         return -1;
     }
 
-    CPE_COPY_HTON32(pkg + 1, &size);
-    ((char*)(pkg + 1))[size - 1] = 0;
+    assert(pkg->m_stackPos == 0);
+
+    new_size = mongo_pkg_size(pkg) + 4;
+    if (mongo_pkg_set_size(pkg, new_size) != 0) {
+        CPE_ERROR(
+            pkg->m_driver->m_em, "%s: mongo_pkg_doc_start: pkg size overflow, new_size=%d, capacity=%d",
+            mongo_driver_name(pkg->m_driver), new_size, (int)mongo_pkg_capacity(pkg));
+        return -1;
+    }
+
+    if (pkg->m_doc_count >= 0) ++pkg->m_doc_count;
+
+    pkg->m_cur_doc_start = new_size - 4;
+    pkg->m_cur_doc_pos =  new_size;
+
+    return 0;
+}
+
+int mongo_pkg_doc_close(mongo_pkg_t pkg) {
+    uint32_t new_size;
+    uint32_t doc_size;
+    char * buf;
+
+    if (pkg->m_cur_doc_start < 0) {
+        CPE_ERROR(
+            pkg->m_driver->m_em, "%s: mongo_pkg_doc_close: document is already closed",
+            mongo_driver_name(pkg->m_driver));
+        return -1;
+    }
+
+    if (pkg->m_stackPos != 0) {
+        CPE_ERROR(
+            pkg->m_driver->m_em, "%s: mongo_pkg_doc_close: document data is not closed",
+            mongo_driver_name(pkg->m_driver));
+        return -1;
+    }
+
+    new_size = mongo_pkg_size(pkg) + 1;
+    if (mongo_pkg_set_size(pkg, new_size) != 0) {
+        CPE_ERROR(
+            pkg->m_driver->m_em, "%s: mongo_pkg_doc_close: pkg size overflow, new_size=%d, capacity=%d",
+            mongo_driver_name(pkg->m_driver), new_size, (int)mongo_pkg_capacity(pkg));
+        return -1;
+    }
+
+    buf = (char *)(pkg + 1);
+    doc_size = pkg->m_cur_doc_pos - pkg->m_cur_doc_start + 1;
+    CPE_COPY_HTON32(buf + pkg->m_cur_doc_start, &doc_size);
+    buf[new_size - 1] = 0;
+
+    pkg->m_cur_doc_pos = -1;
+    pkg->m_cur_doc_start = -1;
+
+    return 0;
+}
+
+int mongo_pkg_set_size(mongo_pkg_t pkg, uint32_t size) {
+    if (dp_req_set_size(pkg->m_dp_req, sizeof(struct mongo_pkg) + size) != 0) {
+        return -1;
+    }
 
     return 0;
 }
@@ -105,12 +173,63 @@ size_t mongo_pkg_capacity(mongo_pkg_t pkg) {
     return dp_req_capacity(pkg->m_dp_req) - sizeof(struct mongo_pkg);
 }
 
+<<<<<<< HEAD
 void mongo_pkg_it(mongo_pkg_t pkg, bson_iterator * it) {
     bson_iterator_from_buffer(it, (const char *)mongo_pkg_data(pkg));
 }
 
 int mongo_pkg_find(mongo_pkg_t pkg, bson_iterator * it, const char * path) {
+=======
+int mongo_pkg_it(bson_iterator * it, mongo_pkg_t pkg, int doc_idx) {
+    if (doc_idx > 0) {
+        struct mongo_doc_it doc_it;
+        void * doc;
+        mongo_pkg_doc_it(&doc_it, pkg);
+
+        while(doc_idx > 0 && (doc = mongo_pkg_doc_it_next(&doc_it))) {
+            --doc_idx;
+        }
+
+        if (doc_idx == 0) {
+            bson_iterator_from_buffer(it, (const char *)doc);
+            return 0;
+        }
+        else {
+            return -1;
+        }
+    }
+    else {
+        bson_iterator_from_buffer(it, (const char *)mongo_pkg_data(pkg));
+        return 0;
+    }
+}
+
+int mongo_pkg_find(bson_iterator * it, mongo_pkg_t pkg, int doc_idx, const char * path) {
+>>>>>>> 5aebc81cb0ca2f0d0a569701c102fa4cf9abd362
     return -1;
+}
+
+static int32_t mongo_pkg_doc_count_calc(mongo_pkg_t pkg) {
+    int32_t r = 0;
+    uint32_t doc_start = 0;
+    uint32_t doc_size;
+    uint32_t total_size = mongo_pkg_size(pkg);
+    char * buf = (char*)(pkg + 1);
+
+    while(doc_start + 4 < total_size) {
+        ++r;
+
+        CPE_COPY_HTON32(&doc_size, buf + doc_start);
+        doc_start += doc_size;
+    }
+
+    return r;
+}
+
+int mongo_pkg_doc_count(mongo_pkg_t pkg) {
+    if (pkg->m_doc_count) pkg->m_doc_count = mongo_pkg_doc_count_calc(pkg);
+
+    return pkg->m_doc_count;
 }
 
 static void mongo_pkg_data_dump_i(write_stream_t stream, const char *data , int depth) {
@@ -128,6 +247,7 @@ static void mongo_pkg_data_dump_i(write_stream_t stream, const char *data , int 
         key = bson_iterator_key( &i);
 
         stream_putc_count(stream,  ' ', depth << 2);
+<<<<<<< HEAD
         stream_printf(stream,  "%s : %d \t " , key , t);
 
         switch (t) {
@@ -167,12 +287,53 @@ static void mongo_pkg_data_dump_i(write_stream_t stream, const char *data , int 
             break;
         case BSON_CODEWSCOPE:
             stream_printf(stream,  "BSON_CODE_W_SCOPE: %s", bson_iterator_code( &i ));
+=======
+
+        switch (t) {
+        case BSON_DOUBLE:
+            stream_printf(stream,  "%s : %d(%s)\t%f" , key, t, "BSON_DOUBLE", bson_iterator_double( &i ));
+            break;
+        case BSON_STRING:
+            stream_printf(stream,  "%s : %d(%s)\t%s" , key, t, "BSON_STRING", bson_iterator_string( &i ));
+            break;
+        case BSON_SYMBOL:
+            stream_printf(stream,  "%s : %d(%s)\t%s" , key, t, "BSON_SYMBOL", bson_iterator_string( &i ));
+            break;
+        case BSON_OID:
+            bson_oid_to_string( bson_iterator_oid( &i ), oidhex);
+            stream_printf(stream,  "%s : %d(%s)\t%s" , key, t, "BSON_OID", oidhex);
+            break;
+        case BSON_BOOL:
+            stream_printf(stream,  "%s : %d(%s)\t%s" , key, t, "BSON_BOOL", bson_iterator_bool( &i ) ? "true" : "false");
+            break;
+        case BSON_DATE:
+            stream_printf(stream,  "%s : %d(%s)\t%ld", key, t, "BSON_DATE", (long int)bson_iterator_date( &i ));
+            break;
+        case BSON_BINDATA:
+            stream_printf(stream,  "%s : %d(%s)", key, t, "BSON_BINDATA");
+            break;
+        case BSON_UNDEFINED:
+            stream_printf(stream,  "%s : %d(%s)", key, t, "BSON_UNDEFINED");
+            break;
+        case BSON_NULL:
+            stream_printf(stream,  "%s : %d(%s)", key, t, "BSON_NULL");
+            break;
+        case BSON_REGEX:
+            stream_printf(stream,  "%s : %d(%s)\t: %s", key, t, "BSON_REGEX", bson_iterator_regex( &i ));
+            break;
+        case BSON_CODE:
+            stream_printf(stream,  "%s : %d(%s)\t: %s", key, t, "BSON_CODE", bson_iterator_code( &i ));
+            break;
+        case BSON_CODEWSCOPE:
+            stream_printf(stream,  "%s : %d(%s)\t: %s", key, t, "BSON_CODE_W_SCOPE", bson_iterator_code( &i ));
+>>>>>>> 5aebc81cb0ca2f0d0a569701c102fa4cf9abd362
             bson_init( &scope);
             bson_iterator_code_scope( &i, &scope);
             stream_printf(stream,  "\n\t SCOPE: ");
             bson_print( &scope);
             break;
         case BSON_INT:
+<<<<<<< HEAD
             stream_printf(stream,  "%d" , bson_iterator_int( &i ));
             break;
         case BSON_LONG:
@@ -189,6 +350,27 @@ static void mongo_pkg_data_dump_i(write_stream_t stream, const char *data , int 
             break;
         default:
             stream_printf(stream, "can't print type : %d\n" , t);
+=======
+            stream_printf(stream,  "%s : %d(%s)\t%d" , key, t, "BSON_INT", bson_iterator_int( &i ));
+            break;
+        case BSON_LONG:
+            stream_printf(stream,  "%s : %d(%s)\t%lld", key, t, "BSON_LONG", (uint64_t)bson_iterator_long( &i ));
+            break;
+        case BSON_TIMESTAMP:
+            ts = bson_iterator_timestamp( &i);
+            stream_printf(stream,  "%s : %d(%s)\ti: %d, t: %d", key, t, "BSON_TIMESTAMP", ts.i, ts.t);
+            break;
+        case BSON_OBJECT:
+            stream_printf(stream,  "%s : %d(%s)\n", key, t, "BSON_OBJECT");
+            mongo_pkg_data_dump_i(stream, bson_iterator_value(&i), depth + 1);
+            break;
+        case BSON_ARRAY:
+            stream_printf(stream,  "%s : %d(%s)\n", key, t, "BSON_ARRAY");
+            mongo_pkg_data_dump_i(stream, bson_iterator_value(&i), depth + 1);
+            break;
+        default:
+            stream_printf(stream, "%s : %d(%s)" , key, t, "???");
+>>>>>>> 5aebc81cb0ca2f0d0a569701c102fa4cf9abd362
         }
         stream_printf(stream, "\n");
     }
@@ -196,29 +378,37 @@ static void mongo_pkg_data_dump_i(write_stream_t stream, const char *data , int 
 
 const char * mongo_pkg_dump(mongo_pkg_t req, mem_buffer_t buffer, int level) {
     struct write_stream_buffer stream;
+    struct mongo_doc_it doc_it;
+    void * doc;
+    int i = 0;
 
     mem_buffer_clear_data(buffer);
 
     write_stream_buffer_init(&stream, buffer);
-
-    if (mongo_pkg_size(req) > 0) {
-        mongo_pkg_data_dump_i((write_stream_t)&stream, mongo_pkg_data(req), level);
-    }
-
-    stream_putc((write_stream_t)&stream, 0);
-
-    return mem_buffer_make_continuous(buffer, 0);
-}
-
-const char * mongo_pkg_data_dump(mongo_pkg_t req, mem_buffer_t buffer, int level) {
-    struct write_stream_buffer stream;
-
-    mem_buffer_clear_data(buffer);
-
+<<<<<<< HEAD
+    printf("aaaa\n");
     write_stream_buffer_init(&stream, buffer);
+    printf("bbb\n");
 
-    if (mongo_pkg_size(req) > 0) {
-        mongo_pkg_data_dump_i((write_stream_t)&stream, mongo_pkg_data(req), level);
+    i = 0;
+    mongo_pkg_doc_it(req, &doc_it);
+    while((doc = mongo_pkg_doc_it_next(&doc_it))) {
+
+        stream_putc_count((write_stream_t)&stream,  ' ', level << 2);
+        stream_printf((write_stream_t)&stream, "*********** %d **********\n", i);
+=======
+
+    i = 0;
+    mongo_pkg_doc_it(&doc_it, req);
+    while((doc = mongo_pkg_doc_it_next(&doc_it))) {
+
+        stream_putc_count((write_stream_t)&stream,  ' ', level << 2);
+        stream_printf((write_stream_t)&stream, "*********** doc %d **********\n", i);
+>>>>>>> 5aebc81cb0ca2f0d0a569701c102fa4cf9abd362
+
+        mongo_pkg_data_dump_i((write_stream_t)&stream, doc, level + 1);
+
+        ++i;
     }
 
     stream_putc((write_stream_t)&stream, 0);
@@ -227,15 +417,74 @@ const char * mongo_pkg_data_dump(mongo_pkg_t req, mem_buffer_t buffer, int level
 }
 
 int mongo_pkg_validate(mongo_pkg_t pkg, error_monitor_t em) {
+    if (pkg->m_cur_doc_start != -1) {
+        CPE_ERROR(
+            em, "%s: pkg_validate: pkg document not closed",
+            mongo_driver_name(pkg->m_driver));
+        return -1;
+    }
 
-        /* if (buf[read_pos] != 0) { */
-        /*     CPE_ERROR( */
-        /*         driver->m_em, "%s: ep %d: end bit of document not zero!", */
-        /*         mongo_driver_name(driver), (int)net_ep_id(ep)); */
-        /*     net_ep_erase(ep, pkg->m_pro_head.m_len); */
-        /*     return mongo_pkg_recv_error; */
-        /* } */
     return 0;
+}
+
+struct mongo_pkg_doc_it_data {
+    mongo_pkg_t m_pkg;
+    int32_t m_pos;
+};
+
+static void * mongo_pkg_doc_it_do_next(struct mongo_doc_it * it) {
+    struct mongo_pkg_doc_it_data * data = (struct mongo_pkg_doc_it_data *)&it->m_data;
+    uint32_t total_size;
+    uint32_t doc_size;
+    char * buf;
+    void * r;
+
+    if (data->m_pkg == NULL) return NULL;
+
+    total_size =  mongo_pkg_size(data->m_pkg);
+    buf = (char*)(data->m_pkg + 1);
+
+<<<<<<< HEAD
+    printf("1\n");
+    if (data->m_pkg < 0 || data->m_pos + 4 > total_size) return NULL;
+
+    printf("2\n");
+    CPE_COPY_HTON32(&doc_size, buf + data->m_pos);
+    if (doc_size < MONGO_EMPTY_DOCUMENT_SIZE) return NULL;
+    printf("3\n");
+    if (data->m_pos + doc_size > total_size) return NULL;
+    printf("4\n");
+=======
+    if (data->m_pos < 0 || data->m_pos + 4 > total_size) return NULL;
+    CPE_COPY_HTON32(&doc_size, buf + data->m_pos);
+
+    if (doc_size < MONGO_EMPTY_DOCUMENT_SIZE) return NULL;
+
+    if (data->m_pos + doc_size > total_size) return NULL;
+>>>>>>> 5aebc81cb0ca2f0d0a569701c102fa4cf9abd362
+
+    r = buf + data->m_pos;
+
+    data->m_pos += doc_size;
+
+    return r;
+}
+
+<<<<<<< HEAD
+void mongo_pkg_doc_it(mongo_pkg_t pkg, mongo_doc_it_t it) {
+=======
+void mongo_pkg_doc_it(mongo_doc_it_t it, mongo_pkg_t pkg) {
+>>>>>>> 5aebc81cb0ca2f0d0a569701c102fa4cf9abd362
+    struct mongo_pkg_doc_it_data * data = (struct mongo_pkg_doc_it_data *)&it->m_data;
+
+    assert(sizeof(*data) <= sizeof(it->m_data));
+    data->m_pkg = pkg;
+<<<<<<< HEAD
+    data->m_pkg = 0;
+=======
+    data->m_pos = 0;
+>>>>>>> 5aebc81cb0ca2f0d0a569701c102fa4cf9abd362
+    it->next = mongo_pkg_doc_it_do_next;
 }
 
 CPE_HS_DEF_VAR(mongo_pkg_type_name, "mongo_pkg_type");

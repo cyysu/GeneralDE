@@ -61,6 +61,11 @@ int mongo_driver_send_query(mongo_driver_t driver, net_ep_t ep, mongo_pkg_t pkg)
 }
 
 int mongo_driver_send_internal(mongo_driver_t driver, net_ep_t ep, mongo_pkg_t pkg) {
+    if (mongo_pkg_validate(pkg, driver->m_em) != 0) {
+        CPE_ERROR(driver->m_em, "%s: send: pkg validate fail!", mongo_driver_name(driver));
+        return -1;
+    }
+    
     switch(pkg->m_pro_head.m_op) {
     case mongo_db_op_query:
         return mongo_driver_send_query(driver, ep, pkg);

@@ -3,45 +3,68 @@
 #include "usf/mongo_driver/mongo_pkg.h"
 #include "mongo_internal_ops.h"
 
-#define MONGO_REQUREST_CHECK_SPACE(__pkg, __len)                        \
+#define MONGO_REQUREST_CHECK_APPEND(__pkg, __len)                       \
     if ((__len) > (mongo_pkg_capacity(__pkg) - mongo_pkg_size(__pkg))) { \
         CPE_ERROR(                                                      \
-            (__pkg)->m_driver->m_em,                                     \
+            (__pkg)->m_driver->m_em,                                    \
             "mongo_pkg: append data len overflow, len=%d, size=%d, capacity=%d!", \
             (int)(__len), (int)mongo_pkg_size(__pkg), (int)mongo_pkg_capacity(__pkg)); \
         return -1;                                                      \
+    }                                                                   \
+    if ((__pkg)->m_cur_doc_pos < 0) {                                   \
+        CPE_ERROR(                                                      \
+            (__pkg)->m_driver->m_em,                                    \
+            "mongo_pkg: append document not start!");                   \
+        return -1;                                                      \
     }
 
-#define MONGO_REQUEST_APPEND_POS(__pkg, __cur_len) (((char*)(pkg + 1)) + __cur_len - 1)
+
+#define MONGO_REQUEST_APPEND_POS(__pkg, __cur_len) (((char*)(pkg + 1)) + __cur_len)
 
 static void mongo_pkg_append(mongo_pkg_t pkg, const void *data, int len) {
     size_t cur_len = mongo_pkg_size(pkg);
     memcpy(MONGO_REQUEST_APPEND_POS(pkg, cur_len), data, len);
+<<<<<<< HEAD
+=======
+    pkg->m_cur_doc_pos += len;
+>>>>>>> 5aebc81cb0ca2f0d0a569701c102fa4cf9abd362
     mongo_pkg_set_size(pkg, cur_len + len);
 }
 
 static void mongo_pkg_append_byte(mongo_pkg_t pkg, char data) {
     size_t cur_len = mongo_pkg_size(pkg);
     *MONGO_REQUEST_APPEND_POS(pkg, cur_len) = data;
+<<<<<<< HEAD
+=======
+    pkg->m_cur_doc_pos += 1;
+>>>>>>> 5aebc81cb0ca2f0d0a569701c102fa4cf9abd362
     mongo_pkg_set_size(pkg, cur_len + 1);
 }
 
 static void mongo_pkg_append_32(mongo_pkg_t pkg, const void * data) {
     size_t cur_len = mongo_pkg_size(pkg);
     CPE_COPY_HTON32(MONGO_REQUEST_APPEND_POS(pkg, cur_len), data);
+<<<<<<< HEAD
+=======
+    pkg->m_cur_doc_pos += 4;
+>>>>>>> 5aebc81cb0ca2f0d0a569701c102fa4cf9abd362
     mongo_pkg_set_size(pkg, cur_len + 4);
 }
 
 static void mongo_pkg_append_64(mongo_pkg_t pkg, const void * data) {
     size_t cur_len = mongo_pkg_size(pkg);
     CPE_COPY_HTON64(MONGO_REQUEST_APPEND_POS(pkg, cur_len), data);
+<<<<<<< HEAD
+=======
+    pkg->m_cur_doc_pos += 8;
+>>>>>>> 5aebc81cb0ca2f0d0a569701c102fa4cf9abd362
     mongo_pkg_set_size(pkg, cur_len + 8);
 }
 
 static int mongo_pkg_append_estart(mongo_pkg_t pkg, int type, const char *name, const int dataSize ) {
     const int len = strlen(name) + 1;
 
-    MONGO_REQUREST_CHECK_SPACE(pkg, 1 + len + dataSize);
+    MONGO_REQUREST_CHECK_APPEND(pkg, 1 + len + dataSize);
 
     mongo_pkg_append_byte(pkg, (char)type);
     mongo_pkg_append(pkg, name, len);
@@ -182,7 +205,7 @@ int mongo_pkg_append_finish_object(mongo_pkg_t pkg) {
     char *start;
     int32_t i;
     if (pkg->m_stackPos <= 0) return -1;
-    MONGO_REQUREST_CHECK_SPACE(pkg, 1);
+    MONGO_REQUREST_CHECK_APPEND(pkg, 1);
     mongo_pkg_append_byte(pkg, 0);
 
     --pkg->m_stackPos;
@@ -205,3 +228,34 @@ int mongo_pkg_append_finish_array(mongo_pkg_t pkg) {
     return mongo_pkg_append_finish_object(pkg);
 }
 
+<<<<<<< HEAD
+=======
+int mongo_pkg_doc_append(mongo_pkg_t pkg, LPDRMETA meta, void const * data, size_t capacity) {
+    char * buf;
+    size_t output_capacity;
+    uint32_t pkg_size;
+    int write_size;
+
+    if (pkg->m_cur_doc_start != -1) return -1;
+
+    pkg_size = mongo_pkg_size(pkg);
+    output_capacity = mongo_pkg_capacity(pkg) - pkg_size;
+    buf = (char*)(pkg + 1);
+
+    write_size = dr_bson_write(buf + pkg_size, output_capacity, data, capacity, meta, pkg->m_driver->m_em);
+    if (write_size < 0) return -1;
+
+    if (write_size < MONGO_EMPTY_DOCUMENT_SIZE) {
+        CPE_ERROR(
+            pkg->m_driver->m_em,
+            "mongo_pkg: append document, write size(%d) too small!", write_size);
+        return -1;
+    }
+
+    if (pkg->m_doc_count >= 0) ++pkg->m_doc_count;
+
+    mongo_pkg_set_size(pkg, pkg_size + write_size);
+
+    return 0;
+}
+>>>>>>> 5aebc81cb0ca2f0d0a569701c102fa4cf9abd362

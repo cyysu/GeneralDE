@@ -31,6 +31,11 @@ typedef enum mongo_db_op {
     mongo_db_op_kill_cursors = 2007
 } mongo_db_op_t;
 
+typedef struct mongo_doc_it {
+    void * (*next)(struct mongo_doc_it * it);
+    char m_data[16];
+} * mongo_doc_it_t;
+
 typedef struct mongo_host_port * mongo_host_port_t;
 typedef struct mongo_driver * mongo_driver_t;
 typedef struct mongo_pkg * mongo_pkg_t;

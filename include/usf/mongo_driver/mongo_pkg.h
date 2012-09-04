@@ -32,6 +32,22 @@ size_t mongo_pkg_capacity(mongo_pkg_t pkg);
 mongo_db_op_t mongo_pkg_op(mongo_pkg_t pkg);
 void mongo_pkg_set_op(mongo_pkg_t pkg, mongo_db_op_t op);
 
+<<<<<<< HEAD
+void mongo_pkg_doc_it(mongo_pkg_t pkg, mongo_doc_it_t doc_it);
+int mongo_pkg_doc_add(mongo_pkg_t pkg);
+=======
+void mongo_pkg_doc_it(mongo_doc_it_t doc_it, mongo_pkg_t pkg);
+int mongo_pkg_doc_open(mongo_pkg_t pkg);
+>>>>>>> 5aebc81cb0ca2f0d0a569701c102fa4cf9abd362
+int mongo_pkg_doc_close(mongo_pkg_t pkg);
+int mongo_pkg_doc_count(mongo_pkg_t pkg);
+int mongo_pkg_doc_is_closed(mongo_pkg_t pkg);
+
+<<<<<<< HEAD
+=======
+int mongo_pkg_doc_append(mongo_pkg_t pkg, LPDRMETA meta, void const * data, size_t capacity);
+
+>>>>>>> 5aebc81cb0ca2f0d0a569701c102fa4cf9abd362
 uint32_t mongo_pkg_id(mongo_pkg_t pkg);
 void mongo_pkg_set_id(mongo_pkg_t pkg, uint32_t id);
 
@@ -39,11 +55,15 @@ const char *mongo_pkg_ns(mongo_pkg_t pkg);
 void mongo_pkg_set_ns(mongo_pkg_t pkg, const char * ns);
 
 const char * mongo_pkg_dump(mongo_pkg_t req, mem_buffer_t buffer, int level);
-const char * mongo_pkg_data_dump(mongo_pkg_t req, mem_buffer_t buffer, int level);
 int mongo_pkg_build_from_cfg(mongo_pkg_t req, cfg_t cfg, error_monitor_t em);
 
+<<<<<<< HEAD
 void mongo_pkg_it(mongo_pkg_t pkg, bson_iterator * it);
 int mongo_pkg_find(mongo_pkg_t pkg, bson_iterator * it, const char * path);
+=======
+int mongo_pkg_it(bson_iterator * it, mongo_pkg_t pkg, int doc_idx);
+int mongo_pkg_find(bson_iterator * it, mongo_pkg_t pkg, int doc_idx, const char * path);
+>>>>>>> 5aebc81cb0ca2f0d0a569701c102fa4cf9abd362
 
 int mongo_pkg_validate(mongo_pkg_t pkg, error_monitor_t em);
 
@@ -70,6 +90,8 @@ int mongo_pkg_append_start_object(mongo_pkg_t pkg, const char *name);
 int mongo_pkg_append_start_array(mongo_pkg_t pkg, const char *name);
 int mongo_pkg_append_finish_object(mongo_pkg_t pkg);
 int mongo_pkg_append_finish_array(mongo_pkg_t pkg);
+
+#define mongo_pkg_doc_it_next(it) ((it)->next ? (it)->next(it) : NULL)
 
 #ifdef __cplusplus
 }

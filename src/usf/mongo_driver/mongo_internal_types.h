@@ -79,6 +79,9 @@ struct mongo_pkg {
     int32_t m_stackPos;
     uint32_t m_reserve;
     char m_ns[32];
+    int32_t m_doc_count;
+    int32_t m_cur_doc_start;
+    int32_t m_cur_doc_pos;
     struct mongo_pro_header m_pro_head;
     struct mongo_pro_reply_fields m_pro_replay_fields;
 };
