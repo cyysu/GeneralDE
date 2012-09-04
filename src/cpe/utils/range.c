@@ -164,11 +164,12 @@ static int cpe_range_find_next_pos(cpe_range_mgr_t ra, ptr_int_t start) {
 }
 
 int cpe_range_is_conflict(cpe_range_mgr_t ra, ptr_int_t start, ptr_int_t end) {
-    assert(ra);
     int next_pos;
     int pre_pos;
     struct cpe_range * next_range;
     struct cpe_range * pre_range;
+
+    assert(ra);
 
     if (start < 0 || end <= 0 || end < start) return 0;
     if (end == start) return 0;

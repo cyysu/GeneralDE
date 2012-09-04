@@ -341,8 +341,10 @@ void dr_meta_add_key(LPDRMETA meta, const char * entry_name, error_monitor_t em)
     LPDRMETAENTRY entry;
 
     for(i = 0; i < meta->m_key_num; ++i) {
+        LPDRMETAENTRY check_entry;
+
         entry_info = dr_meta_key_info_at(meta, i);
-        LPDRMETAENTRY check_entry = (LPDRMETAENTRY)(base + entry_info->m_entry_diff_to_base);
+        check_entry = (LPDRMETAENTRY)(base + entry_info->m_entry_diff_to_base);
 
         if (strcmp(base + check_entry->m_name_pos, entry_name) == 0) {
             CPE_ERROR_EX(em, CPE_DR_ERROR_META_NO_ENTRY, "meta %s have entry %s", dr_meta_name(meta), entry_name);
@@ -394,8 +396,9 @@ void dr_index_add_entry(struct dr_index_info * index, const char * entry_name, e
     LPDRMETAENTRY entry;
 
     for(i = 0; i < index->m_entry_num; ++i) {
+        LPDRMETAENTRY check_entry;
         entry_info = dr_index_entry_info_at(index, i);
-        LPDRMETAENTRY check_entry = (LPDRMETAENTRY)(base + entry_info->m_entry_diff_to_base);
+        check_entry = (LPDRMETAENTRY)(base + entry_info->m_entry_diff_to_base);
 
         if (strcmp(base + check_entry->m_name_pos, entry_name) == 0) {
             CPE_ERROR_EX(

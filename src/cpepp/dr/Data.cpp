@@ -1,4 +1,5 @@
 #include <stdexcept>
+#include "cpe/pal/pal_strings.h"
 #include "cpepp/utils/ErrorCollector.hpp"
 #include "cpe/dr/dr_data.h"
 #include "cpepp/dr/Data.hpp"
@@ -429,7 +430,7 @@ void Data::setCapacity(size_t capacity) {
     m_capacity = capacity;
 }
 
-void Data::bzero(void) { ::bzero(data(), capacity()); }
+void Data::clear(void) { ::bzero(data(), capacity()); }
 
 void Data::copySameEntriesFrom(ConstData const & o, error_monitor_t em) {
     if (m_meta == NULL) throw ::std::runtime_error("Data::copySameEntriesFrom: meta not exist!");
