@@ -19,6 +19,7 @@ pom_grp_store_create(
 void pom_grp_store_free(pom_grp_store_t store);
 
 uint32_t pom_grp_store_table_count(pom_grp_store_t store);
+pom_grp_meta_t pom_grp_store_meta(pom_grp_store_t store);
 
 void pom_grp_store_tables(pom_grp_store_t store, pom_grp_store_table_it_t it);
 pom_grp_store_table_t pom_grp_store_table_find(pom_grp_store_t store, const char * name);

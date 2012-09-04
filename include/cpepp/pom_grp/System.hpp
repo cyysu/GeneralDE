@@ -4,6 +4,9 @@
 
 namespace Cpe { namespace PomGrp {
 
+class Store;
+class StoreTable;
+class StoreEntry;
 class ObjectRef;
 
 }}
