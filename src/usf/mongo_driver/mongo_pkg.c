@@ -87,11 +87,7 @@ void * mongo_pkg_data(mongo_pkg_t pkg) {
     return (pkg + 1);
 }
 
-<<<<<<< HEAD
-int mongo_pkg_doc_add(mongo_pkg_t pkg) {
-=======
 int mongo_pkg_doc_open(mongo_pkg_t pkg) {
->>>>>>> 5aebc81cb0ca2f0d0a569701c102fa4cf9abd362
     uint32_t new_size;
 
     if (pkg->m_cur_doc_start >= 0) {
@@ -173,13 +169,6 @@ size_t mongo_pkg_capacity(mongo_pkg_t pkg) {
     return dp_req_capacity(pkg->m_dp_req) - sizeof(struct mongo_pkg);
 }
 
-<<<<<<< HEAD
-void mongo_pkg_it(mongo_pkg_t pkg, bson_iterator * it) {
-    bson_iterator_from_buffer(it, (const char *)mongo_pkg_data(pkg));
-}
-
-int mongo_pkg_find(mongo_pkg_t pkg, bson_iterator * it, const char * path) {
-=======
 int mongo_pkg_it(bson_iterator * it, mongo_pkg_t pkg, int doc_idx) {
     if (doc_idx > 0) {
         struct mongo_doc_it doc_it;
@@ -205,7 +194,6 @@ int mongo_pkg_it(bson_iterator * it, mongo_pkg_t pkg, int doc_idx) {
 }
 
 int mongo_pkg_find(bson_iterator * it, mongo_pkg_t pkg, int doc_idx, const char * path) {
->>>>>>> 5aebc81cb0ca2f0d0a569701c102fa4cf9abd362
     return -1;
 }
 
@@ -247,47 +235,6 @@ static void mongo_pkg_data_dump_i(write_stream_t stream, const char *data , int 
         key = bson_iterator_key( &i);
 
         stream_putc_count(stream,  ' ', depth << 2);
-<<<<<<< HEAD
-        stream_printf(stream,  "%s : %d \t " , key , t);
-
-        switch (t) {
-        case BSON_DOUBLE:
-            stream_printf(stream,  "%f" , bson_iterator_double( &i ));
-            break;
-        case BSON_STRING:
-            stream_printf(stream,  "%s" , bson_iterator_string( &i ));
-            break;
-        case BSON_SYMBOL:
-            stream_printf(stream,  "SYMBOL: %s" , bson_iterator_string( &i ));
-            break;
-        case BSON_OID:
-            bson_oid_to_string( bson_iterator_oid( &i ), oidhex);
-            stream_printf(stream,  "%s" , oidhex);
-            break;
-        case BSON_BOOL:
-            stream_printf(stream,  "%s" , bson_iterator_bool( &i ) ? "true" : "false");
-            break;
-        case BSON_DATE:
-            stream_printf(stream,  "%ld" , ( long int )bson_iterator_date( &i ));
-            break;
-        case BSON_BINDATA:
-            stream_printf(stream,  "BSON_BINDATA");
-            break;
-        case BSON_UNDEFINED:
-            stream_printf(stream,  "BSON_UNDEFINED");
-            break;
-        case BSON_NULL:
-            stream_printf(stream,  "BSON_NULL");
-            break;
-        case BSON_REGEX:
-            stream_printf(stream,  "BSON_REGEX: %s", bson_iterator_regex( &i ));
-            break;
-        case BSON_CODE:
-            stream_printf(stream,  "BSON_CODE: %s", bson_iterator_code( &i ));
-            break;
-        case BSON_CODEWSCOPE:
-            stream_printf(stream,  "BSON_CODE_W_SCOPE: %s", bson_iterator_code( &i ));
-=======
 
         switch (t) {
         case BSON_DOUBLE:
@@ -326,31 +273,12 @@ static void mongo_pkg_data_dump_i(write_stream_t stream, const char *data , int 
             break;
         case BSON_CODEWSCOPE:
             stream_printf(stream,  "%s : %d(%s)\t: %s", key, t, "BSON_CODE_W_SCOPE", bson_iterator_code( &i ));
->>>>>>> 5aebc81cb0ca2f0d0a569701c102fa4cf9abd362
             bson_init( &scope);
             bson_iterator_code_scope( &i, &scope);
             stream_printf(stream,  "\n\t SCOPE: ");
             bson_print( &scope);
             break;
         case BSON_INT:
-<<<<<<< HEAD
-            stream_printf(stream,  "%d" , bson_iterator_int( &i ));
-            break;
-        case BSON_LONG:
-            stream_printf(stream,  "%lld" , ( uint64_t )bson_iterator_long( &i ));
-            break;
-        case BSON_TIMESTAMP:
-            ts = bson_iterator_timestamp( &i);
-            stream_printf(stream,  "i: %d, t: %d", ts.i, ts.t);
-            break;
-        case BSON_OBJECT:
-        case BSON_ARRAY:
-            stream_printf(stream,  "\n");
-            mongo_pkg_data_dump_i(stream, bson_iterator_value(&i), depth + 1);
-            break;
-        default:
-            stream_printf(stream, "can't print type : %d\n" , t);
-=======
             stream_printf(stream,  "%s : %d(%s)\t%d" , key, t, "BSON_INT", bson_iterator_int( &i ));
             break;
         case BSON_LONG:
@@ -370,7 +298,6 @@ static void mongo_pkg_data_dump_i(write_stream_t stream, const char *data , int 
             break;
         default:
             stream_printf(stream, "%s : %d(%s)" , key, t, "???");
->>>>>>> 5aebc81cb0ca2f0d0a569701c102fa4cf9abd362
         }
         stream_printf(stream, "\n");
     }
@@ -385,18 +312,6 @@ const char * mongo_pkg_dump(mongo_pkg_t req, mem_buffer_t buffer, int level) {
     mem_buffer_clear_data(buffer);
 
     write_stream_buffer_init(&stream, buffer);
-<<<<<<< HEAD
-    printf("aaaa\n");
-    write_stream_buffer_init(&stream, buffer);
-    printf("bbb\n");
-
-    i = 0;
-    mongo_pkg_doc_it(req, &doc_it);
-    while((doc = mongo_pkg_doc_it_next(&doc_it))) {
-
-        stream_putc_count((write_stream_t)&stream,  ' ', level << 2);
-        stream_printf((write_stream_t)&stream, "*********** %d **********\n", i);
-=======
 
     i = 0;
     mongo_pkg_doc_it(&doc_it, req);
@@ -404,7 +319,6 @@ const char * mongo_pkg_dump(mongo_pkg_t req, mem_buffer_t buffer, int level) {
 
         stream_putc_count((write_stream_t)&stream,  ' ', level << 2);
         stream_printf((write_stream_t)&stream, "*********** doc %d **********\n", i);
->>>>>>> 5aebc81cb0ca2f0d0a569701c102fa4cf9abd362
 
         mongo_pkg_data_dump_i((write_stream_t)&stream, doc, level + 1);
 
@@ -444,24 +358,12 @@ static void * mongo_pkg_doc_it_do_next(struct mongo_doc_it * it) {
     total_size =  mongo_pkg_size(data->m_pkg);
     buf = (char*)(data->m_pkg + 1);
 
-<<<<<<< HEAD
-    printf("1\n");
-    if (data->m_pkg < 0 || data->m_pos + 4 > total_size) return NULL;
-
-    printf("2\n");
-    CPE_COPY_HTON32(&doc_size, buf + data->m_pos);
-    if (doc_size < MONGO_EMPTY_DOCUMENT_SIZE) return NULL;
-    printf("3\n");
-    if (data->m_pos + doc_size > total_size) return NULL;
-    printf("4\n");
-=======
     if (data->m_pos < 0 || data->m_pos + 4 > total_size) return NULL;
     CPE_COPY_HTON32(&doc_size, buf + data->m_pos);
 
     if (doc_size < MONGO_EMPTY_DOCUMENT_SIZE) return NULL;
 
     if (data->m_pos + doc_size > total_size) return NULL;
->>>>>>> 5aebc81cb0ca2f0d0a569701c102fa4cf9abd362
 
     r = buf + data->m_pos;
 
@@ -470,20 +372,12 @@ static void * mongo_pkg_doc_it_do_next(struct mongo_doc_it * it) {
     return r;
 }
 
-<<<<<<< HEAD
-void mongo_pkg_doc_it(mongo_pkg_t pkg, mongo_doc_it_t it) {
-=======
 void mongo_pkg_doc_it(mongo_doc_it_t it, mongo_pkg_t pkg) {
->>>>>>> 5aebc81cb0ca2f0d0a569701c102fa4cf9abd362
     struct mongo_pkg_doc_it_data * data = (struct mongo_pkg_doc_it_data *)&it->m_data;
 
     assert(sizeof(*data) <= sizeof(it->m_data));
     data->m_pkg = pkg;
-<<<<<<< HEAD
-    data->m_pkg = 0;
-=======
     data->m_pos = 0;
->>>>>>> 5aebc81cb0ca2f0d0a569701c102fa4cf9abd362
     it->next = mongo_pkg_doc_it_do_next;
 }
 

@@ -25,8 +25,6 @@ Package & Package::_cast(dp_req_t req) {
     return *(Package*)pkg;
 }
 
-<<<<<<< HEAD
-=======
 void Package::docAppend(LPDRMETA meta, void const * data, size_t size) {
     if (mongo_pkg_doc_append(*this, meta, data, size) != 0) {
         throw ::std::runtime_error("Usf::Mongo::Package: apend doc fail!");
@@ -147,5 +145,4 @@ void Package::appendTimeS(const char *name, time_t secs) {
     }
 }
 
->>>>>>> 5aebc81cb0ca2f0d0a569701c102fa4cf9abd362
 }}

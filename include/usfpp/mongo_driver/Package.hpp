@@ -1,10 +1,7 @@
 #ifndef USFPP_MONGO_PACKAGE_H
 #define USFPP_MONGO_PACKAGE_H
 #include "cpepp/utils/ClassCategory.hpp"
-<<<<<<< HEAD
-=======
 #include "cpepp/dr/System.hpp"
->>>>>>> 5aebc81cb0ca2f0d0a569701c102fa4cf9abd362
 #include "usf/mongo_driver/mongo_pkg.h"
 #include "System.hpp"
 
@@ -23,8 +20,6 @@ public:
     const char * ns(void) const { return mongo_pkg_ns(*this); }
     void setNs(const char * ns) { mongo_pkg_set_ns(*this, ns); }
 
-<<<<<<< HEAD
-=======
     /*doc op*/
     void docAppend(LPDRMETA meta, void const * data, size_t size);
 
@@ -57,7 +52,6 @@ public:
     void appendData(const char *name, int64_t millis);
     void appendTimeS(const char *name, time_t secs);
 
->>>>>>> 5aebc81cb0ca2f0d0a569701c102fa4cf9abd362
     /*other op*/
     const char * dump_data(mem_buffer_t buffer) const { return mongo_pkg_dump(*this, buffer, 0); }
 

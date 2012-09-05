@@ -24,40 +24,28 @@
 static void mongo_pkg_append(mongo_pkg_t pkg, const void *data, int len) {
     size_t cur_len = mongo_pkg_size(pkg);
     memcpy(MONGO_REQUEST_APPEND_POS(pkg, cur_len), data, len);
-<<<<<<< HEAD
-=======
     pkg->m_cur_doc_pos += len;
->>>>>>> 5aebc81cb0ca2f0d0a569701c102fa4cf9abd362
     mongo_pkg_set_size(pkg, cur_len + len);
 }
 
 static void mongo_pkg_append_byte(mongo_pkg_t pkg, char data) {
     size_t cur_len = mongo_pkg_size(pkg);
     *MONGO_REQUEST_APPEND_POS(pkg, cur_len) = data;
-<<<<<<< HEAD
-=======
     pkg->m_cur_doc_pos += 1;
->>>>>>> 5aebc81cb0ca2f0d0a569701c102fa4cf9abd362
     mongo_pkg_set_size(pkg, cur_len + 1);
 }
 
 static void mongo_pkg_append_32(mongo_pkg_t pkg, const void * data) {
     size_t cur_len = mongo_pkg_size(pkg);
     CPE_COPY_HTON32(MONGO_REQUEST_APPEND_POS(pkg, cur_len), data);
-<<<<<<< HEAD
-=======
     pkg->m_cur_doc_pos += 4;
->>>>>>> 5aebc81cb0ca2f0d0a569701c102fa4cf9abd362
     mongo_pkg_set_size(pkg, cur_len + 4);
 }
 
 static void mongo_pkg_append_64(mongo_pkg_t pkg, const void * data) {
     size_t cur_len = mongo_pkg_size(pkg);
     CPE_COPY_HTON64(MONGO_REQUEST_APPEND_POS(pkg, cur_len), data);
-<<<<<<< HEAD
-=======
     pkg->m_cur_doc_pos += 8;
->>>>>>> 5aebc81cb0ca2f0d0a569701c102fa4cf9abd362
     mongo_pkg_set_size(pkg, cur_len + 8);
 }
 
@@ -228,8 +216,6 @@ int mongo_pkg_append_finish_array(mongo_pkg_t pkg) {
     return mongo_pkg_append_finish_object(pkg);
 }
 
-<<<<<<< HEAD
-=======
 int mongo_pkg_doc_append(mongo_pkg_t pkg, LPDRMETA meta, void const * data, size_t capacity) {
     char * buf;
     size_t output_capacity;
@@ -258,4 +244,3 @@ int mongo_pkg_doc_append(mongo_pkg_t pkg, LPDRMETA meta, void const * data, size
 
     return 0;
 }
->>>>>>> 5aebc81cb0ca2f0d0a569701c102fa4cf9abd362
