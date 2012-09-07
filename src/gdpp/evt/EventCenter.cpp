@@ -15,6 +15,15 @@ Event & EventCenter::createEvent(const char * typeName, ssize_t data_capacity) {
     return *(Event *)r;
 }
 
+Event & EventCenter::createEvent(LPDRMETA data_meta, ssize_t data_capacity) {
+    Cpe::Utils::ErrorCollector em;
+    gd_evt_t r = gd_evt_create_ex(*this, data_meta, data_capacity, em);
+    if (r == NULL) {
+        em.checkThrowWithMsg< no_responser_error>();
+    }
+    return *(Event *)r;
+}
+
 void EventCenter::sendEvent(const char * target, Event & event) {
     event.setTarget(target);
 

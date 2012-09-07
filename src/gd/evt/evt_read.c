@@ -10,11 +10,51 @@
 #include "gd/evt/evt_manage.h"
 #include "evt_internal_types.h"
 
-gd_evt_t gd_evt_create(gd_evt_mgr_t evm, const char * typeName, ssize_t data_capacity, error_monitor_t em) {
+gd_evt_t gd_evt_create_ex(gd_evt_mgr_t evm, LPDRMETA data_meta, ssize_t data_capacity, error_monitor_t em) {
     tl_event_t tl_evt;
+    gd_evt_t evt;
+
+    assert(evm);
+    assert(data_meta);
+
+    if (em == NULL) em = evm->m_em;
+
+    if (data_capacity < 0) {
+        data_capacity = dr_meta_size(data_meta);
+    }
+    else if (data_capacity < (ssize_t)dr_meta_size(data_meta)) {
+        CPE_ERROR(
+            em, "%s: create event: data_capacity "  FMT_SIZE_T " is to small to contain type %s!",
+            gd_evt_mgr_name(evm), data_capacity, dr_meta_name(data_meta));
+        return NULL;
+    }
+
+    tl_evt = tl_event_create(
+        evm->m_tl, sizeof(struct gd_evt) + data_capacity + evm->m_oid_max_len + evm->m_carry_size);
+    if (tl_evt == NULL) {
+        CPE_ERROR(
+            em, "%s: crate event: create tl event fail!",
+            gd_evt_mgr_name(evm));
+        return NULL;
+    }
+
+    evt = gd_evt_cvt(tl_evt);
+
+    evt->m_oid_max_len = evm->m_oid_max_len;
+    evt->m_carry_meta = evm->m_carry_meta;
+    evt->m_carry_capacity = evm->m_carry_size;
+    evt->m_meta = data_meta;
+    evt->m_data_capacity = data_capacity;
+
+    bzero(evt + 1, evt->m_oid_max_len);
+    dr_meta_set_defaults(gd_evt_data(evt), data_capacity, data_meta, 0);
+
+    return evt;
+}
+
+gd_evt_t gd_evt_create(gd_evt_mgr_t evm, const char * typeName, ssize_t data_capacity, error_monitor_t em) {
     LPDRMETALIB metalib;
     LPDRMETA meta;
-    gd_evt_t evt;
 
     assert(evm);
 
@@ -34,37 +74,7 @@ gd_evt_t gd_evt_create(gd_evt_mgr_t evm, const char * typeName, ssize_t data_cap
         return NULL;
     }
 
-    if (data_capacity < 0) {
-        data_capacity = dr_meta_size(meta);
-    }
-    else if (data_capacity < (ssize_t)dr_meta_size(meta)) {
-        CPE_ERROR(
-            em, "%s: create event: data_capacity "  FMT_SIZE_T " is to small to contain type %s!",
-            gd_evt_mgr_name(evm), data_capacity, typeName);
-        return NULL;
-    }
-
-    tl_evt = tl_event_create(
-        evm->m_tl, sizeof(struct gd_evt) + data_capacity + evm->m_oid_max_len + evm->m_carry_size);
-    if (tl_evt == NULL) {
-        CPE_ERROR(
-            em, "%s: crate event: create tl event fail!",
-            gd_evt_mgr_name(evm));
-        return NULL;
-    }
-
-    evt = gd_evt_cvt(tl_evt);
-
-    evt->m_oid_max_len = evm->m_oid_max_len;
-    evt->m_carry_meta = evm->m_carry_meta;
-    evt->m_carry_capacity = evm->m_carry_size;
-    evt->m_meta = meta;
-    evt->m_data_capacity = data_capacity;
-
-    bzero(evt + 1, evt->m_oid_max_len);
-    dr_meta_set_defaults(gd_evt_data(evt), data_capacity, meta, 0);
-
-    return evt;
+    return gd_evt_create_ex(evm, meta, data_capacity, em);
 }
 
 int gd_evt_send(

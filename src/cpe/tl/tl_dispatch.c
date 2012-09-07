@@ -79,10 +79,12 @@ static int tl_manage_dispatch_event(tl_manage_t tm, int maxCount) {
         tl_event_do_dispatch(&node->m_event, rv);
 
         if (node->m_state == tl_event_node_state_deleting) {
+            node->m_state = tl_event_node_state_free;
             tl_event_node_free(node);
         }
         else {
             assert(node->m_state == tl_event_node_state_runing);
+            node->m_state = tl_event_node_state_free;
 
             if (node->m_repeatCount > 0) {
                 --node->m_repeatCount;

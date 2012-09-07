@@ -4,8 +4,8 @@
 #include "cpepp/dr/MetaLib.hpp"
 #include "gdpp/app/Application.hpp"
 #include "gd/evt/evt_manage.h"
-#include "System.hpp"
 #include "EventResponser.hpp"
+#include "Event.hpp"
 
 namespace Gd { namespace Evt {
 
@@ -22,7 +22,16 @@ public:
     Cpe::Dr::MetaLib const & metaLib(void) const { return *(Cpe::Dr::MetaLib*)gd_evt_mgr_metalib(*this); }
 
     Event & createEvent(const char * typeName, ssize_t capacity = -1);
+    Event & createEvent(LPDRMETA data_meta, ssize_t data_capacity = -1);
+
 	void sendEvent(const char * oid, Event & event);
+
+    template<typename T>
+    void sendEvent(const char * oid, T const & data) {
+        Event & evt = createEvent(Cpe::Dr::MetaTraits<T>::META, sizeof(data));
+        memcpy(evt.data(), &data, sizeof(data));
+        sendEvent(oid, evt);
+    }
 
     tl_t tl(void) const { return  gd_evt_mgr_tl(*this); }
 
