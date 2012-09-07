@@ -8,6 +8,11 @@
 #include "gd/evt/evt_read.h"
 #include "System.hpp"
 
+#ifdef _MSC_VER
+# pragma warning(push)
+# pragma warning(disable:4624)
+#endif
+
 namespace Gd { namespace Evt {
 
 class Event : public Cpe::Utils::SimulateObject {
@@ -51,5 +56,9 @@ public:
 };
 
 }}
+
+#ifdef _MSC_VER
+# pragma warning(pop)
+#endif
 
 #endif
