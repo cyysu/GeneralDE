@@ -179,7 +179,7 @@ static int do_generate_traits_cpp(cpe_dr_generate_ctx_t ctx) {
         }
 
         mem_buffer_clear_data(&buffer);
-        mem_buffer_strcat(&buffer, o_h->filename[i]);
+        mem_buffer_strcat(&buffer, o_h->filename[0]);
         mem_buffer_strcat(&buffer, "/");
         mem_buffer_strcat(&buffer, o_traits_cpp->filename[i]);
 

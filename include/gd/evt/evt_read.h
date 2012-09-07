@@ -9,6 +9,12 @@
 extern "C" {
 #endif
 
+gd_evt_t gd_evt_create_ex(
+    gd_evt_mgr_t evm,
+    LPDRMETA data_meta,
+    ssize_t data_capacity,
+    error_monitor_t em);
+
 gd_evt_t gd_evt_create(
     gd_evt_mgr_t evm,
     const char * typeName,
