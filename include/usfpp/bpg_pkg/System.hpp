@@ -10,6 +10,7 @@
 namespace Usf { namespace Bpg {
 
 class Package;
+class PackageAppendInfo;
 class PackageManager;
 
 }}

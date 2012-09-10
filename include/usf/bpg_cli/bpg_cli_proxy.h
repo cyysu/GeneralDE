@@ -31,8 +31,9 @@ LPDRMETA bpg_cli_proxy_meta(bpg_cli_proxy_t proxy, const char * name);
 
 size_t bpg_cli_proxy_buf_capacity(bpg_cli_proxy_t proxy);
 void bpg_cli_proxy_set_buf_capacity(bpg_cli_proxy_t proxy, size_t capacity);
-int bpg_cli_proxy_set_send_to(bpg_cli_proxy_t proxy, cfg_t cfg);
-int bpg_cli_proxy_set_recv_at(bpg_cli_proxy_t proxy, const char * name);
+int bpg_cli_proxy_outgoing_set_send_to(bpg_cli_proxy_t proxy, cfg_t cfg);
+int bpg_cli_proxy_outgoing_set_recv_at(bpg_cli_proxy_t proxy, const char * name);
+int bpg_cli_proxy_incoming_set_no_sn_send_to(bpg_cli_proxy_t proxy, cfg_t cfg);
 
 bpg_pkg_manage_t bpg_cli_proxy_pkg_manage(bpg_cli_proxy_t proxy);
 

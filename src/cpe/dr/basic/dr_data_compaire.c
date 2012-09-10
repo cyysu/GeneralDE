@@ -5,6 +5,11 @@
 #include "cpe/dr/dr_data.h"
 #include "../dr_internal_types.h"
 
+#ifdef _MSC_VER
+# pragma warning(push)
+# pragma warning(disable:4244)
+#endif
+
 #define __value(t, v) (*(t const *)v)
 #define __value_cast(ct, t, v) ((ct)__value(t, v))
 
@@ -600,3 +605,7 @@ int dr_entry_cmp(const void * l, const void * r, LPDRMETAENTRY entry) {
         return dr_ctype_cmp(l_data, entry->m_type, r_data, entry->m_type);
     }
 }
+
+#ifdef _MSC_VER
+# pragma warning(pop)
+#endif

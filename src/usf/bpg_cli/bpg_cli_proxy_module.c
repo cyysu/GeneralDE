@@ -65,7 +65,7 @@ int bpg_cli_proxy_app_init(gd_app_context_t app, gd_app_module_t module, cfg_t c
             gd_app_em(app));
     if (bpg_cli_proxy == NULL) return -1;
 
-    if (bpg_cli_proxy_set_recv_at(bpg_cli_proxy, recv_at) != 0) {
+    if (bpg_cli_proxy_outgoing_set_recv_at(bpg_cli_proxy, recv_at) != 0) {
         CPE_ERROR(
             gd_app_em(app), "%s: create: set recv-at %s fail!",
             gd_app_module_name(module),
@@ -74,9 +74,17 @@ int bpg_cli_proxy_app_init(gd_app_context_t app, gd_app_module_t module, cfg_t c
         return -1;
     }
 
-    if (bpg_cli_proxy_set_send_to(bpg_cli_proxy, send_to) != 0) {
+    if (bpg_cli_proxy_outgoing_set_send_to(bpg_cli_proxy, send_to) != 0) {
         CPE_ERROR(
             gd_app_em(app), "%s: create: set send-to fail!",
+            gd_app_module_name(module));
+        bpg_cli_proxy_free(bpg_cli_proxy);
+        return -1;
+    }
+
+    if (bpg_cli_proxy_incoming_set_no_sn_send_to(bpg_cli_proxy, cfg_find_cfg(cfg, "incoming-no-sn-send-to")) != 0) {
+        CPE_ERROR(
+            gd_app_em(app), "%s: create: set incoming-no-sn-send-to fail!",
             gd_app_module_name(module));
         bpg_cli_proxy_free(bpg_cli_proxy);
         return -1;

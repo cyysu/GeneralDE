@@ -6,6 +6,11 @@
 #include "usf/bpg_pkg/bpg_pkg_manage.h"
 #include "System.hpp"
 
+#ifdef _MSC_VER
+# pragma warning(push)
+# pragma warning(disable:4624)
+#endif
+
 namespace Usf { namespace Bpg {
 
 class PackageManager : public Cpe::Utils::SimulateObject {
@@ -18,8 +23,10 @@ public:
     Gd::App::Application const & app(void) const { return Gd::App::Application::_cast(bpg_pkg_manage_app(*this)); }
 
     Cpe::Dr::MetaLib const & dataMetaLib(void) const;
+    Cpe::Dr::Meta const * findCmdMeta(uint32_t cmd) const { return (Cpe::Dr::Meta const *)bpg_pkg_manage_find_meta_by_cmd(*this, cmd); }
 
     uint32_t cmdFromMetaName(const char * metaName) const;
+    bool isSupportCmd(const char * metaName) const;
 
     bpg_pkg_t createPackage(size_t capacity, LPDRMETA carry_data_meta = NULL, size_t carry_data_capacity = NULL);
 
@@ -28,5 +35,9 @@ public:
 };
 
 }}
+
+#ifdef _MSC_VER
+# pragma warning(pop)
+#endif
 
 #endif

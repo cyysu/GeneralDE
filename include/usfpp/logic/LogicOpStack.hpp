@@ -5,6 +5,11 @@
 #include "usf/logic/logic_stack.h"
 #include "LogicOpData.hpp"
 
+#ifdef _MSC_VER
+# pragma warning(push)
+# pragma warning(disable:4624)
+#endif
+
 namespace Usf { namespace Logic {
 
 class LogicOpStackNode : public Cpe::Utils::SimulateObject {
@@ -41,5 +46,9 @@ public:
 };
 
 }}
+
+#ifdef _MSC_VER
+# pragma warning(pop)
+#endif
 
 #endif

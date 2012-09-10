@@ -209,15 +209,15 @@ int bpg_net_client_ep_init(bpg_net_client_t client, net_ep_t ep, size_t read_cha
 
     buf_r = mem_alloc(client->m_alloc, read_chanel_size);
     buf_w = mem_alloc(client->m_alloc, write_chanel_size);
-    if (buf_r == NULL || buf_w == NULL) goto ERROR;
+    if (buf_r == NULL || buf_w == NULL) goto EP_INIT_ERROR;
 
     chanel_r = net_chanel_queue_create(net_ep_mgr(ep), buf_r, read_chanel_size);
-    if (chanel_r == NULL) goto ERROR;
+    if (chanel_r == NULL) goto EP_INIT_ERROR;
     net_chanel_queue_set_close(chanel_r, bpg_net_client_free_chanel_buf, client);
     buf_r = NULL;
 
     chanel_w = net_chanel_queue_create(net_ep_mgr(ep), buf_w, write_chanel_size);
-    if (chanel_w == NULL) goto ERROR;
+    if (chanel_w == NULL) goto EP_INIT_ERROR;
     net_chanel_queue_set_close(chanel_w, bpg_net_client_free_chanel_buf, client);
     buf_w = NULL;
 
@@ -236,7 +236,7 @@ int bpg_net_client_ep_init(bpg_net_client_t client, net_ep_t ep, size_t read_cha
     }
 
     return 0;
-ERROR:
+EP_INIT_ERROR:
     if (buf_r) mem_free(client->m_alloc, buf_r);
     if (buf_w) mem_free(client->m_alloc, buf_w);
     if (chanel_r) net_chanel_free(chanel_r);

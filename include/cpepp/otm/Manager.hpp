@@ -6,6 +6,11 @@
 #include "MemoBuf.hpp"
 #include "System.hpp"
 
+#ifdef _MSC_VER
+# pragma warning(push)
+# pragma warning(disable:4624)
+#endif
+
 namespace Cpe { namespace Otm {
 
 class ManagerBase : public Cpe::Utils::SimulateObject {
@@ -112,5 +117,9 @@ public:
 };
 
 }}
+
+#ifdef _MSC_VER
+# pragma warning(pop)
+#endif
 
 #endif

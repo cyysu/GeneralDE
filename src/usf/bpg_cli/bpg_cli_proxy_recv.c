@@ -10,6 +10,7 @@
 #include "usf/logic/logic_manage.h"
 #include "usf/logic/logic_require.h"
 #include "usf/logic/logic_data.h"
+#include "usf/bpg_pkg/bpg_pkg_dsp.h"
 #include "usf/bpg_cli/bpg_cli_proxy.h"
 #include "bpg_cli_internal_types.h"
 #include "protocol/bpg_cli/bpg_cli_pkg_info.h"
@@ -120,8 +121,13 @@ int bpg_cli_proxy_rsp(dp_req_t req, void * ctx, error_monitor_t em) {
     sn = bpg_pkg_sn(pkg);
     require = logic_require_find(proxy->m_logic_mgr, sn);
     if (require == NULL) {
-        CPE_ERROR(em, "bpg_cli_proxy_rsp: require not exist, sn=%u!", (unsigned int)sn);
-        return -1;
+        if (proxy->m_incoming_no_sn_send_to) {
+            return bpg_pkg_dsp_dispatch(proxy->m_incoming_no_sn_send_to, pkg, em);
+        }
+        else {
+            CPE_ERROR(em, "bpg_cli_proxy_rsp: require not exist, sn=%u!", (unsigned int)sn);
+            return -1;
+        }
     }
 
     if (bpg_cli_proxy_save_pkg_info(require, pkg, em) != 0
