@@ -51,12 +51,13 @@ bpg_cli_proxy_create(
     proxy->m_logic_mgr = logic_mgr;
     proxy->m_pkg_manage = pkg_manage;
 
-    proxy->m_send_to = NULL;
+    proxy->m_outgoing_send_to = NULL;
     proxy->m_send_pkg_max_size = 4 * 1024;
     proxy->m_send_pkg_buf = NULL;
     mem_buffer_init(&proxy->m_send_data_buf, gd_app_alloc(app));
 
-    proxy->m_recv_at = NULL;
+    proxy->m_outgoing_recv_at = NULL;
+    proxy->m_incoming_no_sn_send_to = NULL;
 
     nm_node_set_type(mgr_node, &s_nm_node_type_bpg_cli_proxy);
 
@@ -72,14 +73,19 @@ static void bpg_cli_proxy_clear(nm_node_t node) {
         proxy->m_send_pkg_buf = NULL;
     }
 
-    if (proxy->m_send_to != NULL) {
-        bpg_pkg_dsp_free(proxy->m_send_to);
-        proxy->m_send_to = NULL;
+    if (proxy->m_outgoing_send_to != NULL) {
+        bpg_pkg_dsp_free(proxy->m_outgoing_send_to);
+        proxy->m_outgoing_send_to = NULL;
     }
 
-    if (proxy->m_recv_at != NULL) {
-        dp_rsp_free(proxy->m_recv_at);
-        proxy->m_recv_at = NULL;
+    if (proxy->m_outgoing_recv_at != NULL) {
+        dp_rsp_free(proxy->m_outgoing_recv_at);
+        proxy->m_outgoing_recv_at = NULL;
+    }
+
+    if (proxy->m_incoming_no_sn_send_to != NULL) {
+        bpg_pkg_dsp_free(proxy->m_incoming_no_sn_send_to);
+        proxy->m_incoming_no_sn_send_to = NULL;
     }
 
     mem_buffer_clear(&proxy->m_send_data_buf);
@@ -133,45 +139,61 @@ void bpg_cli_proxy_set_buf_capacity(bpg_cli_proxy_t proxy, size_t capacity) {
     proxy->m_send_pkg_max_size = capacity;
 }
 
-int bpg_cli_proxy_set_send_to(bpg_cli_proxy_t proxy, cfg_t cfg) {
-    if (proxy->m_send_to != NULL) {
-        bpg_pkg_dsp_free(proxy->m_send_to);
-        proxy->m_send_to = NULL;
+int bpg_cli_proxy_outgoing_set_send_to(bpg_cli_proxy_t proxy, cfg_t cfg) {
+    if (proxy->m_outgoing_send_to != NULL) {
+        bpg_pkg_dsp_free(proxy->m_outgoing_send_to);
+        proxy->m_outgoing_send_to = NULL;
     }
 
-    proxy->m_send_to = bpg_pkg_dsp_create(proxy->m_alloc);
-    if (proxy->m_send_to == NULL) return -1;
+    proxy->m_outgoing_send_to = bpg_pkg_dsp_create(proxy->m_alloc);
+    if (proxy->m_outgoing_send_to == NULL) return -1;
 
-    if (bpg_pkg_dsp_load(proxy->m_send_to, cfg, proxy->m_em) != 0) return -1;
+    if (bpg_pkg_dsp_load(proxy->m_outgoing_send_to, cfg, proxy->m_em) != 0) return -1;
+
+    return 0;
+}
+
+int bpg_cli_proxy_incoming_set_no_sn_send_to(bpg_cli_proxy_t proxy, cfg_t cfg) {
+    if (proxy->m_incoming_no_sn_send_to != NULL) {
+        bpg_pkg_dsp_free(proxy->m_incoming_no_sn_send_to);
+        proxy->m_incoming_no_sn_send_to = NULL;
+    }
+
+    if (cfg) {
+        proxy->m_incoming_no_sn_send_to = bpg_pkg_dsp_create(proxy->m_alloc);
+        if (proxy->m_incoming_no_sn_send_to == NULL) return -1;
+
+        if (bpg_pkg_dsp_load(proxy->m_incoming_no_sn_send_to, cfg, proxy->m_em) != 0) return -1;
+    }
 
     return 0;
 }
 
 int bpg_cli_proxy_rsp(dp_req_t req, void * ctx, error_monitor_t em);
-int bpg_cli_proxy_set_recv_at(bpg_cli_proxy_t proxy, const char * name) {
+int bpg_cli_proxy_outgoing_set_recv_at(bpg_cli_proxy_t proxy, const char * name) {
     char sp_name_buf[128];
 
-    if (proxy->m_recv_at != NULL) {
-        dp_rsp_free(proxy->m_recv_at);
-        proxy->m_recv_at = NULL;
+    if (proxy->m_outgoing_recv_at != NULL) {
+        dp_rsp_free(proxy->m_outgoing_recv_at);
+        proxy->m_outgoing_recv_at = NULL;
     }
 
     snprintf(sp_name_buf, sizeof(sp_name_buf), "%s.recv.sp", bpg_cli_proxy_name(proxy));
-    proxy->m_recv_at = dp_rsp_create(gd_app_dp_mgr(proxy->m_app), sp_name_buf);
-    if (proxy->m_recv_at == NULL) {
+    proxy->m_outgoing_recv_at = dp_rsp_create(gd_app_dp_mgr(proxy->m_app), sp_name_buf);
+    if (proxy->m_outgoing_recv_at == NULL) {
         CPE_ERROR(
             proxy->m_em, "%s: bpg_cli_proxy_set_recv_at: create rsp fail!",
             bpg_cli_proxy_name(proxy));
         return -1;
     }
-    dp_rsp_set_processor(proxy->m_recv_at, bpg_cli_proxy_rsp, proxy);
+    dp_rsp_set_processor(proxy->m_outgoing_recv_at, bpg_cli_proxy_rsp, proxy);
 
-    if (dp_rsp_bind_string(proxy->m_recv_at, name, proxy->m_em) != 0) {
+    if (dp_rsp_bind_string(proxy->m_outgoing_recv_at, name, proxy->m_em) != 0) {
         CPE_ERROR(
             proxy->m_em, "%s: bpg_cli_proxy_set_recv_at: bind rsp to %s fail!",
             bpg_cli_proxy_name(proxy), name);
-        dp_rsp_free(proxy->m_recv_at);
-        proxy->m_recv_at = NULL;
+        dp_rsp_free(proxy->m_outgoing_recv_at);
+        proxy->m_outgoing_recv_at = NULL;
         return -1;
     }
 
@@ -221,7 +243,7 @@ int bpg_cli_proxy_send(
 {
     int rv;
 
-    if (proxy->m_send_to == NULL) {
+    if (proxy->m_outgoing_send_to == NULL) {
         CPE_ERROR(
             proxy->m_em, "%s: bpg_cli_proxy_set_recv_at: no send to configured!",
             bpg_cli_proxy_name(proxy));
@@ -231,7 +253,7 @@ int bpg_cli_proxy_send(
 
     if (require) bpg_pkg_set_sn(pkg, logic_require_id(require));
 
-    rv = bpg_pkg_dsp_dispatch(proxy->m_send_to, pkg, proxy->m_em);
+    rv = bpg_pkg_dsp_dispatch(proxy->m_outgoing_send_to, pkg, proxy->m_em);
 
     if (rv != 0) {
         CPE_ERROR(

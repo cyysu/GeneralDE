@@ -7,6 +7,11 @@
 #include "usfpp/logic/System.hpp"
 #include "System.hpp"
 
+#ifdef _MSC_VER
+# pragma warning(push)
+# pragma warning(disable:4624)
+#endif
+
 namespace Usf { namespace Bpg {
 
 class RspManager : public Cpe::Utils::SimulateObject {
@@ -24,6 +29,8 @@ public:
     bool hasOp(const char * rspName) const;
     RspOpContext & createOp(const char * rspName, logic_context_t from = NULL);
     RspOpContext & createFollowOp(logic_context_t context, const char * rspName);
+    RspOpContext * tryCreateOp(const char * rspName, logic_context_t from = NULL);
+    RspOpContext * tryCreateFollowOp(logic_context_t context, const char * rspName);
 
     void loadRsps(cfg_t cfg, LPDRMETALIB metalib = NULL);
 
@@ -32,5 +39,9 @@ public:
 };
 
 }}
+
+#ifdef _MSC_VER
+# pragma warning(pop)
+#endif
 
 #endif

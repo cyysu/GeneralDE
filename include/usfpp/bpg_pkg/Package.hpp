@@ -5,7 +5,22 @@
 #include "usf/bpg_pkg/bpg_pkg.h"
 #include "System.hpp"
 
+#ifdef _MSC_VER
+# pragma warning(push)
+# pragma warning(disable:4624)
+#endif
+
 namespace Usf { namespace Bpg {
+
+class PackageAppendInfo : public Cpe::Utils::SimulateObject {
+public:
+    operator bpg_pkg_append_info_t() const { return (bpg_pkg_append_info_t)this; }
+
+    uint32_t id(void) const { return bpg_pkg_append_info_id(*this); }
+    void * data(bpg_pkg_t pkg) const { return bpg_pkg_append_info_data(pkg, *this); }
+    uint32_t sizeInPkg(void) const { return bpg_pkg_append_info_size(*this); }
+    uint32_t size(void) const { return bpg_pkg_append_info_origin_size(*this); }
+};
 
 class Package : public Cpe::Utils::SimulateObject {
 public:
@@ -22,6 +37,9 @@ public:
 
     uint32_t cmd(void) const { return bpg_pkg_cmd(*this); }
     void setCmd(uint32_t cmd) { bpg_pkg_set_cmd(*this, cmd); }
+
+    uint32_t sn(void) const { return bpg_pkg_sn(*this); }
+    void setSn(uint32_t sn) { bpg_pkg_set_sn(*this, sn); }
 
     uint32_t errCode(void) const { return bpg_pkg_errno(*this); }
     void setErrCode(uint32_t en) { bpg_pkg_set_errno(*this, en); }
@@ -45,6 +63,7 @@ public:
     Cpe::Dr::Meta const & mainDataMeta(void) const;
     Cpe::Dr::Meta const * tryGetMainDataMeta(void) const { return (Cpe::Dr::Meta const *)bpg_pkg_main_data_meta(*this, NULL); }
 
+    size_t mainDataSize(void) const { return bpg_pkg_body_origin_len(*this); }
     void mainData(void * buf, size_t capacity, size_t * size = NULL) const;
     template<typename T>
     void mainData(T & buf) { mainData(&buf, sizeof(buf)); }
@@ -57,6 +76,9 @@ public:
     void setMainData(T const & data) { setMainData(&data, sizeof(data)); }
 
     /*append data read*/
+    int32_t appendInfoCount(void) const { return bpg_pkg_append_info_count(*this); }
+    PackageAppendInfo const & appendInfoAt(int32_t pos) const;
+
     void appendData(int metaId, void * buf, size_t capacity, size_t * size = NULL) const;
     void appendData(const char * metaName, void * buf, size_t capacity, size_t * size = NULL) const;
     void appendData(LPDRMETA meta, void * buf, size_t capacity, size_t * size = NULL) const;
@@ -100,5 +122,9 @@ public:
 };
 
 }}
+
+#ifdef _MSC_VER
+# pragma warning(pop)
+#endif
 
 #endif

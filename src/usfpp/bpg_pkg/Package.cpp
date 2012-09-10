@@ -32,6 +32,18 @@ Package::dataMetaLib(void) const {
     return *(Cpe::Dr::MetaLib const *)metalib;
 }
 
+PackageAppendInfo const & Package::appendInfoAt(int32_t pos) const {
+    bpg_pkg_append_info_t appendInfo = bpg_pkg_append_info_at(*this, pos);
+    if (appendInfo == NULL) {
+        APP_CTX_THROW_EXCEPTION(
+            app(),
+            ::std::runtime_error,
+            "%s: Usf::Bpg::Package::appendInfoAt: pos %d overflow!",
+            mgr().name().c_str(), pos);
+    }
+    return *(PackageAppendInfo const *)appendInfo;
+}
+
 Cpe::Dr::Meta const &
 Package::mainDataMeta(void) const {
     Cpe::Utils::ErrorCollector em;

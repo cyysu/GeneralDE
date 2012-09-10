@@ -6,6 +6,11 @@
 #include "usf/logic/logic_data.h"
 #include "System.hpp"
 
+#ifdef _MSC_VER
+# pragma warning(push)
+# pragma warning(disable:4624)
+#endif
+
 namespace Usf { namespace Logic {
 
 class LogicOpData : public Cpe::Utils::SimulateObject {
@@ -53,5 +58,9 @@ public:
 };
 
 }}
+
+#ifdef _MSC_VER
+# pragma warning(pop)
+#endif
 
 #endif

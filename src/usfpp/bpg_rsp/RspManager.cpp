@@ -49,6 +49,17 @@ RspManager::createOp(const char * rspName, logic_context_t from) {
     return *(RspOpContext*)context;
 }
 
+RspOpContext *
+RspManager::tryCreateOp(const char * rspName, logic_context_t from) {
+    logic_context_t context = 
+        bpg_rsp_manage_create_op_by_name(
+            *this,
+            from,
+            rspName,
+            NULL);
+    return (RspOpContext*)context;
+}
+
 RspOpContext &
 RspManager::createFollowOp(logic_context_t context, const char * rspName) {
     Cpe::Utils::ErrorCollector ec;
@@ -66,6 +77,17 @@ RspManager::createFollowOp(logic_context_t context, const char * rspName) {
 
     assert(follow_context);
     return *(RspOpContext*)follow_context;
+}
+
+RspOpContext *
+RspManager::tryCreateFollowOp(logic_context_t context, const char * rspName) {
+    logic_context_t follow_context = 
+        bpg_rsp_manage_create_follow_op_by_name(
+            *this,
+            context,
+            rspName,
+            NULL);
+    return (RspOpContext*)follow_context;
 }
 
 void RspManager::loadRsps(cfg_t cfg, LPDRMETALIB metalib) {

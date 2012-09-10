@@ -7,6 +7,11 @@
 #include "usf/bpg_cli/bpg_cli_proxy.h"
 #include "System.hpp"
 
+#ifdef _MSC_VER
+# pragma warning(push)
+# pragma warning(disable:4624)
+#endif
+
 namespace Usf { namespace Bpg {
 
 class CliProxy : public Cpe::Utils::SimulateObject {
@@ -62,5 +67,9 @@ public:
 };
 
 }}
+
+#ifdef _MSC_VER
+# pragma warning(pop)
+#endif
 
 #endif

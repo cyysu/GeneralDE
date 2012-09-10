@@ -65,4 +65,10 @@ uint32_t PackageManager::cmdFromMetaName(const char * metaName) const {
     return r;
 }
 
+bool PackageManager::isSupportCmd(const char * metaName) const {
+    uint32_t r;
+
+    return bpg_pkg_find_cmd_from_meta_name(&r, *this, metaName) == 0;
+}
+
 }}
