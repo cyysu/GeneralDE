@@ -7,6 +7,11 @@
 #include "EventResponser.hpp"
 #include "Event.hpp"
 
+#ifdef _MSC_VER
+# pragma warning(push)
+# pragma warning(disable:4624)
+#endif
+
 namespace Gd { namespace Evt {
 
 class EventCenter : public Cpe::Utils::SimulateObject {
@@ -38,7 +43,10 @@ public:
     template<typename T>
     ProcessorID registerResponser(const char * oid, T & r, void (T::*fun)(const char * oid, Event const & e)) {
 #ifdef _MSC_VER
+		# pragma warning(push)
+		# pragma warning(disable:4407)
         return this->registerResponser(oid, r, static_cast<EventProcessFun>(fun), *((EventResponser*)((void*)&r)));
+		# pragma warning(pop)
 #else
         return this->registerResponser(oid, static_cast<EventResponser&>(r), static_cast<EventProcessFun>(fun));
 #endif
@@ -62,5 +70,9 @@ public:
 };	
 
 }}
+
+#ifdef _MSC_VER
+# pragma warning(pop)
+#endif
 
 #endif

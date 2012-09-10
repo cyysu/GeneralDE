@@ -14,6 +14,11 @@ public:
     void registerResponser(const char * oid, T & r, void (T::*fun)(const char * oid, Event const & e)) {
         _eventCenter.registerResponser(oid, r, fun);
     }
+
+protected:
+    EventCenter & eventCenter(void) { return _eventCenter; }
+    EventCenter const & eventCenter(void) const { return _eventCenter; }
+
 private:	
 	EventCenter & _eventCenter;
 };
