@@ -17,7 +17,6 @@
 #endif
 
 #ifdef WIN32
-
 typedef int socklen_t;
 typedef int ssize_t;
 typedef long suseconds_t;
