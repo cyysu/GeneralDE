@@ -3,6 +3,11 @@
 #include "cpe/utils/buffer.h"
 #include "ClassCategory.hpp"
 
+#ifdef _MSC_VER
+# pragma warning(push)
+# pragma warning(disable:4624)
+#endif
+
 namespace Cpe { namespace Utils {
 
 class MemBuffer : public Noncopyable {
@@ -59,5 +64,9 @@ private:
 };
 
 }}
+
+#ifdef _MSC_VER
+# pragma warning(pop)
+#endif
 
 #endif

@@ -4,6 +4,11 @@
 #include "cpe/dp/dp_request.h"
 #include "System.hpp"
 
+#ifdef _MSC_VER
+# pragma warning(push)
+# pragma warning(disable:4624)
+#endif
+
 namespace Cpe { namespace Dp {
 
 class Request : public Cpe::Utils::SimulateObject {
@@ -99,6 +104,10 @@ private:
 };
 
 }}
+
+#ifdef _MSC_VER
+# pragma warning(pop)
+#endif
 
 #endif
 
