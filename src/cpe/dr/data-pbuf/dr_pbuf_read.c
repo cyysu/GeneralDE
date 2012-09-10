@@ -97,33 +97,6 @@ static char * dr_pbuf_read_get_write_pos(
     }
 }
 
-static char * dr_pbuf_read_get_read_pos(
-    struct dr_pbuf_read_ctx * ctx,
-    struct dr_pbuf_read_stack * stackInfo,
-    int start_pos,
-    size_t capacity)
-{
-    size_t start;
-    size_t total_size;
-
-    if (start_pos < 0) return NULL;
-
-    assert(ctx);
-    assert(stackInfo);
-
-    start = stackInfo->m_output_start_pos + start_pos;
-    total_size = start + capacity;
-
-    if (total_size > ctx->m_used_size) return NULL;
-
-    if (ctx->m_output_buf) {
-        return ctx->m_output_buf + start;
-    }
-    else {
-        return mem_buffer_at(ctx->m_output_alloc, start);
-    }
-}
-
 #define dr_pbuf_read_stack_init(                            \
     __stackInfo, __from_entry, __start_pos,                  \
     __meta, __input, __input_capacity)                      \

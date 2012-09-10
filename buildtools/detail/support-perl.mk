@@ -1,0 +1,1 @@
+CPDE_PERL=PERL5LIB=$(CPDE_ROOT)/buildtools/perl perl -w
