@@ -58,6 +58,7 @@ const char * dr_entry_name(LPDRMETAENTRY entry);
 const char * dr_entry_cname(LPDRMETAENTRY entry);
 const char * dr_entry_desc(LPDRMETAENTRY entry);
 const void * dr_entry_dft_value(LPDRMETAENTRY entry);
+int dr_entry_is_key(LPDRMETAENTRY entry);
 LPDRMETA dr_entry_ref_meta(LPDRMETAENTRY entry);
 LPDRMETA dr_entry_self_meta(LPDRMETAENTRY entry);
 LPDRMACROSGROUP dr_entry_macrosgroup(LPDRMETAENTRY entry);
