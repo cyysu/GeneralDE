@@ -57,6 +57,11 @@ void logic_executor_ref_free_all(logic_executor_mgr_t mgr);
 
 logic_executor_ref_t logic_executor_ref_create(logic_executor_mgr_t mgr, const char * name, logic_executor_t executor);
 
+#define logic_stack_node_at(stack, pos)                                 \
+    ((pos) < LOGIC_STACK_INLINE_ITEM_COUNT                              \
+     ? &stack->m_inline_items[(pos)]                                    \
+     : &stack->m_extern_items[(pos) - LOGIC_STACK_INLINE_ITEM_COUNT])   \
+
 #ifdef __cplusplus
 }
 #endif
