@@ -492,6 +492,21 @@ const void * dr_entry_dft_value(LPDRMETAENTRY entry) {
     }
 }
 
+int dr_entry_is_key(LPDRMETAENTRY entry) {
+    int i;
+    LPDRMETA meta = dr_entry_self_meta(entry);
+
+    for(i = 0; i < meta->m_key_num; ++i) {
+        dr_idx_entry_info_t key_info = dr_meta_key_info_at(meta, i);
+        assert(key_info);
+
+        if (key_info->m_data_start_pos == entry->m_data_start_pos) return 1;
+    }
+
+    return 0;
+
+}
+
 LPDRMETAENTRY
 dr_entry_select_entry(LPDRMETAENTRY entry) {
     assert(entry);
