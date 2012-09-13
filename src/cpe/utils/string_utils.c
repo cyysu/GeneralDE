@@ -145,3 +145,9 @@ void cpe_str_tolower(char * data) {
         ++data;
     }
 }
+
+int cpe_str_cmp_part(const char * part_str, size_t part_str_len, const char * full_str) {
+    int r = strncmp(part_str, full_str, part_str_len);
+    if (r == 0) return full_str[part_str_len] == 0 ? 0 : - part_str_len;
+    return r;
+}
