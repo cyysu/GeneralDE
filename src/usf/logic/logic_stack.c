@@ -21,6 +21,13 @@ void logic_stack_init(struct logic_stack * stack) {
 }
 
 void logic_stack_fini(struct logic_stack * stack, logic_context_t context) {
+    while(stack->m_item_pos >= 0) {
+        struct logic_stack_node * stack_item = logic_stack_node_at(stack, stack->m_item_pos);
+        logic_stack_node_data_clear(stack_item);
+        logic_stack_require_clear(stack_item);
+        --stack->m_item_pos;
+    }
+
     if (stack->m_extern_items) {
         mem_free(context->m_mgr->m_alloc, stack->m_extern_items);
     }
@@ -117,11 +124,6 @@ REINTER:
         break;
     }
 }
-
-#define logic_stack_node_at(stack, pos)                                 \
-    ((pos) < LOGIC_STACK_INLINE_ITEM_COUNT                              \
-     ? &stack->m_inline_items[(pos)]                                    \
-     : &stack->m_extern_items[(pos) - LOGIC_STACK_INLINE_ITEM_COUNT])   \
 
 void logic_stack_exec(struct logic_stack * stack, int32_t stop_stack_pos, logic_context_t ctx) {
     while(ctx->m_state == logic_context_state_idle

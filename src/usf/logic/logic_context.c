@@ -262,6 +262,8 @@ void logic_context_execute(logic_context_t context) {
     {
         logic_context_enqueue(context, logic_context_queue_waiting);
     }
+    else {
+    }
 }
 
 int logic_context_bind(logic_context_t context, logic_executor_t executor) {

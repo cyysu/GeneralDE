@@ -248,10 +248,10 @@ int logic_data_calc_capacity(LPDRMETA meta, size_t record_capacity, error_monito
         return logic_data_calc_dyn_capacity(meta, record_capacity, &dyn_info, em);
     }
     else {
-        if (record_capacity != 1) {
+        if (record_capacity > 1) {
             CPE_ERROR(
                 em,
-                "logic_data_calc_capacity: record_capacity %d error, %s is not dynmiac, only support capacity 1!",
+                "logic_data_calc_capacity: record_capacity %d error, %s is not dynmiac, only support up to capacity 1!",
                 (int)record_capacity, dr_meta_name(meta));
             return -1;
         }
