@@ -1,6 +1,6 @@
 From: Lokiwang <wangjian1009@gmail.com>
-Subject: [PATCH] t/support/usf
+Subject: [PATCH] t/support/app-net
 
-统一请求调度框架
+提供一个可以组装的服务运行环境
 
 Signed-off-by: Lokiwang <wangjian1009@gmail.com>
