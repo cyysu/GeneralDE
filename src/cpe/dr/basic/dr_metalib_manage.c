@@ -738,7 +738,7 @@ int dr_meta_find_dyn_info(LPDRMETA meta, dr_meta_dyn_info_t dyn_info) {
     last_entry = dr_meta_entry_at(meta, dr_meta_entry_num(meta) - 1);
     assert(last_entry);
 
-    if (dr_entry_array_count(last_entry) != 1) {
+    if (dr_entry_array_count(last_entry) == 0) {
         dyn_info->m_array_entry = last_entry;
         dyn_info->m_array_start = dr_entry_data_start_pos(last_entry);
 
