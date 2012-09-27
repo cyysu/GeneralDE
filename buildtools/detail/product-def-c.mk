@@ -21,6 +21,8 @@ c-source-to-object = $(call c-source-dir-to-binary-dir,\
 # $(call c-generate-env-arg-name-list,product-name,arg-name)
 c-generate-env-arg-name-list=$2 $($1.env).$2 $1.$2
 
+c-generate-env-arg-lib-name-list=$1.$2 $2 $($1.env).$2 
+
 c-generate-depend-ld-flags=$(call $($2.env).export-symbols,$(r.$1.c.export-symbols)) \
                            $(addprefix -L$(CPDE_OUTPUT_ROOT)/,\
 								 $(call merge-list, $(r.$1.c.ldpathes) \
@@ -30,7 +32,7 @@ c-generate-depend-ld-flags=$(call $($2.env).export-symbols,$(r.$1.c.export-symbo
                            $(addprefix -l,$(call merge-list, \
                                                  $(r.$1.c.libraries) $(r.$1.product.c.libraries),\
                                                  $(call product-gen-depend-value-list,$1,\
-                                                        $(call c-generate-env-arg-name-list,$2,product.c.libraries)) \
+                                                        $(call c-generate-env-arg-lib-name-list,$2,product.c.libraries)) \
                                             )) \
                            $(addprefix -l,$(foreach lib,$(call merge-list, \
                                                                $(r.$1.c.env-libraries) $(r.$1.product.c.env-libraries),\
@@ -136,7 +138,7 @@ endef
 # $(call product-def-rule-c-product-for-lib,product-name,domain-name)
 define product-def-rule-c-product-for-lib
 $(eval r.$1.$2.c.lib.type=$(if $(r.$1.c.lib.type),$(r.$1.c.lib.type),$(if $($2.default-lib-type),$($2.default-lib-type),$($($2.env).default-lib-type))))
-$(eval r.$1.$2.product.c.libraries+=$1)
+$(eval r.$1.$2.product.c.libraries:=$1 $(r.$1.$2.product.c.libraries))
 $(eval r.$1.$2.product.c.ldpathes+=$($2.output)/$(if $(r.$1.buildfor),$(r.$1.buildfor)-lib,lib))
 $(eval r.$1.$2.product:=$($2.output)/$(if $(r.$1.product),$(r.$1.product),$(r.$1.$2.output)/$(call $($2.env).$(if $(filter static,$(r.$1.$2.c.lib.type)),make-static-lib-name,make-dynamic-lib-name),$1)))
 endef
