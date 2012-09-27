@@ -447,7 +447,7 @@ foreach my $rowPos ( $row_min + 1 .. $row_max ) {
 
   if (scalar(%row)) {
     if (exists ($row{is_valid}) ) {
-      if ($row{is_valid}) {
+      if ($row{is_valid} =~ m/^1$/) {
         delete ($row{is_valid});
         push @table, \%row;
       }
