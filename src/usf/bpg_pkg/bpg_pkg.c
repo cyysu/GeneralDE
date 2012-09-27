@@ -429,5 +429,6 @@ const char * bpg_pkg_dump(bpg_pkg_t req, mem_buffer_t buffer) {
     return (const char *)mem_buffer_make_continuous(buffer, 0);
 }
 
+
 CPE_HS_DEF_VAR(bpg_pkg_type_name, "bpg_pkg_type");
 

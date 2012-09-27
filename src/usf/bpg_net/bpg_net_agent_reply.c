@@ -5,66 +5,15 @@
 #include "cpe/utils/buffer.h"
 #include "cpe/net/net_endpoint.h"
 #include "gd/vnet/vnet_control_pkg.h"
-#include "gd/dr_cvt/dr_cvt.h"
 #include "usf/bpg_pkg/bpg_pkg.h"
 #include "usf/bpg_net/bpg_net_agent.h"
 #include "bpg_net_internal_ops.h"
 
 static int bpg_net_agent_send_to_client(bpg_net_agent_t agent, bpg_pkg_t pkg, error_monitor_t em) {
-    size_t pkg_size;
     size_t write_size;
     net_ep_t ep;
     dr_cvt_result_t cvt_result;
 
-    if (agent->m_debug) {
-        LPDRMETA main_meta = bpg_pkg_main_data_meta(pkg, NULL);
-
-        switch (bpg_pkg_debug_level(pkg)) {
-        case bpg_pkg_debug_summary: {
-            if (main_meta) {
-                CPE_ERROR(
-                    agent->m_em,
-                    "%s: ==> client=%d, ep=%d, cmd=%s(%d)",
-                    bpg_net_agent_name(agent), (int)bpg_pkg_client_id(pkg), (int)bpg_pkg_connection_id(pkg),
-                    dr_meta_name(main_meta), bpg_pkg_cmd(pkg));
-            }
-            else {
-                CPE_ERROR(
-                    agent->m_em,
-                    "%s: ==> client=%d, ep=%d, cmd=%d",
-                    bpg_net_agent_name(agent), (int)bpg_pkg_client_id(pkg), (int)bpg_pkg_connection_id(pkg),
-                    bpg_pkg_cmd(pkg));
-            }
-
-            break;
-        }
-        case bpg_pkg_debug_detail: {
-            struct mem_buffer buffer;
-            mem_buffer_init(&buffer, NULL);
-
-            if (main_meta) {
-                CPE_ERROR(
-                    agent->m_em,
-                    "%s: ==> client=%d, ep=%d, cmd=%s(%d)\n%s",
-                    bpg_net_agent_name(agent), (int)bpg_pkg_client_id(pkg), (int)bpg_pkg_connection_id(pkg),
-                    dr_meta_name(main_meta), bpg_pkg_cmd(pkg), bpg_pkg_dump(pkg, &buffer));
-            }
-            else {
-                CPE_ERROR(
-                    agent->m_em,
-                    "%s: ==> client=%d, ep=%d, cmd=%d\n%s",
-                    bpg_net_agent_name(agent), (int)bpg_pkg_client_id(pkg), (int)bpg_pkg_connection_id(pkg),
-                    bpg_pkg_cmd(pkg), bpg_pkg_dump(pkg, &buffer));
-            }
-
-            mem_buffer_clear(&buffer);
-            break;
-        }
-        default:
-            break;
-        }
-    }
-    
     ep = net_ep_find(gd_app_net_mgr(agent->m_app), bpg_pkg_connection_id(pkg));
     if (ep == NULL) {
         CPE_ERROR(
@@ -73,17 +22,20 @@ static int bpg_net_agent_send_to_client(bpg_net_agent_t agent, bpg_pkg_t pkg, er
         return 0;
     }
 
+    if (agent->m_debug) {
+        CPE_ERROR(
+            agent->m_em,
+            "%s: ep %d: ==> send on reply\n%s",
+            bpg_net_agent_name(agent), (int)net_ep_id(ep), bpg_pkg_dump(pkg, &agent->m_dump_buffer));
+    }
+    
     mem_buffer_set_size(&agent->m_rsp_buf, agent->m_req_max_size);
-    pkg_size = bpg_pkg_pkg_data_size(pkg);
     write_size = mem_buffer_size(&agent->m_rsp_buf);
     cvt_result =
-        dr_cvt_encode(
-            bpg_pkg_base_cvt(pkg),
-            bpg_pkg_base_meta(pkg),
+        bpg_pkg_encode(
+            pkg,
             mem_buffer_make_continuous(&agent->m_rsp_buf, 0),
             &write_size,
-            bpg_pkg_pkg_data(pkg),
-            &pkg_size,
             agent->m_em, agent->m_debug >= 2 ? 1 : 0);
     if (cvt_result != dr_cvt_result_success) {
         CPE_ERROR(

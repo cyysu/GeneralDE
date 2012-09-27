@@ -5,16 +5,16 @@
 
 namespace Usf { namespace Logic {
 
-LogicOpDynData & LogicUniRes::get_at(logic_require_t require) {
-    LogicOpDynData * r = find_at(require);
-    if (r == NULL) {
+LogicOpDynData LogicUniRes::get_at(logic_require_t require) {
+    LogicOpDynData r;
+    if (!find_at(r, require)) {
         APP_CTX_THROW_EXCEPTION(
             logic_manage_app(logic_require_mgr(require)),
             ::std::runtime_error,
             "Tsf4wg::TCaplus::LogicUniRes::get_at: get result fail");
     }
 
-    return *r;
+    return r;
 }
 
 void LogicUniRes::init_at(logic_require_t require, LPDRMETA meta, size_t record_capacity) {

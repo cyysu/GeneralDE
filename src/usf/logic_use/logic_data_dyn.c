@@ -211,12 +211,8 @@ void * logic_data_record_append(logic_data_t data) {
         return ((char *)logic_data_data(data)) + dyn_info.m_array_start + record_size * record_count;
     }
     else {
-        CPE_ERROR(
-            logic_manage_em(logic_data_mgr(data)),
-            "logic_data_record_append: can`t append to fix meta data!");
-        return NULL;
+        return logic_data_data(data);
     }
-
 }
 
 static int logic_data_calc_dyn_capacity(LPDRMETA meta, size_t record_capacity, dr_meta_dyn_info_t dyn_info, error_monitor_t em) {

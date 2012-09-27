@@ -96,6 +96,18 @@ int bpg_pkg_build_from_cfg(bpg_pkg_t req, cfg_t cfg, error_monitor_t em);
 
 bpg_pkg_debug_level_t bpg_pkg_debug_level(bpg_pkg_t req);
 
+dr_cvt_result_t
+bpg_pkg_encode(
+    bpg_pkg_t pkg,
+    void * output, size_t * output_capacity,
+    error_monitor_t em, int debug);
+
+dr_cvt_result_t
+bpg_pkg_decode(
+    bpg_pkg_t pkg,
+    const void * input, size_t * input_capacity,
+    error_monitor_t em, int debug);
+
 #ifdef __cplusplus
 }
 #endif

@@ -50,11 +50,13 @@ bpg_net_agent_create(
     mgr->m_conn_timeout = 0;
     mgr->m_dispatch_to = NULL;
 
+    mem_buffer_init(&mgr->m_dump_buffer, alloc);
     mem_buffer_init(&mgr->m_rsp_buf, alloc);
 
     snprintf(name_buf, sizeof(name_buf), "%s.reply-rsp", name);
     mgr->m_reply_rsp = dp_rsp_create(gd_app_dp_mgr(app), name_buf);
     if (mgr->m_reply_rsp == NULL) {
+        mem_buffer_clear(&mgr->m_dump_buffer);
         mem_buffer_clear(&mgr->m_rsp_buf);
         nm_node_free(mgr_node);
         return NULL;
@@ -71,6 +73,7 @@ bpg_net_agent_create(
             bpg_net_agent_accept,
             mgr);
     if (mgr->m_listener == NULL) {
+        mem_buffer_clear(&mgr->m_dump_buffer);
         mem_buffer_clear(&mgr->m_rsp_buf);
         dp_rsp_free(mgr->m_reply_rsp);
         nm_node_free(mgr_node);
@@ -86,6 +89,7 @@ static void bpg_net_agent_clear(nm_node_t node) {
     bpg_net_agent_t mgr;
     mgr = (bpg_net_agent_t)nm_node_data(node);
 
+    mem_buffer_clear(&mgr->m_dump_buffer);
     mem_buffer_clear(&mgr->m_rsp_buf);
 
     dp_rsp_free(mgr->m_reply_rsp);
