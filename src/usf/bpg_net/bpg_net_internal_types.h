@@ -1,6 +1,7 @@
 #ifndef USF_BPG_NET_INTERNAL_TYPES_H
 #define USF_BPG_NET_INTERNAL_TYPES_H
 #include "cpe/utils/hash.h"
+#include "cpe/utils/buffer.h"
 #include "cpe/net/net_types.h"
 #include "usf/bpg_net/bpg_net_types.h"
 #include "usf/logic/logic_types.h"
@@ -29,6 +30,8 @@ struct bpg_net_agent {
 
     dp_rsp_t m_reply_rsp;
 
+    struct mem_buffer m_dump_buffer;
+
     int m_debug;
 };
 
@@ -53,6 +56,8 @@ struct bpg_net_client {
     bpg_pkg_dsp_t m_rsp_dsp;
 
     dp_rsp_t m_send_rsp;
+
+    struct mem_buffer m_dump_buffer;
 
     int8_t m_debug;
 };

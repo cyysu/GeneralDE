@@ -3,7 +3,6 @@
 #include "cpe/utils/buffer.h"
 #include "cpe/net/net_endpoint.h"
 #include "cpe/net/net_connector.h"
-#include "gd/dr_cvt/dr_cvt.h"
 #include "usf/logic/logic_require.h"
 #include "usf/bpg_pkg/bpg_pkg.h"
 #include "usf/bpg_net/bpg_net_client.h"
@@ -12,7 +11,6 @@
 int bpg_net_client_send(dp_req_t req, void * ctx, error_monitor_t em) {
     bpg_net_client_t client;
     bpg_pkg_t pkg;
-    size_t pkg_size;
     size_t write_size;
     net_ep_t ep;
     dr_cvt_result_t cvt_result;
@@ -28,17 +26,12 @@ int bpg_net_client_send(dp_req_t req, void * ctx, error_monitor_t em) {
     }
 
     if (client->m_debug) {
-        struct mem_buffer buffer;
-        mem_buffer_init(&buffer, NULL);
-
         CPE_ERROR(
             client->m_em,
-            "%s: bpg_net_client_send: send one request!\n"
+            "%s: bpg_net_client_send: ==> send one request!\n"
             "%s",
             bpg_net_client_name(client),
-            bpg_pkg_dump(pkg, &buffer));
-
-        mem_buffer_clear(&buffer);
+            bpg_pkg_dump(pkg, &client->m_dump_buffer));
     }
 
     assert(client->m_logic_mgr);
@@ -76,16 +69,12 @@ int bpg_net_client_send(dp_req_t req, void * ctx, error_monitor_t em) {
     ep = net_connector_ep(client->m_connector);
 
     mem_buffer_set_size(&client->m_send_encode_buf, client->m_req_max_size);
-    pkg_size = bpg_pkg_pkg_data_size(pkg);
     write_size = mem_buffer_size(&client->m_send_encode_buf);
     cvt_result =
-        dr_cvt_encode(
-            bpg_pkg_base_cvt(pkg),
-            bpg_pkg_base_meta(pkg),
+        bpg_pkg_encode(
+            pkg,
             mem_buffer_make_continuous(&client->m_send_encode_buf, 0),
             &write_size,
-            bpg_pkg_pkg_data(pkg),
-            &pkg_size,
             client->m_em, client->m_debug >= 2 ? 1 : 0);
     if (cvt_result != dr_cvt_result_success) {
         CPE_ERROR(

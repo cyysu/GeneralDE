@@ -56,9 +56,11 @@ bpg_net_client_create(
     mgr->m_debug = 0;
 
     mem_buffer_init(&mgr->m_send_encode_buf, alloc);
+    mem_buffer_init(&mgr->m_dump_buffer, alloc);
 
     mgr->m_rsp_dsp = bpg_pkg_dsp_create(alloc);
     if (mgr->m_rsp_dsp == NULL) {
+        mem_buffer_clear(&mgr->m_dump_buffer);
         mem_buffer_clear(&mgr->m_send_encode_buf);
         nm_node_free(mgr_node);
         return NULL;
@@ -68,6 +70,7 @@ bpg_net_client_create(
     mgr->m_send_rsp = dp_rsp_create(gd_app_dp_mgr(app), name_buf);
     if (mgr->m_send_rsp == NULL) {
         bpg_pkg_dsp_free(mgr->m_rsp_dsp);
+        mem_buffer_clear(&mgr->m_dump_buffer);
         mem_buffer_clear(&mgr->m_send_encode_buf);
         nm_node_free(mgr_node);
         return NULL;
@@ -83,6 +86,7 @@ bpg_net_client_create(
     if (mgr->m_connector == NULL) {
         dp_rsp_free(mgr->m_send_rsp);
         bpg_pkg_dsp_free(mgr->m_rsp_dsp);
+        mem_buffer_clear(&mgr->m_dump_buffer);
         mem_buffer_clear(&mgr->m_send_encode_buf);
         nm_node_free(mgr_node);
         return NULL;
@@ -92,6 +96,7 @@ bpg_net_client_create(
         net_connector_free(mgr->m_connector);
         dp_rsp_free(mgr->m_send_rsp);
         bpg_pkg_dsp_free(mgr->m_rsp_dsp);
+        mem_buffer_clear(&mgr->m_dump_buffer);
         mem_buffer_clear(&mgr->m_send_encode_buf);
         nm_node_free(mgr_node);
         return NULL;
@@ -126,6 +131,7 @@ static void bpg_net_client_clear(nm_node_t node) {
         mgr->m_runing_requires = NULL;
     }
 
+    mem_buffer_clear(&mgr->m_dump_buffer);
     mem_buffer_clear(&mgr->m_send_encode_buf);
 
     net_connector_free(mgr->m_connector);

@@ -4,7 +4,6 @@
 #include "cpe/dp/dp_manage.h"
 #include "cpe/dr/dr_metalib_manage.h"
 #include "gd/app/app_context.h"
-#include "gd/dr_cvt/dr_cvt.h"
 #include "usf/bpg_pkg/bpg_pkg.h"
 #include "usf/bpg_pkg/bpg_pkg_dsp.h"
 #include "usf/bpg_net/bpg_net_client.h"
@@ -32,7 +31,6 @@ static void bpg_net_client_on_read(bpg_net_client_t client, net_ep_t ep) {
         char * buf;
         size_t buf_size;
         size_t input_size;
-        size_t output_size;
         dr_cvt_result_t cvt_result;
 
         buf_size = net_ep_size(ep);
@@ -48,14 +46,10 @@ static void bpg_net_client_on_read(bpg_net_client_t client, net_ep_t ep) {
         }
 
         input_size = buf_size;
-        output_size = bpg_pkg_pkg_data_capacity(req_buf);
 
         cvt_result =
-            dr_cvt_decode(
-                bpg_pkg_base_cvt(req_buf),
-                bpg_pkg_base_meta(req_buf),
-                bpg_pkg_pkg_data(req_buf),
-                &output_size,
+            bpg_pkg_decode(
+                req_buf,
                 buf, &input_size, client->m_em, client->m_debug >= 2 ? 1 : 0);
         if (cvt_result == dr_cvt_result_not_enough_input) {
             if(client->m_debug) {
@@ -76,66 +70,16 @@ static void bpg_net_client_on_read(bpg_net_client_t client, net_ep_t ep) {
 
         if(client->m_debug >= 2) {
             CPE_INFO(
-                client->m_em, "%s: ep %d: decode one package, output-size=%d, buf-origin-size=%d left-size=%d!",
-                bpg_net_client_name(client), (int)net_ep_id(ep), (int)output_size, (int)buf_size, (int)net_ep_size(ep));
-        }
-
-        if (bpg_pkg_pkg_data_set_size(req_buf, output_size) != 0) {
-            CPE_ERROR(
-                client->m_em, "%s: ep %d: bpg set size %d error!",
-                bpg_net_client_name(client), (int)net_ep_id(ep), (int)output_size);
-            net_ep_close(ep);
-            break;
+                client->m_em, "%s: ep %d: decode one package, buf-origin-size=%d left-size=%d!",
+                bpg_net_client_name(client), (int)net_ep_id(ep), (int)buf_size, (int)net_ep_size(ep));
         }
 
         if (client->m_debug) {
-            LPDRMETA main_meta = bpg_pkg_main_data_meta(req_buf, NULL);
-
-            switch (bpg_pkg_debug_level(req_buf)) {
-            case bpg_pkg_debug_summary: {
-                if (main_meta) {
-                    CPE_ERROR(
-                        client->m_em,
-                        "%s: <== client=%d, ep=%d, cmd=%s(%d), input-size=%d, output-size=%d",
-                        bpg_net_client_name(client), (int)bpg_pkg_client_id(req_buf), (int)net_ep_id(ep),
-                        dr_meta_name(main_meta), bpg_pkg_cmd(req_buf), (int)input_size, (int)output_size);
-                }
-                else {
-                    CPE_ERROR(
-                        client->m_em,
-                        "%s: <== client=%d, ep=%d, cmd=%d, input-size=%d, output-size=%d",
-                        bpg_net_client_name(client), (int)bpg_pkg_client_id(req_buf), (int)net_ep_id(ep),
-                        bpg_pkg_cmd(req_buf), (int)input_size, (int)output_size);
-                }
-                break;
-            }
-            case bpg_pkg_debug_detail: {
-                struct mem_buffer buffer;
-                mem_buffer_init(&buffer, NULL);
-
-                if (main_meta) {
-                    CPE_ERROR(
-                        client->m_em,
-                        "\n\n%s: <== client=%d, ep=%d, cmd=%s(%d), input-size=%d, output-size=%d\n%s",
-                        bpg_net_client_name(client), (int)bpg_pkg_client_id(req_buf), (int)net_ep_id(ep),
-                        dr_meta_name(main_meta), bpg_pkg_cmd(req_buf), (int)input_size, (int)output_size,
-                        bpg_pkg_dump(req_buf, &buffer));
-                }
-                else {
-                    CPE_ERROR(
-                        client->m_em,
-                        "\n\n%s: <== client=%d, ep=%d, cmd=%d, input-size=%d, output-size=%d\n%s",
-                        bpg_net_client_name(client), (int)bpg_pkg_client_id(req_buf), (int)net_ep_id(ep),
-                        bpg_pkg_cmd(req_buf), (int)input_size, (int)output_size,
-                        bpg_pkg_dump(req_buf, &buffer));
-                }
-
-                mem_buffer_clear(&buffer);
-                break;
-            }
-            default:
-                break;
-            }
+            CPE_ERROR(
+                client->m_em,
+                "%s: ep %d: <== recv one request!\n%s",
+                bpg_net_client_name(client), (int)net_ep_id(ep),
+                bpg_pkg_dump(req_buf, &client->m_dump_buffer));
         }
 
         if (bpg_pkg_sn(req_buf) != INVALID_LOGIC_REQUIRE_ID) {
