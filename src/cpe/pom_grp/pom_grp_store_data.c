@@ -88,8 +88,6 @@ static int pom_grp_store_build_obj_list(
         des_element_buf = pom_grp_obj_list_at_ex(obj_mgr, obj, entry->m_entry_meta, i);
         assert(des_element_buf);
 
-        printf("read: copy %s %d: des=%p, des-size=%d\n", entry->m_entry_meta->m_name, i, des_element_buf, des_element_size);
-
         if (dr_meta_copy_same_entry(
                 des_element_buf, des_element_size, des_element_meta,
                 src_element_buf, src_element_size, src_element_meta,
@@ -278,7 +276,6 @@ static int pom_grp_store_write_obj_list(
         src_element_buf = pom_grp_obj_list_at_ex(obj_mgr, obj, entry->m_entry_meta, i);
         assert(src_element_buf);
 
-        printf("write: copy %s %d: des=%p, des-size=%d\n", entry->m_entry_meta->m_name, i, des_element_buf, des_element_size);
         if (dr_meta_copy_same_entry(
                 des_element_buf, des_element_size, des_element_meta,
                 src_element_buf, src_element_size, src_element_meta,
