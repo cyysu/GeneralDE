@@ -1,6 +1,6 @@
 From: Lokiwang <wangjian1009@gmail.com>
-Subject: [PATCH] t/support/app-net
+Subject: [PATCH] t/svr/mart
 
-提供一个可以组装的服务运行环境
+商城服务
 
 Signed-off-by: Lokiwang <wangjian1009@gmail.com>
