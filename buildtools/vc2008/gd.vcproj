@@ -18,8 +18,8 @@
 	<Configurations>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory="$(SolutionDir)../../build/$(ConfigurationName).win32"
-			IntermediateDirectory="$(SolutionDir)../../build/$(ConfigurationName).Intermediate.win32/$(ProjectName)"
+			OutputDirectory="$(SolutionDir)..\..\build\vc\$(ConfigurationName)\lib"
+			IntermediateDirectory="$(SolutionDir)..\..\build\vc\$(ConfigurationName)\$(ProjectName)\building"
 			ConfigurationType="4"
 			CharacterSet="1"
 			>
@@ -42,10 +42,10 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="..\..\include;..\..\3rdTools\yaml\include;..\..\3rdTools\yajl\include;..\..\3rdTools\libxml2\include;..\..\3rdTools\libev\include"
-				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;"
+				PreprocessorDefinitions="WIN32;_LIB;"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
-				RuntimeLibrary="3"
+				RuntimeLibrary="2"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				DebugInformationFormat="4"
@@ -83,8 +83,8 @@
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="$(SolutionDir)../../build/$(ConfigurationName).win32"
-			IntermediateDirectory="$(SolutionDir)../../build/$(ConfigurationName).Intermediate.win32/$(ProjectName)"
+			OutputDirectory="$(SolutionDir)..\..\build\$(ConfigurationName).win32"
+			IntermediateDirectory="$(SolutionDir)..\..\build\$(ConfigurationName).Intermediate.win32\$(ProjectName)"
 			ConfigurationType="4"
 			CharacterSet="1"
 			WholeProgramOptimization="1"
@@ -250,30 +250,6 @@
 				</File>
 			</Filter>
 			<Filter
-				Name="om"
-				>
-				<File
-					RelativePath="..\..\include\gd\om\om_class.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\include\gd\om\om_error.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\include\gd\om\om_manage.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\include\gd\om\om_object.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\include\gd\om\om_types.h"
-					>
-				</File>
-			</Filter>
-			<Filter
 				Name="timer"
 				>
 				<File
@@ -310,6 +286,34 @@
 				</File>
 				<File
 					RelativePath="..\..\include\gd\dr_dm\dr_dm_types.h"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="dr_cvt"
+				>
+				<File
+					RelativePath="..\..\include\gd\dr_cvt\dr_cvt.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\include\gd\dr_cvt\dr_cvt_manage.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\include\gd\dr_cvt\dr_cvt_types.h"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="vnet"
+				>
+				<File
+					RelativePath="..\..\include\gd\vnet\vnet_control_pkg.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\include\gd\vnet\vnet_types.h"
 					>
 				</File>
 			</Filter>
@@ -405,6 +409,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\src\gd\evt\evt_manage_module.c"
+					>
+				</File>
+				<File
 					RelativePath="..\..\src\gd\evt\evt_processor.c"
 					>
 				</File>
@@ -414,42 +422,46 @@
 				</File>
 			</Filter>
 			<Filter
-				Name="om"
+				Name="dr_cvt"
 				>
 				<File
-					RelativePath="..\..\src\gd\om\om_backend_memory.c"
+					RelativePath="..\..\src\gd\dr_cvt\dr_cvt.c"
 					>
 				</File>
 				<File
-					RelativePath="..\..\src\gd\om\om_buffer.c"
+					RelativePath="..\..\src\gd\dr_cvt\dr_cvt_def_bson.c"
 					>
 				</File>
 				<File
-					RelativePath="..\..\src\gd\om\om_buffer.h"
+					RelativePath="..\..\src\gd\dr_cvt\dr_cvt_def_copy.c"
 					>
 				</File>
 				<File
-					RelativePath="..\..\src\gd\om\om_class.c"
+					RelativePath="..\..\src\gd\dr_cvt\dr_cvt_def_noop.c"
 					>
 				</File>
 				<File
-					RelativePath="..\..\src\gd\om\om_class_i.h"
+					RelativePath="..\..\src\gd\dr_cvt\dr_cvt_def_pbuf.c"
 					>
 				</File>
 				<File
-					RelativePath="..\..\src\gd\om\om_manage.c"
+					RelativePath="..\..\src\gd\dr_cvt\dr_cvt_def_pbuf_len.c"
 					>
 				</File>
 				<File
-					RelativePath="..\..\src\gd\om\om_manage_i.h"
+					RelativePath="..\..\src\gd\dr_cvt\dr_cvt_internal_ops.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\src\gd\om\om_object.c"
+					RelativePath="..\..\src\gd\dr_cvt\dr_cvt_internal_types.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\src\gd\om\om_page_head.h"
+					RelativePath="..\..\src\gd\dr_cvt\dr_cvt_manage.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\gd\dr_cvt\dr_cvt_type.c"
 					>
 				</File>
 			</Filter>
@@ -533,7 +545,23 @@
 					>
 				</File>
 			</Filter>
+			<Filter
+				Name="vnet"
+				>
+				<File
+					RelativePath="..\..\src\gd\vnet\vnet_control_pkg.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\gd\vnet\vnet_internal_types.h"
+					>
+				</File>
+			</Filter>
 		</Filter>
+		<File
+			RelativePath="..\..\src\gd\app\app_named_em.c"
+			>
+		</File>
 	</Files>
 	<Globals>
 	</Globals>

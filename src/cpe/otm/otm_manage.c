@@ -1,5 +1,6 @@
 #include <assert.h>
 #include "cpe/pal/pal_stdio.h"
+#include "cpe/pal/pal_strings.h"
 #include "cpe/pal/pal_stdlib.h"
 #include "cpe/otm/otm_manage.h"
 #include "cpe/otm/otm_timer.h"
@@ -80,16 +81,19 @@ void otm_manage_tick(otm_manage_t mgr, uint32_t cur_time_s, void * obj_ctx, otm_
     size_t i;
     int repeat_count;
     for(i = 0; i < memo_capacity; ++i) {
+        otm_timer_t timer;
         otm_memo_t memo = memo_buf + i;
 
         if (memo->m_id == 0) continue;
         if (memo->m_next_action_time_s == 0 || memo->m_next_action_time_s > cur_time_s) continue;
 
-        otm_timer_t timer = otm_timer_find(mgr, memo->m_id);
+        timer = otm_timer_find(mgr, memo->m_id);
         if (timer == NULL) continue;
 
         repeat_count = 0;
         while(memo->m_next_action_time_s > 0 && timer->m_span_s && memo->m_next_action_time_s <= cur_time_s) {
+            uint32_t cur_next_action_time_s;
+
             if (++repeat_count > 2048) {
                 CPE_INFO(
                     mgr->m_em, "otm_timer_tick: repeat max reached, span=%u, next_action_time=%u, cur_time=%u",
@@ -97,7 +101,7 @@ void otm_manage_tick(otm_manage_t mgr, uint32_t cur_time_s, void * obj_ctx, otm_
                 break;
             }
 
-            uint32_t cur_next_action_time_s = memo->m_next_action_time_s;
+            cur_next_action_time_s = memo->m_next_action_time_s;
             timer->m_process(timer, memo, cur_next_action_time_s, obj_ctx);
             if (timer->m_span_s == 0) {
                 if (memo->m_next_action_time_s != 0) {

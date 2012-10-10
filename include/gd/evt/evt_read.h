@@ -21,6 +21,18 @@ gd_evt_t gd_evt_create(
     ssize_t data_capacity,
     error_monitor_t em);
 
+gd_evt_t gd_evt_dyn_create_ex(
+    gd_evt_mgr_t evm,
+    LPDRMETA data_meta,
+    size_t record_capacity,
+    error_monitor_t em);
+
+gd_evt_t gd_evt_dyn_create(
+    gd_evt_mgr_t evm,
+    const char * typeName,
+    size_t record_capacity,
+    error_monitor_t em);
+
 int gd_evt_send(
     gd_evt_t evt,
     tl_time_span_t delay,

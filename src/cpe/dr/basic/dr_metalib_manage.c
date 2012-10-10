@@ -202,7 +202,7 @@ int dr_meta_path_to_off(LPDRMETA meta, const char * path, LPDRMETAENTRY * entry)
         nameEnd;
         nameBegin = nameEnd + 1, nameEnd = strchr(nameBegin, '.'))
     {
-        int i;
+        uint32_t i;
         LPDRMETAENTRY pstEntryBegin = (LPDRMETAENTRY)(pstCurMeta + 1);
         pstEntry = NULL;
 
@@ -243,7 +243,7 @@ LPDRMETALIB dr_meta_owner_lib(LPDRMETA meta) {
 }
 
 LPDRMETAENTRY dr_meta_find_entry_by_name(LPDRMETA meta, const char* name) {
-    int i;
+    uint32_t i;
     char * base = (char *)(meta) - meta->m_self_pos;
     LPDRMETAENTRY pstEntryBegin = (LPDRMETAENTRY)(meta + 1);
 
@@ -259,7 +259,7 @@ LPDRMETAENTRY dr_meta_find_entry_by_name(LPDRMETA meta, const char* name) {
 }
 
 LPDRMETAENTRY dr_meta_find_entry_by_id(LPDRMETA meta, int a_iId) {
-    int i;
+    uint32_t i;
     LPDRMETAENTRY pstEntryBegin = (LPDRMETAENTRY)(meta + 1);
 
     if (a_iId < 0) {
@@ -278,7 +278,7 @@ LPDRMETAENTRY dr_meta_find_entry_by_id(LPDRMETA meta, int a_iId) {
 }
 
 int dr_meta_find_entry_idx_by_name(LPDRMETA meta, const char* name) {
-    int i;
+    uint32_t i;
     char * base = (char *)(meta) - meta->m_self_pos;
     LPDRMETAENTRY pstEntryBegin = (LPDRMETAENTRY)(meta + 1);
 
@@ -294,7 +294,7 @@ int dr_meta_find_entry_idx_by_name(LPDRMETA meta, const char* name) {
 }
 
 int dr_meta_find_entry_idx_by_id(LPDRMETA meta, int a_iId) {
-    int i;
+    uint32_t i;
     LPDRMETAENTRY pstEntryBegin = (LPDRMETAENTRY)(meta + 1);
 
     if (a_iId < 0) {
@@ -313,7 +313,7 @@ int dr_meta_find_entry_idx_by_id(LPDRMETA meta, int a_iId) {
 }
 
 LPDRMETAENTRY dr_meta_entry_at(LPDRMETA meta, int a_idxEntry) {
-    if (a_idxEntry < 0 || a_idxEntry >= meta->m_entry_count) {
+    if (a_idxEntry < 0 || (uint32_t)a_idxEntry >= meta->m_entry_count) {
         return NULL;
     }
 
@@ -343,7 +343,7 @@ int dr_meta_index_num(LPDRMETA meta) {
 }
 
 dr_index_info_t dr_meta_index_at(LPDRMETA meta, int idx) {
-    if (idx < 0 || idx >= meta->m_index_count) return NULL;
+    if (idx < 0 || (uint32_t)idx >= meta->m_index_count) return NULL;
 
     return ((dr_index_info_t)(((char*)meta) + meta->m_index_pos_from_meta)) + idx;
 }
@@ -410,7 +410,7 @@ LPDRMETAENTRY dr_meta_find_entry_by_path_ex(LPDRMETA meta, const char* entryPath
         nameEnd;
         nameBegin = nameEnd + 1, nameEnd = strchr(nameBegin, '.'))
     {
-        int i;
+        uint32_t i;
         LPDRMETAENTRY pstEntryBegin = (LPDRMETAENTRY)(pstCurMeta + 1);
         pstEntry = NULL;
 
