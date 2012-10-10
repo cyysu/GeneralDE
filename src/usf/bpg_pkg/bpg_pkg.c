@@ -32,6 +32,8 @@ bpg_pkg_create(
         sizeof(struct bpg_pkg) + carry_data_capacity + pkg_capacity);
     if (dp_req == NULL) return NULL;
 
+    bzero(dp_req_data(dp_req), dp_req_capacity(dp_req));
+
     bpg_pkg = (bpg_pkg_t)dp_req_data(dp_req);
 
     bpg_pkg->m_mgr = mgr;
@@ -104,13 +106,18 @@ int bpg_pkg_pkg_data_set_size(bpg_pkg_t req, size_t size) {
 
 void bpg_pkg_init(bpg_pkg_t bpg_pkg) {
     BASEPKG_HEAD * head;
+    size_t old_data_size;
+
+    old_data_size = dp_req_size(bpg_pkg->m_dp_req);
+    if (old_data_size > sizeof(struct bpg_pkg)) {
+        bzero(bpg_pkg + 1, old_data_size - sizeof(struct bpg_pkg));
+    }
 
     bpg_pkg_pkg_data_set_size(bpg_pkg, sizeof(BASEPKG_HEAD));
 
     bpg_pkg->m_connection_id = BPG_INVALID_CONNECTION_ID;
 
     head = (BASEPKG_HEAD *)bpg_pkg_pkg_data(bpg_pkg);
-    bzero(head, sizeof(BASEPKG_HEAD));
     head->magic = BASEPKG_HEAD_MAGIC;
     head->version = 1;
 }
