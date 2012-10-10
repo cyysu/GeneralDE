@@ -50,10 +50,7 @@ static int logic_data_record_count_i(logic_data_t data, dr_meta_dyn_info_t dyn_i
 }
 
 int logic_data_record_count(logic_data_t data) {
-    LPDRMETA meta;
     struct dr_meta_dyn_info dyn_info;
-
-    meta = logic_data_meta(data);
 
     if (dr_meta_find_dyn_info(logic_data_meta(data), &dyn_info) == 0) {
         return logic_data_record_count_i(data, &dyn_info);
@@ -71,10 +68,7 @@ static size_t logic_data_record_capacity_i(logic_data_t data, dr_meta_dyn_info_t
 }
 
 size_t logic_data_record_capacity(logic_data_t data) {
-    LPDRMETA meta;
     struct dr_meta_dyn_info dyn_info;
-
-    meta = logic_data_meta(data);
 
     if (dr_meta_find_dyn_info(logic_data_meta(data), &dyn_info) == 0) {
         return logic_data_record_capacity_i(data, &dyn_info);
@@ -85,15 +79,12 @@ size_t logic_data_record_capacity(logic_data_t data) {
 }
 
 void * logic_data_record_at(logic_data_t data, int pos) {
-    LPDRMETA meta;
     struct dr_meta_dyn_info dyn_info;
-
-    meta = logic_data_meta(data);
 
     if (dr_meta_find_dyn_info(logic_data_meta(data), &dyn_info) == 0) {
         size_t record_size = dr_entry_element_size(dyn_info.m_array_entry);
         size_t record_capacity = logic_data_record_capacity_i(data, &dyn_info);
-        if (pos >= record_capacity) {
+        if (pos >= (int)record_capacity) {
             CPE_ERROR(
                 logic_manage_em(logic_data_mgr(data)),
                 "logic_data_record_at: pos %d overflow, capacity = %d",
@@ -132,10 +123,7 @@ size_t logic_data_record_size(logic_data_t data) {
 }
 
 int logic_data_record_set_count(logic_data_t data, size_t record_count) {
-    LPDRMETA meta;
     struct dr_meta_dyn_info dyn_info;
-
-    meta = logic_data_meta(data);
 
     if (dr_meta_find_dyn_info(logic_data_meta(data), &dyn_info) == 0) {
         size_t record_capacity;
@@ -173,10 +161,7 @@ int logic_data_record_set_count(logic_data_t data, size_t record_count) {
 }
 
 void * logic_data_record_append(logic_data_t data) {
-    LPDRMETA meta;
     struct dr_meta_dyn_info dyn_info;
-
-    meta = logic_data_meta(data);
 
     if (dr_meta_find_dyn_info(logic_data_meta(data), &dyn_info) == 0) {
         int record_count;

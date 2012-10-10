@@ -1,4 +1,5 @@
 #include <assert.h>
+#include "cpe/pal/pal_strings.h"
 #include "cpe/dr/dr_metalib_manage.h"
 #include "gd/dr_cvt/dr_cvt.h"
 #include "usf/bpg_pkg/bpg_pkg.h"
@@ -50,6 +51,8 @@ int bpg_pkg_set_main_data(bpg_pkg_t pkg, LPDRMETA meta, void const * buf, size_t
 int bpg_pkg_get_main_data(bpg_pkg_t pkg, LPDRMETA meta, void * buf, size_t * capacity, error_monitor_t em) {
     size_t input_size;
     size_t output_size;
+
+    bzero(buf, *capacity); /*TODO: remove for speed*/
 
     input_size = bpg_pkg_body_len(pkg);
     output_size = *capacity;
@@ -124,6 +127,8 @@ int bpg_pkg_get_append_data(
 {
     size_t input_size;
     size_t output_size;
+
+    bzero(buf, *capacity); /*TODO: remove for speed*/
 
     input_size = bpg_pkg_append_info_size(append_inf);
     output_size = *capacity;
