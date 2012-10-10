@@ -310,7 +310,38 @@ sub analize_entry_processor_struct {
 
                                 return $newSub;
                               });
-    } else {
+    }
+      elsif ($entry->{customattr} && $entry->{customattr} =~ /make_array\s*\(\s*'([^']+)'\s*\)/) {
+        my @postfixs = split(':', $1);
+
+        foreach my $pos ( 0 .. $#postfixs ) {
+        analize_meta_processors($subMeta,
+                                "$cname_post_fix$postfixs[$pos]",
+                                sub {
+                                  my $innerSub = shift;
+
+                                  my $newSub = sub {
+                                    my ($row, $value, $input_row) = @_;
+
+                                    return if (not $value) or ($value eq "");
+
+                                    $row->{$entry->{name}} = []
+                                      if not exists $row->{$entry->{name}};
+
+                                    while ( @{$row->{$entry->{name}}} <= $pos) {
+                                      push @{$row->{$entry->{name}}}, {};
+                                    }
+
+                                    $innerSub->(${$row->{$entry->{name}}}[$pos], $value, $input_row);
+                                  };
+
+                                  $newSub = $col_fun_derator->($newSub) if $col_fun_derator;
+
+                                  return $newSub;
+                                });
+      }
+      }
+    else {
       print("$entry->{name} seq-type $entry->{customattr} is unknown!\n");
     }
   } else {
@@ -435,7 +466,7 @@ foreach my $rowPos ( $row_min + 1 .. $row_max ) {
 
     $input_row{$colName} = $cell->value();
   }
-  $input_row{'表名'} = $inputSheet;
+  $input_row{tableName} = $inputSheet;
 
   foreach my $colName ( keys %input_row ) {
     next if not exists $input_col_processors{$colName};
@@ -471,3 +502,5 @@ open(my $output, '>::encoding(utf8)', $outputFile) or die "open output file $out
 print $output Dump( \@no_emptty_role_table );
 
 1;
+
+# -*- encoding: utf-8 -*-

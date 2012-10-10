@@ -1,5 +1,6 @@
 #include "cpe/pal/pal_platform.h"
 #include "cpe/pal/pal_stdio.h"
+#include "cpe/pal/pal_strings.h"
 #include "cpe/dr/dr_metalib_manage.h"
 #include "cpe/dr/dr_metalib_init.h"
 #include "cpe/pom/pom_manage.h"

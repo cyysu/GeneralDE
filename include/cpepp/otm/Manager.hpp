@@ -86,9 +86,12 @@ public:
         tl_time_span_t span)
     {
 #ifdef _MSC_VER
+        Fun save_fun = static_cast<Fun>(fun);
         return this->registerTimer(
-            id, name, r, static_cast<TimerProcessor::Fun >(fun), span
-            , *((TimerProcessor*)((void*)&r)));
+            id, name,
+            &static_cast<TimerProcessor&>(r), &save_fun, sizeof(save_fun),
+            span,
+			(void*)&r);
 #else
         Fun save_fun = static_cast<Fun>(fun);
         return this->registerTimer(

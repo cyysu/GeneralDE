@@ -207,7 +207,7 @@ int pom_grp_obj_cfg_load(pom_grp_obj_t obj, pom_grp_obj_mgr_t mgr, cfg_t cfg, er
         }
     }
 
-    return 0;
+    return rv;
 }
 
 int pom_grp_obj_cfg_load_all(pom_grp_obj_mgr_t mgr, cfg_t cfg, error_monitor_t em);

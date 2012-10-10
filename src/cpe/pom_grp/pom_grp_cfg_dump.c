@@ -186,7 +186,7 @@ int pom_grp_obj_cfg_dump(cfg_t cfg, pom_grp_obj_mgr_t mgr, pom_grp_obj_t obj, er
         }
     }
 
-    return 0;
+    return rv;
 }
 
 int pom_grp_obj_cfg_dump_all(cfg_t cfg, pom_grp_obj_mgr_t mgr, error_monitor_t em) {

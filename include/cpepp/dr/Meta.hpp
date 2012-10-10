@@ -28,6 +28,9 @@ public:
     Utils::CString const & desc(void) const { return Utils::CString::_cast(dr_meta_desc(*this)); } 
     int id(void) const { return dr_meta_id(*this); } 
 
+    bool isDynamic(void) const;
+    LPDRMETA recordMeta(void) const;
+
     size_t size(void) const { return dr_meta_size(*this); } 
     int align(void) const { return dr_meta_align(*this); } 
 

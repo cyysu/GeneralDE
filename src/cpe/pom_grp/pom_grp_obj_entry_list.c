@@ -321,7 +321,6 @@ int pom_grp_obj_list_remove_ex(pom_grp_obj_mgr_t mgr, pom_grp_obj_t obj, pom_grp
     uint16_t remove_page_pos;
     uint16_t remove_pos_in_page;
     uint16_t last_page_pos;
-    uint16_t last_pos_in_page;
     pom_oid_t * oid;
     uint16_t * count;
     char * page_buf;
@@ -348,7 +347,6 @@ int pom_grp_obj_list_remove_ex(pom_grp_obj_mgr_t mgr, pom_grp_obj_t obj, pom_grp
     assert(*count > 0);
 
     last_page_pos = ((*count) - 1) / count_in_page;
-    last_pos_in_page = ((*count) - 1) % count_in_page;
     assert(last_page_pos < entry->m_page_count);
 
     oid = ((pom_oid_t *)obj) + entry->m_page_begin + remove_page_pos;

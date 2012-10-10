@@ -73,7 +73,7 @@ dr_cvt_fun_pbuf_len_decode(
         return dr_cvt_result_error;
     }
 
-    if (size_size > *input_capacity) return dr_cvt_result_not_enough_input;
+    if ((size_t)size_size > *input_capacity) return dr_cvt_result_not_enough_input;
 
     data_size = (size_t)size_buf;
     if ((data_size + size_size) > *input_capacity) return dr_cvt_result_not_enough_input;

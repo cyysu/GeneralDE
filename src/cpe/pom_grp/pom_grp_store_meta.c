@@ -233,24 +233,24 @@ int pom_grp_meta_build_store_meta(mem_buffer_t buffer, pom_grp_meta_t meta, erro
     mem_buffer_init(&str_buffer, NULL);
 
     if (pom_grp_meta_build_store_meta_i(builder, meta, &str_buffer, em) != 0) {
-        goto ERROR;
+        goto BUILD_STORE_META_ERROR;
     }
     
     if (dr_inbuild_tsort(builder, em) != 0) {
         CPE_ERROR(em, "pom_grp_meta_build_store_meta: sort lib fail!");
-        goto ERROR;
+        goto BUILD_STORE_META_ERROR;
     }
 
     if (dr_inbuild_build_lib(buffer, builder, em) != 0) {
         CPE_ERROR(em, "pom_grp_meta_build_store_meta: build lib to buffer fail!");
-        goto ERROR;
+        goto BUILD_STORE_META_ERROR;
     }
 
     dr_inbuild_free_lib(builder);
     mem_buffer_clear(&str_buffer);
     return 0;
 
-ERROR:
+BUILD_STORE_META_ERROR:
     dr_inbuild_free_lib(builder);
     mem_buffer_clear(&str_buffer);
     return -1;

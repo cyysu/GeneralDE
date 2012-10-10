@@ -1,6 +1,7 @@
 #include <cassert>
 #include <sstream>
 #include <stdexcept>
+#include "cpe/pal/pal_stdio.h"
 #include "cpepp/utils/ErrorCollector.hpp"
 #include "cpepp/pom_grp/Store.hpp"
 
