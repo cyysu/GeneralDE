@@ -308,6 +308,12 @@ static void pom_tool_do_generate_hpp(write_stream_t stream, struct pom_tool_env 
     stream_printf(stream, "#include \"cpepp/pom_grp/ObjectRef.hpp\"\n");
     stream_printf(stream, "\n");
 
+    stream_printf(stream, "#ifdef _MSC_VER\n");
+    stream_printf(stream, "# pragma warning(push)\n");
+    stream_printf(stream, "# pragma warning(disable:4344)\n");
+    stream_printf(stream, "#endif\n");
+    stream_printf(stream, "\n");
+
     pom_tool_do_generate_hpp_print_ns(stream, namespace, pom_tool_do_generate_hpp_print_ns_normal, "namespace ", " {");
     stream_printf(stream, "\n");
     stream_printf(stream, "\n");
@@ -331,6 +337,12 @@ static void pom_tool_do_generate_hpp(write_stream_t stream, struct pom_tool_env 
     pom_tool_do_generate_hpp_print_ns(stream, namespace, pom_tool_do_generate_hpp_print_ns_none, "", "}");
     stream_printf(stream, "\n");
     stream_printf(stream, "\n");
+
+    stream_printf(stream, "#ifdef _MSC_VER\n");
+    stream_printf(stream, "# pragma warning(pop)\n");
+    stream_printf(stream, "#endif\n");
+    stream_printf(stream, "\n");
+
     stream_printf(stream, "#endif\n");
 }
 

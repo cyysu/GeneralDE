@@ -2,9 +2,9 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9.00"
-	Name="libev"
-	ProjectGUID="{FBDC85B0-19E1-40B9-8C77-D3F9B9210B08}"
-	RootNamespace="libev"
+	Name="cpe_pom_tool"
+	ProjectGUID="{DEBB2D71-844F-4F93-A724-2FDB38AA69F3}"
+	RootNamespace="pom_grp_tool"
 	TargetFrameworkVersion="196613"
 	>
 	<Platforms>
@@ -17,9 +17,9 @@
 	<Configurations>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory="$(SolutionDir)..\..\build\vc\$(ConfigurationName)\lib"
+			OutputDirectory="$(SolutionDir)..\..\build\vc\tools"
 			IntermediateDirectory="$(SolutionDir)..\..\build\vc\$(ConfigurationName)\$(ProjectName)\building"
-			ConfigurationType="4"
+			ConfigurationType="1"
 			CharacterSet="2"
 			>
 			<Tool
@@ -40,14 +40,13 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\3rdTools\libev\include;..\..\3rdTools\libev\src\win32"
-				PreprocessorDefinitions="WIN32;_WINDOWS;HAVE_CONFIG_H;_CRT_SECURE_NO_WARNINGS"
+				AdditionalIncludeDirectories="../../include;../../3rdTools/argtable2/include"
+				PreprocessorDefinitions="WIN32;_WINDOWS;STRICT;_CRT_SECURE_NO_WARNINGS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="2"
 				WarningLevel="3"
 				DebugInformationFormat="4"
-				DisableSpecificWarnings="4996"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -59,10 +58,17 @@
 				Name="VCPreLinkEventTool"
 			/>
 			<Tool
-				Name="VCLibrarianTool"
+				Name="VCLinkerTool"
+				AdditionalDependencies="iconv.lib zlib.lib regex.lib"
+				AdditionalLibraryDirectories="../../3rdTools/zlib/vc/lib;../../3rdTools/iconv/vc/lib;../../3rdTools/regex/vc/lib"
+				GenerateDebugInformation="true"
+				TargetMachine="1"
 			/>
 			<Tool
 				Name="VCALinkTool"
+			/>
+			<Tool
+				Name="VCManifestTool"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
@@ -74,14 +80,17 @@
 				Name="VCFxCopTool"
 			/>
 			<Tool
+				Name="VCAppVerifierTool"
+			/>
+			<Tool
 				Name="VCPostBuildEventTool"
 			/>
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="$(SolutionDir)..\..\build\$(ConfigurationName).win32"
-			IntermediateDirectory="$(SolutionDir)..\..\build\$(ConfigurationName).Intermediate.win32\$(ProjectName)"
-			ConfigurationType="4"
+			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
+			IntermediateDirectory="$(ConfigurationName)"
+			ConfigurationType="1"
 			CharacterSet="2"
 			WholeProgramOptimization="1"
 			>
@@ -104,13 +113,10 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="..\..\3rdTools\libev\include;..\..\3rdTools\libev\src\win32"
-				PreprocessorDefinitions="WIN32;_WINDOWS;HAVE_CONFIG_H;_CRT_SECURE_NO_WARNINGS"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
 				WarningLevel="3"
 				DebugInformationFormat="3"
-				DisableSpecificWarnings="4996"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -122,10 +128,17 @@
 				Name="VCPreLinkEventTool"
 			/>
 			<Tool
-				Name="VCLibrarianTool"
+				Name="VCLinkerTool"
+				GenerateDebugInformation="true"
+				OptimizeReferences="2"
+				EnableCOMDATFolding="2"
+				TargetMachine="1"
 			/>
 			<Tool
 				Name="VCALinkTool"
+			/>
+			<Tool
+				Name="VCManifestTool"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
@@ -137,6 +150,9 @@
 				Name="VCFxCopTool"
 			/>
 			<Tool
+				Name="VCAppVerifierTool"
+			/>
+			<Tool
 				Name="VCPostBuildEventTool"
 			/>
 		</Configuration>
@@ -144,42 +160,34 @@
 	<References>
 	</References>
 	<Files>
-		<Filter
-			Name="include"
+		<File
+			RelativePath="..\..\src\cpe\pom_tool\main.c"
 			>
-			<File
-				RelativePath="..\..\3rdTools\libev\include\ev++.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\3rdTools\libev\include\ev.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\3rdTools\libev\include\event.h"
-				>
-			</File>
-		</Filter>
-		<Filter
-			Name="src"
+		</File>
+		<File
+			RelativePath="..\..\src\cpe\pom_tool\tool_env.h"
 			>
-			<File
-				RelativePath="..\..\3rdTools\libev\src\win32\config.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\3rdTools\libev\src\ev.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\3rdTools\libev\src\ev_vars.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\3rdTools\libev\src\ev_wrap.h"
-				>
-			</File>
-		</Filter>
+		</File>
+		<File
+			RelativePath="..\..\src\cpe\pom_tool\tool_generate_hpp.c"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\cpe\pom_tool\tool_generate_lib_c.c"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\cpe\pom_tool\tool_generate_metalib_xml.c"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\cpe\pom_tool\tool_generate_store_metalib_xml.c"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\cpe\pom_tool\tool_shm_init.c"
+			>
+		</File>
 	</Files>
 	<Globals>
 	</Globals>

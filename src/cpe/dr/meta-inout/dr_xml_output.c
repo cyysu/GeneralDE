@@ -14,11 +14,19 @@
         return -1;                                                      \
     }
 
+#ifdef _MSC_VER
+#define DR_SAVE_LIB_TO_XML_WRITE_ATTRIBUTE_FMT(__attrname, __fmt, ...)      \
+    if (xmlTextWriterWriteFormatAttribute(writer, BAD_CAST __attrname, __fmt, __VA_ARGS__) < 0) { \
+        CPE_ERROR(em, "dr_save_lib_to_xml_file: Error write attribute %s, "__fmt, (__attrname), __VA_ARGS__); \
+        return -1;                                                      \
+    }
+#else
 #define DR_SAVE_LIB_TO_XML_WRITE_ATTRIBUTE_FMT(__attrname, __fmt, __args...)      \
     if (xmlTextWriterWriteFormatAttribute(writer, BAD_CAST __attrname, __fmt, ##__args) < 0) { \
         CPE_ERROR(em, "dr_save_lib_to_xml_file: Error write attribute %s, "__fmt, (__attrname), ##__args); \
         return -1;                                                      \
     }
+#endif
 
 #define DR_SAVE_LIB_TO_XML_WRITE_START_ELEMENT(__element_name)          \
     if (xmlTextWriterStartElement(writer, BAD_CAST __element_name) < 0) {   \
@@ -238,6 +246,7 @@ char* dr_save_lib_to_xml_buf(
     }
 
     rv = dr_save_lib_to_xml_i(metaLib, writer, em);
+    (void)rv;
 
     mem_buffer_append(buffer, buf->content, buf->use);
     mem_buffer_append_char(buffer, 0);

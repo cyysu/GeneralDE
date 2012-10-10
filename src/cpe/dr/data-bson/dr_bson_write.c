@@ -85,7 +85,7 @@ struct dr_bson_write_stack {
         curStack->m_output_size += s + 1;                               \
     } while(0)
 
-static inline char dr_bson_calc_bson_type(LPDRMETAENTRY entry) {
+static char dr_bson_calc_bson_type(LPDRMETAENTRY entry) {
     if (entry->m_array_count != 1) return dr_bson_type_array;
 
     switch(entry->m_type) {
