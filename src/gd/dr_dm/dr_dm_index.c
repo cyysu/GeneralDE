@@ -31,7 +31,7 @@ dr_dm_data_index_create(dr_dm_manage_t mgr, LPDRMETAENTRY entry, int is_unique) 
             mgr->m_alloc,
             (cpe_hash_fun_t) dr_dm_data_hash_fun,
             (cpe_hash_cmp_t) dr_dm_data_hash_cmp,
-            - (sizeof(struct cpe_hash_entry) * (index->m_id + 1)),
+            - (int)(sizeof(struct cpe_hash_entry) * (index->m_id + 1)),
             -1) != 0)
     {
         mem_free(mgr->m_alloc, index);
