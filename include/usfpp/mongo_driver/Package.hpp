@@ -5,6 +5,11 @@
 #include "usf/mongo_driver/mongo_pkg.h"
 #include "System.hpp"
 
+#ifdef _MSC_VER
+# pragma warning(push)
+# pragma warning(disable:4624)
+#endif
+
 namespace Usf { namespace Mongo {
 
 class Package : public Cpe::Utils::SimulateObject {
@@ -30,7 +35,7 @@ public:
 
     void docOpen(void);
     void docClose(void);
-    bool docIsClosed(void) const { return mongo_pkg_doc_is_closed(*this); }
+    bool docIsClosed(void) const { return mongo_pkg_doc_is_closed(*this) ? true : false; }
     int docCount(void) const { return mongo_pkg_doc_count(*this); }
 
     /*basic data op*/
@@ -60,5 +65,9 @@ public:
 };
 
 }}
+
+#ifdef _MSC_VER
+# pragma warning(pop)
+#endif
 
 #endif

@@ -1,4 +1,5 @@
 #include <assert.h>
+#include "cpe/pal/pal_string.h"
 #include "cpe/net/net_connector.h"
 #include "cpe/net/net_chanel.h"
 #include "cpe/net/net_endpoint.h"
@@ -69,15 +70,15 @@ int mongo_seed_ep_init(mongo_driver_t driver, net_ep_t ep) {
 
     buf_r = mem_alloc(driver->m_alloc, read_chanel_size);
     buf_w = mem_alloc(driver->m_alloc, write_chanel_size);
-    if (buf_r == NULL || buf_w == NULL) goto ERROR;
+    if (buf_r == NULL || buf_w == NULL) goto EP_INIT_ERROR;
 
     chanel_r = net_chanel_queue_create(net_ep_mgr(ep), buf_r, read_chanel_size);
-    if (chanel_r == NULL) goto ERROR;
+    if (chanel_r == NULL) goto EP_INIT_ERROR;
     net_chanel_queue_set_close(chanel_r, mongo_seed_free_chanel_buf, driver);
     buf_r = NULL;
 
     chanel_w = net_chanel_queue_create(net_ep_mgr(ep), buf_w, write_chanel_size);
-    if (chanel_w == NULL) goto ERROR;
+    if (chanel_w == NULL) goto EP_INIT_ERROR;
     net_chanel_queue_set_close(chanel_w, mongo_seed_free_chanel_buf, driver);
     buf_w = NULL;
 
@@ -96,7 +97,7 @@ int mongo_seed_ep_init(mongo_driver_t driver, net_ep_t ep) {
     }
 
     return 0;
-ERROR:
+EP_INIT_ERROR:
     if (buf_r) mem_free(driver->m_alloc, buf_r);
     if (buf_w) mem_free(driver->m_alloc, buf_w);
     if (chanel_r) net_chanel_free(chanel_r);
@@ -121,25 +122,25 @@ int mongo_seed_connect(struct mongo_seed * seed) {
         CPE_ERROR(
             driver->m_em, "%s: seed %s.%d: create net connector fail!",
             mongo_driver_name(driver), seed->m_host, seed->m_port);
-        goto ERROR;
+        goto CONNECT_ERROR;
     }
 
     if (mongo_seed_ep_init(driver, net_connector_ep(seed->m_connector)) != 0) {
-        goto ERROR;
+        goto CONNECT_ERROR;
     }
 
     if (net_connector_add_monitor(seed->m_connector, mongo_seed_connector_state_monitor, seed) != 0) {
         CPE_ERROR(
             driver->m_em, "%s: seed %s.%d: connector add monitor fail!",
             mongo_driver_name(driver), seed->m_host, seed->m_port);
-        goto ERROR;
+        goto CONNECT_ERROR;
     }
 
     if (net_connector_enable(seed->m_connector) != 0) {
         CPE_ERROR(
             driver->m_em, "%s: seed %s.%d: enable connector fail!",
             mongo_driver_name(driver), seed->m_host, seed->m_port);
-        goto ERROR;
+        goto CONNECT_ERROR;
     }
 
     if (driver->m_debug) {
@@ -151,7 +152,7 @@ int mongo_seed_connect(struct mongo_seed * seed) {
     ++driver->m_connecting_seed_count;
     return 0;
 
-ERROR:
+CONNECT_ERROR:
     if (seed->m_connector) {
         net_connector_free(seed->m_connector);
         seed->m_connector = NULL;

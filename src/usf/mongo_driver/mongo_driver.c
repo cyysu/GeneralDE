@@ -1,5 +1,7 @@
 #include <assert.h>
+#include "cpe/pal/pal_strings.h"
 #include "cpe/pal/pal_string.h"
+#include "cpe/pal/pal_stdio.h"
 #include "cpe/cfg/cfg_read.h"
 #include "cpe/dp/dp.h"
 #include "cpe/nm/nm_manage.h"

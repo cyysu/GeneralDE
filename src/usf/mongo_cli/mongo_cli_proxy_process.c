@@ -11,24 +11,24 @@ int mongo_cli_proxy_send(mongo_cli_proxy_t agent, mongo_pkg_t pkg, logic_require
         CPE_INFO(
             agent->m_em, "%s: send: no outgoing_send_to configured",
             mongo_cli_proxy_name(agent));
-        goto ERROR;
+        goto SEND_ERROR;
     }
 
     if (require) mongo_pkg_set_id(pkg, logic_require_id(require));
 
     if (dp_dispatch_by_string(agent->m_outgoing_send_to, mongo_pkg_to_dp_req(pkg), agent->m_em) != 0) {
         CPE_INFO(agent->m_em, "%s: send_request: dispatch return fail!", mongo_cli_proxy_name(agent));
-        goto ERROR;
+        goto SEND_ERROR;
     }
 
     if (logic_require_queue_add(agent->m_require_queue, logic_require_id(require)) != 0) {
         CPE_INFO(agent->m_em, "%s: send_request: save require id fail!", mongo_cli_proxy_name(agent));
-        goto ERROR;
+        goto SEND_ERROR;
     }
 
     return 0;
 
-ERROR:
+SEND_ERROR:
     if (require) logic_require_error(require);
     return -1;
 }

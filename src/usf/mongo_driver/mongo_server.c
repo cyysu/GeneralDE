@@ -1,4 +1,5 @@
 #include <assert.h>
+#include "cpe/pal/pal_string.h"
 #include "cpe/utils/buffer.h"
 #include "cpe/net/net_connector.h"
 #include "cpe/net/net_chanel.h"
@@ -363,15 +364,15 @@ static int mongo_server_ep_init(struct mongo_server * server, net_ep_t ep) {
 
     buf_r = mem_alloc(driver->m_alloc, driver->m_server_read_chanel_size);
     buf_w = mem_alloc(driver->m_alloc, driver->m_server_write_chanel_size);
-    if (buf_r == NULL || buf_w == NULL) goto ERROR;
+    if (buf_r == NULL || buf_w == NULL) goto INIT_ERROR;
 
     chanel_r = net_chanel_queue_create(net_ep_mgr(ep), buf_r, driver->m_server_read_chanel_size);
-    if (chanel_r == NULL) goto ERROR;
+    if (chanel_r == NULL) goto INIT_ERROR;
     net_chanel_queue_set_close(chanel_r, mongo_server_free_chanel_buf, driver);
     buf_r = NULL;
 
     chanel_w = net_chanel_queue_create(net_ep_mgr(ep), buf_w, driver->m_server_write_chanel_size);
-    if (chanel_w == NULL) goto ERROR;
+    if (chanel_w == NULL) goto INIT_ERROR;
     net_chanel_queue_set_close(chanel_w, mongo_server_free_chanel_buf, driver);
     buf_w = NULL;
 
@@ -390,7 +391,7 @@ static int mongo_server_ep_init(struct mongo_server * server, net_ep_t ep) {
     }
 
     return 0;
-ERROR:
+INIT_ERROR:
     if (buf_r) mem_free(driver->m_alloc, buf_r);
     if (buf_w) mem_free(driver->m_alloc, buf_w);
     if (chanel_r) net_chanel_free(chanel_r);
@@ -411,7 +412,7 @@ int mongo_server_connect(struct mongo_server * server) {
         CPE_ERROR(
             driver->m_em, "%s: server %s %d: enable connector fail!",
             mongo_driver_name(driver), server->m_host, server->m_port);
-        goto ERROR;
+        goto CONNECT_ERROR;
     }
 
     if (driver->m_debug) {
@@ -424,7 +425,7 @@ int mongo_server_connect(struct mongo_server * server) {
     ++driver->m_connecting_server_count;
     return 0;
 
-ERROR:
+CONNECT_ERROR:
     net_connector_disable(server->m_connector);
     return -1;
 }
