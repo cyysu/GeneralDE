@@ -466,7 +466,7 @@ foreach my $rowPos ( $row_min + 1 .. $row_max ) {
 
     $input_row{$colName} = $cell->value();
   }
-  $input_row{tableName} = $inputSheet;
+  $input_row{'表名'} = $inputSheet;
 
   foreach my $colName ( keys %input_row ) {
     next if not exists $input_col_processors{$colName};
