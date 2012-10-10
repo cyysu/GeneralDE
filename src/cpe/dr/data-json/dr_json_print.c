@@ -183,7 +183,7 @@ void dr_json_print_i(
 
             for(; curStack->m_array_pos < array_count; ++curStack->m_array_pos) {
                 const char * entryData = curStack->m_src_data + curStack->m_entry->m_data_start_pos + (elementSize * curStack->m_array_pos);
-                if (entryData + elementSize - curStack->m_src_data > curStack->m_src_capacity) {
+                if ((size_t)(entryData + elementSize - curStack->m_src_data) > curStack->m_src_capacity) {
                     CPE_ERROR(
                         em, "%s.%s[%d]: read size overflow, capacity=%d",
                         dr_meta_name(dr_entry_self_meta(curStack->m_entry)), dr_entry_name(curStack->m_entry),

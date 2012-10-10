@@ -120,7 +120,7 @@ static void dr_lib_add_meta_index_for_name(
 
     if (curPos < metaLib->m_meta_count) {
         if (strcmp(base + newMeta->m_name_pos, base + putAt->m_name_pos) == 0) {
-            DR_NOTIFY_ERROR(em, CPE_DR_ERROR_META_NAME_CONFLICT);
+            CPE_ERROR_EX(em, CPE_DR_ERROR_META_NAME_CONFLICT, "meta %s name duplicate", (base + newMeta->m_name_pos));
         }
 
         memmove(
