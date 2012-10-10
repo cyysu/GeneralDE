@@ -87,11 +87,19 @@ iPhoneSimulator.install-dir?=$(HOME)/Library/Application Support/iPhone Simulato
 
 # }}}
 # {{{ toolset def
+IOS_PLATFORM_VERSION_LIST:=6.0 5.0
+IOS_PLATFORM_NAME?=iPhoneSimulator
 
 IOS_XCODE_ROOT:=$(if $(filter mac,$(OS_NAME)),$(shell xcode-select -print-path))
+
 IOS_PLATFORM_PREFIX:=$(IOS_XCODE_ROOT)/Platforms/$(IOS_PLATFORM_NAME).platform
 IOS_PLATFORM_BIN_PATH:=$(IOS_PLATFORM_PREFIX)/Developer/usr/bin
-IOS_SDK_PREFIX:=$(IOS_PLATFORM_PREFIX)/Developer/SDKs/$(IOS_PLATFORM_NAME)$(IOS_PLATFORM_VERSION).sdk
+
+ios_platform_sdk_path=$(IOS_XCODE_ROOT)/Platforms/$(IOS_PLATFORM_NAME).platform/Developer/SDKs/$(IOS_PLATFORM_NAME)$1.sdk
+
+IOS_PLATFORM_VERSION?=$(word 1,$(foreach v,$(IOS_PLATFORM_VERSION_LIST),$(if $(wildcard $(call ios_platform_sdk_path,$v)),$v)))
+
+IOS_SDK_PREFIX:=$(call ios_platform_sdk_path,$(IOS_PLATFORM_VERSION))
 
 ios.GCC = $(call $(IOS_PLATFORM_NAME).compiler,gcc)
 ios.CXX = $(call $(IOS_PLATFORM_NAME).compiler,g++)
