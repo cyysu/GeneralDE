@@ -40,8 +40,16 @@ mac.check=$(call assert-not-null,MAC_PLATFORM_NAME) \
 # }}}
 # {{{ sdk MAC
 
+MAC_XCODE_ROOT:=$(if $(filter mac,$(OS_NAME)),$(shell xcode-select -print-path))
+MAC_PLATFORM_VERSION_LIST:=10.8 10.7 10.6 10.5
 MAC_PLATFORM_NAME?=MacOSX
-MAC_PLATFORM_VERSION?=10.7
+
+mac_platform_sdk_patk=$(MAC_XCODE_ROOT)/Platforms/$(MAC_PLATFORM_NAME).platform/Developer/SDKs/$(MAC_PLATFORM_NAME)$1.sdk
+
+
+MAC_PLATFORM_VERSION?=$(word 1,$(foreach v,$(MAC_PLATFORM_VERSION_LIST),$(if $(wildcard $(call mac_platform_sdk_patk,$v)),$v)))
+
+MAC_PLATFORM_BIN_PATH:=$(MAC_XCODE_ROOT)/Toolchains/XcodeDefault.xctoolchain/usr/bin
 
 MacOSX.compiler ?= $(if $(filter gcc,$1),clang,$(if $(filter g++,$1),clang++,$1))
 
@@ -81,10 +89,7 @@ MacOSX.LDFLAGS ?=  -mmacosx-version-min=$(MAC_PLATFORM_VERSION) \
 # }}}
 # {{{ toolset def
 
-MAC_XCODE_ROOT:=$(if $(filter mac,$(OS_NAME)),$(shell xcode-select -print-path))
-MAC_PLATFORM_PREFIX:=$(MAC_XCODE_ROOT)/Platforms/$(MAC_PLATFORM_NAME).platform
-MAC_PLATFORM_BIN_PATH:=$(MAC_XCODE_ROOT)/Toolchains/XcodeDefault.xctoolchain/usr/bin
-MAC_SDK_PREFIX:=$(MAC_PLATFORM_PREFIX)/Developer/SDKs/$(MAC_PLATFORM_NAME)$(MAC_PLATFORM_VERSION).sdk
+MAC_SDK_PREFIX:=$(call mac_platform_sdk_patk,$(MAC_PLATFORM_VERSION))
 
 mac.GCC = $(MAC_PLATFORM_BIN_PATH)/$(call $(MAC_PLATFORM_NAME).compiler,gcc)
 mac.CXX = $(MAC_PLATFORM_BIN_PATH)/$(call $(MAC_PLATFORM_NAME).compiler,g++)
