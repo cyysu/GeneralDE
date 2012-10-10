@@ -24,10 +24,11 @@ public:
     App::Application & app(void) { return App::Application::_cast(gd_evt_mgr_app(*this)); }
     App::Application const & app(void) const { return App::Application::_cast(gd_evt_mgr_app(*this)); }
 
-    Cpe::Dr::MetaLib const & metaLib(void) const { return *(Cpe::Dr::MetaLib*)gd_evt_mgr_metalib(*this); }
-
     Event & createEvent(const char * typeName, ssize_t capacity = -1);
     Event & createEvent(LPDRMETA data_meta, ssize_t data_capacity = -1);
+
+    Event & createDynEvent(const char * typeName, size_t record_capacity);
+    Event & createDynEvent(LPDRMETA data_meta, size_t record_capacity);
 
 	void sendEvent(const char * oid, Event & event);
 

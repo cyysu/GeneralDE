@@ -179,9 +179,9 @@ int logic_require_queue_remove(logic_require_queue_t queue, logic_require_id_t i
     }
 
     found_pos = found - queue->m_runing_requires;
-    assert(found_pos >= 0 && found_pos < queue->m_runing_require_count);
+    assert(found_pos >= 0 && (uint32_t)found_pos < queue->m_runing_require_count);
 
-    if (found_pos + 1 < queue->m_runing_require_count) {
+    if ((uint32_t)(found_pos + 1) < queue->m_runing_require_count) {
         memmove(found, found + 1, sizeof(logic_require_id_t) * (queue->m_runing_require_count - found_pos - 1));
     }
 

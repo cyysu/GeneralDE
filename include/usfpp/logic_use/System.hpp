@@ -10,7 +10,7 @@ class LogicAsyncOp;
 class LogicOpDynData;
 class LogicUniRes;
 
-template<typename ListT, typename EleT>
+template<typename ListT, typename EleT = typename Cpe::Dr::MetaTraits<ListT>::dyn_element_type>
 class LogicOpDynList;
 
 template<typename DataT, int count = Cpe::Dr::MetaTraits<DataT>::dyn_count>
