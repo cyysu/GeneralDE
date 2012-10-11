@@ -21,6 +21,8 @@ uint32_t logic_queue_count(logic_queue_t queue);
 uint32_t logic_queue_max_count(logic_queue_t queue);
 void logic_queue_set_max_count(logic_queue_t queue, uint32_t max_count);
 
+logic_context_t logic_queue_head(logic_queue_t queue);
+
 int logic_queue_enqueue_head(logic_queue_t queue, logic_context_t context);
 int logic_queue_enqueue_tail(logic_queue_t queue, logic_context_t context);
 int logic_queue_enqueue_after(logic_context_t pre, logic_context_t context);
