@@ -110,10 +110,10 @@ sub generate_c_entry_arg {
     return if not defined $type_info;
 
     if (exists $type_info->{"to-string-init"}) {
-      print $output "        , buf_" . $entry_name . "\n";
+      print $output "        , ($type_info->{type})buf_" . $entry_name . "\n";
     }
     else {
-      print $output "        , " . $ref_arg. "\n";
+      print $output "        , ($type_info->{type})" . $ref_arg. "\n";
     }
   }
   else {
@@ -122,10 +122,10 @@ sub generate_c_entry_arg {
     return if not defined $type_info;
 
     if (exists $type_info->{"to-string-init"}) {
-      print $output "        , buf_" . $entry_name . "\n";
+      print $output "        , ($type_info->{type})buf_" . $entry_name . "\n";
     }
     else {
-      print $output "        , " . $entry_name. "\n";
+      print $output "        , ($type_info->{type})" . $entry_name. "\n";
     }
   }
 }
