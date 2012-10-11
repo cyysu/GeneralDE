@@ -85,7 +85,13 @@ int bpg_rsp_execute(dp_req_t dp_req, void * ctx, error_monitor_t em) {
 
     if (bpg_rsp->m_queue_info) {
         if (bpg_rsp_queue_context(bpg_mgr, bpg_rsp, op_context, em) == 0) {
+            logic_queue_t queue = logic_context_queue(op_context);
+
             logic_context_set_commit(op_context, bpg_rsp_commit, bpg_rsp);
+
+            if (queue == NULL || logic_queue_head(queue) == op_context) {
+                logic_context_execute(op_context);
+            }
         }
         else {
             bpg_rsp_commit_error(bpg_rsp, op_context, -1);

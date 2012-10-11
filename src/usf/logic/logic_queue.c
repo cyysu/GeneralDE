@@ -103,6 +103,10 @@ cpe_hash_string_t logic_queue_name_hs(logic_queue_t queue) {
     return queue->m_name;
 }
 
+logic_context_t logic_queue_head(logic_queue_t queue) {
+    return TAILQ_FIRST(&queue->m_contexts);
+}
+
 int logic_queue_enqueue_head(logic_queue_t queue, logic_context_t context) {
     assert(context->m_queue_state == logic_context_queue_pending);
 
