@@ -32,7 +32,7 @@ include $(addsuffix /config.mk,$(modules))
 
 include $(CPDE_BUILD_DETAIL_DIR)/domain-auto-def.mk
 
-ifeq ($CPE_NO_DEP,1)
+ifneq ($(CPE_NO_DEP),1)
 -include $(foreach d,$(using-domain-list),\
 	$(foreach p,$($(d).product-list), $(r.$p.$d.makefile.include)))
 endif
