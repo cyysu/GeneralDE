@@ -319,3 +319,13 @@ void logic_stack_node_requires(logic_stack_node_t stack, logic_require_it_t it) 
     data->m_next = TAILQ_FIRST(&stack->m_requires);
     it->next = logic_stack_require_next;
 }
+
+int logic_stack_node_have_waiting_require(logic_stack_node_t stack) {
+    logic_require_t require;
+
+    TAILQ_FOREACH(require, &stack->m_requires, m_next_for_stack) {
+        if (require->m_state == logic_require_state_waiting) return 1;
+    }
+
+    return 0;
+}

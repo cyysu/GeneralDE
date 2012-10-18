@@ -56,6 +56,8 @@ bpg_cli_proxy_create(
     proxy->m_send_pkg_buf = NULL;
     mem_buffer_init(&proxy->m_send_data_buf, gd_app_alloc(app));
 
+    mem_buffer_init(&proxy->m_dump_buf, gd_app_alloc(app));
+
     proxy->m_outgoing_recv_at = NULL;
     proxy->m_incoming_no_sn_send_to = NULL;
 
@@ -88,6 +90,7 @@ static void bpg_cli_proxy_clear(nm_node_t node) {
         proxy->m_incoming_no_sn_send_to = NULL;
     }
 
+    mem_buffer_clear(&proxy->m_dump_buf);
     mem_buffer_clear(&proxy->m_send_data_buf);
 }
 
@@ -182,7 +185,7 @@ int bpg_cli_proxy_outgoing_set_recv_at(bpg_cli_proxy_t proxy, const char * name)
     proxy->m_outgoing_recv_at = dp_rsp_create(gd_app_dp_mgr(proxy->m_app), sp_name_buf);
     if (proxy->m_outgoing_recv_at == NULL) {
         CPE_ERROR(
-            proxy->m_em, "%s: bpg_cli_proxy_set_recv_at: create rsp fail!",
+            proxy->m_em, "%s: bpg_cli_proxy_outgoing_set_recv_at: create rsp fail!",
             bpg_cli_proxy_name(proxy));
         return -1;
     }
@@ -190,7 +193,7 @@ int bpg_cli_proxy_outgoing_set_recv_at(bpg_cli_proxy_t proxy, const char * name)
 
     if (dp_rsp_bind_string(proxy->m_outgoing_recv_at, name, proxy->m_em) != 0) {
         CPE_ERROR(
-            proxy->m_em, "%s: bpg_cli_proxy_set_recv_at: bind rsp to %s fail!",
+            proxy->m_em, "%s: bpg_cli_proxy_outgoing_set_recv_at: bind rsp to %s fail!",
             bpg_cli_proxy_name(proxy), name);
         dp_rsp_free(proxy->m_outgoing_recv_at);
         proxy->m_outgoing_recv_at = NULL;
@@ -245,7 +248,7 @@ int bpg_cli_proxy_send(
 
     if (proxy->m_outgoing_send_to == NULL) {
         CPE_ERROR(
-            proxy->m_em, "%s: bpg_cli_proxy_set_recv_at: no send to configured!",
+            proxy->m_em, "%s: bpg_cli_proxy_send: no outgoing send to configured!",
             bpg_cli_proxy_name(proxy));
         if (require) logic_require_set_error(require);
         return -1;
@@ -257,10 +260,17 @@ int bpg_cli_proxy_send(
 
     if (rv != 0) {
         CPE_ERROR(
-            proxy->m_em, "%s: bpg_cli_proxy_set_recv_at: dispatch to send fail!",
+            proxy->m_em, "%s: bpg_cli_send: dispatch to send fail!",
             bpg_cli_proxy_name(proxy));
         if (require) logic_require_set_error(require);
         return rv;
+    }
+
+    if (proxy->m_debug) {
+        mem_buffer_clear_data(&proxy->m_dump_buf);
+        CPE_INFO(
+            proxy->m_em, "%s: bpg_cli_send: send pkg success\n%s",
+            bpg_cli_proxy_name(proxy), bpg_pkg_dump(pkg, &proxy->m_dump_buf));
     }
 
     return 0;
