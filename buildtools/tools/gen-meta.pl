@@ -107,7 +107,7 @@ sub calc_col_fun {
       if ($value =~ /$matcher/) {
         if (not defined $1) {
           if ($default) {
-            $row->{$resultColName} = $default;
+              $row->{$resultColName} = $default;
           }
         }
         else {
@@ -115,7 +115,12 @@ sub calc_col_fun {
           if (defined $input && exists $converts{$input} ) {
             $row->{$resultColName} = $converts{$input};
           } elsif ($default) {
-            $row->{$resultColName} = $default;
+            if ($default eq '$1') {
+              $row->{$resultColName} = $value;
+            }
+            else {
+              $row->{$resultColName} = $default;
+            }
           }
         }
       }
@@ -184,6 +189,165 @@ sub analize_entry_processor_union {
                       return $newSub;
                     });
   }
+  else {
+    printf "aaa\n";
+  }
+}
+
+sub analize_entry_processor_struct_seq_basic {
+  my ($meta, $entry, $cname_post_fix, $count, $col_fun_derator) = @_;
+
+  return if not exists $entry->{cname};
+
+  my $input_col_name = $entry->{cname} . $cname_post_fix;
+
+  if ($entry->{customattr} && $entry->{customattr} =~ /split\s*\(\s*'([^']+)'\s*\)/) {
+    my $sep = $1;
+    my $getPos = $2;
+
+    my $col_fun = sub {
+      my ($row, $value, $input_row) = @_;
+
+      $row->{$entry->{name}} = [];
+
+      @{$row->{$entry->{name}}} = split(/$sep/, $value);
+    };
+
+    $col_fun = $col_fun_derator->($col_fun) if defined $col_fun_derator;
+    add_col_processor($input_col_name, $col_fun);
+  } elsif ($entry->{customattr} && $entry->{customattr} =~ /make_array\s*\(\s*'([^']+)'\s*\)/) {
+    my @postfixs = split(':', $1);
+
+    foreach my $pos ( 0 .. $#postfixs ) {
+      my $col_name = $input_col_name . $postfixs[$pos];
+
+      my $col_fun = sub {
+        my ($row, $value, $input_row) = @_;
+
+        return if (not defined $value) or ($value eq "");
+
+        $row->{$entry->{name}} = []
+          if not exists $row->{$entry->{name}};
+
+        while ( @{$row->{$entry->{name}}} < $pos) {
+          push @{$row->{$entry->{name}}}, "";
+        }
+
+        ${$row->{$entry->{name}}}[$pos] = $value;
+      };
+
+      $col_fun = $col_fun_derator->($col_fun) if defined $col_fun_derator;
+      add_col_processor($col_name, $col_fun);
+    }
+  }
+}
+
+sub analize_entry_processor_struct_seq_compose {
+  my ($meta, $entry, $cname_post_fix, $count, $col_fun_derator) = @_;
+
+  my $subMeta = $metaLib{$entry->{type}};
+  if (not $subMeta) {
+    print("$entry->{name} ref type $entry->{type} is unknown!\n");
+    return;
+  }
+
+  if ($subMeta->{meta_type} eq "union") {
+    analize_submeta($subMeta, $cname_post_fix, $entry, $col_fun_derator);
+    return;
+  }
+
+  return if not exists $entry->{customattr};
+
+  if ($entry->{customattr} eq "repeat") {
+    foreach my $c ( 1 .. $count ) {
+      analize_meta_processors($subMeta,
+                              "$c$cname_post_fix",
+                              sub {
+                                my $innerSub = shift;
+
+                                my $newSub = sub {
+                                  my ($row, $value, $input_row) = @_;
+
+                                  return if (not $value) or ($value eq "");
+
+                                  $row->{$entry->{name}} = []
+                                    if not exists $row->{$entry->{name}};
+
+                                  while ( @{$row->{$entry->{name}}} < $c) {
+                                    push @{$row->{$entry->{name}}}, {};
+                                  }
+
+                                  $innerSub->(${$row->{$entry->{name}}}[$c - 1], $value, $input_row);
+                                };
+
+                                $newSub = $col_fun_derator->($newSub) if $col_fun_derator;
+
+                                return $newSub;
+                              });
+    }
+  } elsif ($entry->{customattr} =~ /split\s*\(\s*'([^']+)'\s*\)/) {
+    my $sep = $1;
+    analize_meta_processors($subMeta,
+                            $cname_post_fix,
+                            sub {
+                              my $innerSub = shift;
+
+                              my $newSub = sub {
+                                my ($row, $value, $input_row) = @_;
+
+                                my @values = split /$sep/, $value;
+                                return if not @values;
+
+                                $row->{$entry->{name}} = []
+                                  if not exists $row->{$entry->{name}};
+
+                                my $seq = $row->{$entry->{name}};
+
+                                foreach my $pos (0 .. $#values) {
+                                  push @{$seq}, {} if $pos > $#{$seq};
+
+                                  $innerSub->(${$seq}[$pos], $values[$pos], $input_row);
+                                }
+                              };
+
+                              $newSub = $col_fun_derator->($newSub) if $col_fun_derator;
+
+                              return $newSub;
+                            });
+  }
+  elsif ($entry->{customattr} && $entry->{customattr} =~ /make_array\s*\(\s*'([^']+)'\s*\)/) {
+    my @postfixs = split(':', $1);
+
+    foreach my $pos ( 0 .. $#postfixs ) {
+      analize_meta_processors($subMeta,
+                              "$postfixs[$pos]$cname_post_fix",
+                              sub {
+                                my $innerSub = shift;
+
+                                my $newSub = sub {
+                                  my ($row, $value, $input_row) = @_;
+
+                                  return if (not $value) or ($value eq "");
+
+                                  $row->{$entry->{name}} = []
+                                    if not exists $row->{$entry->{name}};
+
+                                  while ( @{$row->{$entry->{name}}} <= $pos) {
+                                    push @{$row->{$entry->{name}}}, {};
+                                  }
+
+                                  $innerSub->(${$row->{$entry->{name}}}[$pos], $value, $input_row);
+                                };
+
+                                $newSub = $col_fun_derator->($newSub) if $col_fun_derator;
+
+                                return $newSub;
+                              });
+    }
+  }
+  else {
+    print("$entry->{name} seq-type $entry->{customattr} is unknown!\n");
+  }
 }
 
 sub analize_entry_processor_struct {
@@ -193,158 +357,13 @@ sub analize_entry_processor_struct {
     my $count = $entry->{count};
 
     if (is_entry_basic_type($entry)) {
-      return if not exists $entry->{cname};
-
-      my $input_col_name = $entry->{cname} . $cname_post_fix;
-
-      if ($entry->{customattr} && $entry->{customattr} =~ /split\s*\(\s*'([^']+)'\s*\)/) {
-        my $sep = $1;
-        my $getPos = $2;
-
-        my $col_fun = sub {
-          my ($row, $value, $input_row) = @_;
-
-          $row->{$entry->{name}} = [];
-
-          @{$row->{$entry->{name}}} = split(/$sep/, $value);
-        };
-
-        $col_fun = $col_fun_derator->($col_fun) if defined $col_fun_derator;
-        add_col_processor($input_col_name, $col_fun);
-      }
-      elsif ($entry->{customattr} && $entry->{customattr} =~ /make_array\s*\(\s*'([^']+)'\s*\)/) {
-        my @postfixs = split(':', $1);
-
-        foreach my $pos ( 0 .. $#postfixs ) {
-          my $col_name = $input_col_name . $postfixs[$pos];
-
-          my $col_fun = sub {
-            my ($row, $value, $input_row) = @_;
-
-            return if (not $value) or ($value eq "");
-
-            $row->{$entry->{name}} = []
-              if not exists $row->{$entry->{name}};
-
-            while ( @{$row->{$entry->{name}}} < $pos) {
-              push @{$row->{$entry->{name}}}, "";
-            }
-
-            ${$row->{$entry->{name}}}[$pos] = $value;
-          };
-
-          $col_fun = $col_fun_derator->($col_fun) if defined $col_fun_derator;
-          add_col_processor($col_name, $col_fun);
-        }
-      }
-
-      return;
+      return analize_entry_processor_struct_seq_basic($meta, $entry, $cname_post_fix, $count, $col_fun_derator);
     }
-
-    my $subMeta = $metaLib{$entry->{type}};
-    if (not $subMeta) {
-      print("$entry->{name} ref type $entry->{type} is unknown!\n");
-      return;
-    }
-
-    if ($subMeta->{meta_type} eq "union") {
-      analize_submeta($subMeta, $cname_post_fix, $entry, $col_fun_derator);
-      return;
-    }
-
-    return if not exists $entry->{customattr};
-
-    if ($entry->{customattr} eq "repeat") {
-      foreach my $c ( 1 .. $count ) {
-        analize_meta_processors($subMeta,
-                                "$cname_post_fix$c",
-                                sub {
-                                  my $innerSub = shift;
-
-                                  my $newSub = sub {
-                                    my ($row, $value, $input_row) = @_;
-
-                                    return if (not $value) or ($value eq "");
-
-                                    $row->{$entry->{name}} = []
-                                      if not exists $row->{$entry->{name}};
-
-                                    while ( @{$row->{$entry->{name}}} < $c) {
-                                      push @{$row->{$entry->{name}}}, {};
-                                    }
-
-                                    $innerSub->(${$row->{$entry->{name}}}[$c - 1], $value, $input_row);
-                                  };
-
-                                  $newSub = $col_fun_derator->($newSub) if $col_fun_derator;
-
-                                  return $newSub;
-                                });
-      }
-    } elsif ($entry->{customattr} =~ /split\s*\(\s*'([^']+)'\s*\)/) {
-      my $sep = $1;
-      analize_meta_processors($subMeta,
-                              $cname_post_fix,
-                              sub {
-                                my $innerSub = shift;
-
-                                my $newSub = sub {
-                                  my ($row, $value, $input_row) = @_;
-
-                                  my @values = split /$sep/, $value;
-                                  return if not @values;
-
-                                  $row->{$entry->{name}} = []
-                                    if not exists $row->{$entry->{name}};
-
-                                  my $seq = $row->{$entry->{name}};
-
-                                  foreach my $pos (0 .. $#values) {
-                                    push @{$seq}, {} if $pos > $#{$seq};
-
-                                    $innerSub->(${$seq}[$pos], $values[$pos], $input_row);
-                                  }
-                                };
-
-                                $newSub = $col_fun_derator->($newSub) if $col_fun_derator;
-
-                                return $newSub;
-                              });
-    }
-      elsif ($entry->{customattr} && $entry->{customattr} =~ /make_array\s*\(\s*'([^']+)'\s*\)/) {
-        my @postfixs = split(':', $1);
-
-        foreach my $pos ( 0 .. $#postfixs ) {
-        analize_meta_processors($subMeta,
-                                "$cname_post_fix$postfixs[$pos]",
-                                sub {
-                                  my $innerSub = shift;
-
-                                  my $newSub = sub {
-                                    my ($row, $value, $input_row) = @_;
-
-                                    return if (not $value) or ($value eq "");
-
-                                    $row->{$entry->{name}} = []
-                                      if not exists $row->{$entry->{name}};
-
-                                    while ( @{$row->{$entry->{name}}} <= $pos) {
-                                      push @{$row->{$entry->{name}}}, {};
-                                    }
-
-                                    $innerSub->(${$row->{$entry->{name}}}[$pos], $value, $input_row);
-                                  };
-
-                                  $newSub = $col_fun_derator->($newSub) if $col_fun_derator;
-
-                                  return $newSub;
-                                });
-      }
-      }
     else {
-      print("$entry->{name} seq-type $entry->{customattr} is unknown!\n");
+      return analize_entry_processor_struct_seq_compose($meta, $entry, $cname_post_fix, $count, $col_fun_derator);
     }
-  } else {
+  }
+  else {
     if (is_entry_basic_type($entry)) {
       return if not exists $entry->{cname};
 
@@ -358,14 +377,15 @@ sub analize_entry_processor_struct {
       add_col_processor($input_col_name, $col_fun);
       return;
     }
+    else {
+      my $subMeta = $metaLib{$entry->{type}};
+      if (not $subMeta) {
+        print("$entry->{name} ref type $entry->{type} is unknown!\n");
+        return;
+      }
 
-    my $subMeta = $metaLib{$entry->{type}};
-    if (not $subMeta) {
-      print("$entry->{name} ref type $entry->{type} is unknown!\n");
-      return;
+      analize_submeta($subMeta, $cname_post_fix, $entry, $col_fun_derator);
     }
-
-    analize_submeta($subMeta, $cname_post_fix, $entry, $col_fun_derator);
   }
 }
 
@@ -410,7 +430,8 @@ sub analize_meta_processors {
       }
     }
     elsif (ref($meta->{entry}) eq "HASH") {
-      analize_entry_processor_struct($meta, $meta->{entry}, $cname_post_fix, $col_fun_derator);
+      my $entry = $meta->{entry};
+      analize_entry_processor_struct($meta, $entry, $cname_post_fix, $col_fun_derator);
     }
   }
   else {
@@ -420,7 +441,8 @@ sub analize_meta_processors {
       }
     }
     elsif (ref($meta->{entry}) eq "HASH") {
-      analize_entry_processor_union($meta, $meta->{entry}, $cname_post_fix, $col_fun_derator);
+      my $entry = $meta->{entry};
+      analize_entry_processor_union($meta, $entry, $cname_post_fix, $col_fun_derator);
     }
   }
 }
@@ -466,7 +488,7 @@ foreach my $rowPos ( $row_min + 1 .. $row_max ) {
 
     $input_row{$colName} = $cell->value();
   }
-  $input_row{'表名'} = $inputSheet;
+  $input_row{tableName} = $inputSheet;
 
   foreach my $colName ( keys %input_row ) {
     next if not exists $input_col_processors{$colName};
