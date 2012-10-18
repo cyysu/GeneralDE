@@ -1,4 +1,8 @@
 #include <assert.h>
+<<<<<<< HEAD
+=======
+#include "cpe/pal/pal_stdlib.h"
+>>>>>>> t/support/usf
 #include "cpe/dr/dr_data.h"
 #include "cpe/dr/dr_metalib_manage.h"
 #include "usf/logic/logic_manage.h"
@@ -61,7 +65,11 @@ int logic_data_record_count(logic_data_t data) {
 }
 
 static size_t logic_data_record_capacity_i(logic_data_t data, dr_meta_dyn_info_t dyn_info) {
+<<<<<<< HEAD
     size_t element_size = dr_meta_size(dr_entry_ref_meta(dyn_info->m_array_entry));
+=======
+    size_t element_size = dr_entry_element_size(dyn_info->m_array_entry);
+>>>>>>> t/support/usf
 
     return  ((logic_data_capacity(data) - (dr_meta_size(logic_data_meta(data)) - element_size))
              / element_size);
@@ -287,3 +295,59 @@ logic_data_t logic_data_record_reserve(logic_data_t data, size_t new_record_capa
         return NULL;
     }
 }
+<<<<<<< HEAD
+=======
+
+void logic_data_record_sort(logic_data_t data, int(*cmp)(const void *, const void *)) {
+    LPDRMETA meta;
+    struct dr_meta_dyn_info dyn_info;
+
+    meta = logic_data_meta(data);
+
+    if (dr_meta_find_dyn_info(logic_data_meta(data), &dyn_info) == 0) {
+        size_t record_size = dr_entry_element_size(dyn_info.m_array_entry);
+        int record_count = logic_data_record_count_i(data, &dyn_info);
+        if (record_count < 0) {
+            CPE_ERROR(
+                logic_manage_em(logic_data_mgr(data)),
+                "logic_data_record_sort: get count fail, count = %d",
+                record_count);
+            return;
+        }
+
+        qsort(
+            ((char *)logic_data_data(data)) + dyn_info.m_array_start,
+            record_count, record_size, cmp);
+    }
+}
+
+void * logic_data_record_find(logic_data_t data, void const * key, int(*cmp)(const void *, const void *)) {
+    LPDRMETA meta;
+    struct dr_meta_dyn_info dyn_info;
+
+    meta = logic_data_meta(data);
+
+    if (dr_meta_find_dyn_info(logic_data_meta(data), &dyn_info) == 0) {
+        size_t record_size = dr_entry_element_size(dyn_info.m_array_entry);
+        int record_count = logic_data_record_count_i(data, &dyn_info);
+        if (record_count < 0) {
+            CPE_ERROR(
+                logic_manage_em(logic_data_mgr(data)),
+                "logic_data_record_find: get count fail, count = %d",
+                record_count);
+            return NULL;
+        }
+
+        return bsearch(
+            key,
+            ((char *)logic_data_data(data)) + dyn_info.m_array_start,
+            record_count, record_size, cmp);
+    }
+    else {
+        void * data_p = logic_data_data(data);
+        return cmp(data_p, key) == 0
+            ? data_p
+            : NULL;
+    }
+}
+>>>>>>> t/support/usf
