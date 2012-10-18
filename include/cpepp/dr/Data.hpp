@@ -78,14 +78,24 @@ public:
 
 class ConstData {
 public:
+    template<typename T>
+    ConstData(T const & data)
+        : m_data(&(const_cast<T &>(data)))
+        , m_capacity(sizeof(T))
+        , m_meta(MetaTraits<T>::META)
+    {
+    }
+
     ConstData(const void * data, LPDRMETA meta = 0, size_t capacity = 0);
     ConstData(ConstDataElement const & e);
+    ConstData(DataElement const & e);
 
     Meta const & meta(void) const { return *((Meta*)m_meta); }
     const void * data(void) const { return m_data; }
     size_t capacity(void) const { return m_capacity; }
 
     ConstDataElement operator[](const char * name) const;
+    ConstDataElement operator[](LPDRMETAENTRY entry) const;
 
     template<typename T>
     T & as(void) { return *(T *)data(); }
@@ -98,6 +108,9 @@ protected:
 
 class Data : public ConstData {
 public:
+    template<typename T>
+    Data(T & data) : ConstData(&data, MetaTraits<T>::META, sizeof(T)) {}
+
     Data(void * data, LPDRMETA meta, size_t capacity = 0);
     Data(void * data, size_t capacity = 0);
     Data(DataElement const & element);
@@ -107,6 +120,7 @@ public:
 
     using ConstData::operator[];
     DataElement operator[](const char * name);
+    DataElement operator[](LPDRMETAENTRY entry);
 
     void setMeta(LPDRMETA meta);
     void setCapacity(size_t capacity);
@@ -124,6 +138,9 @@ public:
 
     template<typename T>
     T const & as(void) const { return *(T const *)data(); }
+
+private:
+    Data(ConstDataElement const & e);
 };
 
 inline void DataElement::copy(ConstData const & data) { copy(data.data(), data.capacity()); }
