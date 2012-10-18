@@ -1,3 +1,4 @@
+#include "cpepp/utils/ErrorCollector.hpp"
 #include "cpepp/dr/Exceptions.hpp"
 #include "cpepp/cfg/Node.hpp"
 #include "cpepp/cfg/Exceptions.hpp"
@@ -80,6 +81,13 @@ Node const & Node::onlyChild(void) const {
     }
 
     return *r;
+}
+
+void Node::write(write_stream_t stream) const {
+    Cpe::Utils::ErrorCollector ec;
+    if (cfg_write(stream, *this, ec) != 0) {
+        ec.checkThrowWithMsg< ::std::runtime_error>();
+    }
 }
 
 }}

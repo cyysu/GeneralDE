@@ -26,6 +26,10 @@ public:
     Node & parent(void) { return *(Node *)cfg_parent(*this); }
     Node const & parent(void) const { return *(Node const *)cfg_parent(*this); }
 
+    Node & operator[](int pos) { return *((Node*)cfg_seq_at(*this, pos)); }
+    Node const & operator[](int pos) const { return *((Node*)cfg_seq_at(*this, pos)); }
+    NodePlacehold append(void) { return NodePlacehold(*this, "[]", NULL); }
+
     NodePlacehold operator[](const char * path) { return NodePlacehold(*this, path, cfg_find_cfg(*this, path)); }
     Node const & operator[](const char * path) const { return *((Node*)cfg_find_cfg(*this, path)); }
 
@@ -33,6 +37,9 @@ public:
     Node const & onlyChild(void) const;
 
     size_t childCount(void) const { return (size_t)cfg_child_count(*this); }
+
+    void write(write_stream_t stream) const;
+    bool tryWrite(write_stream_t stream, error_monitor_t em = NULL) { return cfg_write(stream, *this, em) == 0 ? true : false; }
 
     NodeConstIterator childs(void) const {
         NodeConstIterator r;
