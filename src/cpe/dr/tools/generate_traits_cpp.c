@@ -66,6 +66,8 @@ int cpe_dr_generate_traits_cpp(write_stream_t stream, const char * arg_name, cpe
             meta = dr_lib_find_meta_by_name(ctx->m_metalib, dr_metalib_source_element_name(element));
             if (meta == NULL) continue;
         
+            if (dr_meta_type(meta) != CPE_DR_TYPE_STRUCT) continue;
+
             meta_name = dr_meta_name(meta);
             stream_printf(stream, "\n");
             stream_printf(stream, "Meta const & MetaTraits<");
