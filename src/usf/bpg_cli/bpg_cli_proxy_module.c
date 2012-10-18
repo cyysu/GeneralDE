@@ -21,7 +21,6 @@ int bpg_cli_proxy_app_init(gd_app_context_t app, gd_app_module_t module, cfg_t c
     bpg_pkg_manage_t pkg_manage;
     logic_manage_t logic_manage;
     const char * recv_at;
-    cfg_t send_to;
 
     pkg_manage = bpg_pkg_manage_find_nc(app, cfg_get_string(cfg, "pkg-manage", NULL));
     if (pkg_manage == NULL) {
@@ -49,14 +48,6 @@ int bpg_cli_proxy_app_init(gd_app_context_t app, gd_app_module_t module, cfg_t c
         return -1;
     }
 
-    send_to = cfg_find_cfg(cfg, "send-to");
-    if (send_to == NULL) {
-        CPE_ERROR(
-            gd_app_em(app), "%s: create: send-to not configured!",
-            gd_app_module_name(module));
-        return -1;
-    }
-
     bpg_cli_proxy =
         bpg_cli_proxy_create(
             app, gd_app_module_name(module),
@@ -74,7 +65,7 @@ int bpg_cli_proxy_app_init(gd_app_context_t app, gd_app_module_t module, cfg_t c
         return -1;
     }
 
-    if (bpg_cli_proxy_outgoing_set_send_to(bpg_cli_proxy, send_to) != 0) {
+    if (bpg_cli_proxy_outgoing_set_send_to(bpg_cli_proxy, cfg_find_cfg(cfg, "send-to")) != 0) {
         CPE_ERROR(
             gd_app_em(app), "%s: create: set send-to fail!",
             gd_app_module_name(module));

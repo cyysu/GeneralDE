@@ -237,4 +237,23 @@ void logic_require_queue_notify_all(logic_require_queue_t queue, int32_t error) 
     }
 }
 
+void logic_require_queue_cancel_all(logic_require_queue_t queue) {
+    uint32_t i;
+    int notified_count = 0;
 
+    for(i = 0; i < queue->m_runing_require_count; ++i) {
+        logic_require_t require = logic_require_find(queue->m_logic_manage, queue->m_runing_requires[i]);
+        if (require) {
+            ++notified_count;
+            logic_require_cancel(require);
+        }
+    }
+
+    queue->m_runing_require_count = 0;
+
+    if (queue->m_debug) {
+        CPE_INFO(
+            queue->m_em, "%s: cancel_all: processed %d requires!",
+            queue->m_name, notified_count);
+    }
+}

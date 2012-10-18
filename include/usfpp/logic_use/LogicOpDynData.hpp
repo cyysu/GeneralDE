@@ -12,6 +12,8 @@ namespace Usf { namespace Logic {
 
 class LogicOpDynData {
 public:
+    typedef int(*record_cmp_t)(const void *, const void *);
+
     LogicOpDynData(LogicOpDynData & o) : m_data(o.m_data) {
     }
 
@@ -74,6 +76,10 @@ public:
     void const * record(size_t i) const;
 
     void * recordAppend(void);
+
+    void recordSort(record_cmp_t cmp) { logic_data_record_sort(m_data, cmp); }
+    void * recordFind(void const * key, record_cmp_t cmp) { return logic_data_record_find(m_data, key, cmp); }
+    void const * recordFind(void const * key, record_cmp_t cmp) const { return logic_data_record_find(m_data, key, cmp); }
 
     template<typename T>
     void copy_same_entries_to(T & data, LPDRMETA src_meta = T::META, int policy = 0) {
