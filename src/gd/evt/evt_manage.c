@@ -116,6 +116,23 @@ gd_evt_mgr_create(
     return mgr;
 }
 
+static void gd_evt_mgr_evt_def_free_all(gd_evt_mgr_t mgr) {
+    struct cpe_hash_it evt_def_it;
+    struct gd_evt_def * evt_def;
+
+    cpe_hash_it_init(&evt_def_it, &mgr->m_evt_defs);
+
+    evt_def = cpe_hash_it_next(&evt_def_it);
+    while(evt_def) {
+        struct gd_evt_def * next = cpe_hash_it_next(&evt_def_it);
+
+        cpe_hash_table_remove_by_ins(&mgr->m_evt_defs, evt_def);
+        mem_free(mgr->m_alloc, evt_def);
+        
+        evt_def = next;
+    }
+}
+
 static void gd_evt_mgr_clear(nm_node_t node) {
     gd_evt_mgr_t mgr;
     mgr = (gd_evt_mgr_t)nm_node_data(node);
@@ -129,6 +146,8 @@ static void gd_evt_mgr_clear(nm_node_t node) {
     tl_free(mgr->m_tl);
 
     cpe_hash_table_fini(&mgr->m_responser_to_processor);
+
+    gd_evt_mgr_evt_def_free_all(mgr);
     cpe_hash_table_fini(&mgr->m_evt_defs);
 }
 
