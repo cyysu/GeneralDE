@@ -1,8 +1,5 @@
 #include <assert.h>
-<<<<<<< HEAD
-=======
 #include "cpe/pal/pal_stdlib.h"
->>>>>>> t/support/usf
 #include "cpe/dr/dr_data.h"
 #include "cpe/dr/dr_metalib_manage.h"
 #include "usf/logic/logic_manage.h"
@@ -65,11 +62,7 @@ int logic_data_record_count(logic_data_t data) {
 }
 
 static size_t logic_data_record_capacity_i(logic_data_t data, dr_meta_dyn_info_t dyn_info) {
-<<<<<<< HEAD
-    size_t element_size = dr_meta_size(dr_entry_ref_meta(dyn_info->m_array_entry));
-=======
     size_t element_size = dr_entry_element_size(dyn_info->m_array_entry);
->>>>>>> t/support/usf
 
     return  ((logic_data_capacity(data) - (dr_meta_size(logic_data_meta(data)) - element_size))
              / element_size);
@@ -295,8 +288,6 @@ logic_data_t logic_data_record_reserve(logic_data_t data, size_t new_record_capa
         return NULL;
     }
 }
-<<<<<<< HEAD
-=======
 
 void logic_data_record_sort(logic_data_t data, int(*cmp)(const void *, const void *)) {
     LPDRMETA meta;
@@ -350,4 +341,3 @@ void * logic_data_record_find(logic_data_t data, void const * key, int(*cmp)(con
             : NULL;
     }
 }
->>>>>>> t/support/usf

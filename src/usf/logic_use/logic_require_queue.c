@@ -237,8 +237,6 @@ void logic_require_queue_notify_all(logic_require_queue_t queue, int32_t error) 
     }
 }
 
-<<<<<<< HEAD
-=======
 void logic_require_queue_cancel_all(logic_require_queue_t queue) {
     uint32_t i;
     int notified_count = 0;
@@ -259,6 +257,4 @@ void logic_require_queue_cancel_all(logic_require_queue_t queue) {
             queue->m_name, notified_count);
     }
 }
-
->>>>>>> t/support/usf
 
