@@ -1,0 +1,31 @@
+#include <stdexcept>
+#include "cpe/utils/file.h"
+#include "cpepp/utils/StreamFile.hpp"
+
+namespace Cpe { namespace Utils {
+
+WriteStremFile::WriteStremFile(const char * filename, error_monitor_t em, const char * mode) 
+    : m_auto_close(1)
+{
+    FILE * file = file_stream_open(filename, mode, em);
+    if (file == NULL) {
+        throw ::std::runtime_error("WriteStremFile: open file fail!");
+    }
+
+    write_stream_file_init(&m_stream, file, em);
+}
+
+WriteStremFile::WriteStremFile(FILE * file, error_monitor_t em) 
+    : m_auto_close(0)
+{
+    write_stream_file_init(&m_stream, file, em);
+}
+
+WriteStremFile::~WriteStremFile() {
+    if (m_auto_close) {
+        file_stream_close(m_stream.m_fp, m_stream.m_em);
+    }
+}
+
+}}
+

@@ -366,6 +366,13 @@ ConstData::ConstData(ConstDataElement const & element)
 {
 }
 
+ConstData::ConstData(DataElement const & element)
+    : m_data(element.data())
+    , m_capacity(element.capacity())
+    , m_meta(element.meta())
+{
+}
+
 ConstDataElement ConstData::operator[](const char * name) const {
     if (m_meta == NULL) throw ::std::runtime_error("Data::operator[]: meta not exist!");
 
@@ -380,6 +387,25 @@ ConstDataElement ConstData::operator[](const char * name) const {
     if ((size_t)off >= m_capacity) {
         ::std::ostringstream os;
         os << "meta " << dr_meta_name(m_meta) << " entry " << name
+           << " off " << off << " overflow, capacity is " << m_capacity << "!";
+        throw ::std::runtime_error(os.str());
+    }
+
+    if (entry == dr_meta_entry_at(m_meta, dr_meta_entry_num(m_meta) - 1)) {
+        return ConstDataElement(((char *)const_cast<void*>(m_data)) + off, entry, m_capacity - (size_t)off);
+    }
+    else {
+        return ConstDataElement(((char *)const_cast<void*>(m_data)) + off, entry);
+    }
+}
+
+ConstDataElement ConstData::operator[](LPDRMETAENTRY entry) const {
+    if (m_meta == NULL) throw ::std::runtime_error("Data::operator[]: meta not exist!");
+
+    size_t off = dr_entry_data_start_pos(entry);
+    if (off >= m_capacity) {
+        ::std::ostringstream os;
+        os << "meta " << dr_meta_name(m_meta) << " entry " << dr_entry_name(entry)
            << " off " << off << " overflow, capacity is " << m_capacity << "!";
         throw ::std::runtime_error(os.str());
     }
@@ -452,6 +478,25 @@ DataElement Data::operator[](const char * name) {
     if ((size_t)off >= m_capacity) {
         ::std::ostringstream os;
         os << "meta " << dr_meta_name(m_meta) << " entry " << name
+           << " off " << off << " overflow, capacity is " << m_capacity << "!";
+        throw ::std::runtime_error(os.str());
+    }
+
+    if (entry == dr_meta_entry_at(m_meta, dr_meta_entry_num(m_meta) - 1)) {
+        return DataElement(((char *)const_cast<void*>(m_data)) + off, entry, m_capacity - (size_t)off);
+    }
+    else {
+        return DataElement(((char *)const_cast<void*>(m_data)) + off, entry);
+    }
+}
+
+DataElement Data::operator[](LPDRMETAENTRY entry) {
+    if (m_meta == NULL) throw ::std::runtime_error("Data::operator[]: meta not exist!");
+
+    size_t off = dr_entry_data_start_pos(entry);
+    if (off >= m_capacity) {
+        ::std::ostringstream os;
+        os << "meta " << dr_meta_name(m_meta) << " entry " << dr_entry_name(entry)
            << " off " << off << " overflow, capacity is " << m_capacity << "!";
         throw ::std::runtime_error(os.str());
     }
