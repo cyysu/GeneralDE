@@ -23,11 +23,11 @@ void with_evt::TearDown() {
 }
 
 void with_evt::t_evt_mgr_set_metalib(const char * metalib) {
-    EXPECT_EQ(
-        0,
-        gd_evt_mgr_register_evt_in_metalib(
-            t_evt_mgr(),
-            envOf<gd::dr_store::testenv::with_dr_store>().t_metalib(metalib)));
+    envOf<gd::dr_store::testenv::with_dr_store>().t_dr_store_install("test-lib", metalib);
+    LPDRMETALIB m = envOf<gd::dr_store::testenv::with_dr_store>().t_metalib("test-lib");
+    if (m) {
+        EXPECT_EQ(0, gd_evt_mgr_register_evt_in_metalib(t_evt_mgr(), m));
+    }
 }
 
 gd_evt_mgr_t
