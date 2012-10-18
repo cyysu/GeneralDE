@@ -25,6 +25,8 @@ public:
     using LogicOpDynData::recordAppend;
     using LogicOpDynData::record;
     using LogicOpDynData::as;
+    using LogicOpDynData::recordSort;
+    using LogicOpDynData::recordFind;
 
     DataType const & as(void) { return LogicOpDynData::as<DataType>(); }
 
@@ -35,6 +37,17 @@ public:
         memcpy(&r, &o, sizeof(o));
         return r;
     }
+
+    RecordType & record(size_t i) { return *(RecordType*)LogicOpDynData::record(i); }
+    RecordType const & record(size_t i) const { return *(RecordType const *)LogicOpDynData::record(i); }
+
+    void recordSort(int (*cmp)(RecordType const * l, RecordType const * r)) { LogicOpDynData::recordSort((record_cmp_t)cmp); }
+
+    RecordType * recordFind(RecordType const & key, record_cmp_t cmp) { return (DataT *)LogicOpDynData::recordFind(&key, cmp); }
+    RecordType const * recordFind(RecordType const & key, record_cmp_t cmp) const { return (DataT const *)LogicOpDynData::recordFind(&key, cmp); }
+
+    RecordType * recordFind(RecordType const & key, int (*cmp)(RecordType const * l, RecordType const * r)) { return (RecordType *)LogicOpDynData::recordFind(&key, (record_cmp_t)cmp); }
+    RecordType const * recordFind(RecordType const & key, int (*cmp)(RecordType const * l, RecordType const * r)) const { return (RecordType *)LogicOpDynData::recordFind(&key, (record_cmp_t)cmp); }
 };
 
 }}

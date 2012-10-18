@@ -23,6 +23,7 @@ struct bpg_cli_proxy {
 
     bpg_pkg_dsp_t m_incoming_no_sn_send_to;
 
+    struct mem_buffer m_dump_buf;
     int m_debug;
 };
 
