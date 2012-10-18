@@ -39,12 +39,12 @@ public:
 
     template<typename T>
     void send(Usf::Logic::LogicOpRequire & requrest, T const & data, const char * metaName = Cpe::Dr::MetaTraits<T>::NAME) {
-        send(requrest, metaName, &data, sizeof(data));
+        send(requrest, metaName, &data, Cpe::Dr::MetaTraits<T>::data_size(data));
     }
 
     template<typename T>
     void send(Usf::Logic::LogicOpRequire & requrest, LPDRMETA meta, T const & data) {
-        send(requrest, meta, &data, sizeof(data));
+        send(requrest, meta, &data, Cpe::Dr::MetaTraits<T>::data_size(data));
     }
 
     void send(Usf::Bpg::Package & pkg);
@@ -54,12 +54,17 @@ public:
 
     template<typename T>
     void send(T const & data, const char * metaName = Cpe::Dr::MetaTraits<T>::NAME) {
-        send( metaName, &data, sizeof(data));
+        send( metaName, &data, Cpe::Dr::MetaTraits<T>::data_size(data));
     }
 
     template<typename T>
     void send(LPDRMETA meta, T const & data) {
-        send(meta, &data, sizeof(data));
+        send(meta, &data, Cpe::Dr::MetaTraits<T>::data_size(data));
+    }
+
+    template<typename T>
+    Cpe::Dr::Data dataBuf(size_t capacity = 0, const char * metaName = Cpe::Dr::MetaTraits<T>::NAME) {
+        return dataBuf(metaName, capacity);
     }
 
     static CliProxy & _cast(bpg_cli_proxy_t cli_proxy);
