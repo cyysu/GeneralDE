@@ -108,10 +108,11 @@ float dr_meta_read_with_dft_float(const void * input, LPDRMETA meta, const char 
 double dr_meta_read_with_dft_double(const void * input, LPDRMETA meta, const char * entry, double dft);
 const char * dr_meta_read_with_dft_string(const void * input, LPDRMETA meta, const char * entry, const char * dft);
 
+size_t dr_meta_calc_data_len(LPDRMETA meta, void const * data, size_t capacity);
+
 #define DR_SET_DEFAULTS_POLICY_NO_DEFAULT_IGNORE 1
 int dr_entry_set_defaults(void * inout, size_t capacity, LPDRMETAENTRY entry, int policy);
 void dr_meta_set_defaults(void * inout, size_t capacity, LPDRMETA meta, int policy);
-
 
 int dr_meta_copy_same_entry(
     void * desData, size_t desCapacity, LPDRMETA desMeta,
