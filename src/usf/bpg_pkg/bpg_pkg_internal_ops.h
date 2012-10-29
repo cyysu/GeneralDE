@@ -21,6 +21,8 @@ int bpg_pkg_cmd_info_cmd_eq(const struct bpg_pkg_cmd_info * l, const struct bpg_
 uint32_t bpg_pkg_cmd_info_name_hash(const struct bpg_pkg_cmd_info * o);
 int bpg_pkg_cmd_info_name_eq(const struct bpg_pkg_cmd_info * l, const struct bpg_pkg_cmd_info * r);
 
+void * bpg_pkg_op_buff(bpg_pkg_manage_t mgr);
+
 #ifdef __cplusplus
 }
 #endif

@@ -28,7 +28,8 @@ public:
     using LogicOpDynData::recordSort;
     using LogicOpDynData::recordFind;
 
-    DataType const & as(void) { return LogicOpDynData::as<DataType>(); }
+    DataType & as(void) { return LogicOpDynData::as<DataType>(); }
+    DataType const & as(void) const { return LogicOpDynData::as<DataType>(); }
 
     RecordType & recordAppend(void) { return LogicOpDynData::recordAppend<RecordType>(); }
 
