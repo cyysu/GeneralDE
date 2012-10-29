@@ -367,5 +367,7 @@ bpg_pkg_decode(
         output_pkg->head.bodytotallen = unziped_size;
     }
 
+    bpg_pkg_set_body_total_len(pkg, output_pkg->head.bodytotallen);
+
     return dr_cvt_result_success;
 }
