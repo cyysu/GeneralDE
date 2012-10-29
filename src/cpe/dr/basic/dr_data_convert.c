@@ -568,3 +568,36 @@ const char * dr_meta_read_with_dft_string(const void * input, LPDRMETA meta, con
         return dft;
     }
 }
+
+size_t dr_meta_calc_data_len(LPDRMETA meta, void const * data, size_t capacity) {
+    struct dr_meta_dyn_info dyn_info;
+    size_t meta_data_size = dr_meta_size(meta);
+    size_t r;
+
+    if (dr_meta_find_dyn_info(meta, &dyn_info) == 0) {
+        if (dr_entry_array_count(dyn_info.m_array_entry) == 0) {
+            size_t element_size = dr_entry_element_size(dyn_info.m_array_entry);
+            uint32_t element_count = 0;
+
+            if (dyn_info.m_refer_entry) {
+                element_count = dr_entry_array_count(dyn_info.m_array_entry);
+            }
+            else {
+                if (dr_entry_try_read_uint32(&element_count, (const char *)data + dyn_info.m_refer_start, dyn_info.m_refer_entry, NULL) != 0) {
+                    element_count = 0;
+                }
+            }
+
+            r = meta_data_size - element_size + element_size * element_count;
+            if (r < meta_data_size) r = meta_data_size;
+        }
+        else {
+            r = meta_data_size;
+        }
+    }
+    else {
+        r = meta_data_size;
+    }
+
+    return r > capacity ? capacity : r;
+}
