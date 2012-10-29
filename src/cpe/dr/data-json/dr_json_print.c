@@ -68,16 +68,23 @@ static void dr_print_print_numeric(yajl_gen g, int typeId, const void * data, er
 }
 
 static void dr_print_print_string(yajl_gen g, int typeId, size_t bufLen, const void * data, error_monitor_t em) {
-    char buf[CPE_STACK_BUF_LEN(bufLen) + 1];
-    struct write_stream_mem bufS = CPE_WRITE_STREAM_MEM_INITIALIZER(buf, CPE_STACK_BUF_LEN(bufLen) + 1);
-    int len = dr_ctype_print_to_stream((write_stream_t)&bufS, data, typeId, em);
-
-    if (len > 0) {
-        buf[len] = 0;
-        JSON_PRINT_CHECK_GEN_RESULT(yajl_gen_string(g, (const unsigned char *)buf, len));
+    if (typeId == CPE_DR_TYPE_STRING || typeId == CPE_DR_TYPE_STRING + 1) {
+        yajl_gen_number(g, data, strlen(data));
     }
     else {
-        yajl_gen_null(g);
+        char buf[CPE_STACK_BUF_LEN(bufLen) + 1];
+        struct write_stream_mem bufS = CPE_WRITE_STREAM_MEM_INITIALIZER(buf, CPE_STACK_BUF_LEN(bufLen) + 1);
+        int len = dr_ctype_print_to_stream((write_stream_t)&bufS, data, typeId, em);
+
+        if (len >= 0) {
+            if (len >= sizeof(buf)) len = sizeof(buf) - 1;
+
+            buf[len] = 0;
+            JSON_PRINT_CHECK_GEN_RESULT(yajl_gen_string(g, (const unsigned char *)buf, len));
+        }
+        else {
+            yajl_gen_null(g);
+        }
     }
 }
 
