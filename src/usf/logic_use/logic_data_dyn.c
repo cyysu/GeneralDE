@@ -212,6 +212,7 @@ static int logic_data_calc_dyn_capacity(LPDRMETA meta, size_t record_capacity, d
     assert(dyn_info->m_array_entry);
 
     if (dr_entry_array_count(dyn_info->m_array_entry) > 1) {
+        
         if (dr_entry_array_count(dyn_info->m_array_entry) < (int)record_capacity) {
             CPE_ERROR(
                 em,

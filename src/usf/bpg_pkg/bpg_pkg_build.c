@@ -9,88 +9,106 @@
 #include "usf/bpg_pkg/bpg_pkg_manage.h"
 #include "bpg_pkg_internal_types.h"
 
-int bpg_pkg_build_from_cfg(bpg_pkg_t req, cfg_t cfg, error_monitor_t em) {
-    LPDRMETA head_meta;
-    LPDRMETALIB data_metalib;
+int bpg_pkg_build_from_cfg(bpg_pkg_t pkg, cfg_t cfg, error_monitor_t em) {
+    LPDRMETALIB metalib;
+    LPDRMETA meta;
     LPDRMETA main_data_meta;
-    LPDRMETA append_data_meta;
-    BASEPKG_HEAD * head;
     struct cfg_it cfg_it;
     cfg_t child_cfg;
-    char buf[1024];
 
-    data_metalib = bpg_pkg_manage_data_metalib(req->m_mgr);
-    if (data_metalib == NULL) {
+    char * output_buf = (char *)bpg_pkg_pkg_data(pkg);
+    size_t output_buf_capacity = bpg_pkg_pkg_data_capacity(pkg);
+    BASEPKG * output_pkg = (BASEPKG *)output_buf;
+
+    metalib = bpg_pkg_manage_data_metalib(pkg->m_mgr);
+    if (metalib == NULL) {
         CPE_ERROR(
-            em, "%s: build pkg from cfg: data meta lib not exist!",
-            bpg_pkg_manage_name(req->m_mgr));
+            em, "%s: build from cfg:  data meta not exist!",
+            bpg_pkg_manage_name(pkg->m_mgr));
         return -1;
     }
 
-    head_meta = bpg_pkg_manage_basepkg_head_meta(req->m_mgr);
-    if (head_meta == NULL) {
+    meta = bpg_pkg_manage_basepkg_head_meta(pkg->m_mgr);
+    if (meta == NULL) {
         CPE_ERROR(
-            em, "%s: build pkg from cfg: head_meta not exist!",
-            bpg_pkg_manage_name(req->m_mgr));
+            em, "%s: build from cfg: head_meta not exist!",
+            bpg_pkg_manage_name(pkg->m_mgr));
         return -1;
     }
 
-    bpg_pkg_init(req);
-    head = (BASEPKG_HEAD *)bpg_pkg_pkg_data(req);
-
-    if (dr_cfg_read(head, sizeof(BASEPKG_HEAD), cfg, head_meta, 0, NULL) < 0) {
+    if (dr_cfg_read(output_buf, sizeof(BASEPKG_HEAD), cfg, meta, 0, NULL) < 0) {
         CPE_ERROR(
             em, "%s: build pkg from cfg: read head fail!",
-            bpg_pkg_manage_name(req->m_mgr));
+            bpg_pkg_manage_name(pkg->m_mgr));
         return -1;
     }
 
-    bpg_pkg_clear_data(req);
+    output_buf_capacity -= sizeof(BASEPKG_HEAD);
+    output_buf += sizeof(BASEPKG_HEAD);
 
-    main_data_meta = bpg_pkg_main_data_meta(req, em);
+    output_pkg->head.bodylen = 0;
+    output_pkg->head.originBodyLen = 0;
+    output_pkg->head.bodytotallen = 0;
+    output_pkg->head.appendInfoCount = 0;
+
+    main_data_meta = bpg_pkg_main_data_meta(pkg, em);
     if (main_data_meta) {
+        int use_size;
+
         cfg_it_init(&cfg_it, cfg);
         while((child_cfg = cfg_it_next(&cfg_it))) {
             if (cfg_type(child_cfg) != CPE_CFG_TYPE_STRUCT) continue;
             if (strcmp(cfg_name(child_cfg), dr_meta_name(main_data_meta)) != 0) continue;
 
-            if (dr_cfg_read(buf, sizeof(buf), child_cfg, main_data_meta, 0, NULL) < 0) {
+            use_size = dr_cfg_read(output_buf, output_buf_capacity, child_cfg, main_data_meta, 0, NULL);
+            if (use_size < 0) {
                 CPE_ERROR(
                     em, "%s: build pkg from cfg: read main body %s fail!",
-                    bpg_pkg_manage_name(req->m_mgr), dr_meta_name(main_data_meta));
+                    bpg_pkg_manage_name(pkg->m_mgr), dr_meta_name(main_data_meta));
                 return -1;
             }
 
-            if (bpg_pkg_set_main_data(req, main_data_meta, buf, sizeof(buf), NULL, NULL) != 0) {
-                CPE_ERROR(
-                    em, "%s: build pkg from cfg: set main body %s fail!",
-                    bpg_pkg_manage_name(req->m_mgr), dr_meta_name(main_data_meta));
-                return -1;
-            }
+            output_pkg->head.bodylen = use_size;
+            output_pkg->head.originBodyLen = use_size;
+            output_pkg->head.bodytotallen = use_size;
+            output_buf += use_size;
         }
     }
 
     cfg_it_init(&cfg_it, cfg);
     while((child_cfg = cfg_it_next(&cfg_it))) {
+        APPENDINFO * o_append_info;
+        int use_size;
+
         if (cfg_type(child_cfg) != CPE_CFG_TYPE_STRUCT) continue;
-        if (strcmp(cfg_name(child_cfg), dr_meta_name(main_data_meta)) == 0) continue;
+        if (main_data_meta
+            && strcmp(cfg_name(child_cfg), dr_meta_name(main_data_meta)) == 0) continue;
 
-        append_data_meta = dr_lib_find_meta_by_name(data_metalib, cfg_name(child_cfg));
-        if (append_data_meta == NULL) continue;
+        meta = dr_lib_find_meta_by_name(metalib, cfg_name(child_cfg));
+        if (meta == NULL) continue;
 
-        if (dr_cfg_read(buf, sizeof(buf), child_cfg, append_data_meta, 0, NULL) < 0) {
+        use_size = dr_cfg_read(output_buf, output_buf_capacity, child_cfg, meta, 0, NULL);
+        if (use_size < 0) {
             CPE_ERROR(
                 em, "%s: build pkg from cfg: read append body %s fail!",
-                bpg_pkg_manage_name(req->m_mgr), dr_meta_name(append_data_meta));
+                bpg_pkg_manage_name(pkg->m_mgr), dr_meta_name(meta));
             return -1;
         }
 
-        if (bpg_pkg_add_append_data(req, append_data_meta, buf, sizeof(buf), NULL, NULL) != 0) {
+        if (output_pkg->head.appendInfoCount
+            >= (sizeof(output_pkg->head.appendInfos) / sizeof(output_pkg->head.appendInfos[0])))
+        {
             CPE_ERROR(
-                em, "%s: build pkg from cfg: add append body %s fail!",
-                bpg_pkg_manage_name(req->m_mgr), dr_meta_name(append_data_meta));
+                em, "%s: build pkg from cfg: too many append info!",
+                bpg_pkg_manage_name(pkg->m_mgr));
             return -1;
         }
+
+        o_append_info = &output_pkg->head.appendInfos[output_pkg->head.appendInfoCount++];
+        o_append_info->id = dr_meta_id(meta);
+        o_append_info->size = use_size;
+        o_append_info->originSize = use_size;
+        output_pkg->head.bodytotallen += use_size;
     }
 
     return 0;
