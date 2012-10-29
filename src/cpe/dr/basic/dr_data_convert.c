@@ -580,12 +580,12 @@ size_t dr_meta_calc_data_len(LPDRMETA meta, void const * data, size_t capacity) 
             uint32_t element_count = 0;
 
             if (dyn_info.m_refer_entry) {
-                element_count = dr_entry_array_count(dyn_info.m_array_entry);
-            }
-            else {
                 if (dr_entry_try_read_uint32(&element_count, (const char *)data + dyn_info.m_refer_start, dyn_info.m_refer_entry, NULL) != 0) {
                     element_count = 0;
                 }
+            }
+            else {
+                element_count = dr_entry_array_count(dyn_info.m_array_entry);
             }
 
             r = meta_data_size - element_size + element_size * element_count;
