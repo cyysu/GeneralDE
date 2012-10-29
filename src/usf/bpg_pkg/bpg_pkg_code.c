@@ -50,8 +50,6 @@ bpg_pkg_encode(
         return dr_cvt_result_error;
     }
 
-    output_pkg->head.magic = BASEPKG_HEAD_MAGIC;
-    output_pkg->head.version = 1;
     output_pkg->head.sn = input_pkg->head.sn;
     output_pkg->head.cmd = input_pkg->head.cmd ;
     output_pkg->head.errorNo = input_pkg->head.errorNo;
@@ -59,7 +57,6 @@ bpg_pkg_encode(
     output_pkg->head.flags = 0;
     output_pkg->head.headlen = sizeof(BASEPKG_HEAD);
     output_pkg->head.bodylen = 0;
-    output_pkg->head.originBodyLen = input_pkg->head.originBodyLen;
     output_pkg->head.bodytotallen = 0;
     output_pkg->head.appendInfoCount = 0;
 
@@ -122,7 +119,6 @@ bpg_pkg_encode(
         o_append_info = &output_pkg->head.appendInfos[output_pkg->head.appendInfoCount++];
         o_append_info->id = append_info->id;
         o_append_info->size = use_size;
-        o_append_info->originSize = append_info->originSize;
         output_pkg->head.bodytotallen += use_size;
 
         output_buf += use_size;
@@ -260,8 +256,6 @@ bpg_pkg_decode(
 
     output_buf_capacity = bpg_pkg_pkg_data_capacity(pkg);
 
-    output_pkg->head.magic = BASEPKG_HEAD_MAGIC;
-    output_pkg->head.version = 1;
     output_pkg->head.sn = input_pkg->head.sn;
     output_pkg->head.cmd = input_pkg->head.cmd ;
     output_pkg->head.errorNo = input_pkg->head.errorNo;
@@ -270,7 +264,6 @@ bpg_pkg_decode(
     output_pkg->head.headlen = sizeof(BASEPKG_HEAD);
     output_pkg->head.headlen = 0;
     output_pkg->head.bodylen = 0;
-    output_pkg->head.originBodyLen = input_pkg->head.originBodyLen;
     output_pkg->head.bodytotallen = 0;
     output_pkg->head.appendInfoCount = 0;
 
@@ -347,7 +340,6 @@ bpg_pkg_decode(
         o_append_info = &output_pkg->head.appendInfos[output_pkg->head.appendInfoCount++];
         o_append_info->id = append_info->id;
         o_append_info->size = use_size;
-        o_append_info->originSize = append_info->originSize;
         output_pkg->head.bodytotallen += use_size;
 
         output_buf += use_size;
