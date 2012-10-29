@@ -73,6 +73,7 @@ bpg_pkg_encode(
                 CPE_ERROR(
                     em, "%s: encode: encode main meta (%s) error!",
                     bpg_pkg_manage_name(pkg->m_mgr), dr_meta_name(meta));
+                return dr_cvt_result_error;
             }
 
             output_pkg->head.bodylen = use_size;
@@ -84,6 +85,7 @@ bpg_pkg_encode(
             CPE_ERROR(
                 em, "%s: encode: no main meta of cmd %d!",
                 bpg_pkg_manage_name(pkg->m_mgr), (int)input_pkg->head.cmd);
+            return dr_cvt_result_error;
         }
 
         input_data += input_pkg->head.bodylen;
@@ -110,8 +112,8 @@ bpg_pkg_encode(
         r =  dr_cvt_encode(bpg_pkg_data_cvt(pkg), meta, output_buf, &use_size, append_data, &tmp_size, em, debug);
         if (r != dr_cvt_result_success) {
             CPE_ERROR(
-                em, "%s: encode: append %d: decode append meta (%s) error!",
-                bpg_pkg_manage_name(pkg->m_mgr), i, dr_meta_name(meta));
+                em, "%s: encode: append %d: encode append meta (%s) error, output-size=%d, input-size=%d!",
+                bpg_pkg_manage_name(pkg->m_mgr), i, dr_meta_name(meta), (int)use_size, (int)tmp_size);
             continue;
         }
 
@@ -305,6 +307,7 @@ bpg_pkg_decode(
             CPE_ERROR(
                 em, "%s: decode: no main meta of cmd %d!",
                 bpg_pkg_manage_name(pkg->m_mgr), (int)input_pkg->head.cmd);
+            return dr_cvt_result_error;
         }
 
         input_data += input_pkg->head.bodylen;
