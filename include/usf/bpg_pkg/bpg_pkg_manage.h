@@ -41,6 +41,8 @@ dr_cvt_t bpg_pkg_manage_base_cvt(bpg_pkg_manage_t pkg);
 LPDRMETALIB bpg_pkg_manage_basepkg_metalib(bpg_pkg_manage_t mgr);
 LPDRMETA bpg_pkg_manage_basepkg_head_meta(bpg_pkg_manage_t mgr);
 
+int bpg_pkg_manage_set_op_buff_capacity(bpg_pkg_manage_t mgr, size_t buf_size);
+
 int bpg_pkg_manage_set_data_metalib(bpg_pkg_manage_t mgr, const char * metalib_name);
 int bpg_pkg_manage_add_cmd_by_meta(bpg_pkg_manage_t mgr, const char * name);
 int bpg_pkg_manage_add_cmd(bpg_pkg_manage_t mgr, uint32_t cmd, const char * name);
@@ -53,6 +55,9 @@ int bpg_pkg_find_cmd_from_meta_name(uint32_t * cmd, bpg_pkg_manage_t mgr, const 
 
 bpg_pkg_debug_level_t bpg_pkg_manage_debug_level(bpg_pkg_manage_t mgr, uint32_t cmd);
 void bpg_pkg_manage_set_debug_level(bpg_pkg_manage_t mgr, uint32_t cmd, bpg_pkg_debug_level_t level);
+
+uint32_t bpg_pkg_zip_size_threshold(bpg_pkg_manage_t mgr);
+void bpg_pkg_set_zip_size_threshold(bpg_pkg_manage_t mgr, uint32_t threaded);
 
 #ifdef __cplusplus
 }

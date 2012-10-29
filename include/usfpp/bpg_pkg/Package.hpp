@@ -17,9 +17,8 @@ public:
     operator bpg_pkg_append_info_t() const { return (bpg_pkg_append_info_t)this; }
 
     uint32_t id(void) const { return bpg_pkg_append_info_id(*this); }
-    void * data(bpg_pkg_t pkg) const { return bpg_pkg_append_info_data(pkg, *this); }
-    uint32_t sizeInPkg(void) const { return bpg_pkg_append_info_size(*this); }
-    uint32_t size(void) const { return bpg_pkg_append_info_origin_size(*this); }
+    void * data(bpg_pkg_t pkg) const { return bpg_pkg_append_data(pkg, *this); }
+    uint32_t size(void) const { return bpg_pkg_append_info_size(*this); }
 };
 
 class Package : public Cpe::Utils::SimulateObject {
@@ -50,30 +49,31 @@ public:
     Cpe::Dr::MetaLib const & dataMetaLib(void) const;
 
     /*main data and cmd write*/
-    void setCmdAndData(Cpe::Dr::ConstData const & data, size_t * write_size = NULL);
-    void setCmdAndData(Cpe::Dr::ConstData const & data, size_t size, size_t * write_size = NULL);
-    void setCmdAndData(int cmd, const void * data, size_t data_size, size_t * write_size = NULL);
-    void setCmdAndData(const char * meta_name, const void * data, size_t data_size, size_t * write_size = NULL);
-    void setCmdAndData(LPDRMETA meta, const void * data, size_t data_size, size_t * write_size = NULL);
+    void setCmdAndData(Cpe::Dr::ConstData const & data);
+    void setCmdAndData(Cpe::Dr::ConstData const & data, size_t size);
+    void setCmdAndData(int cmd, const void * data, size_t data_size);
+    void setCmdAndData(const char * meta_name, const void * data, size_t data_size);
+    void setCmdAndData(LPDRMETA meta, const void * data, size_t data_size);
 
     template<typename T>
-    void setCmdAndData(int cmd, T const & data, size_t * write_size = NULL) { setCmdAndData(cmd, &data, sizeof(data), write_size); }
+    void setCmdAndData(int cmd, T const & data) { setCmdAndData(cmd, &data, sizeof(data)); }
 
     /*main data read*/
     Cpe::Dr::Meta const & mainDataMeta(void) const;
     Cpe::Dr::Meta const * tryGetMainDataMeta(void) const { return (Cpe::Dr::Meta const *)bpg_pkg_main_data_meta(*this, NULL); }
 
-    size_t mainDataSize(void) const { return bpg_pkg_body_origin_len(*this); }
-    void mainData(void * buf, size_t capacity, size_t * size = NULL) const;
+    size_t mainDataSize(void) const { return bpg_pkg_body_len(*this); }
+    void const * mainData(void) const { return bpg_pkg_main_data(*this); }
+
     template<typename T>
-    void mainData(T & buf) { mainData(&buf, sizeof(buf)); }
+    void mainData(T & buf) { mainData(&buf, Cpe::Dr::MetaTraits<T>::size_of(buf)); }
     void mainData(Cpe::Dr::Data & data);
 
     /*main data write*/
-    void setMainData(void const * data, size_t size, size_t * write_size = NULL);
+    void setMainData(void const * data, size_t size);
 
     template<typename T>
-    void setMainData(T const & data) { setMainData(&data, sizeof(data)); }
+    void setMainData(T const & data) { setMainData(&data, Cpe::Dr::MetaTraits<T>::size_of(data)); }
 
     /*append data read*/
     int32_t appendInfoCount(void) const { return bpg_pkg_append_info_count(*this); }
@@ -100,18 +100,18 @@ public:
     bool tryGetAppendData(const char * metaName, T & buf) { return tryGetAppendData(metaName, &buf, sizeof(buf)); }
 
     /*append data write*/
-    void addAppendData(const char * metaName, void const * data, size_t size, size_t * write_size = NULL);
-    void addAppendData(int metaid, void const * data, size_t size, size_t * write_size = NULL);
-    void addAppendData(LPDRMETA meta, void const * data, size_t size, size_t * write_size = NULL);
+    void addAppendData(const char * metaName, void const * data, size_t size);
+    void addAppendData(int metaid, void const * data, size_t size);
+    void addAppendData(LPDRMETA meta, void const * data, size_t size);
 
     template<typename T>
     void addAppendData(const char * metaName, T const & data) {
-        addAppendData(metaName, (void const *)&data, sizeof(data));
+        addAppendData(metaName, (void const *)&data, Cpe::Dr::MetaTraits<T>::size_of(data));
     }
 
     template<typename T>
     void addAppendData(int metaId, T const & data) {
-        addAppendData(metaId, (void const *)&data, sizeof(data));
+        addAppendData(metaId, (void const *)&data, Cpe::Dr::MetaTraits<T>::size_of(data));
     }
 
     /*other op*/
