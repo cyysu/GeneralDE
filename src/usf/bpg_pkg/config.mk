@@ -1,7 +1,7 @@
 product:=usf_bpg_pkg
 $(product).type:=cpe-dr lib
 $(product).depends:=cpe_utils cpe_dr_data_json gd_dr_cvt cpe_dr_data_cfg \
-                    gd_app gd_dr_store
+                    gd_app gd_dr_store zlib
 $(product).c.flags.ld:=
 $(product).c.sources:=$(wildcard $(product-base)/*.c)
 

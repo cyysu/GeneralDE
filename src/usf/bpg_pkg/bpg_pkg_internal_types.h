@@ -1,6 +1,7 @@
 #ifndef USF_BPG_REQ_INTERNAL_TYPES_H
 #define USF_BPG_REQ_INTERNAL_TYPES_H
 #include "cpe/utils/hash.h"
+#include "cpe/utils/buffer.h"
 #include "gd/dr_store/dr_store_types.h"
 #include "gd/dr_cvt/dr_cvt_types.h"
 #include "usf/bpg_pkg/bpg_pkg_types.h"
@@ -24,6 +25,14 @@ struct bpg_pkg_manage {
 
     struct cpe_hash_table m_pkg_debug_infos;
     bpg_pkg_debug_level_t m_pkg_debug_default_level;
+
+    void * m_op_buff;
+    size_t m_op_buff_capacity;
+
+    uint32_t m_zip_size_threshold;
+
+    struct mem_buffer m_dump_buff;
+    struct mem_buffer m_zip_buff;
 
     int m_debug;
 };
