@@ -8,6 +8,7 @@
 #include "gd/app/app_context.h"
 #include "gd/app/app_module.h"
 #include "gd/dr_cvt/dr_cvt.h"
+#include "usf/logic/logic_manage.h"
 #include "usf/bpg_pkg/bpg_pkg.h"
 #include "usf/bpg_pkg/bpg_pkg_manage.h"
 #include "app/net_proxy/app_net_proxy.h"
