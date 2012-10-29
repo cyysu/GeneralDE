@@ -71,7 +71,7 @@ bpg_pkg_encode(
             r =  dr_cvt_encode(data_cvt, meta, output_buf, &use_size, input_data, &tmp_len, em, debug);
             if (r != dr_cvt_result_success) {
                 CPE_ERROR(
-                    em, "%s: decode: decode main meta (%s) error!",
+                    em, "%s: encode: encode main meta (%s) error!",
                     bpg_pkg_manage_name(pkg->m_mgr), dr_meta_name(meta));
             }
 
@@ -82,7 +82,7 @@ bpg_pkg_encode(
         }
         else {
             CPE_ERROR(
-                em, "%s: decode: no main meta of cmd %d!",
+                em, "%s: encode: no main meta of cmd %d!",
                 bpg_pkg_manage_name(pkg->m_mgr), (int)input_pkg->head.cmd);
         }
 
