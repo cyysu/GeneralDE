@@ -68,7 +68,6 @@ void bpg_pkg_set_flags(bpg_pkg_t pkg, uint32_t flags);
 
 void * bpg_pkg_body_data(bpg_pkg_t pkg);
 uint32_t bpg_pkg_body_len(bpg_pkg_t pkg);
-uint32_t bpg_pkg_body_origin_len(bpg_pkg_t pkg);
 
 uint32_t bpg_pkg_body_total_len(bpg_pkg_t pkg);
 void bpg_pkg_set_body_total_len(bpg_pkg_t pkg, uint32_t len);
@@ -77,19 +76,21 @@ int32_t bpg_pkg_append_info_count(bpg_pkg_t pkg);
 bpg_pkg_append_info_t bpg_pkg_append_info_at(bpg_pkg_t pkg, int32_t pos);
 
 uint32_t bpg_pkg_append_info_id(bpg_pkg_append_info_t append_info);
-void * bpg_pkg_append_info_data(bpg_pkg_t pkg, bpg_pkg_append_info_t append_info);
 uint32_t bpg_pkg_append_info_size(bpg_pkg_append_info_t append_info);
-uint32_t bpg_pkg_append_info_origin_size(bpg_pkg_append_info_t append_info);
 
 LPDRMETALIB bpg_pkg_data_meta_lib(bpg_pkg_t pkg);
+
+/*main data ops*/
+int bpg_pkg_set_main_data(bpg_pkg_t pkg, const void * buf, size_t size, error_monitor_t em);
+void * bpg_pkg_main_data(bpg_pkg_t pkg);
+size_t bpg_pkg_main_data_len(bpg_pkg_t pkg);
 LPDRMETA bpg_pkg_main_data_meta(bpg_pkg_t pkg, error_monitor_t em);
+
+/*append data ops*/
+int bpg_pkg_add_append_data(bpg_pkg_t pkg, LPDRMETA meta, const void * buf, size_t size, error_monitor_t em);
+size_t bpg_pkg_append_data_len(bpg_pkg_t pkg, bpg_pkg_append_info_t append_info);
+void * bpg_pkg_append_data(bpg_pkg_t pkg, bpg_pkg_append_info_t append_info);
 LPDRMETA bpg_pkg_append_data_meta(bpg_pkg_t pkg, bpg_pkg_append_info_t append_info, error_monitor_t em);
-
-int bpg_pkg_set_main_data(bpg_pkg_t pkg, LPDRMETA meta, const void * buf, size_t capacity, size_t * size, error_monitor_t em);
-int bpg_pkg_add_append_data(bpg_pkg_t pkg, LPDRMETA meta, const void * buf, size_t capacity, size_t * size, error_monitor_t em);
-
-int bpg_pkg_get_main_data(bpg_pkg_t pkg, LPDRMETA meta, void * buf, size_t * capacity, error_monitor_t em);
-int bpg_pkg_get_append_data(bpg_pkg_t pkg, bpg_pkg_append_info_t append_inf, LPDRMETA meta, void * buf, size_t * capacity, error_monitor_t em);
 
 const char * bpg_pkg_dump(bpg_pkg_t req, mem_buffer_t buffer);
 int bpg_pkg_build_from_cfg(bpg_pkg_t req, cfg_t cfg, error_monitor_t em);

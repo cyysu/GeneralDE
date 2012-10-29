@@ -2,17 +2,14 @@
 <metalib tagsetversion="1" name="BASEPKG" version="1" >
     <macro name="APPEND_INFO_MAX_COUNT" value='64'/>
 
-    <macro name="BASEPKG_HEAD_MAGIC" value='894'/>
+    <macro name="BASEPKG_HEAD_FLAG_ZIP" value='1'/>
 
     <struct name="AppendInfo" version="1">
         <entry name="id" type="uint32" id="0"/>
         <entry name="size" type="uint16" id="1"/>
-        <entry name="originSize" type="uint16" id="2"/>
     </struct>
 
     <struct name="basepkg_head" version="1" >
-        <entry name="magic" type="uint16" id="0"/>
-        <entry name="version" type="uint16" id="1"/>
         <entry name="sn" type="uint32" id="2"/>
         <entry name="cmd" type="uint32" id="3"/>
         <entry name="errorNo" type="uint32" id="4"/>
@@ -20,11 +17,9 @@
         <entry name="flags" type="uint16" id="6"/>
         <entry name="headlen" type="uint16" id="7"/>
         <entry name="bodylen" type="uint16" id="8"/>
-        <entry name="originBodyLen" type="uint16" id="9"/>
         <entry name="bodytotallen" type="uint16" id="10"/>
         <entry name="appendInfoCount" type="uint16" id="11"/>
-        <entry name="appendInfos"  type="AppendInfo" count="64" refer="appendInfoCount" id="12"/>
-        <!-- count="APPEND_INFO_MAX_COUNT" count use macro not support yet -->
+        <entry name="appendInfos"  type="AppendInfo" count="APPEND_INFO_MAX_COUNT" refer="appendInfoCount" id="12"/>
     </struct>
 
     <struct name="basepkg" version="1">
