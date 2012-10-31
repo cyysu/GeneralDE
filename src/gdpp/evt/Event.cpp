@@ -1,5 +1,6 @@
 #include <stdexcept>
 #include "cpe/tl/tl_action.h"
+#include "cpe/utils/stream_buffer.h"
 #include "gdpp/evt/Event.hpp"
 
 namespace Gd { namespace Evt {
@@ -36,6 +37,14 @@ Event * Event::clone(mem_allocrator_t alloc) const {
 void Event::destory(void) {
     tl_event_t tl_evt = tl_event_from_data((void*)(gd_evt_t)this);
     tl_event_free(tl_evt);
+}
+
+const char * Event::dump(mem_buffer_t buffer) const {
+    struct write_stream_buffer stream = CPE_WRITE_STREAM_BUFFER_INITIALIZER(buffer);
+    mem_buffer_clear_data(buffer);
+    dump((write_stream_t)&stream);
+    stream_putc((write_stream_t)&stream, 0);
+    return (const char *)mem_buffer_make_continuous(buffer, 0);
 }
 
 }}
