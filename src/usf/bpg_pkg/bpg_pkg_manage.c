@@ -52,7 +52,7 @@ bpg_pkg_manage_create(
     mgr->m_pkg_debug_default_level = bpg_pkg_debug_none;
     mgr->m_op_buff = NULL;
     mgr->m_op_buff_capacity = 2048;
-    mgr->m_zip_size_threshold = 0;
+    mgr->m_zip_size_threshold = (uint32_t)(-1);
 
     mgr->m_metalib_basepkg_ref =
         dr_ref_create(
