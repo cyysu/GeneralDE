@@ -293,8 +293,9 @@ bpg_pkg_decode(
             r =  dr_cvt_decode(data_cvt, meta, output_buf, &use_size, input_data, &tmp_len, em, debug);
             if (r != dr_cvt_result_success) {
                 CPE_ERROR(
-                    em, "%s: decode: decode main meta (%s) error!",
-                    bpg_pkg_manage_name(pkg->m_mgr), dr_meta_name(meta));
+                    em, "%s: decode: decode main meta (%s) error, output-size=%d, input-size=%d!",
+                    bpg_pkg_manage_name(pkg->m_mgr), dr_meta_name(meta), (int)use_size, (int)tmp_len);
+                return dr_cvt_result_error;
             }
 
             output_pkg->head.bodylen = use_size;
