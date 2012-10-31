@@ -294,6 +294,32 @@ DataElement & DataElement::operator=(uint64_t d) {
     return *this;
 }
 
+DataElement & DataElement::operator=(float d) {
+    Utils::ErrorCollector em;
+
+    if (dr_entry_set_from_float(const_cast<void *>(m_data), d, m_entry, em) != 0) {
+        ::std::ostringstream os;
+        os << "set float(" << d << ") to " << dr_entry_name(m_entry) << ": ";
+        em.genErrorMsg(os);
+        throw ::std::runtime_error(os.str());
+    }
+
+    return *this;
+}
+
+DataElement & DataElement::operator=(double d) {
+    Utils::ErrorCollector em;
+
+    if (dr_entry_set_from_double(const_cast<void *>(m_data), d, m_entry, em) != 0) {
+        ::std::ostringstream os;
+        os << "set double(" << d << ") to " << dr_entry_name(m_entry) << ": ";
+        em.genErrorMsg(os);
+        throw ::std::runtime_error(os.str());
+    }
+
+    return *this;
+}
+
 DataElement & DataElement::operator=(const char * d) {
     Utils::ErrorCollector em;
 

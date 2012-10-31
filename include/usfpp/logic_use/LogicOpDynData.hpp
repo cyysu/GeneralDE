@@ -64,7 +64,7 @@ public:
     Cpe::Dr::Meta const & recordMeta(void) const { return *(Cpe::Dr::Meta const *)logic_data_record_meta(m_data); }
     size_t recordSize(void) const { return logic_data_record_size(m_data); }
 
-    bool isDynamic(void) const { return logic_data_record_is_dyn(m_data); }
+    bool isDynamic(void) const { return logic_data_record_is_dyn(m_data) ? true : false; }
 
     void setRecordCount(size_t count);
     size_t recordCount(void) const { return logic_data_record_count(m_data); }
