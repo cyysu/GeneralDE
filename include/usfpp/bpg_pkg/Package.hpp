@@ -106,12 +106,12 @@ public:
 
     template<typename T>
     void addAppendData(const char * metaName, T const & data) {
-        addAppendData(metaName, (void const *)&data, Cpe::Dr::MetaTraits<T>::size_of(data));
+        addAppendData(metaName, (void const *)&data, Cpe::Dr::MetaTraits<T>::data_size(data));
     }
 
     template<typename T>
     void addAppendData(int metaId, T const & data) {
-        addAppendData(metaId, (void const *)&data, Cpe::Dr::MetaTraits<T>::size_of(data));
+        addAppendData(metaId, (void const *)&data, Cpe::Dr::MetaTraits<T>::data_size(data));
     }
 
     /*other op*/

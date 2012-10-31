@@ -36,6 +36,7 @@ public:
     void send(Usf::Logic::LogicOpRequire & requrest, Cpe::Dr::Data const & data);
     void send(Usf::Logic::LogicOpRequire & requrest, const char * metaName, void const * data, size_t size);
     void send(Usf::Logic::LogicOpRequire & requrest, LPDRMETA meta, void const * data, size_t size);
+    void send(Usf::Logic::LogicOpRequire & requrest, uint32_t cmd);
 
     template<typename T>
     void send(Usf::Logic::LogicOpRequire & requrest, T const & data, const char * metaName = Cpe::Dr::MetaTraits<T>::NAME) {
@@ -51,6 +52,7 @@ public:
     void send(Cpe::Dr::Data const & data);
     void send(const char * metaName, void const * data, size_t size);
     void send(LPDRMETA meta, void const * data, size_t size);
+    void send(uint32_t cmd);
 
     template<typename T>
     void send(T const & data, const char * metaName = Cpe::Dr::MetaTraits<T>::NAME) {
