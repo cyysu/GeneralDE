@@ -60,6 +60,8 @@ public:
     DataElement & operator=(uint32_t d);
     DataElement & operator=(int64_t d);
     DataElement & operator=(uint64_t d);
+    DataElement & operator=(float d);
+    DataElement & operator=(double d);
     DataElement & operator=(const char * d);
     DataElement & operator=(ConstDataElement const & o);
 
