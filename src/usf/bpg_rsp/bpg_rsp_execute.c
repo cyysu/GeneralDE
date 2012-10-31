@@ -35,6 +35,7 @@ int bpg_rsp_execute(dp_req_t dp_req, void * ctx, error_monitor_t em) {
     bpg_rsp_manage_t bpg_mgr;
     logic_context_t op_context;
     bpg_pkg_t req;
+    enum bpg_rsp_queue_next_op next_op;
 
     bpg_rsp = (bpg_rsp_t)ctx;
     assert(bpg_rsp);
@@ -89,32 +90,24 @@ int bpg_rsp_execute(dp_req_t dp_req, void * ctx, error_monitor_t em) {
         return 0;
     }
 
-    if (bpg_rsp->m_queue_info) {
-        switch(bpg_rsp_queue_context(bpg_mgr, bpg_rsp, op_context, bpg_pkg_client_id(req), em)) {
-        case bpg_rsp_queue_next_op_success: {
-            logic_queue_t queue = logic_context_queue(op_context);
-
-            logic_context_set_commit(op_context, bpg_rsp_commit, bpg_rsp);
-
-            if (queue == NULL || logic_queue_head(queue) == op_context) {
-                logic_context_execute(op_context);
-            }
-
-            break;
-        }
-        case bpg_rsp_queue_next_op_exec: {
-            logic_context_set_commit(op_context, bpg_rsp_commit, bpg_rsp);
-            logic_context_execute(op_context);
-        }
-        case bpg_rsp_queue_next_op_error: {
-            bpg_rsp_commit_error(bpg_rsp, op_context, -1);
-            break;
-        }
-        }
-    }
-    else {
+    next_op = bpg_rsp_queue_context(bpg_mgr, bpg_rsp, op_context, bpg_pkg_client_id(req), em);
+    switch(next_op) {
+    case bpg_rsp_queue_next_op_success:
+        logic_context_set_commit(op_context, bpg_rsp_commit, bpg_rsp);
+        break;
+    case bpg_rsp_queue_next_op_exec:
         logic_context_set_commit(op_context, bpg_rsp_commit, bpg_rsp);
         logic_context_execute(op_context);
+        break;
+    case bpg_rsp_queue_next_op_error:
+        bpg_rsp_commit_error(bpg_rsp, op_context, -1);
+        break;
+    default:
+        CPE_ERROR(
+            em, "%s.%s: bpg_rsp_execute: unknown next op %d!",
+            bpg_rsp_manage_name(bpg_mgr), bpg_rsp_name(bpg_rsp), next_op);
+        bpg_rsp_commit_error(bpg_rsp, op_context, -1);
+        return 0;
     }
 
     return 0;
@@ -154,7 +147,7 @@ static enum bpg_rsp_queue_next_op bpg_rsp_queue_context(
     struct bpg_rsp_queue_info * queue_info = rsp->m_queue_info;
     logic_queue_t queue;
 
-    assert(queue_info);
+    if (queue_info == NULL) return bpg_rsp_queue_next_op_exec;
 
     switch(queue_info->m_scope) {
     case bpg_rsp_queue_scope_global:
@@ -172,7 +165,7 @@ static enum bpg_rsp_queue_next_op bpg_rsp_queue_context(
         CPE_ERROR(
             em, "%s.%s: bpg_rsp_execute: bpg_rsp_queue_context: unknown scope type!",
             bpg_rsp_manage_name(mgr), bpg_rsp_name(rsp));
-        return -1;
+        return bpg_rsp_queue_next_op_error;
     }
 
     if (queue) {
@@ -184,13 +177,18 @@ static enum bpg_rsp_queue_next_op bpg_rsp_queue_context(
                 logic_queue_name(queue), logic_queue_max_count(queue), logic_queue_count(queue));
         }
 
-        return 0;
+        if (logic_queue_head(queue) == op_context) {
+            return bpg_rsp_queue_next_op_exec;
+        }
+        else {
+            return bpg_rsp_queue_next_op_success;
+        }
     }
     else {
         CPE_ERROR(
             em, "%s.%s: bpg_rsp_execute: add to queue fail!",
             bpg_rsp_manage_name(mgr), bpg_rsp_name(rsp));
-        return -1;
+        return bpg_rsp_queue_next_op_error;
     }
 }
 
@@ -355,6 +353,12 @@ int bpg_rsp_copy_bpg_carry_data_to_ctx(bpg_rsp_manage_t mgr, logic_context_t op_
 }
 
 static void bpg_rsp_commit_error(bpg_rsp_t rsp, logic_context_t op_context, int err) {
+    if (rsp->m_mgr->m_debug) {
+        CPE_INFO(
+            gd_app_em(rsp->m_mgr->m_app), "%s.%s: commit error, error=%d!",
+            bpg_rsp_manage_name(rsp->m_mgr), bpg_rsp_name(rsp), err);
+    }
+
     logic_context_errno_set(op_context, err);
     bpg_rsp_commit(op_context, rsp);
 }
@@ -530,6 +534,7 @@ bpg_rsp_manage_create_op_by_name(
     logic_data_t input_carry_data;
     logic_data_t carry_data;
     bpg_rsp_carry_info_t carry_info;
+    enum bpg_rsp_queue_next_op next_op;
 
     assert(rsp_name);
 
@@ -618,24 +623,21 @@ bpg_rsp_manage_create_op_by_name(
         return NULL;
     }
 
-    if (rsp->m_queue_info) {
-        switch(bpg_rsp_queue_context(bpg_mgr, rsp, context, bpg_rsp_context_client_id(carry_info), em) == 0) {
-        case bpg_rsp_queue_next_op_success: {
-            logic_context_set_commit(context, bpg_rsp_commit, rsp);
-            break;
-        }
-        case bpg_rsp_queue_next_op_exec: {
-            logic_context_set_commit(context, bpg_rsp_commit, rsp);
-            break;
-        }
-        case bpg_rsp_queue_next_op_error: {
-            bpg_rsp_manage_free_context(bpg_mgr, context);
-            return NULL;
-        }
-        }
-    }
-    else {
+    next_op = bpg_rsp_queue_context(bpg_mgr, rsp, context, bpg_rsp_context_client_id(carry_info), em);
+    switch(next_op) {
+    case bpg_rsp_queue_next_op_success:
+    case bpg_rsp_queue_next_op_exec:
         logic_context_set_commit(context, bpg_rsp_commit, rsp);
+        break;
+    case bpg_rsp_queue_next_op_error:
+        bpg_rsp_manage_free_context(bpg_mgr, context);
+        return NULL;
+    default:
+        CPE_ERROR(
+            em, "%s.%s: create op: unknown next op %d!",
+            bpg_rsp_manage_name(bpg_mgr), rsp_name, next_op);
+        bpg_rsp_manage_free_context(bpg_mgr, context);
+        return NULL;
     }
 
     return context;
