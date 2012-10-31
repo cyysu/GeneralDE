@@ -12,7 +12,13 @@ public:
         R(logic_op_exec_result_t v) : m_result(v) {}
 
         operator logic_op_exec_result_t () const { return m_result; };
-
+        bool operator==(logic_op_exec_result_t r) const { return m_result == r; }
+        bool operator!=(logic_op_exec_result_t r) const { return m_result != r; }
+        bool operator==(bool r) const { return m_result == (r ? logic_op_exec_result_true : logic_op_exec_result_false); }
+        bool operator!=(bool r) const { return m_result != (r ? logic_op_exec_result_true : logic_op_exec_result_false); }
+        bool operator==(R const & o) const { return m_result == o.m_result; }
+        bool operator!=(R const & o) const { return m_result != o.m_result; }
+        operator bool() const { return m_result == logic_op_exec_result_true; }
     private:
         R();
 
