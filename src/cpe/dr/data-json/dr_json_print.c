@@ -69,7 +69,7 @@ static void dr_print_print_numeric(yajl_gen g, int typeId, const void * data, er
 
 static void dr_print_print_string(yajl_gen g, int typeId, size_t bufLen, const void * data, error_monitor_t em) {
     if (typeId == CPE_DR_TYPE_STRING || typeId == CPE_DR_TYPE_STRING + 1) {
-        yajl_gen_number(g, data, strlen(data));
+        yajl_gen_string(g, data, strlen(data));
     }
     else {
         char buf[CPE_STACK_BUF_LEN(bufLen) + 1];

@@ -273,11 +273,7 @@ void bpg_pkg_set_body_total_len(bpg_pkg_t pkg, uint32_t totallen) {
 }
 
 void * bpg_pkg_body_data(bpg_pkg_t pkg) {
-    BASEPKG * basepkg;
-
-    basepkg = (BASEPKG *)bpg_pkg_pkg_data(pkg);
-
-    return basepkg->body;
+    return ((char *)bpg_pkg_pkg_data(pkg)) + sizeof(BASEPKG_HEAD);
 }
     
 uint32_t bpg_pkg_body_len(bpg_pkg_t pkg) {
