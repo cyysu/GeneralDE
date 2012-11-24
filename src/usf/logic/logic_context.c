@@ -61,6 +61,7 @@ logic_context_create_ex(logic_manage_t mgr, logic_context_id_t id, size_t capaci
     context->m_timer_id = GD_TIMER_ID_INVALID;
     context->m_flags = 0;
     context->m_runing = 0;
+    context->m_deleting = 0;
     context->m_commit_op = NULL;
     context->m_commit_ctx = NULL;
     context->m_require_waiting_count = 0;
@@ -90,6 +91,11 @@ logic_context_create_ex(logic_manage_t mgr, logic_context_id_t id, size_t capaci
 
 void logic_context_free(logic_context_t context) {
     assert(context);
+
+    if (context->m_runing) {
+        context->m_deleting = 1;
+        return;
+    }
 
     logic_context_timeout_stop(context);
 
@@ -244,6 +250,11 @@ void logic_context_execute(logic_context_t context) {
     context->m_runing = 1;
     logic_stack_exec(&context->m_stack, -1, context);
     context->m_runing = 0;
+
+    if (context->m_deleting) {
+        logic_context_free(context);
+        return;
+    }
 
     if (context->m_errno == 0 && context->m_stack.m_item_pos == -1) {
         if (context->m_stack.m_inline_items[0].m_rv == logic_op_exec_result_null) {
