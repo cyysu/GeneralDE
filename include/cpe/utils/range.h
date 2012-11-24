@@ -18,6 +18,7 @@ typedef struct cpe_range_mgr {
     size_t m_range_capacity;
     size_t m_range_count;
     struct cpe_range * m_ranges;
+    void * m_debug_info;
 } * cpe_range_mgr_t;
 
 typedef struct cpe_range_it {
@@ -39,6 +40,8 @@ int cpe_range_size(struct cpe_range r);
 
 ptr_int_t cpe_range_get_one(cpe_range_mgr_t ra);
 int cpe_range_put_one(cpe_range_mgr_t ra, ptr_int_t value);
+
+void cpe_range_set_debug(cpe_range_mgr_t ra, int is_debug);
 
 struct cpe_range cpe_range_get_range(cpe_range_mgr_t ra, size_t require_count);
 int cpe_range_put_range(cpe_range_mgr_t ra, ptr_int_t start, ptr_int_t end);
