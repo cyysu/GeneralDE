@@ -76,6 +76,7 @@ public:
     void const * record(size_t i) const;
 
     void * recordAppend(void);
+    void recordRemove(size_t pos);
 
     void recordSort(record_cmp_t cmp) { logic_data_record_sort(m_data, cmp); }
     void * recordFind(void const * key, record_cmp_t cmp) { return logic_data_record_find(m_data, key, cmp); }
@@ -100,7 +101,7 @@ public:
     
     template<typename T>
     T & recordAppend(void) { return *(T*)this->recordAppend(); }
-    
+
     const char * dump(mem_buffer_t buffer) const { return logic_data_dump(m_data, buffer); }
 
     void destory(void) { logic_data_free(m_data); m_data = NULL; }

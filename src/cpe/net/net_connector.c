@@ -46,6 +46,7 @@ net_connector_create(
     connector->m_name = buf;
     connector->m_state = net_connector_state_disable;
     connector->m_monitors = NULL;
+    connector->m_reconnect_span = 30.0;
 
     connector->m_ep = NULL;
     cpe_hash_entry_init(&connector->m_hh);
@@ -431,7 +432,7 @@ static void net_connector_cb_prepaire(net_connector_t connector) {
     }
     else if (connector->m_state == net_connector_state_error) {
         connector->m_timer.data = connector;
-        ev_timer_init (&connector->m_timer, net_connector_timer_cb_reconnect, 60., 0.);
+        ev_timer_init (&connector->m_timer, net_connector_timer_cb_reconnect, connector->m_reconnect_span, 0.);
         ev_timer_start(connector->m_mgr->m_ev_loop, &connector->m_timer);
     }
 }
@@ -497,6 +498,10 @@ void net_connector_disable(net_connector_t connector) {
     connector->m_state = net_connector_state_disable;
 
     net_connector_notify_state_change(connector, old_state);
+}
+
+void net_connector_set_reconnect_span(net_connector_t connector, uint32_t span_ms) {
+    connector->m_reconnect_span = ((double)span_ms / 1000.0);
 }
 
 net_ep_t net_connector_ep(net_connector_t connector) {
