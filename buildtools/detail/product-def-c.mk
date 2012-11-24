@@ -44,6 +44,7 @@ c-generate-depend-ld-flags=$(call $($2.env).export-symbols,$(r.$1.c.export-symbo
 									$(call product-gen-depend-value-list,$1,product.c.frameworks))) \
                            $(call revert-list,$(call product-gen-depend-value-list,$1,\
                                         $(call c-generate-env-arg-name-list,$2,product.c.flags.ld))) \
+                           $(if $(filter 1,$(GCOV)), -fprofile-arcs -ftest-coverage ) \
                            $(r.$1.c.flags.ld) $(r.$1.$($2.env).c.flags.ld) $(r.$1.$2.c.flags.ld)
 
 # $(call c-generate-depend-cpp-flags,product-name,domain)
@@ -66,6 +67,8 @@ c-generate-depend-cpp-flags=$(addprefix -I$(CPDE_ROOT)/,\
                            $(addprefix -D,$(sort $(call product-gen-depend-value-list,$1,product.c.defs))) \
                            $(addprefix -D,$(sort $(call product-gen-depend-value-list,$1,$($2.env).product.c.defs))) \
                            $(addprefix -D,$(sort $(call product-gen-depend-value-list,$1,$2.product.c.defs))) \
+                           $(if $(filter 1,$(GCOV)), -fprofile-arcs -ftest-coverage ) \
+                           $(if $(filter 1,$(GPROF)), -pg ) \
                            $(r.$1.c.flags.cpp) $(r.$1.$($2.env).c.flags.cpp) $(r.$1.$2.c.flags.cpp)
 
 product-def-c-linker-c=$(LINK.c)
