@@ -89,6 +89,27 @@ gd_timer_mgr_create(
         return NULL;
     }
 
+#ifdef GD_TIMER_DEBUG
+    cpe_range_set_debug(&mgr->m_ids, 1);
+
+    if (cpe_hash_table_init(
+            &mgr->m_alloc_infos,
+            alloc,
+            (cpe_hash_fun_t) gd_debug_info_hash_fun,
+            (cpe_hash_cmp_t) gd_debug_info_eq_fun,
+            CPE_HASH_OBJ2ENTRY(gd_timer_alloc_info, m_hh),
+            -1) != 0)
+    {
+        CPE_ERROR(em, "gd_timer_mgr_create: init debug info hash table fail!");
+        tl_free(mgr->m_tl);
+        cpe_range_mgr_fini(&mgr->m_ids);
+        nm_node_free(mgr_node);
+        cpe_hash_table_fini(&mgr->m_responser_to_processor);
+        return NULL;
+    }
+
+#endif
+
     nm_node_set_type(mgr_node, &s_nm_node_type_gd_timer_mgr);
 
     return mgr;
@@ -105,6 +126,24 @@ static void gd_timer_mgr_clear(nm_node_t node) {
     cpe_range_mgr_fini(&mgr->m_ids);
 
     cpe_hash_table_fini(&mgr->m_responser_to_processor);
+
+#ifdef GD_TIMER_DEBUG
+    do {
+        struct cpe_hash_it it;
+        struct gd_timer_alloc_info * e;
+
+        cpe_hash_it_init(&it, &mgr->m_alloc_infos);
+
+        e = cpe_hash_it_next(&it);
+        while (e) {
+            struct gd_timer_alloc_info * next = cpe_hash_it_next(&it);
+            mem_free(mgr->m_alloc, e);
+            e = next;
+        }
+
+        cpe_hash_table_fini(&mgr->m_alloc_infos);
+    } while(0);
+#endif
 }
 
 void gd_timer_mgr_free(gd_timer_mgr_t mgr) {

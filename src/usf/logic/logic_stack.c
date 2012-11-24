@@ -126,7 +126,8 @@ REINTER:
 }
 
 void logic_stack_exec(struct logic_stack * stack, int32_t stop_stack_pos, logic_context_t ctx) {
-    while(ctx->m_state == logic_context_state_idle
+    while(ctx->m_deleting == 0
+          && ctx->m_state == logic_context_state_idle
           && stack->m_item_pos > stop_stack_pos)
     {
         struct logic_stack_node * stack_item = logic_stack_node_at(stack, stack->m_item_pos);
