@@ -296,7 +296,7 @@ int dr_json_print(
         return -1;
     }
 
-    yajl_gen_config(g, yajl_gen_beautify, flag & DR_JSON_PRINT_MINIMIZE ? 1 : 0);
+    yajl_gen_config(g, yajl_gen_beautify, flag & DR_JSON_PRINT_MINIMIZE ? 0 : 1);
     //yajl_gen_config(g, yajl_gen_validate_utf8, flag & DR_JSON_PRINT_VALIDATE_UTF8 ? 1 : 0);
     yajl_gen_config(g, yajl_gen_print_callback, stream_write, output);
 
