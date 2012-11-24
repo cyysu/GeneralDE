@@ -5,6 +5,11 @@
 #include "cpe/dr/dr_metalib_manage.h"
 #include "System.hpp"
 
+#ifdef _MSC_VER
+# pragma warning(push)
+# pragma warning(disable:4521)
+#endif
+
 namespace Cpe { namespace Dr {
 
 class ConstDataElement {
@@ -88,6 +93,15 @@ public:
     {
     }
 
+    ConstData(ConstData const & o)
+        : m_data(o.m_data)
+        , m_capacity(o.m_capacity)
+        , m_meta(o.m_meta)
+    {
+    }
+
+    ConstData(Data const & o);
+
     ConstData(const void * data, LPDRMETA meta = 0, size_t capacity = 0);
     ConstData(ConstDataElement const & e);
     ConstData(DataElement const & e);
@@ -112,7 +126,8 @@ class Data : public ConstData {
 public:
     template<typename T>
     Data(T & data) : ConstData(&data, MetaTraits<T>::META, sizeof(T)) {}
-
+    Data(Data & o) : ConstData(o) {}
+    Data(Data const & o) : ConstData(o) {}
     Data(void * data, LPDRMETA meta, size_t capacity = 0);
     Data(void * data, size_t capacity = 0);
     Data(DataElement const & element);
@@ -155,6 +170,18 @@ inline void Data::copy(Data const & data) { copy(data.data(), data.capacity()); 
 inline void Data::copy(ConstDataElement const & data) { copy(data.data(), data.capacity()); }
 inline void Data::copy(DataElement const & data) { copy(data.data(), data.capacity()); }
 
+inline ConstData::ConstData(Data const & o)
+    : m_data(o.m_data)
+    , m_capacity(o.m_capacity)
+    , m_meta(o.m_meta)
+{
+}
+
 }}
+
+
+#ifdef _MSC_VER
+# pragma warning(pop)
+#endif
 
 #endif
