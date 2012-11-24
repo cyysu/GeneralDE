@@ -1,5 +1,14 @@
 CPDE_OUTPUT_ROOT?=$(CPDE_ROOT)/build
 
+ifeq ($(GCOV),1)
+CPDE_OUTPUT_ROOT:=$(CPDE_OUTPUT_ROOT)-gcov
+endif
+
+ifeq ($(GPROF),1)
+CPDE_OUTPUT_ROOT:=$(CPDE_OUTPUT_ROOT)-gprof
+endif
+
+
 project_repository:=
 product-support-types:=
 product-def-all-items:=type buildfor depends output
