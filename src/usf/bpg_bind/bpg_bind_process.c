@@ -60,9 +60,11 @@ static void bpg_bind_manage_kickoff_old(
                 bpg_bind_manage_name(mgr), new_client_id, old_connection_id);
         }
         else {
-            CPE_INFO(
-                mgr->m_em, "%s: kickoff_old: send kickof pkg success, client-id=%d, connection-id=%d!",
-                bpg_bind_manage_name(mgr), new_client_id, old_connection_id);
+            if (mgr->m_debug) {
+                CPE_INFO(
+                    mgr->m_em, "%s: kickoff_old: send kickof pkg success, client-id=%d, connection-id=%d!",
+                    bpg_bind_manage_name(mgr), new_client_id, old_connection_id);
+            }
         }
     }
 
@@ -143,7 +145,7 @@ int bpg_bind_manage_incoming_rsp(dp_req_t req, void * ctx, error_monitor_t em) {
         }
     }
 
-    if (found_binding == NULL) {
+    if (found_binding == NULL && client_id != 0) {
         if (bpg_bind_binding_create(mgr, client_id, connection_id) != 0) { 
             CPE_ERROR( 
                 mgr->m_em, "%s: ep %d: binding: create binding fail!", 

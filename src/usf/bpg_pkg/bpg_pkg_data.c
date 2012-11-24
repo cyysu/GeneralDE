@@ -34,6 +34,7 @@ int bpg_pkg_set_main_data(bpg_pkg_t pkg, void const * buf, size_t size, error_mo
     bpg_pkg_pkg_data_set_size(pkg, cur_size + size);
 
     head->bodylen = size;
+    head->originBodyLen = size;
     head->bodytotallen = size;
 
     return 0;
@@ -80,6 +81,7 @@ int bpg_pkg_add_append_data(bpg_pkg_t pkg, LPDRMETA meta, const void * buf, size
     appendInfo = &basepkg->head.appendInfos[basepkg->head.appendInfoCount++];
     appendInfo->id = dr_meta_id(meta);
     appendInfo->size = size;
+    appendInfo->originSize = size;
 
     bpg_pkg_pkg_data_set_size(pkg, cur_size + size);
 
