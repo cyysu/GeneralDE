@@ -63,6 +63,7 @@ struct net_connector {
     char m_addr[16]; /*sizeof(sockaddr)*/
     net_ep_t m_ep;
     net_connector_state_t m_state;
+    double m_reconnect_span;
     struct net_connector_monitor * m_monitors;
     struct ev_timer m_timer;
     struct cpe_hash_entry m_hh;
