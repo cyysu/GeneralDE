@@ -48,6 +48,9 @@ int net_connector_remove_monitor(
     net_connector_t connector,
     net_connector_state_monitor_fun_t fun, void * ctx);
 
+void net_connector_set_reconnect_span(
+    net_connector_t connector, uint32_t span_ms);
+
 net_ep_t net_connector_ep(net_connector_t connector);
 
 #ifdef __cplusplus

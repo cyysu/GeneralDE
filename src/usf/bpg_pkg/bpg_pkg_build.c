@@ -47,6 +47,7 @@ int bpg_pkg_build_from_cfg(bpg_pkg_t pkg, cfg_t cfg, error_monitor_t em) {
     output_buf += sizeof(BASEPKG_HEAD);
 
     output_pkg->head.bodylen = 0;
+    output_pkg->head.originBodyLen = 0;
     output_pkg->head.bodytotallen = 0;
     output_pkg->head.appendInfoCount = 0;
 
@@ -68,6 +69,7 @@ int bpg_pkg_build_from_cfg(bpg_pkg_t pkg, cfg_t cfg, error_monitor_t em) {
             }
 
             output_pkg->head.bodylen = use_size;
+            output_pkg->head.originBodyLen = use_size;
             output_pkg->head.bodytotallen = use_size;
             output_buf += use_size;
         }
@@ -105,6 +107,7 @@ int bpg_pkg_build_from_cfg(bpg_pkg_t pkg, cfg_t cfg, error_monitor_t em) {
         o_append_info = &output_pkg->head.appendInfos[output_pkg->head.appendInfoCount++];
         o_append_info->id = dr_meta_id(meta);
         o_append_info->size = use_size;
+        o_append_info->originSize = use_size;
         output_pkg->head.bodytotallen += use_size;
     }
 

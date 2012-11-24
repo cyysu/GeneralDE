@@ -28,6 +28,9 @@ bpg_net_client_find(gd_app_context_t app, cpe_hash_string_t name);
 bpg_net_client_t
 bpg_net_client_find_nc(gd_app_context_t app, const char * name);
 
+void bpg_net_client_set_reconnect_span(bpg_net_client_t client, uint32_t span_ms);
+
+
 gd_app_context_t bpg_net_client_app(bpg_net_client_t client);
 const char * bpg_net_client_name(bpg_net_client_t client);
 cpe_hash_string_t bpg_net_client_name_hs(bpg_net_client_t client);

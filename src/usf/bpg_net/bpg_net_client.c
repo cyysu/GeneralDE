@@ -205,6 +205,10 @@ bpg_pkg_manage_t bpg_net_client_pkg_manage(bpg_net_client_t req) {
     return req->m_pkg_manage;
 }
 
+void bpg_net_client_set_reconnect_span(bpg_net_client_t client, uint32_t span_ms) {
+    net_connector_set_reconnect_span(client->m_connector, span_ms);
+}
+
 static void bpg_net_client_clear(nm_node_t node);
 
 struct nm_node_type s_nm_node_type_bpg_net_client = {

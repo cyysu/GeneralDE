@@ -15,6 +15,10 @@ void RspOpContext::addAdditionData(uint32_t meta_id) {
     }
 }
 
+void RspOpContext::removeAdditionData(uint32_t meta_id) {
+    bpg_rsp_addition_data_remove(*this, meta_id);
+}
+
 void RspOpContext::setCmd(uint32_t cmd) {
     bpg_rsp_carry_info_t carryInfo = bpg_rsp_carry_info_find(*this);
     if (carryInfo == NULL) {

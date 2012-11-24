@@ -21,6 +21,13 @@ struct gd_timer_processor {
     struct cpe_hash_entry m_hh_for_responser_to_processor;
 };
 
+#ifdef GD_TIMER_DEBUG
+struct gd_timer_alloc_info {
+    gd_timer_id_t m_timer_id;
+    struct cpe_hash_entry m_hh;
+};
+#endif
+
 struct gd_timer_mgr {
     gd_app_context_t m_app;
     mem_allocrator_t m_alloc;

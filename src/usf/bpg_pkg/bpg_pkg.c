@@ -118,6 +118,8 @@ void bpg_pkg_init(bpg_pkg_t bpg_pkg) {
     bpg_pkg->m_connection_id = BPG_INVALID_CONNECTION_ID;
 
     head = (BASEPKG_HEAD *)bpg_pkg_pkg_data(bpg_pkg);
+    head->magic = BASEPKG_HEAD_MAGIC;
+    head->version = 1;
 }
 
 void bpg_pkg_clear_data(bpg_pkg_t bpg_pkg) {
@@ -328,7 +330,7 @@ const char * bpg_pkg_dump(bpg_pkg_t req, mem_buffer_t buffer) {
 
     metalib = dr_ref_lib(req->m_mgr->m_metalib_basepkg_ref);
     if ((meta = metalib ? dr_lib_find_meta_by_name(metalib, "basepkg_head") : NULL)) {
-        dr_json_print((write_stream_t)&stream, head, sizeof(BASEPKG_HEAD), meta, DR_JSON_PRINT_BEAUTIFY, 0);
+        dr_json_print((write_stream_t)&stream, head, sizeof(BASEPKG_HEAD), meta, DR_JSON_PRINT_MINIMIZE, 0);
     }
     else {
         stream_printf((write_stream_t)&stream, "[no meta] cmd=%d", head->cmd);
@@ -339,7 +341,7 @@ const char * bpg_pkg_dump(bpg_pkg_t req, mem_buffer_t buffer) {
     if (head->bodylen > 0) {
         if ((meta = bpg_pkg_main_data_meta(req, NULL))) {
             stream_printf(((write_stream_t)&stream), " %s", dr_meta_name(meta));
-            dr_json_print((write_stream_t)&stream, data, head->bodylen, meta, DR_JSON_PRINT_BEAUTIFY, 0);
+            dr_json_print((write_stream_t)&stream, data, head->bodylen, meta, DR_JSON_PRINT_MINIMIZE, 0);
         }
         else {
             stream_printf((write_stream_t)&stream, "[no meta] bodylen=%d", head->bodylen);
@@ -358,7 +360,7 @@ const char * bpg_pkg_dump(bpg_pkg_t req, mem_buffer_t buffer) {
         if ((meta = metalib ? dr_lib_find_meta_by_id(metalib, append_info->id) : NULL)) {
             stream_printf((write_stream_t)&stream, "\nappend %d(%s): ", append_info->id, dr_meta_name(meta));
 
-            dr_json_print((write_stream_t)&stream, data, append_info->size, meta, DR_JSON_PRINT_BEAUTIFY, 0);
+            dr_json_print((write_stream_t)&stream, data, append_info->size, meta, DR_JSON_PRINT_MINIMIZE, 0);
         }
         else {
             stream_printf(
