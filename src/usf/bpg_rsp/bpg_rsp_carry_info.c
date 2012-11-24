@@ -22,6 +22,15 @@ void bpg_rsp_context_set_cmd(bpg_rsp_carry_info_t carry_info, uint32_t cmd) {
     ((BPG_CARRY_INFO *)carry_info)->cmd = cmd;
 }
 
+uint32_t bpg_rsp_context_sn(bpg_rsp_carry_info_t carry_info) {
+    assert(carry_info);
+    return ((BPG_CARRY_INFO *)carry_info)->sn;
+}
+
+void bpg_rsp_context_set_sn(bpg_rsp_carry_info_t carry_info, uint32_t sn) {
+    ((BPG_CARRY_INFO *)carry_info)->sn = sn;
+}
+
 uint64_t bpg_rsp_context_client_id(bpg_rsp_carry_info_t carry_info) {
     return ((BPG_CARRY_INFO *)carry_info)->clientId;
 }
