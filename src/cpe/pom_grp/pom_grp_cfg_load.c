@@ -1,4 +1,5 @@
 #include <assert.h>
+#include "cpe/pal/pal_strings.h"
 #include "cpe/utils/hex_utils.h"
 #include "cpe/cfg/cfg_manage.h" 
 #include "cpe/cfg/cfg_read.h" 
