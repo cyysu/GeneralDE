@@ -71,7 +71,8 @@ struct logic_context {
     void * m_commit_ctx;
     size_t m_capacity;
     uint32_t m_flags;
-    uint32_t m_runing;
+    uint8_t m_runing;
+    uint8_t m_deleting;
 
     logic_data_list_t m_datas;
     uint32_t m_require_waiting_count;
