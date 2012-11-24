@@ -193,131 +193,131 @@ DEF_CVT_FUN_ASSIGN_CHECK_NONE(double, float);
 DEF_CVT_FUN_ASSIGN_CHECK_NONE(double, double);
 
 struct DRCtypeTypeReadOps g_dr_ctype_read_ops[] = {
-     /*CPE_DR_TYPE_UNION*/
+     /*CPE_DR_TYPE_UNION 0x00*/
     { NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL
     }
-    , /*CPE_DR_TYPE_STRUCT*/
+    , /*CPE_DR_TYPE_STRUCT 0x01*/
     { NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL
     }
-    , /*CPE_DR_TYPE_CHAR*/
+    , /*CPE_DR_TYPE_CHAR 0x02*/
     { int8_to_int8, int8_to_uint8
       , int8_to_int16, int8_to_uint16
       , int8_to_int32, int8_to_uint32
       , int8_to_int64, int8_to_uint64
       , int8_to_float, int8_to_double
     }
-    , /*CPE_DR_TYPE_UCHAR*/
+    , /*CPE_DR_TYPE_UCHAR 0x03*/
     { uint8_to_int8, uint8_to_uint8
       , uint8_to_int16, uint8_to_uint16
       , uint8_to_int32, uint8_to_uint32
       , uint8_to_int64, uint8_to_uint64
       , uint8_to_float, uint8_to_double
     }
-    , /*CPE_DR_TYPE_INT8*/
+    , /*CPE_DR_TYPE_INT8 0x04*/
     { int8_to_int8, int8_to_uint8
       , int8_to_int16, int8_to_uint16
       , int8_to_int32, int8_to_uint32
       , int8_to_int64, int8_to_uint64
       , int8_to_float, int8_to_double
     }
-    , /*CPE_DR_TYPE_INT16*/
+    , /*CPE_DR_TYPE_INT16 0x05*/
     { int16_to_int8, int16_to_uint8
       , int16_to_int16, int16_to_uint16
       , int16_to_int32, int16_to_uint32
       , int16_to_int64, int16_to_uint64
       , int16_to_float, int16_to_double
     }
-    , /*CPE_DR_TYPE_UINT16*/
+    , /*CPE_DR_TYPE_UINT16 0x06*/
     { uint16_to_int8, uint16_to_uint8
       , uint16_to_int16, uint16_to_uint16
       , uint16_to_int32, uint16_to_uint32
       , uint16_to_int64, uint16_to_uint64
       , uint16_to_float, uint16_to_double
     }
-    , /*CPE_DR_TYPE_INT32*/
+    , /*CPE_DR_TYPE_INT32 0x07*/
     { int32_to_int8, int32_to_uint8
       , int32_to_int16, int32_to_uint16
       , int32_to_int32, int32_to_uint32
       , int32_to_int64, int32_to_uint64
       , int32_to_float, int32_to_double
     }
-    , /*CPE_DR_TYPE_UINT32*/
+    , /*CPE_DR_TYPE_UINT32 0x08*/
     { uint32_to_int8, uint32_to_uint8
       , uint32_to_int16, uint32_to_uint16
       , uint32_to_int32, uint32_to_uint32
       , uint32_to_int64, uint32_to_uint64
       , uint32_to_float, uint32_to_double
     }
-    , /*CPE_DR_TYPE_INT32*/
+    , /*CPE_DR_TYPE_LONG 0x09*/
     { int32_to_int8, int32_to_uint8
       , int32_to_int16, int32_to_uint16
       , int32_to_int32, int32_to_uint32
       , int32_to_int64, int32_to_uint64
       , int32_to_float, int32_to_double
     }
-    , /*CPE_DR_TYPE_UINT32*/
+    , /*CPE_DR_TYPE_ULONG 0x0a*/
     { uint32_to_int8, uint32_to_uint8
       , uint32_to_int16, uint32_to_uint16
       , uint32_to_int32, uint32_to_uint32
       , uint32_to_int64, uint32_to_uint64
       , uint32_to_float, uint32_to_double
     }
-    , /*CPE_DR_TYPE_INT64*/
+    , /*CPE_DR_TYPE_INT64 0x0b*/
     { int64_to_int8, int64_to_uint8
       , int64_to_int16, int64_to_uint16
       , int64_to_int32, int64_to_uint32
       , int64_to_int64, int64_to_uint64
       , int64_to_float, int64_to_double
     }
-    , /*CPE_DR_TYPE_UINT64*/
+    , /*CPE_DR_TYPE_UINT64 0x0c*/
     { uint64_to_int8, uint64_to_uint8
       , uint64_to_int16, uint64_to_uint16
       , uint64_to_int32, uint64_to_uint32
       , uint64_to_int64, uint64_to_uint64
       , uint64_to_float, uint64_to_double
     }
-    , /*CPE_DR_TYPE_DATE*/
+    , /*CPE_DR_TYPE_DATE 0x0d*/
     { NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL
     }
-    , /*CPE_DR_TYPE_TIME*/
+    , /*CPE_DR_TYPE_TIME 0x0e*/
     { NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL
     }
-    , /*CPE_DR_TYPE_DATETIME*/
+    , /*CPE_DR_TYPE_DATETIME 0x0f*/
     { NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL
     }
-    , /*CPE_DR_TYPE_MONEY*/
+    , /*CPE_DR_TYPE_MONEY 0x10*/
     { NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL
     }
-    , /*CPE_DR_TYPE_FLOAT*/
+    , /*CPE_DR_TYPE_FLOAT 0x11*/
     { float_to_int8, float_to_uint8
       , float_to_int16, float_to_uint16
       , float_to_int32, float_to_uint32
       , float_to_int64, float_to_uint64
       , float_to_float, float_to_double
     }
-    , /*CPE_DR_TYPE_DOUBLE*/
+    , /*CPE_DR_TYPE_DOUBLE 0x12*/
     { double_to_int8, double_to_uint8
       , double_to_int16, double_to_uint16
       , double_to_int32, double_to_uint32
       , double_to_int64, double_to_uint64
       , double_to_float, double_to_double
     }
-    , /*CPE_DR_TYPE_IP*/
+    , /*CPE_DR_TYPE_IP 0x13*/
     { NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL
     }
-    , /*CPE_DR_TYPE_WCHAR*/
+    , /*CPE_DR_TYPE_WCHAR 0x14*/
     { NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL
     }
-    , /*CPE_DR_TYPE_STRING*/
+    , /*CPE_DR_TYPE_STRING 0x15*/
     { NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL
     }
-    , /*CPE_DR_TYPE_WSTRING*/
+    , /*CPE_DR_TYPE_WSTRING 0x16*/
     { NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL
     }
-    , /*CPE_DR_TYPE_VOID*/
+    , /*CPE_DR_TYPE_VOID 0x17*/
     { NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL
     }
-    , /*CPE_DR_TYPE_UINT8*/
+    , /*CPE_DR_TYPE_UINT8 0x18*/
     { uint8_to_int8, uint8_to_uint8
       , uint8_to_int16, uint8_to_uint16
       , uint8_to_int32, uint8_to_uint32
@@ -333,7 +333,7 @@ struct DRCtypeTypeReadOps g_dr_ctype_read_ops[] = {
         __to ## _t * result,                                            \
         const void * input, int type, error_monitor_t em)               \
     {                                                                   \
-        if (type < 0 || type > CPE_READOPS_COUNT) {                     \
+        if (type < 0 || type >= CPE_READOPS_COUNT) {                    \
             CPE_ERROR(em, "read from %d, type is unknown", type);       \
             return -1;                                                  \
         }                                                               \
@@ -347,7 +347,6 @@ struct DRCtypeTypeReadOps g_dr_ctype_read_ops[] = {
                     result, input, NULL, em);                           \
             }                                                           \
             else {                                                      \
-                printf("222 type=%d, %s\n", type, #__to);              \
                 CPE_ERROR(em, "read from %d, type not support to "      \
                           #__to, type);                                 \
                 return -1;                                              \

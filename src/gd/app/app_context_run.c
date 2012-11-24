@@ -58,8 +58,11 @@ int gd_app_run(gd_app_context_t context) {
 
     rv = context->m_main(context, context->m_fun_ctx);
 
-    gd_app_modules_unload(context);
-    gd_app_tick_chain_free(context);
+    if (!gd_app_flag_is_enable(context, gd_app_flag_delay_module_unload)) {
+        gd_app_modules_unload(context);
+        gd_app_tick_chain_free(context);
+    }
+
     g_app_context = NULL;
 
     return rv;
