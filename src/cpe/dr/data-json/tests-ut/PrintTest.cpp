@@ -44,7 +44,7 @@ int PrintTest::print(const void * data, size_t size, const char * typeName) {
 
     struct write_stream_buffer stream = CPE_WRITE_STREAM_BUFFER_INITIALIZER(&m_buffer);
 
-    int r = dr_json_print((write_stream_t)&stream, data, size, meta, DR_JSON_PRINT_BEAUTIFY, t_em());
+    int r = dr_json_print((write_stream_t)&stream, data, size, meta, DR_JSON_PRINT_MINIMIZE, t_em());
     stream_putc((write_stream_t)&stream, 0);
     return r;
 }

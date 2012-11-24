@@ -382,9 +382,15 @@ void net_ep_cb(EV_P_ ev_io *w, int revents) {
             if (ep->m_mgr->m_debug) {
                 CPE_INFO(ep->m_mgr->m_em, "net_mgr: ep %d: send %d bytes data!", ep->m_id, (int)send_size);
             }
-			if(ep->m_status == NET_REMOVE_AFTER_SEND)
-			{
-				net_ep_close(ep);
+
+			if(ep->m_status == NET_REMOVE_AFTER_SEND) {
+                if (ep->m_chanel_w->m_type->data_size(ep->m_chanel_w) == 0) {
+                    if (ep->m_mgr->m_debug) {
+                        CPE_INFO(ep->m_mgr->m_em, "net_mgr: ep %d: write chanel empty, auto close!", ep->m_id);
+                    }
+                    net_ep_close_i(ep, net_ep_event_close_by_user);
+                    return;
+                }
 			}
         }
     }

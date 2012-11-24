@@ -1,4 +1,7 @@
 #include <assert.h>
+#if ! defined _MSC_VER
+#include <execinfo.h>
+#endif
 #include "cpe/pal/pal_strings.h"
 #include "cpe/pal/pal_stdio.h"
 #include "cpe/tl/tl_action.h"
@@ -97,7 +100,6 @@ void gd_timer_mgr_free_processor_buf(gd_timer_mgr_t mgr) {
 void gd_timer_processor_free(gd_timer_mgr_t mgr, struct gd_timer_processor * data) {
     if (data->m_tl_event) {
         tl_event_free(data->m_tl_event);
-        data->m_tl_event = NULL;
     }
     else {
         if (data->m_state == timer_processor_state_InResponserHash) {
