@@ -101,7 +101,7 @@ void Meta::dump_data(write_stream_t stream, const void * data, size_t capacity) 
         data,
         capacity, 
         *this,
-        DR_JSON_PRINT_BEAUTIFY,
+        DR_JSON_PRINT_MINIMIZE,
         0);
 }
 
