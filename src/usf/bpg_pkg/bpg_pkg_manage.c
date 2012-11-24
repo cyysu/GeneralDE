@@ -152,7 +152,7 @@ static void bpg_pkg_manage_clear(nm_node_t node) {
     mem_buffer_clear(&mgr->m_zip_buff);
 
     if (mgr->m_op_buff) {
-        mem_free(gd_app_alloc(mgr->m_app), &mgr->m_op_buff);
+        mem_free(gd_app_alloc(mgr->m_app), mgr->m_op_buff);
         mgr->m_op_buff = NULL;
     }
 }

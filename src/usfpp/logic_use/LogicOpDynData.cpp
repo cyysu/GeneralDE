@@ -32,6 +32,17 @@ void const * LogicOpDynData::record(size_t i) const {
     return r;
 }
 
+void LogicOpDynData::recordRemove(size_t pos) {
+    validate_data();
+
+    if (logic_data_record_remove(m_data, pos) != 0) {
+        APP_CTX_THROW_EXCEPTION(
+            logic_manage_app(logic_data_mgr(m_data)),
+            ::std::runtime_error,
+            "Tsf4wg::TCaplus::LogicOpDynData::remove: remove at %d fail", (int)pos);
+    }
+}
+
 void * LogicOpDynData::recordAppend(void) {
     validate_data();
 

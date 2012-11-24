@@ -208,6 +208,54 @@ void * logic_data_record_append(logic_data_t data) {
     }
 }
 
+int logic_data_record_remove(logic_data_t data, size_t pos) {
+    struct dr_meta_dyn_info dyn_info;
+    int record_count;
+    int record_capacity;
+    size_t record_size;
+    char * buf;
+    error_monitor_t em = logic_manage_em(logic_data_mgr(data));
+
+    if (dr_meta_find_dyn_info(logic_data_meta(data), &dyn_info) != 0) {
+        CPE_ERROR(em, "logic_data_record_remove: can`t remove from fix data!");
+        return -1;
+    }
+
+    if (dyn_info.m_refer_entry == NULL) {
+        CPE_ERROR(em, "logic_data_record_remove: can`t remove not refer array!");
+        return -1;
+    }
+
+    record_capacity = logic_data_record_capacity_i(data, &dyn_info);
+    record_count = logic_data_record_count_i(data, &dyn_info);
+    record_size = dr_entry_element_size(dyn_info.m_array_entry);
+
+    if (record_count < 0) {
+        CPE_ERROR(em, "logic_data_record_remove: record cout %d error!", record_count);
+        return -1;
+    }
+
+    if (pos >= record_count) {
+        CPE_ERROR(em, "logic_data_record_remove: remove pos %d overflow, count %d!", (int)pos, record_count);
+        return -1;
+    }
+
+    buf = logic_data_data(data);
+    if (pos + 1 < record_count) {
+        memmove(
+            buf + record_size * pos,
+            buf + record_size * (pos + 1),
+            record_size * (record_count - pos - 1)); 
+    }
+
+    if (dr_entry_set_from_uint32(buf + dyn_info.m_refer_start, record_count - 1, dyn_info.m_refer_entry, em) != 0){
+        CPE_ERROR(em, "logic_data_record_remove: set count %d fail!", record_count -1);
+        return -1;
+    }
+
+    return 0;
+}
+
 static int logic_data_calc_dyn_capacity(LPDRMETA meta, size_t record_capacity, dr_meta_dyn_info_t dyn_info, error_monitor_t em) {
     assert(dyn_info->m_array_entry);
 
