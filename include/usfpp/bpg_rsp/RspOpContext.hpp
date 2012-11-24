@@ -21,6 +21,9 @@ public:
     void setCmd(uint32_t cmd);
     uint32_t cmd(void) const;
 
+    void setSn(uint32_t sn);
+    uint32_t sn(void) const;
+
     void setResponse(bool needResponse);
 };
 

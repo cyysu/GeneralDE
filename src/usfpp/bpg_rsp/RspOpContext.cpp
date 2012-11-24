@@ -43,6 +43,30 @@ uint32_t RspOpContext::cmd(void) const {
     return bpg_rsp_context_cmd(carryInfo);
 }
 
+void RspOpContext::setSn(uint32_t sn) {
+    bpg_rsp_carry_info_t carryInfo = bpg_rsp_carry_info_find(*this);
+    if (carryInfo == NULL) {
+        APP_CTX_THROW_EXCEPTION(
+            app(),
+            ::std::runtime_error,
+            "RspOpContext[%d]: carry info not exist!", id());
+    }
+
+    bpg_rsp_context_set_sn(carryInfo, sn);
+}
+
+uint32_t RspOpContext::sn(void) const {
+    bpg_rsp_carry_info_t carryInfo = bpg_rsp_carry_info_find(*this);
+    if (carryInfo == NULL) {
+        APP_CTX_THROW_EXCEPTION(
+            app(),
+            ::std::runtime_error,
+            "RspOpContext[%d]: carry info not exist!", id());
+    }
+
+    return bpg_rsp_context_sn(carryInfo);
+}
+
 void RspOpContext::setClientId(uint64_t client_id) {
     bpg_rsp_carry_info_t carryInfo = bpg_rsp_carry_info_find(*this);
     if (carryInfo == NULL) {

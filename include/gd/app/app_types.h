@@ -17,7 +17,8 @@ typedef enum gd_app_status {
 } gd_app_status_t;
 
 typedef enum gd_app_flag {
-    gd_app_flag_no_auto_load = 1 << 0
+    gd_app_flag_no_auto_load = 1 << 0 /*不自动加载etc下的配置文件 */
+    , gd_app_flag_delay_module_unload = 1 << 1 /*模块在run以后不自动卸载 */
 } gd_app_flag_t;
 
 typedef struct gd_app_context * gd_app_context_t;
