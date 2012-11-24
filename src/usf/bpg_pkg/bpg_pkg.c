@@ -118,8 +118,6 @@ void bpg_pkg_init(bpg_pkg_t bpg_pkg) {
     bpg_pkg->m_connection_id = BPG_INVALID_CONNECTION_ID;
 
     head = (BASEPKG_HEAD *)bpg_pkg_pkg_data(bpg_pkg);
-    head->magic = BASEPKG_HEAD_MAGIC;
-    head->version = 1;
 }
 
 void bpg_pkg_clear_data(bpg_pkg_t bpg_pkg) {
