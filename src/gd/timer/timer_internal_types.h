@@ -24,6 +24,8 @@ struct gd_timer_processor {
 #ifdef GD_TIMER_DEBUG
 struct gd_timer_alloc_info {
     gd_timer_id_t m_timer_id;
+    uint8_t m_stack_size;
+    uint8_t m_is_free;
     struct cpe_hash_entry m_hh;
 };
 #endif
@@ -42,6 +44,10 @@ struct gd_timer_mgr {
     struct gd_timer_processor ** m_timer_buf;
     struct cpe_hash_table m_responser_to_processor;
     struct cpe_range_mgr m_ids;
+
+#ifdef GD_TIMER_DEBUG
+    struct cpe_hash_table m_alloc_infos;
+#endif
 };
 
 #endif
