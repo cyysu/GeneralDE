@@ -7,6 +7,10 @@
 #include "cpe/utils/hash_string.h"
 #include "gd/app/app_types.h"
 
+#ifdef GD_APP_MULTI_THREAD
+#include <pthread.h>
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -44,6 +48,33 @@ struct gd_app_em {
     struct cpe_hash_entry m_hh;
 };
 
+typedef TAILQ_HEAD(gd_app_child_context_list, gd_app_child_context) gd_app_child_context_list_t;
+
+typedef enum gd_app_child_type_t {
+    gd_app_child_inline,
+    gd_app_child_follow
+} gd_app_child_type_t;
+
+struct gd_app_child_context {
+    gd_app_child_type_t m_child_type;
+    void * m_child;
+    gd_app_context_t m_parent;
+    uint8_t m_lib_handler_owner;
+    void * m_lib_handler;
+#ifdef GD_APP_MULTI_THREAD
+    pthread_t m_thread;
+#endif
+
+    gd_app_status_t (*m_state)(void * context);
+    int (*m_run)(void * context);
+    void (*m_tick)(void * context);
+    void (*m_free)(void * context);
+    int (*m_stop)(void * context);
+    int (*m_notify_stop)(void * context);
+
+    TAILQ_ENTRY(gd_app_child_context) m_next;
+};
+
 struct gd_app_context {
     gd_app_status_t m_state;
     int m_argc;
@@ -52,6 +83,7 @@ struct gd_app_context {
     size_t m_capacity;
     uint32_t m_flags;
     uint32_t m_debug;
+    void * m_lib_handler;
 
     error_monitor_t m_em;
     struct error_monitor m_em_print;
@@ -66,11 +98,20 @@ struct gd_app_context {
     nm_mgr_t m_nm_mgr;
     net_mgr_t m_net_mgr;
 
+    uint8_t m_notify_stop;
     gd_app_fn_t m_main;
     gd_app_fn_t m_stop;
     void * m_fun_ctx;
 
     gd_app_module_list_t m_runing_modules;
+
+    struct gd_app_child_context * m_to_parent;
+    gd_app_child_context_list_t m_inline_childs;
+
+#ifdef GD_APP_MULTI_THREAD
+    gd_app_child_context_list_t m_follow_childs;
+#endif
+
 };
 
 struct gd_app_module_type {
