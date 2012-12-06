@@ -7,7 +7,7 @@
 extern "C" {
 #endif
 
-extern gd_app_context_t g_app_context;
+gd_app_context_t gd_app_ins(void);
 error_monitor_t gd_app_em(gd_app_context_t context);
 
 #ifdef __cplusplus

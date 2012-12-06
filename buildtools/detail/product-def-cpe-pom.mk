@@ -75,7 +75,8 @@ define product-def-rule-cpe-pom-c-module-hpp
   $(eval r.$1.$3.cpe-pom.$2.hpp.output:=$($1.cpe-pom.$2.hpp.output))
   $(eval r.$1.$3.cpe-pom.$2.hpp.class-name:=$($1.cpe-pom.$2.hpp.class-name))
   $(eval r.$1.$3.cpe-pom.$2.hpp.namespace:=$($1.cpe-pom.$2.hpp.namespace))
-  $(eval r.$1.$3.cpe-pom.$2.generated.hpp:=$(r.$1.base)/$($1.cpe-pom.$2.hpp.output))
+  $(eval r.$1.$3.cpe-pom.$2.hpp.output-dir:=$(call c-source-dir-to-binary-dir,$(r.$1.base)/$(patsubst %/,%,$(dir $(r.$1.$3.cpe-pom.$2.hpp.output))),$3))
+  $(eval r.$1.$3.cpe-pom.$2.generated.hpp:=$(r.$1.$3.cpe-pom.$2.hpp.output-dir)/$(notdir $($1.cpe-pom.$2.hpp.output)))
 
   $(call c-source-to-object,$(r.$1.c.sources),$3): $(r.$1.$3.cpe-pom.$2.generated.hpp)
 
