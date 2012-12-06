@@ -52,7 +52,7 @@ LogicOpManager::instance(gd_app_context_t app, cpe_hash_string_t name) {
         return *r;
     }
     else {
-        if (app == 0) app = g_app_context;
+        if (app == 0) app = gd_app_ins();
 
         APP_CTX_THROW_EXCEPTION(
             app,
@@ -68,7 +68,7 @@ LogicOpManager::instance(gd_app_context_t app, const char * name) {
         return *r;
     }
     else {
-        if (app == 0) app = g_app_context;
+        if (app == 0) app = gd_app_ins();
 
         APP_CTX_THROW_EXCEPTION(
             app,
@@ -80,7 +80,7 @@ LogicOpManager::instance(gd_app_context_t app, const char * name) {
 
 LogicOpManager *
 LogicOpManager::find(gd_app_context_t app, cpe_hash_string_t name) {
-    if (app == 0) app = g_app_context;
+    if (app == 0) app = gd_app_ins();
 
     logic_manage_t logic_manager =
         name == 0
@@ -92,7 +92,7 @@ LogicOpManager::find(gd_app_context_t app, cpe_hash_string_t name) {
 
 LogicOpManager *
 LogicOpManager::find(gd_app_context_t app, const char * name) {
-    if (app == 0) app = g_app_context;
+    if (app == 0) app = gd_app_ins();
 
     logic_manage_t logic_manager =
         name == 0
