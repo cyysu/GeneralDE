@@ -1,7 +1,7 @@
 #define _GNU_SOURCE
-#include <stdio.h>
 #include <assert.h>
-#include <string.h>
+#include "cpe/pal/pal_string.h"
+#include "cpe/pal/pal_stdio.h"
 #include "cpe/pal/pal_dlfcn.h"
 #include "gd/app/app_library.h"
 #include "app_internal_ops.h"
@@ -13,7 +13,7 @@ struct gd_app_lib {
     TAILQ_ENTRY(gd_app_lib) m_next;
 };
 
-static void * gd_app_default_lib_handler = NULL;
+void * gd_app_default_lib_handler = NULL;
 
 static
 gd_app_lib_list_t g_app_libs = TAILQ_HEAD_INITIALIZER(g_app_libs);

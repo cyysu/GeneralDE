@@ -17,7 +17,6 @@ struct gd_app_module {
     TAILQ_ENTRY(gd_app_module) m_qh_for_runing;
 }; 
 
-
 static
 struct gd_app_module * 
 gd_app_module_create_i(

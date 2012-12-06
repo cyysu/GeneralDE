@@ -76,7 +76,7 @@ int bpg_rsp_addition_data_remove(logic_context_t ctx, uint32_t meta_id) {
     }
 
     element =
-        (uint32_t *)bsearch(
+        (int32_t *)bsearch(
             &meta_id, addition_data->pieces,
             addition_data->count, sizeof(meta_id),
             bpg_rsp_meta_id_cmp);

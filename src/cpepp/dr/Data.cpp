@@ -388,14 +388,14 @@ ConstData::ConstData(const void * data, LPDRMETA meta, size_t capacity)
 ConstData::ConstData(ConstDataElement const & element)
     : m_data(element.data())
     , m_capacity(element.capacity())
-    , m_meta(element.meta())
+    , m_meta(dr_entry_ref_meta(element.entry()))
 {
 }
 
 ConstData::ConstData(DataElement const & element)
     : m_data(element.data())
     , m_capacity(element.capacity())
-    , m_meta(element.meta())
+    , m_meta(dr_entry_ref_meta(element.entry()))
 {
 }
 
