@@ -20,18 +20,19 @@ LogicAsyncOp::LogicAsyncOp(execute_fun_t send_fun, recv_fun_t recv_fun)
 logic_op_exec_result_t LogicAsyncOp::send_op_adapter(logic_context_t ctx, logic_stack_node_t stack_node, void * user_data, cfg_t cfg) {
     LogicAsyncOp * op = (LogicAsyncOp*)user_data;
     logic_executor_t executor = logic_stack_node_executor(stack_node);
+    const char * executor_name = logic_executor_name(executor);
     try {
         logic_op_exec_result_t rv = (op->*(op->m_send_fun))(*(Logic::LogicOpContext*)ctx, *(Logic::LogicOpStackNode*)stack_node, Cpe::Cfg::Node::_cast(cfg));
 
         if (logic_context_flag_is_enable(ctx, logic_context_flag_debug)) {
             APP_CTX_INFO(
-                logic_context_app(ctx), "execute logic op %s: send complete, errno=%d, state=%d",
-                logic_executor_name(executor), logic_context_errno(ctx), logic_context_state(ctx));
+                logic_context_app(ctx), "%s: async send: complete, errno=%d, state=%d",
+                executor_name, logic_context_errno(ctx), logic_context_state(ctx));
         }
 
         return rv;
     }
-    APP_CTX_CATCH_EXCEPTION(logic_context_app(ctx), "%s: send: ", logic_executor_name(executor));
+    APP_CTX_CATCH_EXCEPTION(logic_context_app(ctx), "%s: async send: ", executor_name);
     return logic_op_exec_result_null;
 }
 
@@ -44,6 +45,7 @@ LogicAsyncOp::recv_op_adapter(
 {
     LogicAsyncOp * op = (LogicAsyncOp*)user_data;
     logic_executor_t executor = logic_stack_node_executor(stack_node);
+    const char * executor_name = logic_executor_name(executor);
     try {
         logic_op_exec_result_t rv = (op->*(op->m_recv_fun))(
             *(Logic::LogicOpContext*)ctx,
@@ -53,13 +55,13 @@ LogicAsyncOp::recv_op_adapter(
 
         if (logic_context_flag_is_enable(ctx, logic_context_flag_debug)) {
             APP_CTX_INFO(
-                logic_context_app(ctx), "execute logic op %s: recv complete, errno=%d, state=%d",
-                logic_executor_name(executor), logic_context_errno(ctx), logic_context_state(ctx));
+                logic_context_app(ctx), "%s: async recv: complete, errno=%d, state=%d",
+                executor_name, logic_context_errno(ctx), logic_context_state(ctx));
         }
 
         return rv;
     }
-    APP_CTX_CATCH_EXCEPTION(logic_context_app(ctx), "%s: recv: ", logic_executor_name(executor));
+    APP_CTX_CATCH_EXCEPTION(logic_context_app(ctx), "%s: async recv: ", executor_name);
     return logic_op_exec_result_null;
 }
 
