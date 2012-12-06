@@ -36,7 +36,7 @@ LogicOpTypeGroup::instance(gd_app_context_t app, cpe_hash_string_t name) {
         return *r;
     }
     else {
-        if (app == 0) app = g_app_context;
+        if (app == 0) app = gd_app_ins();
 
         APP_CTX_THROW_EXCEPTION(
             app,
@@ -52,7 +52,7 @@ LogicOpTypeGroup::instance(gd_app_context_t app, const char * name) {
         return *r;
     }
     else {
-        if (app == 0) app = g_app_context;
+        if (app == 0) app = gd_app_ins();
 
         APP_CTX_THROW_EXCEPTION(
             app,
@@ -64,7 +64,7 @@ LogicOpTypeGroup::instance(gd_app_context_t app, const char * name) {
 
 LogicOpTypeGroup *
 LogicOpTypeGroup::find(gd_app_context_t app, cpe_hash_string_t name) {
-    if (app == 0) app = g_app_context;
+    if (app == 0) app = gd_app_ins();
 
     logic_executor_type_group_t type_group =
         name == 0
@@ -76,7 +76,7 @@ LogicOpTypeGroup::find(gd_app_context_t app, cpe_hash_string_t name) {
 
 LogicOpTypeGroup *
 LogicOpTypeGroup::find(gd_app_context_t app, const char * name) {
-    if (app == 0) app = g_app_context;
+    if (app == 0) app = gd_app_ins();
 
     logic_executor_type_group_t type_group =
         name == 0

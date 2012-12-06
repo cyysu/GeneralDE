@@ -16,7 +16,7 @@ ios.LDFLAGS.share:=--shared
 
 ios.default-lib-type:=static
 ios.make-static-lib-name=lib$1.a
-ios.make-dynamic-lib-name=lib$1.so
+ios.make-dynamic-lib-name=lib$1.dylib
 ios.make-executable-name=$1
 ios.export-symbols=$(addprefix -u ,$(foreach m,$1,_$m))
 

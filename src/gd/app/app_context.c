@@ -165,5 +165,3 @@ gd_app_status_t gd_app_state(gd_app_context_t context) {
     return context->m_state;
 }
 
-gd_app_context_t g_app_context = NULL;
-

@@ -8,9 +8,8 @@
 extern "C" {
 #endif
 
-extern gd_app_context_t g_app_context;
-
-gd_app_context_t gd_app_context_create(
+gd_app_context_t
+gd_app_context_create_main(
     mem_allocrator_t alloc, size_t capacity,
     int argc, char ** argv);
 
