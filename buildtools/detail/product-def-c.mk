@@ -172,9 +172,7 @@ $(eval r.$1.cleanup+=$(call c-source-to-object,$(r.$1.c.sources) $(r.$1.$($3.env
                      $(CPDE_OUTPUT_ROOT)/$(r.$1.$3.product) \
 )
 
-$(eval r.$1.c.linker:=$(call product-def-c-select-linker, $(suffix $(r.$1.c.sources) $(r.$1.$($3.env).c.sources) $(r.$1.$3.c.sources))))
-
-$(call assert-not-null,r.$1.c.sources)
+$(eval r.$1.c.linker:=$(if $($1.c.linker),$($1.c.linker),$(call product-def-c-select-linker, $(suffix $(r.$1.c.sources) $(r.$1.$($3.env).c.sources) $(r.$1.$3.c.sources)))))
 
 auto-build-dirs += $(call c-source-dir-to-binary-dir,$(sort $(dir $(r.$1.c.sources) $(r.$1.$($3.env).c.sources) $(r.$1.$3.c.sources))) $(r.$1.base),$3)
 auto-build-dirs += $(dir $(CPDE_OUTPUT_ROOT)/$(r.$1.$3.product))
