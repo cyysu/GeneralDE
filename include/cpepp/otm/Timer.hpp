@@ -11,7 +11,7 @@ class Timer : public Cpe::Utils::SimulateObject {
 public:
     operator otm_timer_t (void) const { return (otm_timer_t)(this); }
     
-    bool autoEnable(void) const { return otm_timer_auto_enable(*this); }
+    bool autoEnable(void) const { return otm_timer_auto_enable(*this) ? true : false; }
     void setAautoEnable(bool b) const { return otm_timer_set_auto_enable(*this, b ? 1 : 0); }
 
     void enable(uint32_t cur_time_s, otm_memo_t memo, uint32_t first_exec_span_s = 0) {
