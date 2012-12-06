@@ -1,3 +1,4 @@
+#include "gd/app/app_basic.h"
 #include "gdpp/app/Log.hpp"
 #include "gdpp/app/Application.hpp"
 
@@ -5,11 +6,12 @@ namespace Gd { namespace App {
 
 Application &
 Application::instance(void) {
-    if (g_app_context == NULL) {
+    gd_app_context_t ins = gd_app_ins();
+    if (ins == NULL) {
         throw ::std::runtime_error("Application have not been created!");
     }
 
-    return *(Application*)g_app_context;
+    return *(Application*)ins;
 }
 
 Application &
