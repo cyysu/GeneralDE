@@ -13,11 +13,13 @@ extern "C" {
 CPE_DR_API int dr_create_lib_from_xml(
     mem_buffer_t buffer,
     const char* buf, int bufSize,
+    uint8_t dft_align,
     FILE* errorFp);
 
 CPE_DR_API int dr_create_lib_from_xml_ex(
     mem_buffer_t buffer,
     const char* buf, int bufSize,
+    uint8_t dft_align,
     error_monitor_t er);
 
 CPE_DR_API int dr_save_lib_to_xml_file(

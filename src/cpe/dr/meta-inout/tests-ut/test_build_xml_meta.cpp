@@ -9,7 +9,7 @@ TEST_F(BuildFromXmlMetaTest, struct_data) {
         0,
         parseMeta(
             "<metalib tagsetversion='1' name='net'  version='10'>"
-            "    <struct name='PkgHead' desc='PkgHead.desc' version='1' id='33'>"
+            "    <struct name='PkgHead' desc='PkgHead.desc' version='1' id='33' align='1'>"
             "	     <entry name='a1' type='int8'/>"
             "    </struct>"
             "</metalib>"
@@ -35,7 +35,7 @@ TEST_F(BuildFromXmlMetaTest, id_use_macro) {
         parseMeta(
             "<metalib tagsetversion='1' name='net'  version='10'>"
             "    <macro name='macro_1' value='100'/>"
-            "    <struct name='PkgHead' desc='PkgHead.desc' version='1' id='macro_1'/>"
+            "    <struct name='PkgHead' desc='PkgHead.desc' version='1' id='macro_1' align='1'/>"
             "</metalib>"
             ));
 
@@ -48,7 +48,7 @@ TEST_F(BuildFromXmlMetaTest, struct_no_entry) {
         CPE_DR_ERROR_META_NO_ENTRY,
         parseMeta(
             "<metalib tagsetversion='1' name='net'  version='10'>"
-            "    <struct name='PkgHead' desc='PkgHead.desc' version='1' id='33'/>"
+            "    <struct name='PkgHead' desc='PkgHead.desc' version='1' id='33' align='1'/>"
             "</metalib>"
             ));
 }
@@ -58,7 +58,7 @@ TEST_F(BuildFromXmlMetaTest, union_data) {
         0,
         parseMeta(
             "<metalib tagsetversion='1' name='net'  version='10'>"
-            "    <union name='PkgHead' desc='PkgHead.desc' version='1' id='33'>"
+            "    <union name='PkgHead' desc='PkgHead.desc' version='1' id='33' align='1'>"
             "	     <entry name='a1' type='int8'/>"
             "    </union>"
             "</metalib>"
