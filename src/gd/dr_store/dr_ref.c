@@ -11,6 +11,9 @@ dr_ref_create(dr_store_manage_t mgr, const char * name) {
     dr_ref_t dr_ref;
     dr_store_t dr_store;
 
+    assert(mgr);
+    if (mgr == NULL) return NULL;
+
     dr_store = dr_store_find_or_create(mgr, name);
     if (dr_store == NULL) return NULL;
 

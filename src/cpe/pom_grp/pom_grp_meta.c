@@ -18,13 +18,14 @@ pom_grp_meta_create(
     pom_grp_meta_t meta;
 
     name_len = strlen(name) + 1;
+    CPE_PAL_ALIGN_DFT(name_len);
 
-    buf = mem_alloc(alloc, CPE_PAL_ALIGN(name_len) + sizeof(struct pom_grp_meta));
+    buf = mem_alloc(alloc, name_len + sizeof(struct pom_grp_meta));
     if (buf == NULL) return NULL;
 
     memcpy(buf, name, name_len);
 
-    meta = (pom_grp_meta_t)(buf + CPE_PAL_ALIGN(name_len));
+    meta = (pom_grp_meta_t)(buf + name_len);
     meta->m_alloc = alloc;
     meta->m_name = buf;
     meta->m_omm_page_size = omm_page_size;

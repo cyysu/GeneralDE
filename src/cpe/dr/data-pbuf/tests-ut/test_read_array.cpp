@@ -3,7 +3,7 @@
 TEST_F(ReadTest, array_uin32) {
     installMeta(
         "<metalib tagsetversion='1' name='net'  version='1'>"
-        "    <struct name='S' version='1'>"
+        "    <struct name='S' version='1' align='4'>"
         "	     <entry name='a1' type='uint32' id='1' count='5'/>"
         "    </struct>"
         "</metalib>"
@@ -21,7 +21,7 @@ TEST_F(ReadTest, array_uin32) {
 TEST_F(ReadTest, array_uin64) {
     installMeta(
         "<metalib tagsetversion='1' name='net'  version='1'>"
-        "    <struct name='S' version='1'>"
+        "    <struct name='S' version='1' align='1'>"
         "	     <entry name='a1' type='uint64' id='1' count='5'/>"
         "    </struct>"
         "</metalib>"
@@ -39,7 +39,7 @@ TEST_F(ReadTest, array_uin64) {
 TEST_F(ReadTest, array_with_refer_uin32) {
     installMeta(
         "<metalib tagsetversion='1' name='net'  version='1'>"
-        "    <struct name='S' version='1'>"
+        "    <struct name='S' version='1' align='4'>"
         "        <entry name='count' type='int32'/>"
         "	     <entry name='a1' type='uint32' id='1' count='5' refer='count'/>"
         "    </struct>"
@@ -47,7 +47,7 @@ TEST_F(ReadTest, array_with_refer_uin32) {
         );
 
     t_em_set_print();
-    EXPECT_EQ(20, read("S", "a1: [1, 2, 3, 4]"));
+    EXPECT_EQ(24, read("S", "a1: [1, 2, 3, 4]"));
 
     EXPECT_CFG_EQ(
         "count: 4\n"
@@ -59,7 +59,7 @@ TEST_F(ReadTest, array_with_refer_uin32) {
 TEST_F(ReadTest, array_in32) {
     installMeta(
         "<metalib tagsetversion='1' name='net'  version='1'>"
-        "    <struct name='S' version='1'>"
+        "    <struct name='S' version='1' align='1'>"
         "	     <entry name='a1' type='int32' id='1' count='5'/>"
         "    </struct>"
         "</metalib>"
@@ -77,7 +77,7 @@ TEST_F(ReadTest, array_in32) {
 TEST_F(ReadTest, array_uint8) {
     installMeta(
         "<metalib tagsetversion='1' name='net'  version='1'>"
-        "    <struct name='S' version='1'>"
+        "    <struct name='S' version='1' align='1'>"
         "	     <entry name='a1' type='uint8' id='1' count='5'/>"
         "    </struct>"
         "</metalib>"
@@ -95,7 +95,7 @@ TEST_F(ReadTest, array_uint8) {
 TEST_F(ReadTest, array_with_refer_uint8) {
     installMeta(
         "<metalib tagsetversion='1' name='net'  version='1'>"
-        "    <struct name='S' version='1'>"
+        "    <struct name='S' version='1' align='1'>"
         "        <entry name='count' type='uint8'/>"
         "	     <entry name='a1' type='uint8' id='1' count='5' refer='count'/>"
         "    </struct>"
@@ -103,7 +103,7 @@ TEST_F(ReadTest, array_with_refer_uint8) {
         );
 
     t_em_set_print();
-    EXPECT_EQ(5, read("S", "a1: [1, 2, 3, 4]"));
+    EXPECT_EQ(6, read("S", "a1: [1, 2, 3, 4]"));
 
     EXPECT_CFG_EQ(
         "count: 4\n"
@@ -115,7 +115,7 @@ TEST_F(ReadTest, array_with_refer_uint8) {
 TEST_F(ReadTest, array_with_refer_uint8_dyn_len) {
     installMeta(
         "<metalib tagsetversion='1' name='net'  version='1'>"
-        "    <struct name='S' version='1'>"
+        "    <struct name='S' version='1' align='1'>"
         "        <entry name='count' type='uint8'/>"
         "	     <entry name='a1' type='uint8' id='1' count='0' refer='count'/>"
         "    </struct>"
@@ -135,7 +135,7 @@ TEST_F(ReadTest, array_with_refer_uint8_dyn_len) {
 TEST_F(ReadTest, array_with_refer_uint8_dyn_len_empty) {
     installMeta(
         "<metalib tagsetversion='1' name='net'  version='1'>"
-        "    <struct name='S' version='1'>"
+        "    <struct name='S' version='1' align='1'>"
         "        <entry name='count' type='uint8'/>"
         "	     <entry name='a1' type='uint8' id='1' count='0' refer='count'/>"
         "    </struct>"
@@ -143,7 +143,7 @@ TEST_F(ReadTest, array_with_refer_uint8_dyn_len_empty) {
         );
 
     t_em_set_print();
-    EXPECT_EQ(1, read("S", "a1: []"));
+    EXPECT_EQ(2, read("S", "a1: []"));
 
     EXPECT_CFG_EQ(
         "count: 0\n"
@@ -155,7 +155,7 @@ TEST_F(ReadTest, array_with_refer_uint8_dyn_len_empty) {
 TEST_F(ReadTest, array_empty) {
     installMeta(
         "<metalib tagsetversion='1' name='net'  version='1'>"
-        "    <struct name='S' version='1'>"
+        "    <struct name='S' version='1' align='1'>"
         "        <entry name='count' type='uint8'/>"
         "	     <entry name='a1' type='uint8' id='1' count='5' refer='count'/>"
         "    </struct>"
@@ -163,7 +163,7 @@ TEST_F(ReadTest, array_empty) {
         );
 
     t_em_set_print();
-    EXPECT_EQ(1, read("S", "a1: []"));
+    EXPECT_EQ(6, read("S", "a1: []"));
 
     EXPECT_CFG_EQ(
         "count: 0\n"
@@ -175,7 +175,7 @@ TEST_F(ReadTest, array_empty) {
 TEST_F(ReadTest, array_float) {
     installMeta(
         "<metalib tagsetversion='1' name='net'  version='1'>"
-        "    <struct name='S' version='1'>"
+        "    <struct name='S' version='1' align='1'>"
         "	     <entry name='a1' type='float' id='1' count='5'/>"
         "    </struct>"
         "</metalib>"
@@ -193,7 +193,7 @@ TEST_F(ReadTest, array_float) {
 TEST_F(ReadTest, array_double) {
     installMeta(
         "<metalib tagsetversion='1' name='net'  version='1'>"
-        "    <struct name='S' version='1'>"
+        "    <struct name='S' version='1' align='1'>"
         "	     <entry name='a1' type='double' id='1' count='5'/>"
         "    </struct>"
         "</metalib>"
@@ -211,7 +211,7 @@ TEST_F(ReadTest, array_double) {
 TEST_F(ReadTest, array_string) {
     installMeta(
         "<metalib tagsetversion='1' name='net'  version='1'>"
-        "    <struct name='S' version='1'>"
+        "    <struct name='S' version='1' align='1'>"
         "	     <entry name='a1' type='string' size='7' id='1' count='5'/>"
         "    </struct>"
         "</metalib>"
@@ -230,16 +230,16 @@ TEST_F(ReadTest, array_string) {
 TEST_F(ReadTest, array_struct) {
     installMeta(
         "<metalib tagsetversion='1' name='net'  version='1'>"
-        "    <struct name='I' version='1'>"
+        "    <struct name='I' version='1' align='8'>"
         "	     <entry name='a1' type='uint32' id='1'/>"
         "    </struct>"
-        "    <struct name='S' version='1'>"
+        "    <struct name='S' version='1' align='8'>"
         "	     <entry name='b1' type='I' id='1' count='2'/>"
         "    </struct>"
         "</metalib>"
         );
 
-    EXPECT_EQ(8, read("S", "b1: [ { a1: 150 }, { a1: 151 } ]"));
+    EXPECT_EQ(metaSize("S"), read("S", "b1: [ { a1: 150 }, { a1: 151 } ]"));
 
     EXPECT_CFG_EQ(
         "b1: [ { a1: 150 }, { a1: 151 } ]"
@@ -250,10 +250,10 @@ TEST_F(ReadTest, array_struct) {
 TEST_F(ReadTest, array_struct_with_refer) {
     installMeta(
         "<metalib tagsetversion='1' name='net'  version='1'>"
-        "    <struct name='I' version='1'>"
+        "    <struct name='I' version='1' align='1'>"
         "	     <entry name='a1' type='uint32' id='1'/>"
         "    </struct>"
-        "    <struct name='S' version='1'>"
+        "    <struct name='S' version='1' align='1'>"
         "        <entry name='count' type='int32'/>"
         "	     <entry name='b1' type='I' id='1' count='2' refer='count'/>"
         "    </struct>"
@@ -272,17 +272,17 @@ TEST_F(ReadTest, array_struct_with_refer) {
 TEST_F(ReadTest, array_struct_with_refer_empty) {
     installMeta(
         "<metalib tagsetversion='1' name='net'  version='1'>"
-        "    <struct name='I' version='1'>"
+        "    <struct name='I' version='1' align='1'>"
         "	     <entry name='a1' type='uint32' id='1'/>"
         "    </struct>"
-        "    <struct name='S' version='1'>"
+        "    <struct name='S' version='1' align='1'>"
         "        <entry name='count' type='int32'/>"
         "	     <entry name='b1' type='I' id='1' count='0' refer='count'/>"
         "    </struct>"
         "</metalib>"
         );
 
-    EXPECT_EQ(0, read("S", "b1: [ ]"));
+    EXPECT_EQ(8, read("S", "b1: [ ]"));
 
     EXPECT_CFG_EQ(
         "count: 0\n"
