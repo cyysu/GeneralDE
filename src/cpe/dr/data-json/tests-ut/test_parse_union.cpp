@@ -125,11 +125,11 @@ TEST_F(ParseTest, type_union_root) {
 TEST_F(ParseTest, type_union_selector_basic) {
     installMeta(
         "<metalib tagsetversion='1' name='net'  version='1'>"
-        "    <union name='S' version='1'>"
+        "    <union name='S' version='1' align='1'>"
         "	     <entry name='a1' type='int16' id='3'/>"
         "	     <entry name='a2' type='int32' id='4'/>"
         "    </union>"
-        "    <struct name='S2' version='1'>"
+        "    <struct name='S2' version='1' align='1'>"
         "	     <entry name='s' type='int16'/>"
         "	     <entry name='u' type='S' select='s'/>"
         "    </struct>"
@@ -147,7 +147,7 @@ TEST_F(ParseTest, type_union_selector_basic) {
 #pragma pack(pop)
 
     ASSERT_EQ(
-        4,
+        sizeof(T),
         read("{ \"s\" : 3, \"u\" : { \"a1\" : 12, \"a2\" : 13 } }", "S2"));
 
     struct T * r = (struct T*)result();
@@ -160,14 +160,14 @@ TEST_F(ParseTest, type_union_selector_basic) {
 TEST_F(ParseTest, type_union_selector_in_sub) {
     installMeta(
         "<metalib tagsetversion='1' name='net'  version='1'>"
-        "    <struct name='Select' version='1'>"
+        "    <struct name='Select' version='1' align='1'>"
         "	     <entry name='v' type='int16' id='3'/>"
         "    </struct>"
-        "    <union name='S' version='1'>"
+        "    <union name='S' version='1' align='1'>"
         "	     <entry name='a1' type='int16' id='3'/>"
         "	     <entry name='a2' type='int32' id='4'/>"
         "    </union>"
-        "    <struct name='S2' version='1'>"
+        "    <struct name='S2' version='1' align='1'>"
         "	     <entry name='s' type='Select'/>"
         "	     <entry name='u' type='S' select='s.v'/>"
         "    </struct>"
@@ -185,7 +185,7 @@ TEST_F(ParseTest, type_union_selector_in_sub) {
 #pragma pack(pop)
 
     ASSERT_EQ(
-        4,
+        sizeof(T),
         read("{ \"s\" : { \"v\": 3 }, \"u\" : { \"a1\" : 12, \"a2\" : 13 } }", "S2"));
 
     struct T * r = (struct T*)result();

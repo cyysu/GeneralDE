@@ -18,21 +18,28 @@ int pom_grp_obj_mgr_buf_init(
     struct pom_grp_obj_control_data * control;
     pom_mgr_t omm;
 
+    size_t base_size;
+    size_t bin_size;
+    size_t lib_size;
     size_t total_head_size;
+    size_t size_tmp;
 
-    total_head_size
-        = CPE_PAL_ALIGN(sizeof(struct pom_grp_obj_control_data))
-        + CPE_PAL_ALIGN(pom_grp_meta_calc_bin_size(meta))
-        + CPE_PAL_ALIGN(dr_lib_size(metalib));
+    base_size = sizeof(struct pom_grp_obj_control_data);
+    CPE_PAL_ALIGN_DFT(base_size);
+
+    bin_size = pom_grp_meta_calc_bin_size(meta);
+    CPE_PAL_ALIGN_DFT(bin_size);
+
+    lib_size = dr_lib_size(metalib);
+    CPE_PAL_ALIGN_DFT(lib_size);
+
+    total_head_size = base_size + bin_size + lib_size;
 
     if (total_head_size >= data_capacity) {
         CPE_ERROR(
             em, "pom_grp_obj_mgr_create_by_init: data buf too small! require "FMT_SIZE_T", but only "FMT_SIZE_T""
             ": control size "FMT_SIZE_T", om-meta size "FMT_SIZE_T", metalib size "FMT_SIZE_T"",
-            total_head_size, data_capacity,
-            sizeof(struct pom_grp_obj_control_data),
-            CPE_PAL_ALIGN(pom_grp_meta_calc_bin_size(meta)),
-            CPE_PAL_ALIGN(dr_lib_size(metalib)));
+            total_head_size, data_capacity, base_size, bin_size, lib_size);
         return -1;
     }
 
@@ -41,15 +48,21 @@ int pom_grp_obj_mgr_buf_init(
     control->m_magic = OM_GRP_OBJ_CONTROL_MAGIC;
     control->m_head_version = 1;
 
-    control->m_objmeta_start = CPE_PAL_ALIGN(sizeof(struct pom_grp_obj_control_data));
+    size_tmp = sizeof(struct pom_grp_obj_control_data);
+    CPE_PAL_ALIGN_DFT(size_tmp);
+    control->m_objmeta_start = size_tmp;
     control->m_objmeta_size = pom_grp_meta_calc_bin_size(meta);
     pom_grp_meta_write_to_bin(((char *)data) + control->m_objmeta_start, control->m_objmeta_size, meta);
 
-    control->m_metalib_start = control->m_objmeta_start + CPE_PAL_ALIGN(control->m_objmeta_size);
+    size_tmp = control->m_objmeta_size;
+    CPE_PAL_ALIGN_DFT(size_tmp);
+    control->m_metalib_start = control->m_objmeta_start + size_tmp;
     control->m_metalib_size = dr_lib_size(metalib);
     memcpy(((char *)data) + control->m_metalib_start, (void *)metalib, control->m_metalib_size);
 
-    control->m_data_start = control->m_metalib_start + CPE_PAL_ALIGN(control->m_metalib_size);
+    size_tmp = control->m_metalib_size;
+    CPE_PAL_ALIGN_DFT(size_tmp);
+    control->m_data_start = control->m_metalib_start + size_tmp;
     control->m_data_size = data_capacity - control->m_data_start;
     bzero(((char *)data) + control->m_data_start, control->m_data_size);
 

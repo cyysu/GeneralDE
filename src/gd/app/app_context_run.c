@@ -10,17 +10,6 @@
 #include "gd/app/app_tl.h"
 #include "app_internal_ops.h"
 
-static int gd_app_chdir_to_root(gd_app_context_t context) {
-    if (context->m_root) {
-        if (chdir(context->m_root) != 0) {
-            CPE_ERROR(gd_app_em(context), "change root to %s fail!", context->m_root);
-            return -1;
-        }
-    }
-
-    return 0;
-}
-
 static int gd_app_run_i(gd_app_context_t context) {
     int rv;
 
@@ -123,6 +112,7 @@ int gd_app_stop(gd_app_context_t context) {
 
 int gd_app_notify_stop(gd_app_context_t context) {
     context->m_notify_stop = 1;
+    return 0;
 }
 
 void gd_app_tick(gd_app_context_t context) {

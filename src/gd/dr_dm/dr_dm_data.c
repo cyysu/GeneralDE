@@ -157,7 +157,7 @@ dr_dm_data_t dr_dm_data_find_by_id(dr_dm_manage_t mgr, dr_dm_data_id_t id) {
     key = dr_dm_manage_key_buf(mgr);
 
     if (dr_entry_set_from_uint64(
-            (char*)dr_dm_data_data(key) + dr_entry_data_start_pos(mgr->m_id_index->m_entry)
+            (char*)dr_dm_data_data(key) + dr_entry_data_start_pos(mgr->m_id_index->m_entry, 0)
             , id, mgr->m_id_index->m_entry, NULL) != 0)
         return NULL;
 
@@ -180,7 +180,7 @@ dr_dm_data_t dr_dm_data_find_by_id(dr_dm_manage_t mgr, dr_dm_data_id_t id) {
         key = dr_dm_manage_key_buf(mgr);                              \
         if (dr_entry_set_from_ ## __type_name(                          \
                 (char *)dr_dm_data_data(key)                            \
-                + dr_entry_data_start_pos(index->m_entry),              \
+                + dr_entry_data_start_pos(index->m_entry, 0),              \
                 input, index->m_entry, NULL) != 0)                      \
         {                                                               \
             return NULL;                                                \
