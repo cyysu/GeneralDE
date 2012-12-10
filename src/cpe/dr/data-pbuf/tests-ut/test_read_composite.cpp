@@ -113,22 +113,21 @@ TEST_F(ReadTest, union_no_select) {
 TEST_F(ReadTest, struct_array) {
     installMeta(
         "<metalib tagsetversion='1' name='net'  version='1'>"
-        "    <union name='U1' version='1'>"
+        "    <union name='U1' version='1' align='1'>"
         "	     <entry name='a1' type='uint32' id='1'/>"
         "	     <entry name='a2' type='uint32' id='2'/>"
         "    </union>"
-        "    <struct name='S2' version='1'>"
+        "    <struct name='S2' version='1' align='1'>"
         "	     <entry name='type' type='uint16' id='1'/>"
         "	     <entry name='b1' type='U1' id='2' select='type'/>"
         "    </struct>"
-        "    <struct name='A' version='1'>"
+        "    <struct name='A' version='1' align='1'>"
         "	     <entry name='count' type='uint16'/>"
         "	     <entry name='data' type='S2' id='1' count='0' refer='count'/>"
         "    </struct>"
         "</metalib>"
         );
 
-    t_em_set_print();
     EXPECT_EQ(8, read("A", "data: [ { type: 1, b1: { a1: 150 } } ]"));
     
     EXPECT_CFG_EQ(
