@@ -253,7 +253,7 @@ static void dr_build_xml_process_meta(
     }
 
     newMeta->m_data.m_type = metaType;
-    newMeta->m_data.m_align = 1;
+    newMeta->m_data.m_align = ctx->m_metaLib->m_dft_align;
 
     for(index = 0, indexAttribute = 0;
         indexAttribute < nb_attributes && !haveError;
@@ -718,11 +718,12 @@ int  dr_create_lib_from_xml(
     mem_buffer_t buffer,
     const char* buf,
     int bufSize,
+    uint8_t dft_align,
     FILE * errorFp)
 {
     CPE_DEF_ERROR_MONITOR(em, cpe_error_log_to_file, errorFp);
 
-    return dr_create_lib_from_xml_ex(buffer, buf, bufSize, &em);
+    return dr_create_lib_from_xml_ex(buffer, buf, bufSize, dft_align, &em);
 }
 
 void dr_metalib_source_analize_xml(
@@ -754,6 +755,7 @@ void dr_create_lib_from_xml_ex_i(
     const char* buf,
     int bufSize,
     int * ret,
+    uint8_t dft_align,
     error_monitor_t em)
 {
     struct DRInBuildMetaLib * inbuild_lib;
@@ -763,6 +765,8 @@ void dr_create_lib_from_xml_ex_i(
         *ret = -1;
         return;
     }
+
+    dr_inbuild_set_dft_align(inbuild_lib, dft_align);
 
     dr_metalib_source_analize_xml(NULL, inbuild_lib, buf, bufSize, em);
 
@@ -775,18 +779,19 @@ int dr_create_lib_from_xml_ex(
     mem_buffer_t buffer,
     const char* buf,
     int bufSize,
+    uint8_t dft_align,
     error_monitor_t em)
 {
     int ret = 0;
 
     if (em) {
         CPE_DEF_ERROR_MONITOR_ADD(logError, em, cpe_error_save_last_errno, &ret);
-        dr_create_lib_from_xml_ex_i(buffer, buf, bufSize, &ret, em);
+        dr_create_lib_from_xml_ex_i(buffer, buf, bufSize, &ret, dft_align, em);
         CPE_DEF_ERROR_MONITOR_REMOVE(logError, em);
     }
     else {
         CPE_DEF_ERROR_MONITOR(logError, cpe_error_save_last_errno, &ret);
-        dr_create_lib_from_xml_ex_i(buffer, buf, bufSize, &ret, &logError);
+        dr_create_lib_from_xml_ex_i(buffer, buf, bufSize, &ret, dft_align, &logError);
     }
 
     return ret;

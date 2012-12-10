@@ -1,3 +1,4 @@
+#include "cpe/utils/tests-env/with_em.hpp"
 #include "cpe/dr/dr_metalib_manage.h"
 #include "cpe/dr/dr_metalib_xml.h"
 #include "gd/app/tests-env/with_app.hpp"
@@ -30,17 +31,13 @@ void with_dr_store::TearDown() {
     Base::TearDown();
 }
 
-void with_dr_store::t_dr_store_install(const char * name, const char * def) {
+void with_dr_store::t_dr_store_install(const char * name, const char * def, uint8_t dft_align) {
     struct mem_buffer buffer;
     mem_buffer_init(&buffer, t_tmp_allocrator());
 
     EXPECT_EQ(
         0,
-        dr_create_lib_from_xml_ex(
-            &buffer,
-            def,
-            strlen(def),
-            NULL));
+        dr_create_lib_from_xml_ex(&buffer, def, strlen(def), dft_align, envOf<utils::testenv::with_em>().t_em()));
 
     dr_store_t dr_store = dr_store_create(m_dr_store_mgr, name);
     ASSERT_TRUE(dr_store) << "crate dr_store " << name << " fail!";
@@ -50,24 +47,34 @@ void with_dr_store::t_dr_store_install(const char * name, const char * def) {
         dr_store_set_lib(dr_store, (LPDRMETALIB)mem_buffer_make_continuous(&buffer, 0), NULL, NULL));
 }
 
-void with_dr_store::t_dr_store_reset(const char * name, const char * def) {
+void with_dr_store::t_dr_store_install(const char * libname, LPDRMETALIB metalib) {
+    dr_store_t dr_store = dr_store_create(m_dr_store_mgr, libname);
+    ASSERT_TRUE(dr_store) << "crate dr_store " << libname << " fail!";
+
+    EXPECT_EQ(
+        0, 
+        dr_store_set_lib(dr_store, metalib, NULL, NULL));
+}
+
+void with_dr_store::t_dr_store_reset(const char * name, const char * def, uint8_t dft_align) {
     struct mem_buffer buffer;
     mem_buffer_init(&buffer, t_tmp_allocrator());
 
     EXPECT_EQ(
         0,
-        dr_create_lib_from_xml_ex(
-            &buffer,
-            def,
-            strlen(def),
-            NULL));
+        dr_create_lib_from_xml_ex(&buffer, def, strlen(def), dft_align, envOf<utils::testenv::with_em>().t_em()));
 
     dr_store_t dr_store = dr_store_find_or_create(m_dr_store_mgr, name);
     ASSERT_TRUE(dr_store) << "find or crate dr_store " << name << " fail!";
 
-    EXPECT_EQ(
-        0, 
-        dr_store_set_lib(dr_store, (LPDRMETALIB)mem_buffer_make_continuous(&buffer, 0), NULL, NULL));
+    dr_store_reset_lib(dr_store, (LPDRMETALIB)mem_buffer_make_continuous(&buffer, 0), NULL, NULL);
+}
+
+void with_dr_store::t_dr_store_reset(const char * libname, LPDRMETALIB metalib) {
+    dr_store_t dr_store = dr_store_find_or_create(m_dr_store_mgr, libname);
+    ASSERT_TRUE(dr_store) << "find or crate dr_store " << libname << " fail!";
+
+    dr_store_reset_lib(dr_store, metalib, NULL, NULL);
 }
 
 LPDRMETALIB with_dr_store::t_metalib(const char * libname) {

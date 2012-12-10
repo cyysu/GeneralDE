@@ -19,6 +19,7 @@ define product-def-rule-cpe-dr-c-module-validate
 	$$(call with_message,cpe-dr validate dr lib $2 ...) \
 	LD_LIBRARY_PATH=$(CPDE_OUTPUT_ROOT)/$(tools.output)/lib:$$$$LD_LIBRARY_PATH \
 	$(cpe-dr-tool) $(addprefix --validate ,$($1.cpe-dr.$2.validate)) \
+                   $(addprefix --align ,$(r.$1.$3.cpe-dr.$2.align)) \
                    $(addprefix -i ,$(r.$1.$3.cpe-dr.$2.source)) | tee $(r.$1.$3.cpe-dr.$2.generated.validate)
 
 endef
@@ -31,7 +32,8 @@ define product-def-rule-cpe-dr-c-module-traits-cpp
   $(r.$1.$3.cpe-dr.$2.generated.traits.cpp): $(r.$1.$3.cpe-dr.$2.source) $(cpe-dr-tool) $(r.$1.$3.cpe-dr.$2.generated.h)
 	$$(call with_message,cpe-dr generaing traits-cpp to $(subst $(CPDE_ROOT)/,,$(r.$1.$3.cpe-dr.$2.generated.traits.cpp)) ...) \
 	LD_LIBRARY_PATH=$(CPDE_OUTPUT_ROOT)/$(tools.output)/lib:$$$$LD_LIBRARY_PATH \
-	$(cpe-dr-tool) $(addprefix -i ,$(r.$1.$3.cpe-dr.$2.source)) \
+	$(cpe-dr-tool) $(addprefix --align ,$(r.$1.$3.cpe-dr.$2.align)) \
+                   $(addprefix -i ,$(r.$1.$3.cpe-dr.$2.source)) \
                    --output-traits-cpp $$@ --output-lib-c-arg $($1.cpe-dr.$2.c.arg-name)
 
 endef
@@ -58,7 +60,8 @@ define product-def-rule-cpe-dr-c-module-h
   $(r.$1.$3.cpe-dr.$2.generated.h): $(r.$1.$3.cpe-dr.$2.source) 
 	$$(call with_message,cpe-dr generaing h to $(subst $(CPDE_ROOT)/,,$(r.$1.$3.cpe-dr.$2.h.output-dir)) ...) \
 	LD_LIBRARY_PATH=$(CPDE_OUTPUT_ROOT)/$(tools.output)/lib:$$$$LD_LIBRARY_PATH \
-	$(cpe-dr-tool) $(addprefix -i ,$(r.$1.$3.cpe-dr.$2.source)) \
+	$(cpe-dr-tool) $(addprefix --align ,$(r.$1.$3.cpe-dr.$2.align)) \
+                   $(addprefix -i ,$(r.$1.$3.cpe-dr.$2.source)) \
                    --output-h $(r.$1.$3.cpe-dr.$2.h.output-dir) $(if $($1.cpe-dr.$2.h.with-traits),--with-traits)
 
   $(if $($1.cpe-dr.$2.h.with-traits),$(call product-def-rule-cpe-dr-c-module-traits-cpp,$1,$2,$3,$4,$5),)
@@ -81,7 +84,8 @@ define product-def-rule-cpe-dr-c-module-c
   $(r.$1.$3.cpe-dr.$2.generated.c): $(r.$1.$3.cpe-dr.$2.source) $(cpe-dr-tool)
 	$$(call with_message,cpe-dr generaing lib-c to $(subst $(CPDE_ROOT)/,,$(r.$1.$3.cpe-dr.$2.generated.c)) ...) \
 	LD_LIBRARY_PATH=$(CPDE_OUTPUT_ROOT)/$(tools.output)/lib:$$$$LD_LIBRARY_PATH \
-	$(cpe-dr-tool) $(addprefix -i ,$(r.$1.$3.cpe-dr.$2.source)) \
+	$(cpe-dr-tool) $(addprefix --align ,$(r.$1.$3.cpe-dr.$2.align)) \
+                   $(addprefix -i ,$(r.$1.$3.cpe-dr.$2.source)) \
                    --output-lib-c $$@ --output-lib-c-arg $($1.cpe-dr.$2.c.arg-name)
 
 endef
@@ -107,7 +111,8 @@ define product-def-rule-cpe-dr-c-module-bin
   $(r.$1.$3.cpe-dr.$2.generated.bin): $(r.$1.$3.cpe-dr.$2.source) 
 	$$(call with_message,cpe-dr generaing bin to $(subst $(CPDE_ROOT)/,,$(r.$1.$3.cpe-dr.$2.generated.bin)) ...) \
 	LD_LIBRARY_PATH=$(CPDE_OUTPUT_ROOT)/$(tools.output)/lib:$$$$LD_LIBRARY_PATH \
-	$(cpe-dr-tool) $(addprefix -i ,$(r.$1.$3.cpe-dr.$2.source)) \
+	$(cpe-dr-tool) $(addprefix --align ,$(r.$1.$3.cpe-dr.$2.align)) \
+                   $(addprefix -i ,$(r.$1.$3.cpe-dr.$2.source)) \
                    --output-lib-bin $$@ 
 
 endef
@@ -118,6 +123,7 @@ $(call assert-not-null,$1.cpe-dr.$3.generate)
 
 $(eval r.$1.$2.cpe-dr.$3.source:=$($1.cpe-dr.$3.source))
 $(eval r.$1.$2.cpe-dr.$3.generate:=$($1.cpe-dr.$3.generate))
+$(eval r.$1.$2.cpe-dr.$3.align:=$($1.cpe-dr.$3.align))
 
 $(foreach p,$(r.$1.$2.cpe-dr.$3.generate), $(call product-def-rule-cpe-dr-c-module-$p,$1,$3,$2))
 

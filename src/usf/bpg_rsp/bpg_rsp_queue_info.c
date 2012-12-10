@@ -1,4 +1,5 @@
 #include <assert.h>
+#include "cpe/pal/pal_platform.h"
 #include "cpe/dr/dr_metalib_manage.h"
 #include "usf/bpg_pkg/bpg_pkg.h"
 #include "bpg_rsp_internal_ops.h"
@@ -8,6 +9,7 @@ bpg_rsp_queue_info_create(bpg_rsp_manage_t mgr, const char * queue_name, bpg_rsp
     char * buf;
     struct bpg_rsp_queue_info * queue_info;
     size_t name_len = cpe_hs_len_to_binary_len(strlen(queue_name));
+    CPE_PAL_ALIGN_DFT(name_len);
 
     buf = mem_alloc(mgr->m_alloc, sizeof(struct bpg_rsp_queue_info) + name_len);
     if (buf == NULL) return NULL;

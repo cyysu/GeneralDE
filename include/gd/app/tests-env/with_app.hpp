@@ -36,9 +36,10 @@ public:
         gd_app_module_app_fini app_fini,
         gd_app_module_global_init global_init = NULL,
         gd_app_module_global_fini global_fini = NULL);
+    void t_app_fini_module_type(const char * name);
 
-    int t_app_uninstall_module(
-        const char * name);
+    int t_app_uninstall_module(const char * name);
+    void t_app_uninstall_modules_by_type(const char * name);
 
     int t_app_install_rsps(
         gd_app_module_t module,

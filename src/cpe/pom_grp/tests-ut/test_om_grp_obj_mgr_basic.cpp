@@ -17,10 +17,10 @@ public:
             "    - entry3: { entry-type: binary, capacity: 5 }\n"
             ,
             "<metalib tagsetversion='1' name='net'  version='1'>"
-            "    <struct name='AttrGroup1' version='1'>"
+            "    <struct name='AttrGroup1' version='1' align='1'>"
             "	     <entry name='a1' type='uint32' id='1'/>"
             "    </struct>"
-            "    <struct name='AttrGroup2' version='1'>"
+            "    <struct name='AttrGroup2' version='1' align='1'>"
             "	     <entry name='b1' type='string' size='5' id='1'/>"
             "    </struct>"
             "</metalib>"

@@ -18,7 +18,7 @@ static void dr_metalib_validate_align_i(error_monitor_t em, LPDRMETALIB metalib)
 
         for(entry_pos = 0; entry_pos < entry_count; ++entry_pos) {
             LPDRMETAENTRY entry = dr_meta_entry_at(meta, entry_pos);
-            int align = dr_entry_align(entry);
+            int align = dr_entry_require_align(entry);
             if (align != 1 && align != 2 && align != 4 && align != 8) {
                 CPE_ERROR(
                     em, "%s.%s: type align %d error",
@@ -26,11 +26,11 @@ static void dr_metalib_validate_align_i(error_monitor_t em, LPDRMETALIB metalib)
                 continue;
             }
 
-            if ((int)dr_entry_data_start_pos(entry) % align) {
+            if ((int)dr_entry_data_start_pos(entry, 0) % align) {
                 CPE_ERROR(
                     em, "%s.%s: start pos error, align is %d, startpos is %d",
                     dr_meta_name(meta), dr_entry_name(entry),
-                    align, (int)dr_entry_data_start_pos(entry));
+                    align, (int)dr_entry_data_start_pos(entry, 0));
                 continue;
             }
         }

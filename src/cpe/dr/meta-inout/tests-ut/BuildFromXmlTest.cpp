@@ -18,13 +18,13 @@ void BuildFromXmlTest::TearDown() {
     Base::TearDown();
 }
 
-int BuildFromXmlTest::parseMeta(const char * def) {
+int BuildFromXmlTest::parseMeta(const char * def, uint8_t dft_align) {
     mem_buffer_clear(&m_buffer);
     m_metaLib = NULL;
 
     t_elist_clear();
 
-    int r = dr_create_lib_from_xml_ex(&m_buffer, def, strlen(def), t_em());
+    int r = dr_create_lib_from_xml_ex(&m_buffer, def, strlen(def), dft_align, t_em());
     m_metaLib = (LPDRMETALIB)mem_buffer_make_continuous(&m_buffer, 0);
 
     return r;
