@@ -5,7 +5,7 @@ TEST_F(GenerateTest, h_basic) {
     add_buffer(
         "a",
         "<metalib tagsetversion='1' name='net'  version='10'>"
-        "    <struct name='PkgHead' desc='PkgHead.desc' version='1' id='33'>"
+        "    <struct name='PkgHead' desc='PkgHead.desc' version='1' id='33' align='1'>"
         "	     <entry name='a1' type='int8'/>"
         "    </struct>"
         "</metalib>");
