@@ -50,7 +50,7 @@ dr_meta_copy_union_find_select_entry_name(
     src_select_entry = dr_entry_select_entry(src_entry);
     if (src_select_entry == 0) return NULL;
 
-    if (src_entry->m_select_data_start_pos + dr_entry_element_size(src_select_entry) > src_capacity) 
+    if (src_entry->m_select_data_start_pos + dr_entry_element_size_no_align(src_select_entry) > src_capacity) 
         return NULL;
 
     if (dr_entry_try_read_int32(
@@ -149,13 +149,13 @@ int dr_meta_copy_same_entry_part(
                 continue;
             }
 
-            des_element_size = dr_entry_element_size(curStack->m_des_entry);
+            des_element_size = dr_entry_element_size_no_align(curStack->m_des_entry);
             if (des_element_size == 0) continue;
 
             src_entry = dr_meta_find_entry_by_name(curStack->m_src_meta, dr_entry_name(curStack->m_des_entry));
             if (src_entry == 0) continue;
 
-            src_element_size = dr_entry_element_size(src_entry);
+            src_element_size = dr_entry_element_size_no_align(src_entry);
             if (src_element_size == 0) continue;
 
             if (!dr_meta_copy_check_type_copyable(curStack->m_des_entry->m_type, src_entry->m_type)) continue;
@@ -187,8 +187,8 @@ int dr_meta_copy_same_entry_part(
                 size_t des_entry_capacity, des_left_capacity, des_total_size;
                 size_t src_entry_capacity, src_left_capacity;
 
-                des_total_size = curStack->m_des_entry->m_data_start_pos + (des_element_size * curStack->m_array_pos) + des_element_size;
-                des_entry_data = curStack->m_des_data + curStack->m_des_entry->m_data_start_pos + (des_element_size * curStack->m_array_pos);
+                des_total_size = dr_entry_data_start_pos(curStack->m_des_entry, curStack->m_array_pos) + des_element_size;
+                des_entry_data = curStack->m_des_data + dr_entry_data_start_pos(curStack->m_des_entry, curStack->m_array_pos);
                 if ((size_t)(des_entry_data - curStack->m_des_data) > curStack->m_des_capacity) continue;
 
                 des_left_capacity = curStack->m_des_capacity - (des_entry_data - curStack->m_des_data);
@@ -201,7 +201,7 @@ int dr_meta_copy_same_entry_part(
                     des_entry_capacity = des_left_capacity;
                 }
 
-                src_entry_data = curStack->m_src_data + src_entry->m_data_start_pos + (src_element_size * curStack->m_array_pos);
+                src_entry_data = curStack->m_src_data + dr_entry_data_start_pos(src_entry, curStack->m_array_pos);
                 if ((size_t)(src_entry_data - curStack->m_src_data) > curStack->m_src_capacity) continue;
 
                 src_left_capacity = curStack->m_src_capacity - (src_entry_data - curStack->m_src_data);
@@ -258,7 +258,7 @@ int dr_meta_copy_same_entry_part(
                                 LPDRMETAENTRY des_select_entry;
                                 des_select_entry = dr_entry_select_entry(curStack->m_des_entry);
                                 if (des_select_entry) {
-                                    if (curStack->m_des_entry->m_select_data_start_pos + dr_entry_element_size(des_select_entry)
+                                    if (curStack->m_des_entry->m_select_data_start_pos + dr_entry_element_size_no_align(des_select_entry)
                                         <= curStack->m_des_capacity)
                                     {
                                         dr_entry_set_from_int32(
@@ -318,8 +318,8 @@ int dr_entry_copy_same_entry(
             policy, em);
     }
     else {
-        int des_element_size = dr_entry_element_size(desEntry);
-        int src_element_size = dr_entry_element_size(srcEntry);
+        int des_element_size = dr_entry_element_size_no_align(desEntry);
+        int src_element_size = dr_entry_element_size_no_align(srcEntry);
 
         if (des_element_size == 0
             || des_element_size > desCapacity

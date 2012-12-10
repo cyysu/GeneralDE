@@ -20,6 +20,7 @@ struct arg_file * i_group_root;
 struct arg_file * i_group;
 struct arg_lit * help;
 struct arg_str * o_validate;
+struct arg_int * i_align;
 struct arg_end *end;
 struct arg_lit * o_traits;
 struct arg_file * o_traits_cpp;
@@ -287,6 +288,16 @@ int tools_main(error_monitor_t em) {
         return -1;
     }
 
+    if (i_align->count) {
+        int align = i_align->ival[0];
+        if (align != 1 && align != 2 && align != 4 && align != 8) {
+            CPE_ERROR(em, "default align %d is invalid!", align);
+            return -1;
+        }
+
+        dr_inbuild_set_dft_align(dr_metalib_bilder_lib(ctx.m_builder), (uint8_t)align);
+    }
+
     prepare_input(ctx.m_builder, em);
     prepare_input_group(ctx.m_builder, em);
 
@@ -322,6 +333,7 @@ int main(int argc, char * argv[]) {
     void* argtable[] = {
                 input = arg_filen(   "i",   "input",              "<string>", 0, 100,    "input file")
         ,  o_validate = arg_strn(   "v",  "validate",     "<string>",         0, 10,   "validate operations")
+        ,  i_align = arg_int0(   NULL,  "align",     "<int>",   "default align")
         ,         o_h = arg_file0(   NULL,  "output-h",           "<string>",            "output h file dir")
         ,     o_lib_c = arg_file0(   NULL,  "output-lib-c",       "<string>",            "output c lib file")
         , o_lib_c_arg = arg_str0(   NULL,  "output-lib-c-arg",    "<string>",            "output c lib file")

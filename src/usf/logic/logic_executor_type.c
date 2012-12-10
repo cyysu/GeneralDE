@@ -1,5 +1,6 @@
 #include <assert.h>
 #include "cpe/pal/pal_external.h"
+#include "cpe/pal/pal_platform.h"
 #include "cpe/nm/nm_manage.h"
 #include "cpe/nm/nm_read.h"
 #include "gd/app/app_context.h"
@@ -15,6 +16,7 @@ logic_executor_type_create(logic_executor_type_group_t group, const char * name)
     char * buf;
 
     name_len = strlen(name) + 1;
+    CPE_PAL_ALIGN_DFT(name_len);
 
     buf = mem_alloc(group->m_alloc, sizeof(struct logic_executor_type) + name_len);
     if (buf == NULL) return NULL;

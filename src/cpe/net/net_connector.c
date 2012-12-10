@@ -34,7 +34,8 @@ net_connector_create(
     size_t baseLen;
     baseLen = strlen(name) + 1;
 
-    nameLen = CPE_PAL_ALIGN_8(baseLen);
+    nameLen = baseLen;
+    CPE_PAL_ALIGN_DFT(nameLen);
 
     buf = mem_alloc(nmgr->m_alloc, sizeof(struct net_connector) + nameLen);
     if (buf == NULL) return NULL;

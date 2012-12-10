@@ -42,15 +42,16 @@ pom_grp_entry_meta_create_i(
     assert(meta->m_entry_count < meta->m_entry_capacity);
 
     name_len = cpe_hs_len_to_binary_len(strlen(entry_name));
+    CPE_PAL_ALIGN_DFT(name_len);
 
-    buf = mem_alloc(meta->m_alloc, CPE_PAL_ALIGN(name_len) + sizeof(struct pom_grp_entry_meta));
+    buf = mem_alloc(meta->m_alloc, name_len + sizeof(struct pom_grp_entry_meta));
     if (buf == NULL) return NULL;
 
     cpe_hs_init((cpe_hash_string_t)buf, name_len, entry_name);
 
     pre_entry_meta = meta->m_entry_count > 0 ? meta->m_entry_buf[meta->m_entry_count - 1] : NULL;
 
-    entry_meta = (pom_grp_entry_meta_t)(buf + CPE_PAL_ALIGN(name_len));
+    entry_meta = (pom_grp_entry_meta_t)(buf + name_len);
     entry_meta->m_meta = meta;
     entry_meta->m_name = cpe_hs_data((cpe_hash_string_t)buf);
     entry_meta->m_index = meta->m_entry_count;

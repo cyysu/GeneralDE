@@ -68,6 +68,22 @@ TEST_F(MetaLibManagerPath, path2pos_nested) {
     EXPECT_EQ(0, path2pos("Pkg", "head.magic"));
 }
 
+TEST_F(MetaLibManagerPath, path2pos_array) {
+    EXPECT_EQ(8, path2pos("CmdLogout", "attr[0]"));
+}
+
+TEST_F(MetaLibManagerPath, path2pos_array_negative) {
+    EXPECT_EQ(-1, path2pos("CmdLogout", "attr[-1]"));
+}
+
+TEST_F(MetaLibManagerPath, path2pos_array_overflow) {
+    EXPECT_EQ(-1, path2pos("CmdLogout", "attr[128]"));
+}
+
+TEST_F(MetaLibManagerPath, path2pos_array_last) {
+    EXPECT_EQ(135, path2pos("CmdLogout", "attr[127]"));
+}
+
 TEST_F(MetaLibManagerPath, path2pos_middle) {
     EXPECT_EQ(2, path2pos("Pkg", "head.version"));
 }

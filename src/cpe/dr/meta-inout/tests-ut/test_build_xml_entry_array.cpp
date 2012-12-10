@@ -6,10 +6,9 @@ class BuildFromXmlEntryTest : public BuildFromXmlTest {
 };
 
 TEST_F(BuildFromXmlEntryTest, array_count_basic) {
-    t_em_set_print();
     parseMeta(
         "<metalib tagsetversion='1' name='net'  version='10'>"
-        "    <struct name='PkgHead' version='1'>"
+        "    <struct name='PkgHead' version='1' align='1'>"
         "	     <entry name='a1' type='int16' count='16'/>"
         "    </struct>"
         "</metalib>"
@@ -25,7 +24,7 @@ TEST_F(BuildFromXmlEntryTest, array_count_basic) {
 TEST_F(BuildFromXmlEntryTest, array_count_default) {
     parseMeta(
         "<metalib tagsetversion='1' name='net'  version='10'>"
-        "    <struct name='PkgHead' version='1'>"
+        "    <struct name='PkgHead' version='1' align='1'>"
         "	     <entry name='a1' type='int16'/>"
         "    </struct>"
         "</metalib>"
@@ -38,7 +37,7 @@ TEST_F(BuildFromXmlEntryTest, array_count_default) {
 TEST_F(BuildFromXmlEntryTest, array_count_zero) {
     parseMeta(
         "<metalib tagsetversion='1' name='net'  version='10'>"
-        "    <struct name='PkgHead' version='1'>"
+        "    <struct name='PkgHead' version='1' align='1'>"
         "	     <entry name='a1' type='int16' count='0'/>"
         "    </struct>"
         "</metalib>"
@@ -52,7 +51,7 @@ TEST_F(BuildFromXmlEntryTest, array_count_zero) {
 TEST_F(BuildFromXmlEntryTest, array_count_negative) {
     parseMeta(
         "<metalib tagsetversion='1' name='net'  version='10'>"
-        "    <struct name='PkgHead' version='1'>"
+        "    <struct name='PkgHead' version='1' align='1'>"
         "	     <entry name='a1' type='int16' count='-1'/>"
         "    </struct>"
         "</metalib>"
@@ -64,7 +63,7 @@ TEST_F(BuildFromXmlEntryTest, array_count_negative) {
 TEST_F(BuildFromXmlEntryTest, array_count_format_error) {
     parseMeta(
         "<metalib tagsetversion='1' name='net'  version='10'>"
-        "    <struct name='PkgHead' version='1'>"
+        "    <struct name='PkgHead' version='1' align='1'>"
         "	     <entry name='a1' type='int16' count='xyz'/>"
         "    </struct>"
         "</metalib>"
@@ -76,7 +75,7 @@ TEST_F(BuildFromXmlEntryTest, array_count_format_error) {
 TEST_F(BuildFromXmlEntryTest, array_refer_basic) {
     parseMeta(
         "<metalib tagsetversion='1' name='net'  version='10'>"
-        "    <struct name='PkgHead' version='1'>"
+        "    <struct name='PkgHead' version='1' align='1'>"
         "	     <entry name='fill' type='int16'/>"
         "	     <entry name='count' type='int16'/>"
         "	     <entry name='a1' type='int16' count='0' refer='count'/>"
@@ -99,7 +98,7 @@ TEST_F(BuildFromXmlEntryTest, array_refer_basic) {
 TEST_F(BuildFromXmlEntryTest, array_refer_no_refer) {
     parseMeta(
         "<metalib tagsetversion='1' name='net'  version='10'>"
-        "    <struct name='PkgHead' version='1'>"
+        "    <struct name='PkgHead' version='1' align='1'>"
         "	     <entry name='count' type='int16'/>"
         "	     <entry name='a1' type='int16' count='0'/>"
         "    </struct>"
@@ -116,7 +115,7 @@ TEST_F(BuildFromXmlEntryTest, array_refer_no_refer) {
 TEST_F(BuildFromXmlEntryTest, array_refer_not_for_array) {
     parseMeta(
         "<metalib tagsetversion='1' name='net'  version='10'>"
-        "    <struct name='PkgHead' version='1'>"
+        "    <struct name='PkgHead' version='1' align='1'>"
         "	     <entry name='count' type='int16'/>"
         "	     <entry name='a1' type='int16' refer='count'/>"
         "    </struct>"
@@ -129,7 +128,7 @@ TEST_F(BuildFromXmlEntryTest, array_refer_not_for_array) {
 TEST_F(BuildFromXmlEntryTest, array_refer_dyn_array_no_refer) {
     parseMeta(
         "<metalib tagsetversion='1' name='net'  version='10'>"
-        "    <struct name='PkgHead' version='1'>"
+        "    <struct name='PkgHead' version='1' align='1'>"
         "	     <entry name='count' type='int16'/>"
         "	     <entry name='a1' type='int16' count='0'/>"
         "    </struct>"
@@ -142,7 +141,7 @@ TEST_F(BuildFromXmlEntryTest, array_refer_dyn_array_no_refer) {
 TEST_F(BuildFromXmlEntryTest, array_refer_not_exist) {
     parseMeta(
         "<metalib tagsetversion='1' name='net'  version='10'>"
-        "    <struct name='PkgHead' version='1'>"
+        "    <struct name='PkgHead' version='1' align='1'>"
         "	     <entry name='a1' type='int16' count='0' refer='count'/>"
         "    </struct>"
         "</metalib>"

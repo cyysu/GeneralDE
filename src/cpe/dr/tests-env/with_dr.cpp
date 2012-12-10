@@ -17,7 +17,7 @@ LPDRMETALIB with_dr::t_create_metalib(const char * xml) {
     struct mem_buffer buffer;
     mem_buffer_init(&buffer, 0);
 
-    int rv = dr_create_lib_from_xml_ex(&buffer, xml, strlen(xml), em);
+    int rv = dr_create_lib_from_xml_ex(&buffer, xml, strlen(xml), __WORDSIZE / 8, em);
     EXPECT_TRUE(rv == 0)<< "create meta error";
     if (rv != 0) {
         mem_buffer_clear(&buffer);

@@ -411,6 +411,9 @@ int dr_inbuild_calc_lib_paras(
     return CPE_SUCCESS;
 }
 
+void dr_inbuild_set_dft_align(struct DRInBuildMetaLib * inBuildMetaLib, uint8_t align) {
+    inBuildMetaLib->m_dft_align = align;
+}
 
 int dr_inbuild_tsort(
     struct DRInBuildMetaLib * inBuildLib,

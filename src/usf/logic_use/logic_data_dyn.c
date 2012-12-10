@@ -1,8 +1,5 @@
 #include <assert.h>
-<<<<<<< HEAD
-=======
 #include "cpe/pal/pal_stdlib.h"
->>>>>>> t/support/usf
 #include "cpe/dr/dr_data.h"
 #include "cpe/dr/dr_metalib_manage.h"
 #include "usf/logic/logic_manage.h"
@@ -65,14 +62,11 @@ int logic_data_record_count(logic_data_t data) {
 }
 
 static size_t logic_data_record_capacity_i(logic_data_t data, dr_meta_dyn_info_t dyn_info) {
-<<<<<<< HEAD
-    size_t element_size = dr_meta_size(dr_entry_ref_meta(dyn_info->m_array_entry));
-=======
-    size_t element_size = dr_entry_element_size(dyn_info->m_array_entry);
->>>>>>> t/support/usf
+    size_t element_size = dr_entry_element_size_no_align(dyn_info->m_array_entry);
 
-    return  ((logic_data_capacity(data) - (dr_meta_size(logic_data_meta(data)) - element_size))
-             / element_size);
+    return dr_entry_array_calc_ele_num(
+        dyn_info->m_array_entry,
+        logic_data_capacity(data) - (dr_meta_size(logic_data_meta(data)) - element_size));
 }
 
 size_t logic_data_record_capacity(logic_data_t data) {
@@ -90,7 +84,6 @@ void * logic_data_record_at(logic_data_t data, int pos) {
     struct dr_meta_dyn_info dyn_info;
 
     if (dr_meta_find_dyn_info(logic_data_meta(data), &dyn_info) == 0) {
-        size_t record_size = dr_entry_element_size(dyn_info.m_array_entry);
         size_t record_capacity = logic_data_record_capacity_i(data, &dyn_info);
         if (pos >= (int)record_capacity) {
             CPE_ERROR(
@@ -100,7 +93,10 @@ void * logic_data_record_at(logic_data_t data, int pos) {
             return NULL;
         }
 
-        return ((char *)logic_data_data(data)) + dyn_info.m_array_start + record_size * pos;
+        return ((char *)logic_data_data(data))
+            + dyn_info.m_array_start
+            + (dr_entry_data_start_pos(dyn_info.m_array_entry, pos) 
+               - dr_entry_data_start_pos(dyn_info.m_array_entry, 0));
     }
     else {
         if (pos != 0) {
@@ -123,10 +119,10 @@ size_t logic_data_record_size(logic_data_t data) {
     meta = logic_data_meta(data);
 
     if (dr_meta_find_dyn_info(logic_data_meta(data), &dyn_info) == 0) {
-        return dr_entry_element_size(dyn_info.m_array_entry);
+        return dr_entry_element_size_no_align(dyn_info.m_array_entry);
     }
     else {
-        return dr_meta_size(meta);
+        return dr_meta_size_no_align(meta);
     }
 }
 
@@ -174,7 +170,6 @@ void * logic_data_record_append(logic_data_t data) {
     if (dr_meta_find_dyn_info(logic_data_meta(data), &dyn_info) == 0) {
         int record_count;
         int record_capacity;
-        size_t record_size;
         char * buf;
         error_monitor_t em = logic_manage_em(logic_data_mgr(data));
 
@@ -200,8 +195,10 @@ void * logic_data_record_append(logic_data_t data) {
             return NULL;
         }
 
-        record_size = dr_entry_element_size(dyn_info.m_array_entry);
-        return ((char *)logic_data_data(data)) + dyn_info.m_array_start + record_size * record_count;
+        return ((char *)logic_data_data(data))
+            + dyn_info.m_array_start
+            + (dr_entry_data_start_pos(dyn_info.m_array_entry, record_count)
+               - dr_entry_data_start_pos(dyn_info.m_array_entry, 0));
     }
     else {
         return logic_data_data(data);
@@ -228,7 +225,7 @@ int logic_data_record_remove(logic_data_t data, size_t pos) {
 
     record_capacity = logic_data_record_capacity_i(data, &dyn_info);
     record_count = logic_data_record_count_i(data, &dyn_info);
-    record_size = dr_entry_element_size(dyn_info.m_array_entry);
+    record_size = dr_entry_element_size_with_align(dyn_info.m_array_entry);
 
     if (record_count < 0) {
         CPE_ERROR(em, "logic_data_record_remove: record cout %d error!", record_count);
@@ -274,8 +271,8 @@ static int logic_data_calc_dyn_capacity(LPDRMETA meta, size_t record_capacity, d
         }
     }
     else {
-        size_t record_size = dr_entry_element_size(dyn_info->m_array_entry);
-        return dr_meta_size(meta) - record_size + record_size * record_capacity;
+        size_t record_size = dr_entry_element_size_with_align(dyn_info->m_array_entry);
+        return dr_meta_size(meta) + (record_capacity > 1 ? record_size * (record_capacity - 1) : 0);
     }
 }
 
@@ -344,8 +341,6 @@ logic_data_t logic_data_record_reserve(logic_data_t data, size_t new_record_capa
         return NULL;
     }
 }
-<<<<<<< HEAD
-=======
 
 void logic_data_record_sort(logic_data_t data, int(*cmp)(const void *, const void *)) {
     LPDRMETA meta;
@@ -354,7 +349,7 @@ void logic_data_record_sort(logic_data_t data, int(*cmp)(const void *, const voi
     meta = logic_data_meta(data);
 
     if (dr_meta_find_dyn_info(logic_data_meta(data), &dyn_info) == 0) {
-        size_t record_size = dr_entry_element_size(dyn_info.m_array_entry);
+        size_t record_size = dr_entry_element_size_with_align(dyn_info.m_array_entry);
         int record_count = logic_data_record_count_i(data, &dyn_info);
         if (record_count < 0) {
             CPE_ERROR(
@@ -377,7 +372,7 @@ void * logic_data_record_find(logic_data_t data, void const * key, int(*cmp)(con
     meta = logic_data_meta(data);
 
     if (dr_meta_find_dyn_info(logic_data_meta(data), &dyn_info) == 0) {
-        size_t record_size = dr_entry_element_size(dyn_info.m_array_entry);
+        size_t record_size = dr_entry_element_size_with_align(dyn_info.m_array_entry);
         int record_count = logic_data_record_count_i(data, &dyn_info);
         if (record_count < 0) {
             CPE_ERROR(
@@ -399,4 +394,3 @@ void * logic_data_record_find(logic_data_t data, void const * key, int(*cmp)(con
             : NULL;
     }
 }
->>>>>>> t/support/usf
