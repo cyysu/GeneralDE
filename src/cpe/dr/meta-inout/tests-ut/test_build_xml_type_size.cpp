@@ -20,7 +20,7 @@ TEST_P(BuildFromXmlTypeSizeTest, CheckSize) {
         buf, 256
         ,
         "<metalib tagsetversion='1' name='net'  version='10'>"
-        "    <struct name='S1' version='1' id='33'>"
+        "    <struct name='S1' version='1' id='33' align='1'>"
         "	     <entry name='a1' type='%s'/>"
         "    </struct>"
         "</metalib>"

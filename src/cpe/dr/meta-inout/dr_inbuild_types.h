@@ -14,6 +14,7 @@ struct dr_inbuild_index_entry;
 struct DRInBuildMetaLib {
     struct tagDRLibParam m_data;
     struct mem_buffer m_tmp_buf;
+    uint8_t m_dft_align;
 
     TAILQ_HEAD(DRInBuildMacroList, DRInBuildMacro) m_macros;
     struct cpe_hash_table m_index_macros;

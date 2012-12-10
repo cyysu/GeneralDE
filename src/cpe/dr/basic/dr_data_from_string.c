@@ -106,7 +106,7 @@ static int dr_set_int ## __bit ## _from_string(void * output, LPDRMETAENTRY entr
         acc = -acc;                                                     \
     }                                                                   \
                                                                         \
-    memcpy(output, &acc, sizeof(acc));                                  \
+    *((int ## __bit ## _t*)output) = acc;                               \
                                                                         \
     return *(s - 1) == 0 ? 0 : -1;                                      \
 }
@@ -181,7 +181,7 @@ static int dr_set_uint ## __bit ## _from_string(                        \
             return -1;                                                  \
         }                                                               \
                                                                         \
-        memcpy(output, &acc, sizeof(acc));                              \
+        *((uint ## __bit ## _t*)output) = acc;                          \
                                                                         \
         return *(s - 1) == 0 ? 0 : -1;                                  \
 }
@@ -213,8 +213,7 @@ static int dr_set_float_from_string(void * output, LPDRMETAENTRY entry, const ch
         return -1;
     }
     else {
-        float b2 = (float)b;
-        memcpy(output, &b2, sizeof(b2));
+        *((float*)output) = (float)b;
         return 0;
     }
 }
@@ -231,7 +230,7 @@ static int dr_set_float_from_string(void * output, LPDRMETAENTRY entry, const ch
         return -1;
     }
     else {
-        memcpy(output, &b, sizeof(b));
+        *((float*)output) = b;
         return 0;
     }
 }
@@ -249,7 +248,7 @@ static int dr_set_double_from_string(void * output, LPDRMETAENTRY entry, const c
         return -1;
     }
     else {
-        memcpy(output, &b, sizeof(b));
+        *((double*)output) = b;
         return 0;
     }
 }

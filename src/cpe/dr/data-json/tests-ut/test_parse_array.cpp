@@ -37,7 +37,7 @@ TEST_F(ParseTest, array_auto_count) {
 
     EXPECT_TRUE(t_em_no_error());
 
-    EXPECT_EQ(6, read("{ \"data\" : [ 12, 14 ] }", "S2"));
+    EXPECT_EQ(metaSize("S2"), read("{ \"data\" : [ 12, 14 ] }", "S2"));
 
     EXPECT_EQ(2, dr_ctype_read_int16(result(), CPE_DR_TYPE_INT16));
 }
@@ -90,10 +90,10 @@ TEST_F(ParseTest, array_struct_basic) {
 TEST_F(ParseTest, array_struct_auto_count) {
     installMeta(
         "<metalib tagsetversion='1' name='net'  version='1'>"
-        "    <struct name='S' version='1'>"
+        "    <struct name='S' version='1' align='1'>"
         "	     <entry name='a1' type='int16'/>"
         "    </struct>"
-        "    <struct name='S2' version='1'>"
+        "    <struct name='S2' version='1' align='1'>"
         "	     <entry name='count' type='int16'/>"
         "	     <entry name='data' type='S' count='16' refer='count'/>"
         "    </struct>"
@@ -102,7 +102,7 @@ TEST_F(ParseTest, array_struct_auto_count) {
 
     EXPECT_TRUE(t_em_no_error());
 
-    ASSERT_EQ(6, read("{ \"data\" : [ { \"a1\" : 12 }, {\"a1\" : 14 } ], \"last\": 33 }" , "S2"));
+    ASSERT_EQ(metaSize("S2"), read("{ \"data\" : [ { \"a1\" : 12 }, {\"a1\" : 14 } ], \"last\": 33 }" , "S2"));
 
     EXPECT_EQ(2, dr_ctype_read_int16(result(), CPE_DR_TYPE_INT16));
 }

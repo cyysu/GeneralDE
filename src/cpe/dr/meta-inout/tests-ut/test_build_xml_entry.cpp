@@ -8,7 +8,7 @@ class BuildFromXmlEntryTest : public BuildFromXmlTest {
 TEST_F(BuildFromXmlEntryTest, entry_data) {
     parseMeta(
         "<metalib tagsetversion='1' name='net'  version='10'>"
-        "    <struct name='PkgHead' version='1'>"
+        "    <struct name='PkgHead' version='1' align='1'>"
         "	     <entry name='a1' "
         "               desc='a1.desc'\n"
         "               cname='a1.cname'\n"
@@ -34,7 +34,7 @@ TEST_F(BuildFromXmlEntryTest, id_use_macro) {
     parseMeta(
         "<metalib tagsetversion='1' name='net'  version='10'>"
         "    <macro name='macro_1' value='100'/>"
-        "    <struct name='PkgHead' version='1'>"
+        "    <struct name='PkgHead' version='1' align='1'>"
         "	     <entry name='a1' type='int16' id='macro_1'/>"
         "    </struct>"
         "</metalib>"
@@ -47,7 +47,7 @@ TEST_F(BuildFromXmlEntryTest, id_use_macro) {
 TEST_F(BuildFromXmlEntryTest, no_name) {
     parseMeta(
         "<metalib tagsetversion='1' name='net'  version='10'>"
-        "    <struct name='PkgHead' version='1'>"
+        "    <struct name='PkgHead' version='1' align='1'>"
         "	     <entry type='int16'\n/>"
         "    </struct>"
         "</metalib>"
@@ -62,7 +62,7 @@ TEST_F(BuildFromXmlEntryTest, no_name) {
 TEST_F(BuildFromXmlEntryTest, no_type) {
     parseMeta(
         "<metalib tagsetversion='1' name='net'  version='10'>"
-        "    <struct name='PkgHead' version='1'>"
+        "    <struct name='PkgHead' version='1' align='1'>"
         "	     <entry name='a1'\n/>"
         "    </struct>"
         "</metalib>"
@@ -79,10 +79,10 @@ TEST_F(BuildFromXmlEntryTest, type_composite) {
         0,
         parseMeta(
             "<metalib tagsetversion='1' name='net'  version='10'>"
-            "    <struct name='A1' version='1'>"
+            "    <struct name='A1' version='1' align='1'>"
             "	     <entry name='a1' type='int32'\n/>"
             "    </struct>"
-            "    <struct name='A2' version='1'>"
+            "    <struct name='A2' version='1' align='1'>"
             "	     <entry name='a1' type='A1'\n/>"
             "    </struct>"
             "</metalib>"
@@ -97,7 +97,7 @@ TEST_F(BuildFromXmlEntryTest, type_composite) {
 TEST_F(BuildFromXmlEntryTest, version_new) {
     parseMeta(
         "<metalib tagsetversion='1' name='net'  version='10'>"
-        "    <struct name='PkgHead' version='1'>"
+        "    <struct name='PkgHead' version='1' align='1'>"
         "	     <entry name='a1' version='2'\n type='int16'/>"
         "    </struct>"
         "</metalib>"
@@ -112,7 +112,7 @@ TEST_F(BuildFromXmlEntryTest, version_new) {
 TEST_F(BuildFromXmlEntryTest, version_bigger) {
     parseMeta(
         "<metalib tagsetversion='1' name='net'  version='10'>"
-        "    <struct name='PkgHead' version='1'>"
+        "    <struct name='PkgHead' version='1' align='1'>"
         "	     <entry name='a1' version='11'\n type='int16'/>"
         "    </struct>"
         "</metalib>"
@@ -127,7 +127,7 @@ TEST_F(BuildFromXmlEntryTest, version_bigger) {
 TEST_F(BuildFromXmlEntryTest, size_for_string) {
     parseMeta(
         "<metalib tagsetversion='1' name='net'  version='10'>"
-        "    <struct name='PkgHead' version='1'>"
+        "    <struct name='PkgHead' version='1' align='1'>"
         "	     <entry name='a1' type='string' size='12'/>"
         "    </struct>"
         "</metalib>"
@@ -140,7 +140,7 @@ TEST_F(BuildFromXmlEntryTest, size_for_string) {
 TEST_F(BuildFromXmlEntryTest, size_for_int) {
     parseMeta(
         "<metalib tagsetversion='1' name='net'  version='10'>"
-        "    <struct name='PkgHead' version='1'>"
+        "    <struct name='PkgHead' version='1' align='1'>"
         "	     <entry name='a1' type='int16' size='12'/>"
         "    </struct>"
         "</metalib>"
@@ -152,11 +152,11 @@ TEST_F(BuildFromXmlEntryTest, size_for_int) {
 TEST_F(BuildFromXmlEntryTest, size_for_complex_type) {
     parseMeta(
         "<metalib tagsetversion='1' name='net'  version='10'>"
-        "    <struct name='U1' version='1'>"
+        "    <struct name='U1' version='1' align='1'>"
         "	     <entry name='a1' type='int16'/>"
         "	     <entry name='a1' type='int16'/>"
         "    </struct>"
-        "    <struct name='PkgHead' version='1'>"
+        "    <struct name='PkgHead' version='1' align='1'>"
         "	     <entry name='a1' type='U1' size='12'/>"
         "    </struct>"
         "</metalib>"
@@ -168,7 +168,7 @@ TEST_F(BuildFromXmlEntryTest, size_for_complex_type) {
 TEST_F(BuildFromXmlEntryTest, string_no_size) {
     parseMeta(
         "<metalib tagsetversion='1' name='net'  version='10'>"
-        "    <struct name='PkgHead' version='1'>"
+        "    <struct name='PkgHead' version='1' align='1'>"
         "	     <entry name='a1' type='string'/>"
         "    </struct>"
         "</metalib>"
@@ -183,7 +183,7 @@ TEST_F(BuildFromXmlEntryTest, string_no_size) {
 TEST_F(BuildFromXmlEntryTest, string_array) {
     parseMeta(
         "<metalib tagsetversion='1' name='net'  version='10'>"
-        "    <struct name='PkgHead' version='1'>"
+        "    <struct name='PkgHead' version='1' align='1'>"
         "	     <entry name='a1' type='string' size='13' count='12'/>"
         "    </struct>"
         "</metalib>"
@@ -195,14 +195,14 @@ TEST_F(BuildFromXmlEntryTest, string_array) {
     ASSERT_TRUE(e);
 
     EXPECT_EQ(dr_entry_array_count(e), 12);
-    EXPECT_EQ(dr_entry_element_size(e), (size_t)13);
+    EXPECT_EQ(dr_entry_element_size_no_align(e), (size_t)13);
     EXPECT_EQ(dr_entry_size(e), (size_t)(12 * 13));
 }
 
 TEST_F(BuildFromXmlEntryTest, dftvalue_basic) {
     parseMeta(
         "<metalib tagsetversion='1' name='net'  version='10'>"
-        "    <struct name='PkgHead' version='1'>"
+        "    <struct name='PkgHead' version='1' align='1'>"
         "	     <entry name='a1' defaultvalue='12' type='int16'/>"
         "    </struct>"
         "</metalib>"
@@ -222,7 +222,7 @@ TEST_F(BuildFromXmlEntryTest, dftvalue_basic) {
 TEST_F(BuildFromXmlEntryTest, string_def_value) {
     parseMeta(
         "<metalib tagsetversion='1' name='net'  version='10'>"
-        "    <struct name='PkgHead' version='1'>"
+        "    <struct name='PkgHead' version='1' align='1'>"
         "	     <entry name='a1' type='string' size='5' defaultvalue='abc'/>"
         "    </struct>"
         "</metalib>"
@@ -240,7 +240,7 @@ TEST_F(BuildFromXmlEntryTest, string_def_value) {
 TEST_F(BuildFromXmlEntryTest, string_def_value_overflow) {
     parseMeta(
         "<metalib tagsetversion='1' name='net'  version='10'>"
-        "    <struct name='PkgHead' version='1'>"
+        "    <struct name='PkgHead' version='1' align='1'>"
         "	     <entry name='a1' type='string' size='5' defaultvalue='abcdef'/>"
         "    </struct>"
         "</metalib>"

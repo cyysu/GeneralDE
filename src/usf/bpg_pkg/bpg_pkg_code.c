@@ -1,5 +1,6 @@
 #include <assert.h>
 #include "zlib.h"
+#include "cpe/pal/pal_platform.h"
 #include "cpe/utils/stream_buffer.h"
 #include "cpe/dr/dr_metalib_manage.h"
 #include "cpe/dr/dr_metalib_init.h"
@@ -45,7 +46,7 @@ bpg_pkg_encode(
     data_cvt = bpg_pkg_data_cvt(pkg);
     if (data_cvt == NULL) {
         CPE_ERROR(
-            em, "%s: encode:  data meta not exist!",
+            em, "%s: encode:  data cvt not exist!",
             bpg_pkg_manage_name(pkg->m_mgr));
         return dr_cvt_result_error;
     }
@@ -298,6 +299,8 @@ bpg_pkg_decode(
                 return dr_cvt_result_error;
             }
 
+            CPE_PAL_ALIGN_DFT(use_size);
+
             output_pkg->head.bodylen = use_size;
             output_pkg->head.bodytotallen = use_size;
 
@@ -340,6 +343,7 @@ bpg_pkg_decode(
             continue;
         }
 
+        CPE_PAL_ALIGN_DFT(use_size);
 
         o_append_info = &output_pkg->head.appendInfos[output_pkg->head.appendInfoCount++];
         o_append_info->id = append_info->id;
@@ -348,27 +352,6 @@ bpg_pkg_decode(
 
         output_buf += use_size;
         output_buf_capacity -= use_size;
-    }
-
-    if (output_pkg->head.flags & BASEPKG_HEAD_FLAG_ZIP) {
-        uLongf unziped_size;
-        
-        unziped_size = bpg_pkg_pkg_data_capacity(pkg) - sizeof(BASEPKG_HEAD);
-        if (uncompress((Bytef*)output_pkg->body, &unziped_size, zip_buff, output_pkg->head.bodytotallen) != 0) {
-            CPE_ERROR(
-                em, "%s: decode: unzip fail, output_size=%d, input_size=%d!",
-                bpg_pkg_manage_name(pkg->m_mgr), (int)unziped_size, (int)output_pkg->head.bodytotallen);
-            return dr_cvt_result_error;
-        }
-        
-        if (pkg->m_mgr->m_debug) {
-            CPE_INFO(
-                em, "%s: decode: unzip success!, %d to %d",
-                bpg_pkg_manage_name(pkg->m_mgr), (int)output_pkg->head.bodytotallen, (int)unziped_size);
-        }
-
-        output_pkg->head.flags &= ~BASEPKG_HEAD_FLAG_ZIP;
-        output_pkg->head.bodytotallen = unziped_size;
     }
 
     bpg_pkg_set_body_total_len(pkg, output_pkg->head.bodytotallen);

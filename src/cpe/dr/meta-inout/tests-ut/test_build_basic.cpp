@@ -33,6 +33,6 @@ TEST_F(BuildTest, metalib_basic) {
     LPDRMETAENTRY r_entry_data = entry("seq", "data");
     ASSERT_TRUE(r_entry_data);
 
-    EXPECT_EQ((size_t)4, dr_entry_data_start_pos(r_entry_data));
+    EXPECT_EQ((size_t)4, dr_entry_data_start_pos(r_entry_data, 0));
 }
 

@@ -14,7 +14,7 @@ static uint32_t pom_validating_page_hash(const struct pom_validating_page * p) {
 }
 
 static int pom_validating_page_eq(const struct pom_validating_page * l, const struct pom_validating_page * r) {
-    return l->m_page == r->m_page ? 1 : 0;
+    return l->m_page == r->m_page;
 }
 
 static void pom_grp_validate_build_pages_from_buf(cpe_hash_table_t pages, pom_mgr_t mgr, error_monitor_t em) {
@@ -52,6 +52,7 @@ static void pom_grp_validate_build_pages_from_buf(cpe_hash_table_t pages, pom_mg
 
                 if (cpe_hash_table_insert_unique(pages, validating_page) != 0) {
                     CPE_ERROR(em, "page %p: duplicate!", cur_page);
+                    mem_free(mgr->m_alloc, validating_page);
                     continue;
                 }
             }
@@ -128,11 +129,7 @@ static void pom_mgr_validate_free_pages(pom_mgr_t mgr, cpe_hash_table_t pages, e
             struct pom_data_page_head * page = (struct pom_data_page_head * )page_buf;
             page_buf += buf_mgr->m_page_size;
 
-            if (((char*)range.m_end - (char*)page) < buf_mgr->m_page_size) {
-                CPE_ERROR(
-                    em, "page %p: page-size overflow, page-size=%d, left-size=%d!",
-                    page, (int)buf_mgr->m_page_size, (int)((char*)range.m_end - (char*)page));
-            }
+            if (((char*)range.m_end - (char*)page) < buf_mgr->m_page_size) continue;
 
             if (page->m_magic != POM_PAGE_MAGIC) {
                 CPE_ERROR(em, "page %p: free page magic(%x) error!", page, page->m_magic);
