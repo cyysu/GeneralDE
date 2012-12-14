@@ -117,7 +117,6 @@ int dr_cfg_read_entry(
         LPDRMETAENTRY refer;
         int count;
         int max_count;
-        char * write_pos;
         size_t element_size = dr_entry_element_size(entry);
         if (element_size == 0) {
             CPE_ERROR(

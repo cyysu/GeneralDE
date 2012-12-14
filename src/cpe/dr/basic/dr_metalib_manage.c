@@ -121,7 +121,7 @@ int dr_meta_id(LPDRMETA meta) {
 }
 
 size_t dr_meta_size(LPDRMETA meta) {
-    return meta->m_data_size;
+    return meta->m_real_data_size;
 }
 
 int dr_meta_align(LPDRMETA meta) {
@@ -414,8 +414,35 @@ LPDRMETAENTRY dr_meta_find_entry_by_path_ex(LPDRMETA meta, const char* entryPath
         LPDRMETAENTRY pstEntryBegin = (LPDRMETAENTRY)(pstCurMeta + 1);
         pstEntry = NULL;
 
-        for(i = 0; i < pstCurMeta->m_entry_count && pstEntry == NULL; ++i) {
-            LPDRMETAENTRY pstCheckEntry = pstEntryBegin + i;
+    checkBegin = entryPath;
+    pointPos = strchr(checkBegin, '.');
+    arrayPos = strchr(checkBegin, '[');
+
+    while(arrayPos) {
+        if (*checkBegin == '[') {
+            char * array_end;
+            int array_pos;
+            
+            assert(checkBegin == arrayPos);
+
+            if (entry == NULL) return NULL;
+            if (entry->m_array_count == 1) return NULL;
+
+            array_pos = strtol(checkBegin + 1, &array_end, 10);
+            if (array_end == NULL || *array_end != ']') return NULL;
+
+            if (array_pos < 0 || (entry->m_array_count > 0 && array_pos >= entry->m_array_count)) return NULL;
+
+            if (entry->m_type <= CPE_DR_TYPE_COMPOSITE) {
+                cur_meta = (LPDRMETA)(base + entry->m_ref_type_pos);
+            }
+            else {
+                cur_meta = NULL;
+            }
+
+            if (off) *off += dr_entry_element_size(entry) * array_pos;
+
+            checkBegin = array_end + 1;
 
             if (strncmp(base + pstCheckEntry->m_name_pos, nameBegin, nameEnd - nameBegin) == 0) {
                 pstEntry = pstCheckEntry;
@@ -550,25 +577,30 @@ const char * dr_entry_type_name(LPDRMETAENTRY entry) {
     }
 }
 
-int dr_entry_align(LPDRMETAENTRY entry) {
-    if (entry->m_type > CPE_DR_TYPE_COMPOSITE) {
-        const struct tagDRCTypeInfo * typeInfo;
+int dr_entry_array_count(LPDRMETAENTRY entry) {
+    return entry->m_array_count;
+}
 
-        typeInfo = dr_find_ctype_info_by_type(entry->m_type);
+size_t dr_entry_data_start_pos(LPDRMETAENTRY entry, int index) {
+    if (entry->m_array_count == 1 || index == 0) return entry->m_data_start_pos;
+    
+    return entry->m_data_start_pos
+        + dr_entry_element_size(entry) * index;
+}
+
+size_t dr_entry_array_calc_ele_num(LPDRMETAENTRY entry, size_t capacity) {
+    return capacity / dr_entry_element_size(entry);
+}
+
+size_t dr_entry_array_calc_buf_capacity(LPDRMETAENTRY entry, size_t count) {
+    return count * dr_entry_element_size(entry);
+}
 
         return typeInfo == NULL ? -1 : typeInfo->m_align;
     }
     else {
         return dr_meta_align(dr_entry_ref_meta(entry));
     }
-}
-
-int dr_entry_array_count(LPDRMETAENTRY entry) {
-    return entry->m_array_count;
-}
-
-size_t dr_entry_data_start_pos(LPDRMETAENTRY entry) {
-    return entry->m_data_start_pos;
 }
 
 size_t dr_entry_element_size(LPDRMETAENTRY entry) {
