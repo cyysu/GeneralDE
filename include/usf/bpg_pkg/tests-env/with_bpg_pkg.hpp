@@ -22,7 +22,7 @@ public:
 
     void t_bpg_pkg_manage_set_model(
         const char * model,
-        uint8_t dft_align = __WORDSIZE / 8,
+        uint8_t dft_align = 0,
         const char * mgr_name = NULL);
 
     void t_bpg_pkg_manage_add_cmd(uint32_t cmd, const char * meta_name, const char * mgr_name = NULL);

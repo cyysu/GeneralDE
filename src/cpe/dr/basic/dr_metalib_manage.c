@@ -425,22 +425,6 @@ LPDRMETAENTRY dr_meta_find_entry_by_path_ex(LPDRMETA meta, const char* entryPath
 
             checkBegin = array_end + 1;
 
-            array_pos = strtol(checkBegin + 1, &array_end, 10);
-            if (array_end == NULL || *array_end != ']') return NULL;
-
-            if (array_pos < 0 || (entry->m_array_count > 0 && array_pos >= entry->m_array_count)) return NULL;
-
-            if (entry->m_type <= CPE_DR_TYPE_COMPOSITE) {
-                cur_meta = (LPDRMETA)(base + entry->m_ref_type_pos);
-            }
-            else {
-                cur_meta = NULL;
-            }
-
-            if (off) *off += dr_entry_element_size_with_align(entry) * array_pos;
-
-            checkBegin = array_end + 1;
-
             if (*checkBegin == '.') {
                 checkBegin++;
                 pointPos = *checkBegin ? strchr(checkBegin, '.') : NULL;
@@ -667,13 +651,8 @@ size_t dr_entry_require_align(LPDRMETAENTRY entry) {
 size_t dr_entry_element_size(LPDRMETAENTRY entry) {
     if (entry->m_type <= CPE_DR_TYPE_COMPOSITE) {
         LPDRMETA refMeta = dr_entry_ref_meta(entry);
-        size_t element_size;
-
         if (refMeta == NULL) return 0;
-
-        element_size = refMeta->m_real_data_size;
-        CPE_PAL_CALC_ALIGN(element_size, dr_entry_require_align(entry));
-        return element_size;
+        return dr_meta_size(refMeta);
     }
     else if (entry->m_type == CPE_DR_TYPE_STRING) {
         return entry->m_size;

@@ -33,6 +33,16 @@ inline void set_defaults(T & data, int policy = 0) {
 }
 
 template<class T>
+inline void load_from_json(T & data, const char * json) {
+    MetaTraits<T>::META.load_from_json(&data, sizeof(data), json);
+}
+
+template<typename T>
+inline bool try_load_from_json(T & data, const char * json, error_monitor_t em = NULL) {
+    return MetaTraits<T>::META.try_load_from_json(&data, sizeof(data), json, em);
+}
+
+template<class T>
 inline void load_from_cfg(T & data, cfg_t cfg, int policy = DR_CFG_READ_CHECK_NOT_EXIST_ATTR) {
     MetaTraits<T>::META.load_from_cfg(&data, sizeof(data), cfg, policy);
 }

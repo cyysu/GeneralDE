@@ -5,41 +5,75 @@ use XML::Simple;
 use Getopt::Long;
 use Spreadsheet::ParseExcel;
 use Data::Dumper;
+use File::Basename;
+use File::Spec;
+use File::stat;
 
 binmode(STDOUT, ":utf8");
 
 my $inputFile;
 my $inputSheet;
 my $outputFile;
+my @metaLibDirs;
 my $metaLibFile;
 my $metaName;
 
 GetOptions("input-file=s" => \$inputFile,
            "input-sheet=s" => \$inputSheet,
            "output=s"   => \$outputFile,
+           "meta-lib-dirs=s" => \@metaLibDirs,
            "meta-lib=s" => \$metaLibFile,
            "meta-name=s" => \$metaName);
 
 $inputSheet = decode("utf8", $inputSheet);
 $inputFile = decode("utf8", $inputFile);
 
-my $xml_lib_source = XMLin($metaLibFile, KeyAttr => {struct => 'name', union => 'name'}, ForceArray => [ 'struct', 'union' ]);
-
+my %macrosgroups;
 my %metaLib;
 
-if (exists $xml_lib_source->{struct}) {
-  foreach my $meta_name ( keys %{$xml_lib_source->{struct}} ) {
-    $metaLib{$meta_name} = $xml_lib_source->{struct}->{$meta_name};
-    $metaLib{$meta_name}->{meta_type} = 'struct';
-  }
+push @metaLibDirs, dirname($metaLibFile);
+
+sub load_meta_lib {
+   my $file = shift;
+
+   my $xml_lib_source =
+     XMLin($file,
+           KeyAttr => {struct => 'name', union => 'name', macrosgroup => 'name' },
+           ForceArray => [ 'struct', 'union', 'macrosgroup', 'macro', 'include' ]);
+
+   if (exists $xml_lib_source->{include}) {
+     PROCESS_INCLUDE: foreach my $include ( @{ $xml_lib_source->{include} } ) {
+       foreach my $search_dir ( @metaLibDirs ) {
+         my $include_full = File::Spec->catfile($search_dir, $include->{file});
+         next if not stat($include_full);
+         load_meta_lib($include_full);
+         last PROCESS_INCLUDE;
+       }
+     }
+   }
+
+   if (exists $xml_lib_source->{macrosgroup}) {
+     foreach my $macrogroup_name ( keys %{$xml_lib_source->{macrosgroup}} ) {
+       $macrosgroups{$macrogroup_name} = $xml_lib_source->{macrosgroup}->{$macrogroup_name};
+     }
+   }
+
+   if (exists $xml_lib_source->{struct}) {
+     foreach my $meta_name ( keys %{$xml_lib_source->{struct}} ) {
+       $metaLib{$meta_name} = $xml_lib_source->{struct}->{$meta_name};
+       $metaLib{$meta_name}->{meta_type} = 'struct';
+     }
+   }
+
+   if (exists $xml_lib_source->{union}) {
+     foreach my $meta_name ( keys %{$xml_lib_source->{union}} ) {
+       $metaLib{$meta_name} = $xml_lib_source->{union}->{$meta_name};
+       $metaLib{$meta_name}->{meta_type} = 'union';
+     }
+   }
 }
 
-if (exists $xml_lib_source->{union}) {
-  foreach my $meta_name ( keys %{$xml_lib_source->{union}} ) {
-    $metaLib{$meta_name} = $xml_lib_source->{union}->{$meta_name};
-    $metaLib{$meta_name}->{meta_type} = 'union';
-  }
-}
+load_meta_lib($metaLibFile);
 #print Dump(\%metaLib);
 
 my %input_col_processors;
@@ -60,7 +94,7 @@ sub add_col_processor {
 }
 
 sub calc_col_fun {
-  my ($colName, $resultColName, $selector) = @_;
+  my ($colName, $resultColName, $selector, $entry) = @_;
 
   if ($selector && $selector =~ /split\s*\(\s*'([^']+)'\s*,\s*(\d+)\s*\)/) {
     my $sep = $1;
@@ -81,6 +115,31 @@ sub calc_col_fun {
     return sub {
       my ($row, $value, $input_row) = @_;
       if ($value =~ /$matcher/) {
+        $row->{$resultColName} = $1;
+      }
+    };
+  }
+
+  if ($selector && $selector =~ /macro-to-value\s*\(\s*'([^']+)'\s*\)/) {
+    my $matcher = $1;
+
+    my $macrogroup_name = $entry->{bindmacrosgroup};
+    print "bindmacrosgroup not defined!\n" and return sub {} if not defined $macrogroup_name;
+
+    my $macrogroup = $macrosgroups{$macrogroup_name};
+    print "macrosgroup $macrogroup_name not exist!\n" and return sub{} if not defined $macrogroup;
+
+    return sub {
+      my ($row, $value, $input_row) = @_;
+      if ($value =~ /$matcher/) {
+        if ($macrogroup) {
+          foreach my $macro ( @{ $macrogroup->{macro} } ) {
+            $row->{$resultColName} = $macro->{value} and return
+              if ((exists $macro->{cname} and $macro->{cname} eq $1)
+                  or $macro->{name} eq $1);
+          }
+        }
+
         $row->{$resultColName} = $1;
       }
     };
@@ -369,7 +428,7 @@ sub analize_entry_processor_struct {
 
       my $input_col_name = $entry->{cname} . $cname_post_fix;
 
-      my $col_fun = calc_col_fun($entry->{cname}, $entry->{name}, $entry->{customattr});
+      my $col_fun = calc_col_fun($entry->{cname}, $entry->{name}, $entry->{customattr}, $entry);
 
       $col_fun = $col_fun_derator->($col_fun)
         if defined $col_fun_derator;
