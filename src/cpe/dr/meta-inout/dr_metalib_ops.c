@@ -1,4 +1,5 @@
 #include <assert.h>
+#include "cpe/pal/pal_platform.h"
 #include "cpe/pal/pal_string.h"
 #include "cpe/pal/pal_strings.h"
 #include "cpe/dr/dr_metalib_manage.h"
@@ -236,6 +237,7 @@ void dr_meta_add_entry_calc_align(
         }
 
         newEntry->m_data_start_pos = meta->m_real_data_size + panding;
+
         meta->m_real_data_size += panding + newEntry->m_unitsize;
     }
     else if (meta->m_type == CPE_DR_TYPE_UNION) {
@@ -286,9 +288,7 @@ int dr_add_meta_entry_set_type_calc_align(LPDRMETA meta, LPDRMETAENTRY entry, er
         entryAlign = dr_meta_calc_require_align(usedType);
         if (entryAlign > meta->m_align) entryAlign = meta->m_align;
 
-        align_size = dr_meta_size(usedType);
-
-        entry->m_unitsize = usedType->m_real_data_size + (entry->m_array_count > 1 ? (align_size *  (entry->m_array_count - 1)) : 0);
+        entry->m_unitsize = usedType->m_real_data_size * (entry->m_array_count == 0 ? 1 : entry->m_array_count);
     }
     else { /* is basic type */
         const struct tagDRCTypeInfo * typeInfo = dr_find_ctype_info_by_type(entry->m_type);
@@ -448,6 +448,8 @@ void dr_meta_do_complete(LPDRMETA meta, error_monitor_t em) {
     if (meta->m_entry_count == 0) {
         CPE_ERROR_EX(em, CPE_DR_ERROR_META_NO_ENTRY, "meta %s have no entry", dr_meta_name(meta));
     }
+
+    CPE_PAL_CALC_ALIGN(meta->m_real_data_size, meta->m_require_align);
 }
 
 int dr_lib_addr_to_pos(LPDRMETALIB metaLib, const void * addr) {

@@ -1,4 +1,5 @@
 #include <assert.h>
+#include "cpe/pal/pal_platform.h"
 #include "cpe/pal/pal_string.h"
 #include "cpe/pal/pal_stdlib.h"
 #include "cpe/pal/pal_strings.h"
@@ -63,7 +64,7 @@ struct DRInBuildMetaLib * dr_inbuild_create_lib(void) {
 
 
     inBuildMetaLib->m_data.iID = -1;
-    inBuildMetaLib->m_dft_align = (__WORDSIZE / 8);
+    inBuildMetaLib->m_dft_align = CPE_DEFAULT_ALIGN;
     
     TAILQ_INIT(&inBuildMetaLib->m_macros);
 
@@ -238,7 +239,7 @@ void dr_inbuild_meta_set_id(struct DRInBuildMeta * meta, int id) {
 }
 
 void dr_inbuild_meta_set_align(struct DRInBuildMeta * meta, int align) {
-    meta->m_data.m_align = align;
+    meta->m_data.m_align = align ? align : CPE_DEFAULT_ALIGN;
 }
 
 void dr_inbuild_meta_set_base_version(struct DRInBuildMeta * meta, int version) {
