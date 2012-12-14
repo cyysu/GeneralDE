@@ -29,6 +29,14 @@
 #include <assert.h>
 #include <math.h>
 
+#ifndef LLONG_MAX
+#define LLONG_MAX LONG_MAX
+#endif
+
+#ifndef LLONG_MIN
+#define LLONG_MIN LONG_MIN
+#endif
+
 #define MAX_VALUE_TO_MULTIPLY ((LLONG_MAX / 10) + (LLONG_MAX % 10))
 
  /* same semantics as strtol */
