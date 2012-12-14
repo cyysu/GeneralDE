@@ -42,7 +42,6 @@ static int pom_grp_store_build_obj_list(
     LPDRMETAENTRY count_entry;
 
     LPDRMETA src_element_meta;
-    const char * src_element_buf;
     size_t src_element_size;
 
     LPDRMETA des_element_meta;
@@ -64,7 +63,7 @@ static int pom_grp_store_build_obj_list(
         return -1;
     }
 
-    if (dr_entry_try_read_uint32(&count, ((const char *)data_buf) + dr_entry_data_start_pos(count_entry), count_entry, obj_mgr->m_em) != 0) {
+    if (dr_entry_try_read_uint32(&count, ((const char *)data_buf) + dr_entry_data_start_pos(count_entry, 0), count_entry, obj_mgr->m_em) != 0) {
         CPE_ERROR(
             obj_mgr->m_em, "pom_grp_store_build_obj: list entry %s: read count!",
             entry->m_entry_meta->m_name);
@@ -77,7 +76,7 @@ static int pom_grp_store_build_obj_list(
     des_element_meta = pom_grp_entry_meta_list_meta(entry->m_entry_meta);
     des_element_size = dr_meta_size(des_element_meta);
 
-    for(i = 0; i < count; ++i, src_element_buf += src_element_size, des_element_buf += des_element_size) {
+    for(i = 0; i < count; ++i, des_element_buf += des_element_size) {
         if (pom_grp_obj_list_append_ex(obj_mgr, obj, entry->m_entry_meta, NULL) != 0) {
             CPE_ERROR(
                 obj_mgr->m_em, "pom_grp_store_build_obj: list entry %s: %d: append entry fail!",
@@ -90,7 +89,8 @@ static int pom_grp_store_build_obj_list(
 
         if (dr_meta_copy_same_entry(
                 des_element_buf, des_element_size, des_element_meta,
-                src_element_buf, src_element_size, src_element_meta,
+                ((char const *)data_buf) + dr_entry_data_start_pos(data_entry, i),
+                src_element_size, src_element_meta,
                 0, obj_mgr->m_em) < 0)
         {
             CPE_ERROR(
@@ -114,7 +114,7 @@ static int pom_grp_store_build_obj_ba(
 
     if (pom_grp_obj_ba_set_binary_ex(
             obj_mgr, obj, entry->m_entry_meta,
-            ((char const *)data_buf) + dr_entry_data_start_pos(data_entry),
+            ((char const *)data_buf) + dr_entry_data_start_pos(data_entry, 0),
             dr_entry_size(data_entry)) != 0)
     {
         CPE_ERROR(
@@ -137,7 +137,7 @@ static int pom_grp_store_build_obj_binary(
 
     if (pom_grp_obj_binary_set_ex(
             obj_mgr, obj, entry->m_entry_meta,
-            ((char const *)data_buf) + dr_entry_data_start_pos(data_entry),
+            ((char const *)data_buf) + dr_entry_data_start_pos(data_entry, 0),
             dr_entry_size(data_entry)) != 0)
     {
         CPE_ERROR(
@@ -228,7 +228,6 @@ static int pom_grp_store_write_obj_list(
     LPDRMETAENTRY count_entry;
 
     LPDRMETA des_element_meta;
-    char * des_element_buf;
     size_t des_element_size;
 
     LPDRMETA src_element_meta;
@@ -258,7 +257,7 @@ static int pom_grp_store_write_obj_list(
         return -1;
     }
 
-    if (dr_entry_set_from_uint32(((char *)data_buf) + dr_entry_data_start_pos(count_entry), count, count_entry, obj_mgr->m_em) != 0) {
+    if (dr_entry_set_from_uint32(((char *)data_buf) + dr_entry_data_start_pos(count_entry, 0), count, count_entry, obj_mgr->m_em) != 0) {
         CPE_ERROR(
             obj_mgr->m_em, "pom_grp_store_write_obj: list entry %s: set count error!",
             entry->m_entry_meta->m_name);
@@ -271,12 +270,13 @@ static int pom_grp_store_write_obj_list(
     src_element_meta = pom_grp_entry_meta_list_meta(entry->m_entry_meta);
     src_element_size = dr_meta_size(des_element_meta);
 
-    for(i = 0; i < count; ++i, des_element_buf += des_element_size) {
+    for(i = 0; i < count; ++i) {
         src_element_buf = pom_grp_obj_list_at_ex(obj_mgr, obj, entry->m_entry_meta, i);
         assert(src_element_buf);
 
         if (dr_meta_copy_same_entry(
-                des_element_buf, des_element_size, des_element_meta,
+                ((char *)data_buf) + dr_entry_data_start_pos(data_entry, i),
+                des_element_size, des_element_meta,
                 src_element_buf, src_element_size, src_element_meta,
                 0, obj_mgr->m_em) < 0)
         {
@@ -301,7 +301,7 @@ static int pom_grp_store_write_obj_ba(
 
     if (pom_grp_obj_ba_get_binary_ex(
             obj_mgr, obj, entry->m_entry_meta,
-            ((char *)data_buf) + dr_entry_data_start_pos(data_entry),
+            ((char *)data_buf) + dr_entry_data_start_pos(data_entry, 0),
             dr_entry_size(data_entry)) != 0)
     {
         CPE_ERROR(
@@ -324,7 +324,7 @@ static int pom_grp_store_write_obj_binary(
 
     if (pom_grp_obj_binary_get_ex(
             obj_mgr, obj, entry->m_entry_meta,
-            ((char *)data_buf) + dr_entry_data_start_pos(data_entry),
+            ((char *)data_buf) + dr_entry_data_start_pos(data_entry, 0),
             dr_entry_size(data_entry)) != 0)
     {
         CPE_ERROR(

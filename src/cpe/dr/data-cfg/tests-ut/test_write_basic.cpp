@@ -3,7 +3,7 @@
 TEST_F(WriteTest, basic) {
     installMeta(
         "<metalib tagsetversion='1' name='net'  version='1'>"
-        "    <struct name='S' version='1'>"
+        "    <struct name='S' version='1' align='1'>"
         "	     <entry name='a1' type='int16'/>"
         "	     <entry name='a2' type='int16'/>"
         "    </struct>"
@@ -21,7 +21,7 @@ TEST_F(WriteTest, basic) {
 TEST_F(WriteTest, seq_count_dynamic_with_refer) {
     installMeta(
         "<metalib tagsetversion='1' name='net'  version='1'>"
-        "    <struct name='S' version='1'>"
+        "    <struct name='S' version='1' align='1'>"
         "	     <entry name='count' type='int16'/>"
         "	     <entry name='a1' type='int16' count='0' refer='count'/>"
         "    </struct>"
@@ -44,11 +44,11 @@ TEST_F(WriteTest, seq_count_dynamic_with_refer) {
 TEST_F(WriteTest, union_basic) {
     installMeta(
         "<metalib tagsetversion='1' name='net'  version='1'>"
-        "    <struct name='A' version='1'>"
+        "    <struct name='A' version='1' align='1'>"
         "	     <entry name='a1' type='int32'/>"
         "	     <entry name='a2' type='int16'/>"
         "    </struct>"
-        "    <struct name='B' version='1'>"
+        "    <struct name='B' version='1' align='1'>"
         "	     <entry name='b1' type='int16'/>"
         "	     <entry name='b2' type='int16'/>"
         "    </struct>"
@@ -79,11 +79,11 @@ TEST_F(WriteTest, union_basic) {
 TEST_F(WriteTest, union_with_select) {
     installMeta(
         "<metalib tagsetversion='1' name='net'  version='1'>"
-        "    <struct name='A' version='1'>"
+        "    <struct name='A' version='1' align='1'>"
         "	     <entry name='a1' type='int32'/>"
         "	     <entry name='a2' type='int16'/>"
         "    </struct>"
-        "    <struct name='B' version='1'>"
+        "    <struct name='B' version='1' align='1'>"
         "	     <entry name='b1' type='int16'/>"
         "	     <entry name='b2' type='int16'/>"
         "    </struct>"
@@ -91,7 +91,7 @@ TEST_F(WriteTest, union_with_select) {
         "	     <entry name='u1' type='A' id='2'/>"
         "	     <entry name='u2' type='B' id='3'/>"
         "    </union>"
-        "    <struct name='S' version='1'>"
+        "    <struct name='S' version='1' align='1'>"
         "	     <entry name='type' type='int16'/>"
         "        <entry name='data' type='U' select='type'/>"
         "    </struct>"

@@ -428,7 +428,7 @@ ConstDataElement ConstData::operator[](const char * name) const {
 ConstDataElement ConstData::operator[](LPDRMETAENTRY entry) const {
     if (m_meta == NULL) throw ::std::runtime_error("Data::operator[]: meta not exist!");
 
-    size_t off = dr_entry_data_start_pos(entry);
+    size_t off = dr_entry_data_start_pos(entry, 0);
     if (off >= m_capacity) {
         ::std::ostringstream os;
         os << "meta " << dr_meta_name(m_meta) << " entry " << dr_entry_name(entry)
@@ -519,7 +519,7 @@ DataElement Data::operator[](const char * name) {
 DataElement Data::operator[](LPDRMETAENTRY entry) {
     if (m_meta == NULL) throw ::std::runtime_error("Data::operator[]: meta not exist!");
 
-    size_t off = dr_entry_data_start_pos(entry);
+    size_t off = dr_entry_data_start_pos(entry, 0);
     if (off >= m_capacity) {
         ::std::ostringstream os;
         os << "meta " << dr_meta_name(m_meta) << " entry " << dr_entry_name(entry)

@@ -144,17 +144,14 @@ static int dr_json_do_parse_calc_start_pos(
     struct dr_json_parse_ctx * c, 
     struct dr_json_parse_stack_info * parseType)
 {
-    size_t diffPos;
-
-    diffPos = parseType->m_entry->m_data_start_pos;
-
     if (parseType->m_entry->m_array_count == 1) {
         if (parseType->m_in_array) return -1;
+        return (int)dr_entry_data_start_pos(parseType->m_entry, 0);
     }
-    else if (parseType->m_entry->m_array_count > 1) {
-        size_t elementSize;
-
-        if (parseType->m_array_count >= parseType->m_entry->m_array_count) {
+    else {
+        if (parseType->m_entry->m_array_count > 1
+            && parseType->m_array_count >= parseType->m_entry->m_array_count)
+        {
             CPE_ERROR(
                 c->m_em,
                 "process %s.%s, array count overflow!",
@@ -162,44 +159,8 @@ static int dr_json_do_parse_calc_start_pos(
             return -1;
         }
 
-        if (parseType->m_entry->m_type <= CPE_DR_TYPE_COMPOSITE) {
-            LPDRMETA refMeta = dr_entry_ref_meta(parseType->m_entry);
-            if (refMeta == NULL) {
-                CPE_ERROR(
-                    c->m_em, "process %s.%s, ref meta not exist!",
-                    dr_meta_name(parseType->m_meta), c->m_buf);
-                return -1;
-            }
-
-            elementSize = dr_meta_size(refMeta);
-        }
-        else {
-            const struct tagDRCTypeInfo * typeInfo;
-            typeInfo = dr_find_ctype_info_by_type(parseType->m_entry->m_type);
-            if (typeInfo == NULL) {
-                CPE_ERROR(
-                    c->m_em, "process %s.%s, type "FMT_DR_INT_T" is unknown!",
-                    dr_meta_name(parseType->m_meta), c->m_buf,
-                    parseType->m_entry->m_type);
-                return -1;
-            }
-
-            if (typeInfo->m_size <= 0) {
-                CPE_ERROR(
-                    c->m_em, "process %s.%s, type "FMT_DR_INT_T" size is invalid!",
-                    dr_meta_name(parseType->m_meta), c->m_buf,
-                    parseType->m_entry->m_type);
-                return -1;
-            }
-
-            elementSize = typeInfo->m_size;
-        }
-
-        diffPos += elementSize * parseType->m_array_count;
-        ++parseType->m_array_count;
+        return (int)dr_entry_data_start_pos(parseType->m_entry, parseType->m_array_count++);
     }
-
-    return (int)diffPos;
 }
  
 static void dr_json_do_parse_from_string(
@@ -439,6 +400,7 @@ static void dr_json_parse_ctx_init(
 
     ctx->m_stackPos = -1;
     ctx->m_em = em;
+    ctx->m_size = dr_meta_size(meta);
 }
 
 static int dr_json_read_i(

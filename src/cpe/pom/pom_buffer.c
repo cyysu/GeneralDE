@@ -146,8 +146,8 @@ static int pom_buffer_mgr_alloc_new_buffer(
 
     pom_buffer_mgr_init_pages(pgm, new_buf);
 
-    cpe_range_put_range(&pgm->m_buffers, (ptr_int_t)new_buf, ((ptr_int_t)new_buf) + pgm->m_buf_size);
-    cpe_range_put_range(&pgm->m_free_pages, (ptr_int_t)new_buf, ((ptr_int_t)new_buf) + pgm->m_buf_size);
+    cpe_range_put_range(&pgm->m_buffers, (ptr_int_t)new_buf, (ptr_int_t)((char *)new_buf + pgm->m_buf_size));
+    cpe_range_put_range(&pgm->m_free_pages, (ptr_int_t)new_buf, (ptr_int_t)((char *)new_buf + pgm->m_buf_size));
 
     return 0;
 }
@@ -166,8 +166,8 @@ int pom_buffer_mgr_add_new_buffer(
 
     pom_buffer_mgr_init_pages(pgm, new_buf);
 
-    cpe_range_put_range(&pgm->m_buffers, (ptr_int_t)new_buf, ((ptr_int_t)new_buf) + pgm->m_buf_size);
-    cpe_range_put_range(&pgm->m_free_pages, (ptr_int_t)new_buf, ((ptr_int_t)new_buf) + pgm->m_buf_size);
+    cpe_range_put_range(&pgm->m_buffers, (ptr_int_t)new_buf, (ptr_int_t)((char *)new_buf + pgm->m_buf_size));
+    cpe_range_put_range(&pgm->m_free_pages, (ptr_int_t)new_buf, (ptr_int_t)((char *)new_buf + pgm->m_buf_size));
     cpe_range_put_one(&pgm->m_buffer_ids, buf_id);
 
     return 0;
@@ -207,11 +207,11 @@ int pom_buffer_mgr_attach_old_buffer(
     buf = (char *)pom_buffer_mgr_get_buf(pgm, buf_id, em);
     if (buf == NULL) return -1;
 
-    cpe_range_put_range(&pgm->m_buffers, (ptr_int_t)buf, ((ptr_int_t)buf) + pgm->m_buf_size);
+    cpe_range_put_range(&pgm->m_buffers, (ptr_int_t)buf, (ptr_int_t)((char *)buf + pgm->m_buf_size));
     cpe_range_put_one(&pgm->m_buffer_ids, buf_id);
 
     for(leftSize = pgm->m_buf_size;
-        leftSize > (int)pgm->m_page_size;
+        leftSize >= (int)pgm->m_page_size;
         leftSize -= pgm->m_page_size, buf += pgm->m_page_size)
     {
         struct pom_data_page_head* page_head = (struct pom_data_page_head*)buf;
@@ -224,7 +224,7 @@ int pom_buffer_mgr_attach_old_buffer(
         if (page_head->m_classId == POM_INVALID_CLASSID) {
             cpe_range_put_range(
                 &pgm->m_free_pages,
-                (ptr_int_t)buf, ((ptr_int_t)buf) + pgm->m_page_size);
+                (ptr_int_t)buf, (ptr_int_t)((char *)buf + pgm->m_page_size));
         }
         else {
             pom_class_t the_class = pom_class_get(classMgr, page_head->m_classId);

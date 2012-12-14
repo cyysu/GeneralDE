@@ -190,7 +190,7 @@ dr_inbuild_metalib_add_meta(struct DRInBuildMetaLib * inBuildMetaLib) {
     bzero(newMeta, sizeof(struct DRInBuildMeta));
     newMeta->m_lib = inBuildMetaLib;
     newMeta->m_data.m_id = -1;
-    newMeta->m_data.m_align = 1;
+    newMeta->m_data.m_align = inBuildMetaLib->m_dft_align;
 
     newMeta->m_entries_count = 0;
     TAILQ_INIT(&newMeta->m_entries);
