@@ -261,7 +261,7 @@ TEST_F(MetaLibManagerEntryTest, element_size_string) {
     ASSERT_TRUE(e);
 
     EXPECT_EQ(dr_entry_array_count(e), 2);
-    EXPECT_EQ(dr_entry_element_size_no_align(e), (size_t)32);
+    EXPECT_EQ(dr_entry_element_size(e), (size_t)32);
     EXPECT_EQ(dr_entry_size(e), (size_t)64);
 }
 
@@ -269,5 +269,5 @@ TEST_F(MetaLibManagerEntryTest, element_size_int) {
     LPDRMETAENTRY e = entry("CmdLogout", "attrcount");
     ASSERT_TRUE(e);
 
-    EXPECT_EQ(dr_entry_element_size_no_align(e), (size_t)4);
+    EXPECT_EQ(dr_entry_element_size(e), (size_t)4);
 }

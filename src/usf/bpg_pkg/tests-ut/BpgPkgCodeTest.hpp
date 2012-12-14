@@ -8,7 +8,7 @@ public:
     virtual void SetUp();
     virtual void TearDown();
 
-    void set_model(const char * model, uint8_t encode_align = __WORDSIZE / 8, const char * mgr_name = NULL);
+    void set_model(const char * model, uint8_t encode_align = 0, const char * mgr_name = NULL);
     void add_cmd(uint32_t cmd, const char * meta, const char * mgr_name = NULL);
 
     dr_cvt_result_t encode(bpg_pkg_t pkg);

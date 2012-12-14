@@ -167,7 +167,7 @@ ConstDataElement::operator const char *(void) const {
 }
 
 ConstData ConstDataElement::operator[] (size_t pos) const {
-    size_t element_size = dr_entry_element_size_no_align(m_entry);
+    size_t element_size = dr_entry_element_size(m_entry);
     if ((pos + 1) * element_size > m_capacity) {
         ::std::ostringstream os;
         os << "read array " << pos << " from " << dr_entry_name(m_entry) << ": pos overflow!";
@@ -181,7 +181,7 @@ ConstData ConstDataElement::operator[] (size_t pos) const {
         throw ::std::runtime_error(os.str());
     }
 
-    return ConstData(((const char *)data()) + dr_entry_data_start_pos(m_entry, pos), element_meta, element_size);
+    return ConstData(((const char *)data()) + element_size * pos, element_meta, element_size);
 }
 
 //class DataElement
@@ -359,7 +359,7 @@ void DataElement::copy(const void * data, size_t capacity) {
 }
 
 Data DataElement::operator[] (size_t pos) {
-    size_t element_size = dr_entry_element_size_no_align(m_entry);
+    size_t element_size = dr_entry_element_size(m_entry);
     if ((pos + 1) * element_size > m_capacity) {
         ::std::ostringstream os;
         os << "read array " << pos << " from " << dr_entry_name(m_entry) << ": pos overflow!";
@@ -373,7 +373,7 @@ Data DataElement::operator[] (size_t pos) {
         throw ::std::runtime_error(os.str());
     }
 
-    return Data(((char *)data()) + dr_entry_data_start_pos(m_entry, pos), element_meta, element_size);
+    return Data(((char *)data()) + element_size * pos, element_meta, element_size);
 }
 
 

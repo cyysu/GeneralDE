@@ -173,7 +173,7 @@ static void dr_json_do_parse_from_string(
 
     if (parseType->m_entry == NULL) return;
 
-    elementSize = dr_entry_element_size_no_align(parseType->m_entry);
+    elementSize = dr_entry_element_size(parseType->m_entry);
 
     writePos = dr_json_parse_get_write_pos(
         c,
@@ -306,7 +306,7 @@ static int dr_json_start_map(void * ctx) {
 
         selectEntry = dr_entry_select_entry(curStack->m_entry);
         if (selectEntry) {
-            size_t select_entry_capaity = dr_entry_element_size_no_align(selectEntry);
+            size_t select_entry_capaity = dr_entry_element_size(selectEntry);
             const char * read_pos = dr_json_parse_get_read_pos(c, curStack, curStack->m_entry->m_select_data_start_pos, select_entry_capaity);
             if (read_pos && dr_entry_try_read_int32(&nestStackNode->m_select_data, read_pos, selectEntry, c->m_em) == 0) {
                 nestStackNode->m_select_state = dr_json_read_select_use;
@@ -357,7 +357,7 @@ static int dr_json_end_array(void * ctx) {
     refer = dr_entry_array_refer_entry(curStack->m_entry);
     if (refer) {
         char * ref_write_pos;
-        ref_write_pos = dr_json_parse_get_write_pos(c, curStack, curStack->m_entry->m_array_refer_data_start_pos, dr_entry_element_size_no_align(refer));
+        ref_write_pos = dr_json_parse_get_write_pos(c, curStack, curStack->m_entry->m_array_refer_data_start_pos, dr_entry_element_size(refer));
         if (ref_write_pos) {
             dr_entry_set_from_int32(ref_write_pos, curStack->m_array_count, refer, c->m_em);
         }

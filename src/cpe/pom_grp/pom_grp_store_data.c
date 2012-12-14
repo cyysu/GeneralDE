@@ -71,7 +71,7 @@ static int pom_grp_store_build_obj_list(
     }
 
     src_element_meta = dr_entry_ref_meta(data_entry);
-    src_element_size = dr_entry_element_size_no_align(data_entry);
+    src_element_size = dr_entry_element_size(data_entry);
 
     des_element_meta = pom_grp_entry_meta_list_meta(entry->m_entry_meta);
     des_element_size = dr_meta_size(des_element_meta);
@@ -265,7 +265,7 @@ static int pom_grp_store_write_obj_list(
     }
 
     des_element_meta = dr_entry_ref_meta(data_entry);
-    des_element_size = dr_entry_element_size_no_align(data_entry);
+    des_element_size = dr_entry_element_size(data_entry);
 
     src_element_meta = pom_grp_entry_meta_list_meta(entry->m_entry_meta);
     src_element_size = dr_meta_size(des_element_meta);

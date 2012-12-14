@@ -91,5 +91,5 @@ TEST_F(BuildFromXmlTest, parse_no_em) {
 
     EXPECT_EQ(
         CPE_DR_ERROR_INVALID_TAGSET_VERSION,
-        dr_create_lib_from_xml_ex(&m_buffer, def, strlen(def), __WORDSIZE / 8, NULL));
+        dr_create_lib_from_xml_ex(&m_buffer, def, strlen(def), 0, NULL));
 }

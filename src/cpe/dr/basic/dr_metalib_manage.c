@@ -124,12 +124,6 @@ int dr_meta_id(LPDRMETA meta) {
 }
 
 size_t dr_meta_size(LPDRMETA meta) {
-    size_t r = meta->m_real_data_size;
-    CPE_PAL_CALC_ALIGN(r, meta->m_require_align);
-    return r;
-}
-
-size_t dr_meta_size_no_align(LPDRMETA meta) {
     return meta->m_real_data_size;
 }
 
@@ -427,7 +421,7 @@ LPDRMETAENTRY dr_meta_find_entry_by_path_ex(LPDRMETA meta, const char* entryPath
                 cur_meta = NULL;
             }
 
-            if (off) *off += dr_entry_element_size_with_align(entry) * array_pos;
+            if (off) *off += dr_entry_element_size(entry) * array_pos;
 
             checkBegin = array_end + 1;
 
@@ -626,15 +620,15 @@ size_t dr_entry_data_start_pos(LPDRMETAENTRY entry, int index) {
     if (entry->m_array_count == 1 || index == 0) return entry->m_data_start_pos;
     
     return entry->m_data_start_pos
-        + dr_entry_element_size_with_align(entry) * index;
+        + dr_entry_element_size(entry) * index;
 }
 
 size_t dr_entry_array_calc_ele_num(LPDRMETAENTRY entry, size_t capacity) {
-    return capacity / dr_entry_element_size_with_align(entry);
+    return capacity / dr_entry_element_size(entry);
 }
 
 size_t dr_entry_array_calc_buf_capacity(LPDRMETAENTRY entry, size_t count) {
-    return count * dr_entry_element_size_with_align(entry);
+    return count * dr_entry_element_size(entry);
 }
 
 size_t dr_entry_require_align(LPDRMETAENTRY entry) {
@@ -654,33 +648,11 @@ size_t dr_entry_require_align(LPDRMETAENTRY entry) {
     }
 }
 
-size_t dr_entry_element_size_no_align(LPDRMETAENTRY entry) {
+size_t dr_entry_element_size(LPDRMETAENTRY entry) {
     if (entry->m_type <= CPE_DR_TYPE_COMPOSITE) {
         LPDRMETA refMeta = dr_entry_ref_meta(entry);
         if (refMeta == NULL) return 0;
-        return dr_meta_size_no_align(refMeta);
-    }
-    else if (entry->m_type == CPE_DR_TYPE_STRING) {
-        return entry->m_size;
-    }
-    else {
-        const struct tagDRCTypeInfo * typeInfo;
-        typeInfo = dr_find_ctype_info_by_type(entry->m_type);
-        if (typeInfo == NULL) return 0;
-        return typeInfo->m_size;
-    }
-}
-
-size_t dr_entry_element_size_with_align(LPDRMETAENTRY entry) {
-    if (entry->m_type <= CPE_DR_TYPE_COMPOSITE) {
-        LPDRMETA refMeta = dr_entry_ref_meta(entry);
-        size_t element_size;
-
-        if (refMeta == NULL) return 0;
-
-        element_size = refMeta->m_real_data_size;
-        CPE_PAL_CALC_ALIGN(element_size, dr_entry_require_align(entry));
-        return element_size;
+        return dr_meta_size(refMeta);
     }
     else if (entry->m_type == CPE_DR_TYPE_STRING) {
         return entry->m_size;
