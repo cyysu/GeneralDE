@@ -258,4 +258,3 @@ void logic_require_queue_cancel_all(logic_require_queue_t queue) {
     }
 }
 
-
