@@ -62,7 +62,7 @@ int logic_data_record_count(logic_data_t data) {
 }
 
 static size_t logic_data_record_capacity_i(logic_data_t data, dr_meta_dyn_info_t dyn_info) {
-    size_t element_size = dr_entry_element_size_no_align(dyn_info->m_array_entry);
+    size_t element_size = dr_entry_element_size(dyn_info->m_array_entry);
 
     return dr_entry_array_calc_ele_num(
         dyn_info->m_array_entry,
@@ -119,10 +119,10 @@ size_t logic_data_record_size(logic_data_t data) {
     meta = logic_data_meta(data);
 
     if (dr_meta_find_dyn_info(logic_data_meta(data), &dyn_info) == 0) {
-        return dr_entry_element_size_no_align(dyn_info.m_array_entry);
+        return dr_entry_element_size(dyn_info.m_array_entry);
     }
     else {
-        return dr_meta_size_no_align(meta);
+        return dr_meta_size(meta);
     }
 }
 
@@ -225,7 +225,7 @@ int logic_data_record_remove(logic_data_t data, size_t pos) {
 
     record_capacity = logic_data_record_capacity_i(data, &dyn_info);
     record_count = logic_data_record_count_i(data, &dyn_info);
-    record_size = dr_entry_element_size_with_align(dyn_info.m_array_entry);
+    record_size = dr_entry_element_size(dyn_info.m_array_entry);
 
     if (record_count < 0) {
         CPE_ERROR(em, "logic_data_record_remove: record cout %d error!", record_count);
@@ -271,7 +271,7 @@ static int logic_data_calc_dyn_capacity(LPDRMETA meta, size_t record_capacity, d
         }
     }
     else {
-        size_t record_size = dr_entry_element_size_with_align(dyn_info->m_array_entry);
+        size_t record_size = dr_entry_element_size(dyn_info->m_array_entry);
         return dr_meta_size(meta) + (record_capacity > 1 ? record_size * (record_capacity - 1) : 0);
     }
 }
@@ -349,7 +349,7 @@ void logic_data_record_sort(logic_data_t data, int(*cmp)(const void *, const voi
     meta = logic_data_meta(data);
 
     if (dr_meta_find_dyn_info(logic_data_meta(data), &dyn_info) == 0) {
-        size_t record_size = dr_entry_element_size_with_align(dyn_info.m_array_entry);
+        size_t record_size = dr_entry_element_size(dyn_info.m_array_entry);
         int record_count = logic_data_record_count_i(data, &dyn_info);
         if (record_count < 0) {
             CPE_ERROR(
@@ -372,7 +372,7 @@ void * logic_data_record_find(logic_data_t data, void const * key, int(*cmp)(con
     meta = logic_data_meta(data);
 
     if (dr_meta_find_dyn_info(logic_data_meta(data), &dyn_info) == 0) {
-        size_t record_size = dr_entry_element_size_with_align(dyn_info.m_array_entry);
+        size_t record_size = dr_entry_element_size(dyn_info.m_array_entry);
         int record_count = logic_data_record_count_i(data, &dyn_info);
         if (record_count < 0) {
             CPE_ERROR(
