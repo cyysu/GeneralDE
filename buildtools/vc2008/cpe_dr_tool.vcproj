@@ -91,8 +91,8 @@
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="$(SolutionDir)..\..\build\tools\bin\$(ConfigurationName)"
-			IntermediateDirectory="$(SolutionDir)..\..\build\$(ConfigurationName).Intermediate.win32\$(ProjectName)"
+			OutputDirectory="$(SolutionDir)..\..\build\vc\tools"
+			IntermediateDirectory="$(SolutionDir)..\..\build\vc\$(ConfigurationName)\$(ProjectName)\building"
 			ConfigurationType="1"
 			CharacterSet="2"
 			WholeProgramOptimization="1"

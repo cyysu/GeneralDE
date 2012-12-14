@@ -38,9 +38,9 @@
 
 
 #if (__WORDSIZE == 64)
-#define CPE_PAL_ALIGN CPE_PAL_ALIGN_8
+#define CPE_PAL_ALIGN_DFT CPE_PAL_CALC_ALIGN_8
 #else
-#define CPE_PAL_ALIGN CPE_PAL_ALIGN_4
+#define CPE_PAL_ALIGN_DFT CPE_PAL_CALC_ALIGN_4
 #endif
 
 #define CPE_SWAP_ENDIAN64(outp, inp) do {           \
@@ -81,7 +81,7 @@
 #ifdef __GNUC__
 #define INLINE inline
 #else
-#define INLINE
+#define INLINE static
 #endif
 
 #endif

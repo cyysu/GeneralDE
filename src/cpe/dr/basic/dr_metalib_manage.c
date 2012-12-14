@@ -1,5 +1,8 @@
 #include <assert.h>
-#include <string.h>
+#include "cpe/pal/pal_types.h"
+#include "cpe/pal/pal_string.h"
+#include "cpe/pal/pal_stdlib.h"
+#include "cpe/pal/pal_platform.h"
 #include "cpe/pal/pal_stdio.h"
 #include "cpe/dr/dr_metalib_manage.h"
 #include "cpe/dr/dr_ctypes_info.h"
@@ -128,6 +131,10 @@ int dr_meta_align(LPDRMETA meta) {
     return meta->m_align;
 }
 
+int dr_meta_require_align(LPDRMETA meta) {
+    return meta->m_require_align;
+}
+
 int dr_meta_entry_num(LPDRMETA meta) {
     return meta->m_entry_count;
 }
@@ -187,52 +194,14 @@ char * dr_meta_off_to_path(LPDRMETA meta, int a_iOff, char * a_pBuf, size_t a_iB
 }
 
 int dr_meta_path_to_off(LPDRMETA meta, const char * path, LPDRMETAENTRY * entry) {
-    char * base;
-    LPDRMETA pstCurMeta;
-    const char * nameBegin;
-    const char * nameEnd;
-    LPDRMETAENTRY pstEntry;
     int off;
-
-    base = (char *)(meta) - meta->m_self_pos;
-
-    off = 0;
-    pstCurMeta = meta;
-    for(nameBegin = path, nameEnd = strchr(nameBegin, '.');
-        nameEnd;
-        nameBegin = nameEnd + 1, nameEnd = strchr(nameBegin, '.'))
-    {
-        uint32_t i;
-        LPDRMETAENTRY pstEntryBegin = (LPDRMETAENTRY)(pstCurMeta + 1);
-        pstEntry = NULL;
-
-        for(i = 0; i < pstCurMeta->m_entry_count && pstEntry == NULL; ++i) {
-            LPDRMETAENTRY pstCheckEntry = pstEntryBegin + i;
-
-            if (strncmp(base + pstCheckEntry->m_name_pos, nameBegin, nameEnd - nameBegin) == 0) {
-                pstEntry = pstCheckEntry;
-            }
-        }
-
-        if (pstEntry == NULL) {
-            return -1;
-        }
-
-        if (pstEntry->m_type > CPE_DR_TYPE_COMPOSITE) {
-            return -1;
-        }
-
-        off += pstEntry->m_data_start_pos;
-        pstCurMeta = (LPDRMETA)(base + pstEntry->m_ref_type_pos);
-    }
-
-    pstEntry = dr_meta_find_entry_by_name(pstCurMeta, nameBegin);
-    if (pstEntry) {
-        off += pstEntry->m_data_start_pos;
-        if (entry) *entry = pstEntry;
+    LPDRMETAENTRY e = dr_meta_find_entry_by_path_ex(meta, path, &off);
+    if (e) {
+        if (entry) *entry = e;
         return off;
     }
     else {
+        if (entry) *entry = NULL;
         return -1;
     }
 }
@@ -392,27 +361,39 @@ LPDRMETAENTRY dr_meta_find_entry_by_path(LPDRMETA meta, const char* entryPath) {
     return dr_meta_find_entry_by_path_ex(meta, entryPath, NULL);
 }
 
+static LPDRMETAENTRY dr_meta_find_entry_by_name_len(LPDRMETA meta, const char * entry_name, size_t entry_name_len) {
+    int i;
+    LPDRMETAENTRY entry_base = (LPDRMETAENTRY)(meta + 1);
+    char * base = (char *)(meta) - meta->m_self_pos;
+
+    for(i = 0; i < meta->m_entry_count; ++i) {
+        LPDRMETAENTRY entry = entry_base + i;
+        const char * cur_entry_name = base + entry->m_name_pos;
+        if (strncmp(cur_entry_name, entry_name, entry_name_len) == 0
+            && strlen(cur_entry_name) == entry_name_len)
+        {
+            return entry;
+        }
+    }
+
+    return NULL;
+}
+
 LPDRMETAENTRY dr_meta_find_entry_by_path_ex(LPDRMETA meta, const char* entryPath, int * off) {
     char * base;
-    LPDRMETA pstCurMeta;
-    const char * nameBegin;
-    const char * nameEnd;
-    LPDRMETAENTRY pstEntry;
+    LPDRMETA cur_meta;
+    LPDRMETAENTRY entry;
+    const char * checkBegin;
+    const char * pointPos;
+    const char * arrayPos;
 
     assert(meta);
     assert(entryPath);
 
     base = (char *)(meta) - meta->m_self_pos;
 
-    pstCurMeta = meta;
+    cur_meta = meta;
     if (off) *off = 0;
-    for(nameBegin = entryPath, nameEnd = strchr(nameBegin, '.');
-        nameEnd;
-        nameBegin = nameEnd + 1, nameEnd = strchr(nameBegin, '.'))
-    {
-        uint32_t i;
-        LPDRMETAENTRY pstEntryBegin = (LPDRMETAENTRY)(pstCurMeta + 1);
-        pstEntry = NULL;
 
     checkBegin = entryPath;
     pointPos = strchr(checkBegin, '.');
@@ -444,26 +425,80 @@ LPDRMETAENTRY dr_meta_find_entry_by_path_ex(LPDRMETA meta, const char* entryPath
 
             checkBegin = array_end + 1;
 
-            if (strncmp(base + pstCheckEntry->m_name_pos, nameBegin, nameEnd - nameBegin) == 0) {
-                pstEntry = pstCheckEntry;
+            if (*checkBegin == '.') {
+                checkBegin++;
+                pointPos = *checkBegin ? strchr(checkBegin, '.') : NULL;
+            }
+
+            arrayPos = *checkBegin ? strchr(checkBegin, '[') : NULL;
+        }
+        else {
+            if (cur_meta == NULL) return NULL;
+
+            if (pointPos && pointPos < arrayPos) {
+                entry = dr_meta_find_entry_by_name_len(cur_meta, checkBegin, pointPos - checkBegin);
+                if (entry == NULL) return NULL;
+
+                if (entry->m_type > CPE_DR_TYPE_COMPOSITE) {
+                    cur_meta = NULL;
+                }
+                else {
+                    if (entry->m_array_count == 1) {
+                        cur_meta = (LPDRMETA)(base + entry->m_ref_type_pos);
+                    }
+                    else {
+                        cur_meta = NULL;
+                    }
+                }
+
+                if (off) *off += entry->m_data_start_pos;
+
+                checkBegin = pointPos + 1;
+                pointPos = *checkBegin ? strchr(checkBegin, '.') : NULL;
+            }
+            else {
+                entry = dr_meta_find_entry_by_name_len(cur_meta, checkBegin, arrayPos - checkBegin);
+                if (entry == NULL) return NULL;
+
+                if (off) *off += entry->m_data_start_pos;
+
+                checkBegin = arrayPos;
+            }
+        }
+    }
+
+    while(pointPos) {
+        if (cur_meta == NULL) return NULL;
+
+        entry = dr_meta_find_entry_by_name_len(cur_meta, checkBegin, pointPos - checkBegin);
+        if (entry == NULL) return NULL;
+
+        if (entry->m_type > CPE_DR_TYPE_COMPOSITE) {
+            cur_meta = NULL;
+        }
+        else {
+            if (entry->m_array_count == 1) {
+                cur_meta = (LPDRMETA)(base + entry->m_ref_type_pos);
+            }
+            else {
+                cur_meta = NULL;
             }
         }
 
-        if (pstEntry == NULL) {
-            return NULL;
-        }
+        if (off) *off += entry->m_data_start_pos;
 
-        if (pstEntry->m_type > CPE_DR_TYPE_COMPOSITE) {
-            return NULL;
-        }
-
-        pstCurMeta = (LPDRMETA)(base + pstEntry->m_ref_type_pos);
-        if (off) *off += pstEntry->m_data_start_pos;
+        checkBegin = pointPos + 1;
+        pointPos = *checkBegin ? strchr(checkBegin, '.') : NULL;
     }
 
-    pstEntry = dr_meta_find_entry_by_name(pstCurMeta, nameBegin);
-    if (pstEntry && off) *off += pstEntry->m_data_start_pos;
-    return pstEntry;
+    if (*checkBegin) {
+        if (cur_meta == NULL) return NULL;
+
+        entry = dr_meta_find_entry_by_name(cur_meta, checkBegin);
+        if (entry && off) *off += entry->m_data_start_pos;
+    }
+
+    return entry;
 }
 
 int dr_entry_version(LPDRMETAENTRY entry) {
@@ -596,10 +631,20 @@ size_t dr_entry_array_calc_buf_capacity(LPDRMETAENTRY entry, size_t count) {
     return count * dr_entry_element_size(entry);
 }
 
-        return typeInfo == NULL ? -1 : typeInfo->m_align;
+size_t dr_entry_require_align(LPDRMETAENTRY entry) {
+    if (entry->m_type <= CPE_DR_TYPE_COMPOSITE) {
+        LPDRMETA self_meta = dr_entry_self_meta(entry);
+        LPDRMETA ref_meta = dr_entry_ref_meta(entry);
+        return ref_meta->m_require_align > self_meta->m_align ? self_meta->m_align : ref_meta->m_require_align;
+    }
+    else if (entry->m_type == CPE_DR_TYPE_STRING) {
+        return 1;
     }
     else {
-        return dr_meta_align(dr_entry_ref_meta(entry));
+        const struct tagDRCTypeInfo * typeInfo;
+        typeInfo = dr_find_ctype_info_by_type(entry->m_type);
+        if (typeInfo == NULL) return 0;
+        return typeInfo->m_size;
     }
 }
 
@@ -772,19 +817,19 @@ int dr_meta_find_dyn_info(LPDRMETA meta, dr_meta_dyn_info_t dyn_info) {
 
     if (dr_entry_array_count(last_entry) == 0) {
         dyn_info->m_array_entry = last_entry;
-        dyn_info->m_array_start = dr_entry_data_start_pos(last_entry);
+        dyn_info->m_array_start = dr_entry_data_start_pos(last_entry, 0);
 
         dyn_info->m_refer_entry = dr_entry_array_refer_entry(last_entry);
         if (dyn_info->m_refer_entry) {
-            dyn_info->m_refer_start = dr_entry_data_start_pos(dyn_info->m_refer_entry);
+            dyn_info->m_refer_start = dr_entry_data_start_pos(dyn_info->m_refer_entry, 0);
         }
 
         return 0;
     }
     else if (dr_entry_type(last_entry) <= CPE_DR_TYPE_COMPOSITE) {
         if (dr_meta_find_dyn_info(dr_entry_ref_meta(last_entry), dyn_info) == 0) {
-            dyn_info->m_array_start += dr_entry_data_start_pos(last_entry);
-            if (dyn_info->m_refer_entry) dyn_info->m_refer_start += dr_entry_data_start_pos(last_entry);
+            dyn_info->m_array_start += dr_entry_data_start_pos(last_entry, 0);
+            if (dyn_info->m_refer_entry) dyn_info->m_refer_start += dr_entry_data_start_pos(last_entry, 0);
             return 0;
         }
         else {

@@ -79,3 +79,12 @@ cfg_t ReadTest::result(void) {
 
     return r;
 }
+
+int ReadTest::metaSize(const char * typeName) {
+    LPDRMETA meta = dr_lib_find_meta_by_name(m_metaLib, typeName);
+    EXPECT_TRUE(meta) << "get meta " << typeName << " error!";
+
+    if (meta == NULL) return -1;
+
+    return (int)dr_meta_size(meta);
+}

@@ -7,7 +7,7 @@ TEST_F(OmGrpMetaTest, normal_basic) {
         "    - entry1: { entry-type: normal, data-type: AttrGroup1 }\n"
         ,
         "<metalib tagsetversion='1' name='net'  version='1'>"
-        "    <struct name='AttrGroup1' version='1'>"
+        "    <struct name='AttrGroup1' version='1' align='1'>"
         "	     <entry name='a1' type='uint32' id='1'/>"
         "    </struct>"
         "</metalib>"
@@ -28,7 +28,7 @@ TEST_F(OmGrpMetaTest, list_basic) {
         "    - entry1: { entry-type: list, data-type: AttrGroup1, group-count: 3, capacity: 3 }\n"
         ,
         "<metalib tagsetversion='1' name='net'  version='1'>"
-        "    <struct name='AttrGroup1' version='1'>"
+        "    <struct name='AttrGroup1' version='1' align='1'>"
         "	     <entry name='a1' type='uint32' id='1'/>"
         "    </struct>"
         "</metalib>"
@@ -50,7 +50,7 @@ TEST_F(OmGrpMetaTest, list_multi) {
         "    - entry2: { entry-type: list, data-type: AttrGroup1, group-count: 3, capacity: 3 }\n"
         ,
         "<metalib tagsetversion='1' name='net'  version='1'>"
-        "    <struct name='AttrGroup1' version='1'>"
+        "    <struct name='AttrGroup1' version='1' align='1'>"
         "	     <entry name='a1' type='uint32' id='1'/>"
         "    </struct>"
         "</metalib>"
@@ -129,10 +129,10 @@ TEST_F(OmGrpMetaTest, basic_multi) {
         "    - entry4: { entry-type: binary, capacity: 5 }\n"
         ,
         "<metalib tagsetversion='1' name='net'  version='1'>"
-        "    <struct name='AttrGroup1' version='1'>"
+        "    <struct name='AttrGroup1' version='1' align='1'>"
         "	     <entry name='a1' type='uint32' id='1'/>"
         "    </struct>"
-        "    <struct name='AttrGroup2' version='1'>"
+        "    <struct name='AttrGroup2' version='1' align='1'>"
         "	     <entry name='b1' type='string' size='5' id='1'/>"
         "    </struct>"
         "</metalib>"

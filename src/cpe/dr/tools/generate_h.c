@@ -80,7 +80,7 @@ static void cpe_dr_generate_h_metas(write_stream_t stream, dr_metalib_source_t s
     int curent_pack;
     int packed;
 
-    curent_pack = 0;
+    curent_pack = __WORDSIZE / 8;
     packed = 0;
     dr_metalib_source_elements(&element_it, source);
     while((element = dr_metalib_source_element_next(&element_it))) {
@@ -94,7 +94,7 @@ static void cpe_dr_generate_h_metas(write_stream_t stream, dr_metalib_source_t s
         if (meta == NULL) continue;
 
         if (dr_meta_align(meta) != curent_pack) {
-            stream_printf(stream, "\n#pragma pack(1)\n");
+            stream_printf(stream, "\n#pragma pack(%d)\n", dr_meta_align(meta));
             curent_pack = dr_meta_align(meta);
             packed = 1;
         }

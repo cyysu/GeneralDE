@@ -3,7 +3,7 @@
 TEST_F(ReadTest, type_uin32) {
     installMeta(
         "<metalib tagsetversion='1' name='net'  version='1'>"
-        "    <struct name='S' version='1'>"
+        "    <struct name='S' version='1' align='1'>"
         "	     <entry name='a1' type='uint32' id='1'/>"
         "    </struct>"
         "</metalib>"
@@ -20,7 +20,7 @@ TEST_F(ReadTest, type_uin32) {
 TEST_F(ReadTest, type_uin64) {
     installMeta(
         "<metalib tagsetversion='1' name='net'  version='1'>"
-        "    <struct name='S' version='1'>"
+        "    <struct name='S' version='1' align='1'>"
         "	     <entry name='a1' type='uint64' id='1'/>"
         "    </struct>"
         "</metalib>"
@@ -37,7 +37,7 @@ TEST_F(ReadTest, type_uin64) {
 TEST_F(ReadTest, type_in32) {
     installMeta(
         "<metalib tagsetversion='1' name='net'  version='1'>"
-        "    <struct name='S' version='1'>"
+        "    <struct name='S' version='1' align='1'>"
         "	     <entry name='a1' type='int32' id='1'/>"
         "    </struct>"
         "</metalib>"
@@ -54,7 +54,7 @@ TEST_F(ReadTest, type_in32) {
 TEST_F(ReadTest, type_in64) {
     installMeta(
         "<metalib tagsetversion='1' name='net'  version='1'>"
-        "    <struct name='S' version='1'>"
+        "    <struct name='S' version='1' align='1'>"
         "	     <entry name='a1' type='int64' id='1'/>"
         "    </struct>"
         "</metalib>"
@@ -71,7 +71,7 @@ TEST_F(ReadTest, type_in64) {
 TEST_F(ReadTest, type_float) {
     installMeta(
         "<metalib tagsetversion='1' name='net'  version='1'>"
-        "    <struct name='S' version='1'>"
+        "    <struct name='S' version='1' align='1'>"
         "	     <entry name='a1' type='float' id='1'/>"
         "    </struct>"
         "</metalib>"
@@ -88,7 +88,7 @@ TEST_F(ReadTest, type_float) {
 TEST_F(ReadTest, type_double) {
     installMeta(
         "<metalib tagsetversion='1' name='net'  version='1'>"
-        "    <struct name='S' version='1'>"
+        "    <struct name='S' version='1' align='1'>"
         "	     <entry name='a1' type='double' id='1'/>"
         "    </struct>"
         "</metalib>"
@@ -106,7 +106,7 @@ TEST_F(ReadTest, type_double) {
 TEST_F(ReadTest, type_string) {
     installMeta(
         "<metalib tagsetversion='1' name='net'  version='1'>"
-        "    <struct name='S' version='1'>"
+        "    <struct name='S' version='1' align='1'>"
         "	     <entry name='a1' type='string' id='1' size='5'/>"
         "    </struct>"
         "</metalib>"
@@ -123,10 +123,10 @@ TEST_F(ReadTest, type_string) {
 TEST_F(ReadTest, type_string_overflow) {
     installMeta(
         "<metalib tagsetversion='1' name='net'  version='1'>"
-        "    <struct name='I' version='1'>"
+        "    <struct name='I' version='1' align='1'>"
         "	     <entry name='a1' type='string' id='1' size='15'/>"
         "    </struct>"
-        "    <struct name='O' version='1'>"
+        "    <struct name='O' version='1' align='1'>"
         "	     <entry name='a1' type='string' id='1' size='5'/>"
         "    </struct>"
         "</metalib>"

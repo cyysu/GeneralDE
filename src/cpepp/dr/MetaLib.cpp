@@ -60,7 +60,7 @@ MetaLib::_load_from_bin_file(const char * file, Utils::MemBuffer & buf) {
 }
 
 MetaLib const &
-MetaLib::_load_from_xml_file(const char * file, Utils::MemBuffer & buf) {
+MetaLib::_load_from_xml_file(const char * file, Utils::MemBuffer & buf, uint8_t dft_align) {
     Utils::ErrorCollector ec;
     Utils::MemBuffer xmlBuf(NULL);
 
@@ -69,7 +69,7 @@ MetaLib::_load_from_xml_file(const char * file, Utils::MemBuffer & buf) {
     }
 
     buf.clear();
-    if (dr_create_lib_from_xml_ex(buf, (char*)xmlBuf.make_continuous(), xmlBuf.size(), ec) != 0) {
+    if (dr_create_lib_from_xml_ex(buf, (char*)xmlBuf.make_continuous(), xmlBuf.size(), dft_align, ec) != 0) {
         ec.checkThrowWithMsg< ::std::runtime_error>();
     }
             
@@ -77,10 +77,10 @@ MetaLib::_load_from_xml_file(const char * file, Utils::MemBuffer & buf) {
 }
 
 MetaLib const &
-MetaLib::_load_from_xml(const char * xml, Utils::MemBuffer & buf) {
+MetaLib::_load_from_xml(const char * xml, Utils::MemBuffer & buf, uint8_t dft_align) {
     Utils::ErrorCollector ec;
 
-    if (dr_create_lib_from_xml_ex(buf, xml, strlen(xml), ec) != 0) {
+    if (dr_create_lib_from_xml_ex(buf, xml, strlen(xml), dft_align, ec) != 0) {
         ec.checkThrowWithMsg< ::std::runtime_error>();
     }
 

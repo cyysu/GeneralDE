@@ -3,10 +3,10 @@
 TEST_F(ReadTest, struct_basic) {
     installMeta(
         "<metalib tagsetversion='1' name='net'  version='1'>"
-        "    <struct name='I' version='1'>"
+        "    <struct name='I' version='1' align='1'>"
         "	     <entry name='a1' type='uint32' id='1'/>"
         "    </struct>"
-        "    <struct name='S' version='1'>"
+        "    <struct name='S' version='1' align='1'>"
         "	     <entry name='b1' type='I' id='1'/>"
         "    </struct>"
         "</metalib>"
@@ -23,11 +23,11 @@ TEST_F(ReadTest, struct_basic) {
 TEST_F(ReadTest, union_basic) {
     installMeta(
         "<metalib tagsetversion='1' name='net'  version='1'>"
-        "    <union name='U1' version='1'>"
+        "    <union name='U1' version='1' align='1'>"
         "	     <entry name='a1' type='uint32' id='1'/>"
         "	     <entry name='a2' type='uint32' id='2'/>"
         "    </union>"
-        "    <struct name='S2' version='1'>"
+        "    <struct name='S2' version='1' align='1'>"
         "        <entry name='s' type='uint32'/>"
         "	     <entry name='b1' type='U1' id='3' select='s'/>"
         "    </struct>"
@@ -46,11 +46,11 @@ TEST_F(ReadTest, union_basic) {
 TEST_F(ReadTest, union_select_carry) {
     installMeta(
         "<metalib tagsetversion='1' name='net'  version='1'>"
-        "    <union name='U1' version='1'>"
+        "    <union name='U1' version='1' align='1'>"
         "	     <entry name='a1' type='uint32' id='1'/>"
         "	     <entry name='a2' type='uint32' id='2'/>"
         "    </union>"
-        "    <struct name='S2' version='1'>"
+        "    <struct name='S2' version='1' align='1'>"
         "        <entry name='s' type='uint32' id='1'/>"
         "	     <entry name='b1' type='U1' id='3' select='s'/>"
         "    </struct>"
@@ -69,11 +69,11 @@ TEST_F(ReadTest, union_select_carry) {
 TEST_F(ReadTest, union_select_no_daata) {
     installMeta(
         "<metalib tagsetversion='1' name='net'  version='1'>"
-        "    <union name='U1' version='1'>"
+        "    <union name='U1' version='1' align='1'>"
         "	     <entry name='a1' type='uint32' id='1'/>"
         "	     <entry name='a2' type='uint32' id='2'/>"
         "    </union>"
-        "    <struct name='S2' version='1'>"
+        "    <struct name='S2' version='1' align='1'>"
         "        <entry name='s' type='uint32' id='1'/>"
         "	     <entry name='b1' type='U1' id='3' select='s'/>"
         "    </struct>"
@@ -81,7 +81,7 @@ TEST_F(ReadTest, union_select_no_daata) {
         );
 
     t_em_set_print();
-    EXPECT_EQ(4, read("S2", "s: 3"));
+    EXPECT_EQ(8, read("S2", "s: 3"));
     
     EXPECT_CFG_EQ(
         "s: 3\n"
@@ -92,11 +92,11 @@ TEST_F(ReadTest, union_select_no_daata) {
 TEST_F(ReadTest, union_no_select) {
     installMeta(
         "<metalib tagsetversion='1' name='net'  version='1'>"
-        "    <union name='U1' version='1'>"
+        "    <union name='U1' version='1' align='1'>"
         "	     <entry name='a1' type='uint32' id='1'/>"
         "	     <entry name='a2' type='uint32' id='2'/>"
         "    </union>"
-        "    <struct name='S2' version='1'>"
+        "    <struct name='S2' version='1' align='1'>"
         "	     <entry name='b1' type='U1' id='3'/>"
         "    </struct>"
         "</metalib>"
