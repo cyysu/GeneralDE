@@ -321,7 +321,7 @@ static int dr_pbuf_read_i(
 
                     assert(stackPos > 0);
                     preStack = &processStack[stackPos - 1];
-                    selectElementSize = dr_entry_element_size_no_align(selectEntry);
+                    selectElementSize = dr_entry_element_size(selectEntry);
 
                     writeBuf = dr_pbuf_read_get_write_pos(
                         &ctx, preStack, selectEntry->m_data_start_pos, selectElementSize);
@@ -330,7 +330,7 @@ static int dr_pbuf_read_i(
             }
 
             /*get write pos*/
-            elementSize = dr_entry_element_size_no_align(entry);
+            elementSize = dr_entry_element_size(entry);
 
 
             array_info = NULL;
@@ -519,7 +519,7 @@ static int dr_pbuf_read_i(
             refer = dr_entry_array_refer_entry(info->m_entry);
             if (refer) {
                 char * writeBuf =
-                    dr_pbuf_read_get_write_pos(&ctx, curStack, refer->m_data_start_pos, dr_entry_element_size_no_align(refer));
+                    dr_pbuf_read_get_write_pos(&ctx, curStack, refer->m_data_start_pos, dr_entry_element_size(refer));
                 if (writeBuf == NULL) continue;
 
                 dr_entry_set_from_uint32(writeBuf, info->m_count, refer, em);

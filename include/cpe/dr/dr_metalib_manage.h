@@ -22,7 +22,6 @@ const char *dr_meta_name(LPDRMETA meta);
 const char *dr_meta_desc(LPDRMETA meta);
 int dr_meta_id(LPDRMETA meta);
 size_t dr_meta_size(LPDRMETA meta);
-size_t dr_meta_size_no_align(LPDRMETA meta);
 int dr_meta_align(LPDRMETA meta);
 int dr_meta_require_align(LPDRMETA meta);
 int dr_meta_entry_num(LPDRMETA meta);

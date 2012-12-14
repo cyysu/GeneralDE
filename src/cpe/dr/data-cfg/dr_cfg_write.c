@@ -67,7 +67,7 @@ void dr_cfg_write_i(
 
         LOOPENTRY:
 
-            elementSize = dr_entry_element_size_no_align(curStack->m_entry);
+            elementSize = dr_entry_element_size(curStack->m_entry);
             if (elementSize == 0) continue;
 
             refer = NULL;

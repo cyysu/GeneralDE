@@ -195,7 +195,7 @@ TEST_F(BuildFromXmlEntryTest, string_array) {
     ASSERT_TRUE(e);
 
     EXPECT_EQ(dr_entry_array_count(e), 12);
-    EXPECT_EQ(dr_entry_element_size_no_align(e), (size_t)13);
+    EXPECT_EQ(dr_entry_element_size(e), (size_t)13);
     EXPECT_EQ(dr_entry_size(e), (size_t)(12 * 13));
 }
 
