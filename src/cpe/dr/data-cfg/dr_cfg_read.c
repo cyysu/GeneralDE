@@ -119,7 +119,7 @@ int dr_cfg_read_entry(
         LPDRMETAENTRY refer;
         int count;
         int max_count;
-        size_t element_size = dr_entry_element_size_no_align(entry);
+        size_t element_size = dr_entry_element_size(entry);
         if (element_size == 0) {
             CPE_ERROR(
                 em, "read from %s: read %s.%s, element size is unknown!",
