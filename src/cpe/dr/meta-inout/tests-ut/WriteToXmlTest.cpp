@@ -18,7 +18,7 @@ WriteToXmlTest::writeToXml(const char * def) {
 
     t_elist_clear();
 
-    int r = dr_create_lib_from_xml_ex(&input_buffer, def, strlen(def), __WORDSIZE / 8, NULL);
+    int r = dr_create_lib_from_xml_ex(&input_buffer, def, strlen(def), 0, NULL);
     EXPECT_EQ(0, r);
 
     LPDRMETALIB  metaLib = (LPDRMETALIB)mem_buffer_make_continuous(&input_buffer, 0);

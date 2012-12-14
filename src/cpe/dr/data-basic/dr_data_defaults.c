@@ -9,7 +9,7 @@ int dr_entry_set_defaults(void * inout, size_t capacity, LPDRMETAENTRY entry, in
     size_t element_size;
     const void * dft_value;
 
-    element_size = dr_entry_element_size_no_align(entry);
+    element_size = dr_entry_element_size(entry);
     if (element_size > capacity) return -1;
 
     dft_value = dr_entry_dft_value(entry);
@@ -72,7 +72,7 @@ void dr_meta_set_defaults(void * inout, size_t capacity, LPDRMETA meta, int poli
 
         LOOPENTRY:
 
-            element_size = dr_entry_element_size_no_align(curStack->m_entry);
+            element_size = dr_entry_element_size(curStack->m_entry);
             if (element_size == 0) continue;
 
             for(; curStack->m_array_pos < curStack->m_entry->m_array_count; ++curStack->m_array_pos) {

@@ -363,13 +363,13 @@ static void gd_evt_mgr_dispatch_evt(tl_event_t input, void * context) {
     if (dp_dispatch_by_string(gd_evt_target_hs(evt), mgr->m_req, mgr->m_em) != 0) {
         struct write_stream_error stream = CPE_WRITE_STREAM_ERROR_INITIALIZER(mgr->m_em);
         stream_printf((write_stream_t)&stream, "%s: dispatch success, oid=%s, event=", gd_evt_mgr_name(mgr));
-        //gd_evt_duevt->dump((write_stream_t)&stream);
+        gd_evt_dump((write_stream_t)&stream, evt);
     }
     else {
         if (mgr->m_debug) {
             struct write_stream_error stream = CPE_WRITE_STREAM_ERROR_INITIALIZER(mgr->m_em);
             stream_printf((write_stream_t)&stream, "%s: dispatch success, oid=%s, event=", gd_evt_mgr_name(mgr));
-            //gd_evt_duevt->dump((write_stream_t)&stream);
+            gd_evt_dump((write_stream_t)&stream, evt);
         }
     }
 }
@@ -388,6 +388,6 @@ CPE_HS_DEF_VAR(s_gd_evt_mgr_default_name, "gd_evt_mgr");
 CPE_HS_DEF_VAR(gd_evt_req_type_name, "app.event.req");
 
 struct nm_node_type s_nm_node_type_gd_evt_mgr = {
-    "usf_gd_evt_mgr",
+    "gd_evt_mgr",
     gd_evt_mgr_clear
 };
