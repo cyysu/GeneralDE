@@ -181,7 +181,7 @@ ConstData ConstDataElement::operator[] (size_t pos) const {
         throw ::std::runtime_error(os.str());
     }
 
-    return ConstData(((const char *)data()) + element_size * pos, element_meta, element_size);
+    return ConstData(((const char *)data()) + dr_entry_data_start_pos(m_entry, pos), element_meta, element_size);
 }
 
 //class DataElement
@@ -373,7 +373,7 @@ Data DataElement::operator[] (size_t pos) {
         throw ::std::runtime_error(os.str());
     }
 
-    return Data(((char *)data()) + element_size * pos, element_meta, element_size);
+    return Data(((char *)data()) + dr_entry_data_start_pos(m_entry, pos), element_meta, element_size);
 }
 
 
