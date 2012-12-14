@@ -58,7 +58,7 @@ int dr_cfg_read_entry_one(
             select_entry = dr_entry_select_entry(entry);
             if (select_entry) {
                 size_t select_element_size;
-                select_element_size = dr_entry_element_size_no_align(select_entry);
+                select_element_size = dr_entry_element_size(select_entry);
                 if (entry->m_select_data_start_pos + select_element_size <= all_capacity) {
                     dr_entry_set_from_int32(
                         all_buf + entry->m_select_data_start_pos,
@@ -119,7 +119,7 @@ int dr_cfg_read_entry(
         LPDRMETAENTRY refer;
         int count;
         int max_count;
-        size_t element_size = dr_entry_element_size_no_align(entry);
+        size_t element_size = dr_entry_element_size(entry);
         if (element_size == 0) {
             CPE_ERROR(
                 em, "read from %s: read %s.%s, element size is unknown!",
@@ -156,7 +156,7 @@ int dr_cfg_read_entry(
 
         refer = dr_entry_array_refer_entry(entry);
         if (refer) {
-            size_t refer_element_size = dr_entry_element_size_no_align(refer);
+            size_t refer_element_size = dr_entry_element_size(refer);
             if (entry->m_array_refer_data_start_pos + refer_element_size < all_capacity) {
                 dr_entry_set_from_int32(
                     all_buf + entry->m_array_refer_data_start_pos,

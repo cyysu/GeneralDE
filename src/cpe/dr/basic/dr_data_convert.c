@@ -575,7 +575,7 @@ size_t dr_meta_calc_data_len(LPDRMETA meta, void const * data, size_t capacity) 
 
     if (dr_meta_find_dyn_info(meta, &dyn_info) == 0) {
         if (dr_entry_array_count(dyn_info.m_array_entry) == 0) {
-            size_t element_size_align = dr_entry_element_size_with_align(dyn_info.m_array_entry);
+            size_t element_size = dr_entry_element_size(dyn_info.m_array_entry);
             uint32_t element_count = 0;
 
             if (dyn_info.m_refer_entry) {
@@ -587,8 +587,7 @@ size_t dr_meta_calc_data_len(LPDRMETA meta, void const * data, size_t capacity) 
                 element_count = dr_entry_array_count(dyn_info.m_array_entry);
             }
 
-            r = meta_data_size + (element_count > 1 ? element_count - 1 : 0) * element_size_align;
-            if (r < meta_data_size) r = meta_data_size;
+            r = meta_data_size + (element_count > 1 ? element_count - 1 : 0) * element_size;
         }
         else {
             r = meta_data_size;
