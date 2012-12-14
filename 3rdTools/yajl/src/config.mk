@@ -7,6 +7,4 @@ $(product).c.flags.cpp:=-DNDEBUG -DYAJL_SHARED -DYAJL_BUILD
 $(product).c.flags.lan.c:= -O2 -Wno-conversion 
 $(product).c.flags.ld:=
 
-$(product).linux32.c.flags.cpp:=-DLLONG_MAX=LONG_MAX -DLLONG_MIN=LONG_MIN
-
 $(eval $(call product-def,$(product)))
