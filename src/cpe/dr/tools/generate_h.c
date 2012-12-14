@@ -1,5 +1,6 @@
 #include <assert.h>
 #include <ctype.h>
+#include "cpe/pal/pal_platform.h"
 #include "cpe/dr/dr_ctypes_info.h"
 #include "cpe/dr/dr_metalib_builder.h"
 #include "cpe/dr/dr_metalib_manage.h"

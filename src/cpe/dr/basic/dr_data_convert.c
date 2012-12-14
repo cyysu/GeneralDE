@@ -587,8 +587,7 @@ size_t dr_meta_calc_data_len(LPDRMETA meta, void const * data, size_t capacity) 
                 element_count = dr_entry_array_count(dyn_info.m_array_entry);
             }
 
-            r = meta_data_size - element_size + element_size * element_count;
-            if (r < meta_data_size) r = meta_data_size;
+            r = meta_data_size + (element_count > 1 ? element_count - 1 : 0) * element_size;
         }
         else {
             r = meta_data_size;
