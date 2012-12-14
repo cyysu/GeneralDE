@@ -75,6 +75,9 @@ public:
     void load_from_cfg(void * data, size_t capacity, cfg_t cfg, int policy = DR_CFG_READ_CHECK_NOT_EXIST_ATTR) const;
     bool try_load_from_cfg(void * data, size_t capacity, cfg_t cfg, error_monitor_t em = 0, int policy = 0) const;
 
+    void load_from_json(void * data, size_t capacity, const char * json) const;
+    bool try_load_from_json(void * data, size_t capacity, const char * json, error_monitor_t em = 0) const;
+
     template<typename T>
     void load_from_cfg(T & data, cfg_t cfg, int policy = DR_CFG_READ_CHECK_NOT_EXIST_ATTR) const {
         load_from_cfg(&data, sizeof(data), cfg);
