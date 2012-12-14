@@ -667,13 +667,8 @@ size_t dr_entry_require_align(LPDRMETAENTRY entry) {
 size_t dr_entry_element_size(LPDRMETAENTRY entry) {
     if (entry->m_type <= CPE_DR_TYPE_COMPOSITE) {
         LPDRMETA refMeta = dr_entry_ref_meta(entry);
-        size_t element_size;
-
         if (refMeta == NULL) return 0;
-
-        element_size = refMeta->m_real_data_size;
-        CPE_PAL_CALC_ALIGN(element_size, dr_entry_require_align(entry));
-        return element_size;
+        return dr_meta_size(refMeta);
     }
     else if (entry->m_type == CPE_DR_TYPE_STRING) {
         return entry->m_size;

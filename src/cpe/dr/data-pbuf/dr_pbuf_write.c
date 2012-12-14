@@ -123,7 +123,7 @@ int dr_pbuf_write(
         LOOPENTRY:
             if (curStack->m_entry->m_id == -1) continue; /*ignore no id field*/
 
-            elementSize = dr_entry_element_size_no_align(curStack->m_entry);
+            elementSize = dr_entry_element_size(curStack->m_entry);
             if (elementSize == 0) continue;
 
             refer = NULL;

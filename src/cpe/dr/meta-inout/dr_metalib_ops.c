@@ -271,7 +271,6 @@ int dr_add_meta_entry_set_type_calc_align(LPDRMETA meta, LPDRMETAENTRY entry, er
     //process type
     if (entry->m_type <= CPE_DR_TYPE_COMPOSITE) {/*is composite type*/
         LPDRMETA usedType = NULL;
-        size_t align_size;
 
         if (entry->m_ref_type_pos < 0) {
             DR_NOTIFY_ERROR(em, CPE_DR_ERROR_ENTRY_INVALID_TYPE_VALUE);
