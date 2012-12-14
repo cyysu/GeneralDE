@@ -278,7 +278,7 @@ int main(int argc, char * argv[]) {
         goto exit;
     }
 
-    app = gd_app_context_create(NULL, 0, argc, argv);
+    app = gd_app_context_create_main(NULL, 0, argc, argv);
     if (app == NULL) {
         printf("create app context fail!");
         return -1;
