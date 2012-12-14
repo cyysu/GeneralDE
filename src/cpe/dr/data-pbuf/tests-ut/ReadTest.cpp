@@ -28,7 +28,7 @@ void ReadTest::installMeta(const char * def) {
 
     EXPECT_EQ(
         0,
-        dr_create_lib_from_xml_ex(&m_metaLib_buffer, def, strlen(def), t_em()))
+        dr_create_lib_from_xml_ex(&m_metaLib_buffer, def, strlen(def), 0, t_em()))
         << "install meta error";
 
     m_metaLib = (LPDRMETALIB)mem_buffer_make_exactly(&m_metaLib_buffer);
@@ -78,4 +78,13 @@ cfg_t ReadTest::result(void) {
             t_em()));
 
     return r;
+}
+
+int ReadTest::metaSize(const char * typeName) {
+    LPDRMETA meta = dr_lib_find_meta_by_name(m_metaLib, typeName);
+    EXPECT_TRUE(meta) << "get meta " << typeName << " error!";
+
+    if (meta == NULL) return -1;
+
+    return (int)dr_meta_size(meta);
 }

@@ -213,7 +213,7 @@ int dr_bson_write(
             for(; curStack->m_array_pos < array_count; ++curStack->m_array_pos) {
                 const char * entryData;
 
-                entryData = curStack->m_input_data + curStack->m_entry->m_data_start_pos + (elementSize * curStack->m_array_pos);
+                entryData = curStack->m_input_data + dr_entry_data_start_pos(curStack->m_entry, curStack->m_array_pos);
 
                 switch(curStack->m_entry->m_type) {
                 case CPE_DR_TYPE_UNION:

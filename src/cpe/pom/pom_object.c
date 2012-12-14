@@ -16,6 +16,8 @@ pom_oid_t pom_obj_alloc(
     assert(omm);
     assert(className);
 
+    assert(omm->m_auto_validate == 0 || pom_mgr_validate(omm, em) == 0);
+
     theClass = pom_class_find(&omm->m_classMgr, className);
     if (theClass == NULL) {
         CPE_ERROR_EX(

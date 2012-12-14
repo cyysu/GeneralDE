@@ -33,11 +33,6 @@ void AsyncOpTest::SetUp() {
 }
 
 void AsyncOpTest::TearDown() {
-    if (m_context) {
-        logic_context_free(m_context);
-        m_context = NULL;
-    }
-
     if (m_executor) {
         logic_executor_free(m_executor);
         m_executor = NULL;

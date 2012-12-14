@@ -1,5 +1,6 @@
 #include <assert.h>
 #include "cpe/pal/pal_strings.h"
+#include "cpe/pal/pal_platform.h"
 #include "cpe/dr/dr_metalib_manage.h"
 #include "usf/bpg_pkg/bpg_pkg.h"
 #include "protocol/base/base_package.h"
@@ -9,6 +10,8 @@ int bpg_pkg_set_main_data(bpg_pkg_t pkg, void const * buf, size_t size, error_mo
     BASEPKG_HEAD * head;
     size_t cur_size;
     size_t remain_size;
+
+    CPE_PAL_ALIGN_DFT(size);
 
     assert(pkg);
     assert(buf);
@@ -56,6 +59,8 @@ int bpg_pkg_add_append_data(bpg_pkg_t pkg, LPDRMETA meta, const void * buf, size
     APPENDINFO * appendInfo;
     size_t cur_size;
     size_t remain_size;
+
+    CPE_PAL_ALIGN_DFT(size);
 
     assert(pkg);
 

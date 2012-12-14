@@ -58,7 +58,7 @@ struct tagDRMeta {
     /*016*/ /*016*/ dr_int_t m_type;
     /*020*/ /*024*/ dr_int_t m_meta_size;
     /*024*/ /*032*/ dr_int_t reserve_2;
-    /*028*/ /*040*/ dr_int_t m_data_size;
+    /*028*/ /*040*/ dr_int_t m_real_data_size;
     int8_t reserve_3_1[8];
     dr_int_t reserve_3_2[1];
 
@@ -70,7 +70,7 @@ struct tagDRMeta {
     /*060*/ /*088*/ dr_int_t m_self_pos;
     int8_t reserve_5[16];
     /*080*/ /*112*/int32_t m_align;
-    int8_t reserve_6_1[4];
+    /*084*/ /*116*/int32_t m_require_align;
     dr_int_t reserve_6_2[11];
     /*132*/ /*208*/dr_int_t m_name_pos;
     /*136*/ /*216*/dr_int_t m_desc_pos;

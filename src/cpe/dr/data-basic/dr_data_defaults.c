@@ -80,7 +80,7 @@ void dr_meta_set_defaults(void * inout, size_t capacity, LPDRMETA meta, int poli
                 size_t entry_capacity;
                 size_t left_capacity;
 
-                entry_data = curStack->m_data + curStack->m_entry->m_data_start_pos + (element_size * curStack->m_array_pos);
+                entry_data = curStack->m_data + dr_entry_data_start_pos(curStack->m_entry,  curStack->m_array_pos);
                 if ((size_t)(entry_data - curStack->m_data) >= curStack->m_capacity) continue;
 
                 left_capacity = curStack->m_capacity - (entry_data - curStack->m_data);

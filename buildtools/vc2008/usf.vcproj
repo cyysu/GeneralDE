@@ -81,8 +81,8 @@
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="$(SolutionDir)..\..\build\$(ConfigurationName).win32"
-			IntermediateDirectory="$(SolutionDir)..\..\build\$(ConfigurationName).Intermediate.win32\$(ProjectName)"
+			OutputDirectory="$(SolutionDir)..\..\build\vc\$(ConfigurationName)\lib"
+			IntermediateDirectory="$(SolutionDir)..\..\build\vc\$(ConfigurationName)\$(ProjectName)\building"
 			ConfigurationType="4"
 			CharacterSet="2"
 			WholeProgramOptimization="1"
@@ -92,6 +92,7 @@
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
+				Description="Performing Custom Build Step"
 			/>
 			<Tool
 				Name="VCXMLDataGeneratorTool"
@@ -106,7 +107,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="..\..\build;..\..\include;..\..\3rdTools\zlib\vc\include"
+				AdditionalIncludeDirectories="&quot;..\..\build\vc\protocol\$(SafeRootNamespace)&quot;;..\..\include;..\..\3rdTools\zlib\vc\include"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
@@ -284,18 +285,6 @@
 				</File>
 			</Filter>
 			<Filter
-				Name="bpg_zip"
-				>
-				<File
-					RelativePath="..\..\include\usf\bpg_zip\bpg_zip_chanel.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\include\usf\bpg_zip\bpg_zip_types.h"
-					>
-				</File>
-			</Filter>
-			<Filter
 				Name="bpg_bind"
 				>
 				<File
@@ -394,7 +383,7 @@
 						>
 						<Tool
 							Name="VCCustomBuildTool"
-							CommandLine="set PATH=$(SolutionDir)..\..\3rdTools\iconv\vc\bin;$(SolutionDir)..\..\3rdTools\zlib\vc\bin;%PATH%&#x0D;&#x0A;$(SolutionDir)..\..\build\vc\tools\cpe_dr_tool.exe -i $(InputPath) --output-h $(SolutionDir)..\..\build\vc\protocol\$(SafeRootNamespace)\protocol\base --output-lib-c $(SolutionDir)..\..\build\vc\protocol\$(SafeRootNamespace)\protocol\base\$(InputName).c --output-lib-c-arg g_metalib_base_package&#x0D;&#x0A;&#x0D;&#x0A;"
+							CommandLine="set PATH=$(SolutionDir)..\..\3rdTools\iconv\vc\bin;$(SolutionDir)..\..\3rdTools\zlib\vc\bin;%PATH%&#x0D;&#x0A;$(SolutionDir)..\..\build\vc\tools\cpe_dr_tool.exe -i $(InputPath) --output-h $(SolutionDir)..\..\build\vc\protocol\$(SafeRootNamespace)\protocol\base --output-lib-c $(SolutionDir)..\..\build\vc\protocol\$(SafeRootNamespace)\protocol\base\$(InputName).c --output-lib-c-arg g_metalib_base_package&#x0D;&#x0A;"
 							Outputs="$(SolutionDir)..\..\build\vc\protocol\$(SafeRootNamespace)\protocol\base\$(InputName).c"
 						/>
 					</FileConfiguration>
@@ -403,8 +392,8 @@
 						>
 						<Tool
 							Name="VCCustomBuildTool"
-							CommandLine="mkdir $(OutDir)\..\protocol&#x0D;&#x0A;mkdir $(OutDir)\..\protocol\base&#x0D;&#x0A;set PATH=$(SolutionDir)..\..\3rdTools\iconv\vc\bin;$(SolutionDir)..\..\3rdTools\zlib\vc\bin;%PATH%&#x0D;&#x0A;$(SolutionDir)..\..\build\tools\bin\cpe_dr_tool.exe -i $(InputPath) --output-h $(OutDir)\..\protocol\base --output-lib-c $(OutDir)\..\protocol\base\$(InputName).c --output-lib-c-arg g_metalib_base_package&#x0D;&#x0A;&#x0D;&#x0A;"
-							Outputs="$(OutDir)\..\protocol\base\$(InputName).c"
+							CommandLine="set PATH=$(SolutionDir)..\..\3rdTools\iconv\vc\bin;$(SolutionDir)..\..\3rdTools\zlib\vc\bin;%PATH%&#x0D;&#x0A;$(SolutionDir)..\..\build\vc\tools\cpe_dr_tool.exe -i $(InputPath) --output-h $(SolutionDir)..\..\build\vc\protocol\$(SafeRootNamespace)\protocol\base --output-lib-c $(SolutionDir)..\..\build\vc\protocol\$(SafeRootNamespace)\protocol\base\$(InputName).c --output-lib-c-arg g_metalib_base_package&#x0D;&#x0A;"
+							Outputs="$(SolutionDir)..\..\build\vc\protocol\$(SafeRootNamespace)\protocol\base\$(InputName).c"
 						/>
 					</FileConfiguration>
 				</File>
@@ -505,7 +494,8 @@
 						>
 						<Tool
 							Name="VCCustomBuildTool"
-							CommandLine="mkdir $(OutDir)\..\protocol&#x0D;&#x0A;mkdir $(OutDir)\..\protocol\base&#x0D;&#x0A;set PATH=$(SolutionDir)..\..\3rdTools\iconv\vc\bin;$(SolutionDir)..\..\3rdTools\zlib\vc\bin;%PATH%&#x0D;&#x0A;$(SolutionDir)..\..\build\tools\bin\cpe_dr_tool.exe  -i $(InputDir) --output-h $(OutDir)\..\protocol\bpg_rsp --output-lib-c $(OutDir)\..\protocol\bpg_rsp\carry_package.c --output-lib-c-arg g_metalib_carry_package&#x0D;&#x0A;"
+							CommandLine="set PATH=$(SolutionDir)..\..\3rdTools\iconv\vc\bin;$(SolutionDir)..\..\3rdTools\zlib\vc\bin;%PATH%&#x0D;&#x0A;$(SolutionDir)..\..\build\vc\tools\cpe_dr_tool.exe  -i $(InputDir) --output-h $(SolutionDir)..\..\build\vc\protocol\$(SafeRootNamespace)\protocol\bpg_rsp --output-lib-c $(SolutionDir)..\..\build\vc\protocol\$(SafeRootNamespace)\protocol\bpg_rsp\carry_package.c --output-lib-c-arg g_metalib_carry_package&#x0D;&#x0A;"
+							Outputs="$(SolutionDir)..\..\build\vc\protocol\$(SafeRootNamespace)\protocol\bpg_rsp\carry_package.c"
 						/>
 					</FileConfiguration>
 				</File>
@@ -618,6 +608,10 @@
 				Name="logic_use"
 				>
 				<File
+					RelativePath="..\..\src\usf\logic_use\logic_data_build.c"
+					>
+				</File>
+				<File
 					RelativePath="..\..\src\usf\logic_use\logic_data_dyn.c"
 					>
 				</File>
@@ -663,11 +657,11 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\build\protocol\logic_use\logic_uni_res_info.h"
+					RelativePath="..\..\build\vc\protocol\usf\protocol\logic_use\logic_uni_res_info.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\build\vc\protocol\usf\protocol\logic_use\logic_uni_res_info.h"
+					RelativePath="..\..\build\protocol\logic_use\logic_uni_res_info.h"
 					>
 				</File>
 				<File
@@ -713,26 +707,6 @@
 				</File>
 				<File
 					RelativePath="..\..\src\usf\bpg_cli\bpg_cli_proxy_recv.c"
-					>
-				</File>
-			</Filter>
-			<Filter
-				Name="bpg_zip"
-				>
-				<File
-					RelativePath="..\..\src\usf\bpg_zip\bpg_zip_chanel.c"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\usf\bpg_zip\bpg_zip_chanel_module.c"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\usf\bpg_zip\bpg_zip_internal_types.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\usf\bpg_zip\bpg_zip_process.c"
 					>
 				</File>
 			</Filter>
