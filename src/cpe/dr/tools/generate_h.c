@@ -186,8 +186,6 @@ static void cpe_dr_generate_h_traits(write_stream_t stream, dr_metalib_source_t 
         meta = dr_lib_find_meta_by_name(ctx->m_metalib, dr_metalib_source_element_name(element));
         if (meta == NULL) continue;
 
-        if (dr_meta_type(meta) != CPE_DR_TYPE_STRUCT) continue;
-
         meta_name = dr_meta_name(meta);
         stream_printf(stream, "template<> struct MetaTraits<");
         stream_toupper(stream, meta_name);
@@ -198,7 +196,7 @@ static void cpe_dr_generate_h_traits(write_stream_t stream, dr_metalib_source_t 
         stream_printf(stream, "    static Meta const & META;\n");
         stream_printf(stream, "    static const char * const NAME;\n");
 
-        if (dr_meta_find_dyn_info(meta, &dyn_info) == 0) {
+        if (dr_meta_type(meta) == CPE_DR_TYPE_STRUCT && dr_meta_find_dyn_info(meta, &dyn_info) == 0) {
             stream_printf(stream, "    typedef ");
             cpe_dr_generate_h_print_type(stream, dyn_info.m_array_entry);
             stream_printf(stream, " dyn_element_type;\n");
@@ -220,6 +218,11 @@ static void cpe_dr_generate_h_traits(write_stream_t stream, dr_metalib_source_t 
                 stream_printf(
                     stream, " const & o) { return sizeof(o) - sizeof(dyn_element_type) + sizeof(dyn_element_type) * o.%s; }\n",
                     dr_meta_off_to_path(meta, dyn_info.m_refer_start, buf, sizeof(buf)));
+            }
+            else {
+                stream_printf(stream, "    static size_t data_size( ");
+                stream_toupper(stream, meta_name);
+                stream_printf(stream, " const & o) { return sizeof(o); }\n");
             }
         }
         else {
