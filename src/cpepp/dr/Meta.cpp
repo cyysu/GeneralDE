@@ -122,6 +122,23 @@ bool Meta::try_load_from_cfg(void * data, size_t capacity, cfg_t cfg, error_moni
     }
 }
 
+void Meta::load_from_json(void * data, size_t capacity, const char * json) const {
+    Utils::ErrorCollector ec;
+    if (dr_json_read(data, capacity, json, *this, ec) <= 0) {
+        ec.checkThrowWithMsg< ::std::runtime_error>();
+    }
+}
+
+bool Meta::try_load_from_json(void * data, size_t capacity, const char * json, error_monitor_t em) const {
+    if (dr_json_read(data, capacity, json, *this, em) <= 0) {
+        bzero(data, capacity);
+        return false;
+    }
+    else {
+        return true;
+    }
+}
+
 void Meta::write_to_cfg(cfg_t cfg, const void * data) const {
     Utils::ErrorCollector ec;
     if (dr_cfg_write(cfg, data, *this, ec) != 0) {
