@@ -34,6 +34,14 @@ int dr_json_print(
     int flag,
     error_monitor_t em);
 
+int dr_json_print_array(
+    write_stream_t output,
+    const void * input,
+    size_t capacity,
+    LPDRMETA meta,
+    int flag,
+    error_monitor_t em);
+
 #ifdef __cplusplus
 }
 #endif
