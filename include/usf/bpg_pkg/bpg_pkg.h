@@ -66,6 +66,9 @@ void bpg_pkg_set_sn(bpg_pkg_t pkg, uint32_t sn);
 uint32_t bpg_pkg_flags(bpg_pkg_t pkg);
 void bpg_pkg_set_flags(bpg_pkg_t pkg, uint32_t flags);
 
+int bpg_pkg_flag_enable(bpg_pkg_t pkg, bpg_pkg_flag_t flag);
+void bpg_pkg_flag_set_enable(bpg_pkg_t pkg, bpg_pkg_flag_t flag, int is_enable);
+
 void * bpg_pkg_body_data(bpg_pkg_t pkg);
 uint32_t bpg_pkg_body_len(bpg_pkg_t pkg);
 
