@@ -36,11 +36,9 @@ TEST_F(PrintTest, print_string) {
         "</metalib>"
         );
 
-#pragma pack(push,1)
     struct {
         char a1[5];
     } input = { "abcd"  };
-#pragma pack(pop)
 
     EXPECT_EQ(0, print(&input, sizeof(input), "S"));
     EXPECT_STREQ("{\"a1\":\"abcd\"}", result());
