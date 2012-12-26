@@ -50,6 +50,7 @@ with_bpg_rsp::t_bpg_rsp_manage(
         mgr = bpg_rsp_manage_create(
             envOf<gd::app::testenv::with_app>().t_app(),
             name,
+            bpg_rsp_manage_dp_scope_global,
             envOf<usf::logic::testenv::with_logic>().t_logic_manage(logic_name),
             executor_mgr,
             em);

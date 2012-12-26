@@ -10,6 +10,7 @@ bpg_rsp_manage_t
 bpg_rsp_manage_create(
     gd_app_context_t app,
     const char * name,
+    bpg_rsp_manage_dp_scope_t scope,
     logic_manage_t logic_mgr,
     logic_executor_mgr_t executor_mgr,
     error_monitor_t em);
@@ -30,6 +31,8 @@ const char * bpg_rsp_manage_name(bpg_rsp_manage_t mgr);
 cpe_hash_string_t bpg_rsp_manage_name_hs(bpg_rsp_manage_t mgr);
 
 logic_manage_t bpg_rsp_manage_logic(bpg_rsp_manage_t mgr);
+
+int bpg_rsp_manage_set_dispatch_at(bpg_rsp_manage_t mgr, const char * recv_at);
 
 void bpg_rsp_manage_set_context_op(
     bpg_rsp_manage_t mgr,

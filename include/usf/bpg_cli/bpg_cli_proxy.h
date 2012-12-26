@@ -35,6 +35,9 @@ int bpg_cli_proxy_outgoing_set_send_to(bpg_cli_proxy_t proxy, cfg_t cfg);
 int bpg_cli_proxy_outgoing_set_recv_at(bpg_cli_proxy_t proxy, const char * name);
 int bpg_cli_proxy_incoming_set_no_sn_send_to(bpg_cli_proxy_t proxy, cfg_t cfg);
 
+uint64_t bpg_cli_proxy_client_id(bpg_cli_proxy_t proxy);
+void bpg_cli_proxy_set_client_id(bpg_cli_proxy_t proxy, uint64_t client_id);
+
 bpg_pkg_manage_t bpg_cli_proxy_pkg_manage(bpg_cli_proxy_t proxy);
 
 void * bpg_cli_proxy_data_buf(bpg_cli_proxy_t proxy);

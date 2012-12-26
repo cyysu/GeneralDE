@@ -1,8 +1,13 @@
 #include <assert.h>
 #include "cpe/pal/pal_external.h"
+#include "cpe/pal/pal_stdio.h"
+#include "cpe/utils/string_utils.h"
 #include "cpe/dr/dr_metalib_manage.h"
 #include "cpe/nm/nm_manage.h"
 #include "cpe/nm/nm_read.h"
+#include "cpe/dp/dp_manage.h"
+#include "cpe/dp/dp_responser.h"
+#include "cpe/dp/dp_request.h"
 #include "gd/app/app_context.h"
 #include "usf/logic/logic_manage.h"
 #include "gd/dr_store/dr_ref.h"
@@ -28,6 +33,7 @@ bpg_rsp_manage_t
 bpg_rsp_manage_create(
     gd_app_context_t app,
     const char * name,
+    bpg_rsp_manage_dp_scope_t scope,
     logic_manage_t logic_mgr,
     logic_executor_mgr_t executor_mgr,
     error_monitor_t em)
@@ -64,6 +70,7 @@ bpg_rsp_manage_create(
     mgr->m_ctx_fini = NULL;
     mgr->m_pkg_init = NULL;
     mgr->m_ctx_ctx = NULL;
+    mgr->m_dispatch_recv_at = NULL;
 
     mgr->m_rsp_max_size = 4 * 1024;
     mgr->m_rsp_buf = NULL;
@@ -101,6 +108,19 @@ bpg_rsp_manage_create(
         return NULL;
     }
 
+    if (scope == bpg_rsp_manage_dp_scope_global) {
+        mgr->m_dp = gd_app_dp_mgr(app);
+    }
+    else {
+        mgr->m_dp = dp_mgr_create(gd_app_alloc(app));
+        if (mgr->m_dp == NULL) {
+            cpe_hash_table_fini(&mgr->m_queue_infos);
+            cpe_hash_table_fini(&mgr->m_rsps);
+            nm_node_free(mgr_node);
+            return NULL;
+        }
+    }
+    mgr->m_dp_req_buf = NULL;
 
     nm_node_set_type(mgr_node, &s_nm_node_type_bpg_rsp_manage);
 
@@ -108,8 +128,20 @@ bpg_rsp_manage_create(
 }
 
 static void bpg_rsp_manage_clear(nm_node_t node) {
+    char dsp_rsp_name[128];
+    dp_rsp_t dsp_rsp;
     bpg_rsp_manage_t mgr;
     mgr = (bpg_rsp_manage_t)nm_node_data(node);
+
+    if (mgr->m_dp_req_buf) {
+        dp_req_free(mgr->m_dp_req_buf);
+        mgr->m_dp_req_buf = NULL;
+    }
+
+    snprintf(dsp_rsp_name, sizeof(dsp_rsp_name), "%s.dp-rsp", bpg_rsp_manage_name(mgr));
+    if ((dsp_rsp = dp_rsp_find_by_name(gd_app_dp_mgr(mgr->m_app), dsp_rsp_name))) {
+        dp_rsp_free(dsp_rsp);
+    }
 
     bpg_rsp_free_all(mgr);
 
@@ -136,6 +168,23 @@ static void bpg_rsp_manage_clear(nm_node_t node) {
     bpg_rsp_queue_info_free_all(mgr);
     cpe_hash_table_fini(&mgr->m_rsps);
     cpe_hash_table_fini(&mgr->m_queue_infos);
+
+    if (mgr->m_dispatch_recv_at) {
+        dp_rsp_t dp_rsp;
+
+        dp_rsp = dp_rsp_find_by_name(gd_app_dp_mgr(mgr->m_app), mgr->m_dispatch_recv_at);
+        if (dp_rsp) {
+            dp_rsp_free(dp_rsp);
+        }
+
+        mem_free(mgr->m_alloc, (void*)mgr->m_dispatch_recv_at);
+        mgr->m_dispatch_recv_at = NULL;
+    }
+
+    if (mgr->m_dp != gd_app_dp_mgr(mgr->m_app)) {
+        dp_mgr_free(mgr->m_dp);
+    }
+    mgr->m_dp = NULL;
 }
 
 void bpg_rsp_manage_free(bpg_rsp_manage_t mgr) {
@@ -207,6 +256,77 @@ bpg_pkg_dsp_t bpg_rsp_manage_forward_dsp(bpg_rsp_manage_t mgr) {
 void bpg_rsp_manage_set_forward_dsp(bpg_rsp_manage_t mgr, bpg_pkg_dsp_t dsp) {
     if (mgr->m_forward_dsp) bpg_pkg_dsp_free(mgr->m_forward_dsp);
     mgr->m_forward_dsp = dsp;
+}
+
+static int bpg_rsp_manage_dispatch(dp_req_t dp_req, void * ctx, error_monitor_t em) {
+    bpg_pkg_t pkg = bpg_pkg_from_dp_req(dp_req);
+    bpg_rsp_manage_t mgr = (bpg_rsp_manage_t)ctx;
+
+    if (mgr->m_dp != dp_req_mgr(dp_req)) {
+        if (mgr->m_dp_req_buf
+            && (dp_req_capacity(mgr->m_dp_req_buf) < dp_req_size(dp_req)
+                || strcmp(dp_req_type(mgr->m_dp_req_buf), dp_req_type(dp_req)) != 0))
+        {
+            dp_req_free(mgr->m_dp_req_buf);
+            mgr->m_dp_req_buf = NULL;
+        }
+
+        if (mgr->m_dp_req_buf == NULL) {
+            mgr->m_dp_req_buf = dp_req_create(mgr->m_dp, dp_req_type_hs(dp_req), dp_req_size(dp_req));
+            if (mgr->m_dp_req_buf == NULL) {
+                CPE_ERROR(mgr->m_em, "%s: create dp_rsp buf fail", bpg_rsp_manage_name(mgr));
+                return -1;
+            }
+        }
+
+        memcpy(dp_req_data(mgr->m_dp_req_buf), dp_req_data(dp_req), dp_req_size(dp_req));
+        dp_req_set_size(mgr->m_dp_req_buf, dp_req_size(dp_req));
+        return dp_dispatch_by_numeric(bpg_pkg_cmd(pkg), mgr->m_dp_req_buf, em);
+    }
+    else {
+        return dp_dispatch_by_numeric(bpg_pkg_cmd(pkg), dp_req, em);
+    }
+}
+
+int bpg_rsp_manage_set_dispatch_at(bpg_rsp_manage_t mgr, const char * recv_at) {
+    char dsp_rsp_name[128];
+    dp_rsp_t dsp_rsp;
+
+    snprintf(dsp_rsp_name, sizeof(dsp_rsp_name), "%s.dp-rsp", bpg_rsp_manage_name(mgr));
+    if ((dsp_rsp = dp_rsp_find_by_name(gd_app_dp_mgr(mgr->m_app), dsp_rsp_name))) {
+        dp_rsp_free(dsp_rsp);
+        dsp_rsp = NULL;
+    }
+
+    if (mgr->m_dispatch_recv_at) {
+        mem_free(mgr->m_alloc, (void*)mgr->m_dispatch_recv_at);
+        mgr->m_dispatch_recv_at = NULL;
+    }
+
+    mgr->m_dispatch_recv_at = cpe_str_mem_dup(mgr->m_alloc, recv_at);
+    if (mgr->m_dispatch_recv_at == NULL) return -1;
+
+    dsp_rsp = dp_rsp_create(gd_app_dp_mgr(mgr->m_app), dsp_rsp_name);
+    if (dsp_rsp == NULL) {
+        CPE_ERROR(mgr->m_em, "%s: create dp_rsp %s: create fail name duplicate!", bpg_rsp_manage_name(mgr), dsp_rsp_name);
+        mem_free(mgr->m_alloc, (void*)mgr->m_dispatch_recv_at);
+        mgr->m_dispatch_recv_at = NULL;
+        return -1;
+    }
+
+    dp_rsp_set_processor(dsp_rsp, bpg_rsp_manage_dispatch, mgr);
+
+    if (dp_rsp_bind_string(dsp_rsp, mgr->m_dispatch_recv_at, NULL) != 0) {
+        CPE_ERROR(
+            mgr->m_em, "%s: create dp_rsp %s: bind to %s fail!",
+            bpg_rsp_manage_name(mgr), dsp_rsp_name, mgr->m_dispatch_recv_at);
+        dp_rsp_free(dsp_rsp);
+        mem_free(mgr->m_alloc, (void*)mgr->m_dispatch_recv_at);
+        mgr->m_dispatch_recv_at = NULL;
+        return -1;
+    }
+
+    return 0;
 }
 
 bpg_pkg_t

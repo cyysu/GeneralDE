@@ -2,6 +2,7 @@
 #define CPE_UTILS_STRING_H
 #include "stream.h"
 #include "error.h"
+#include "memory.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -12,6 +13,8 @@ cpe_str_dup_range(char * buf, size_t capacity, const char * begin, const char * 
 
 char *
 cpe_str_dup_len(char * buf, size_t capacity, const char * begin, size_t size);
+
+char * cpe_str_mem_dup(mem_allocrator_t alloc, const char * str);
 
 typedef struct cpe_str_buf {
     size_t m_capacity;

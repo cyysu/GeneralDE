@@ -153,15 +153,33 @@ static int bpg_rsp_manage_load_forward_dsp(
 EXPORT_DIRECTIVE
 int bpg_rsp_manage_app_init(gd_app_context_t app, gd_app_module_t module, cfg_t cfg) {
     bpg_rsp_manage_t bpg_rsp_manage;
+    bpg_rsp_manage_dp_scope_t scope;
+    const char * str_scope;
     logic_manage_t logic_mgr;
     logic_executor_mgr_t executor_mgr;
     cfg_t child_cfg;
     const char * executor_mgr_name;
     const char * load_from;
+    const char * dsp_recv_at;
+
+    str_scope = cfg_get_string(cfg, "scope", "global");
+    if (strcmp(str_scope, "global") == 0) {
+        scope = bpg_rsp_manage_dp_scope_global;
+    }
+    else if (strcmp(str_scope, "local") == 0) {
+        scope = bpg_rsp_manage_dp_scope_local;
+    }
+    else {
+        CPE_ERROR(
+            gd_app_em(app),
+            "%s: create: scope %s is unknown!",
+            gd_app_module_name(module), str_scope);
+        return -1;
+    }
 
     logic_mgr = logic_manage_find_nc(app, cfg_get_string(cfg, "logic-manage", NULL));
     if (logic_mgr == NULL) {
-        CPE_INFO(
+        CPE_ERROR(
             gd_app_em(app),
             "%s: create: logic-manage %s not exist",
             gd_app_module_name(module), cfg_get_string(cfg, "logic-manage", "default"));
@@ -170,7 +188,7 @@ int bpg_rsp_manage_app_init(gd_app_context_t app, gd_app_module_t module, cfg_t 
 
     executor_mgr_name = cfg_get_string(cfg, "executor-manage", NULL);
     if (executor_mgr_name == NULL) {
-        CPE_INFO(
+        CPE_ERROR(
             gd_app_em(app),
             "%s: create: executor-manage not configured",
             gd_app_module_name(module));
@@ -179,7 +197,7 @@ int bpg_rsp_manage_app_init(gd_app_context_t app, gd_app_module_t module, cfg_t 
 
     executor_mgr = logic_executor_mgr_find_nc(app, executor_mgr_name);
     if (executor_mgr == NULL) {
-        CPE_INFO(
+        CPE_ERROR(
             gd_app_em(app),
             "%s: create: executor-manage %s not exist",
             gd_app_module_name(module), executor_mgr_name);
@@ -190,6 +208,7 @@ int bpg_rsp_manage_app_init(gd_app_context_t app, gd_app_module_t module, cfg_t 
         bpg_rsp_manage_create(
             app,
             gd_app_module_name(module),
+            scope,
             logic_mgr,
             executor_mgr,
             NULL);
@@ -198,6 +217,13 @@ int bpg_rsp_manage_app_init(gd_app_context_t app, gd_app_module_t module, cfg_t 
     }
 
     bpg_rsp_manage->m_debug = cfg_get_int32(cfg, "debug", 0);
+
+    if ((dsp_recv_at = cfg_get_string(cfg, "recv-at", NULL))) {
+        if (bpg_rsp_manage_set_dispatch_at(bpg_rsp_manage, dsp_recv_at) != 0) {
+            bpg_rsp_manage_free(bpg_rsp_manage);
+            return -1;
+        }
+    }
 
     if (bpg_rsp_manage_load_commit_dsp(app, module, bpg_rsp_manage, cfg) != 0) {
         bpg_rsp_manage_free(bpg_rsp_manage);
