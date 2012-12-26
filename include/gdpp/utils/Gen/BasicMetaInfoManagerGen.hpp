@@ -63,6 +63,9 @@ public:
 
     virtual void clear(void) { m_elements.clear(); }
 
+    virtual void const * _buf(void) const { return &m_elements[0]; }
+    virtual size_t _buf_size(void) const { return sizeof(m_elements[0]) * m_elements.size(); }
+
 protected:
     typedef ::std::vector<ElementT> ElementContainer;
 
