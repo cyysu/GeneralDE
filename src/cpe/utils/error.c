@@ -7,9 +7,6 @@
 #endif
 
 void cpe_error_do_notify(error_monitor_t monitor, const char * fmt, ...) {
-    
-    //return; /// temp;
-    //*
     struct error_monitor_node * node = &monitor->m_node;
     va_list args;
 
@@ -19,7 +16,6 @@ void cpe_error_do_notify(error_monitor_t monitor, const char * fmt, ...) {
         node = node->m_next;
         va_end(args);
     }
-    //*/
 }
 
 void cpe_error_do_notify_var(error_monitor_t monitor, const char * fmt, va_list args) {
@@ -91,9 +87,10 @@ void cpe_error_log_to_consol(struct error_info * info, void * context, const cha
     if (info->m_file) s += snprintf(buf, sizeof(buf), "%s:%d: ", info->m_file, info->m_line > 0 ? info->m_line : 0);
     else if (info->m_line >= 0) s += snprintf(buf + s, sizeof(buf) - s, "%d: ", info->m_line);
 
-	vsnprintf(buf + s, sizeof(buf) - s, fmt, args);
-	OutputDebugStringA(buf);
-	OutputDebugStringA("\n");
+    vsnprintf(buf + s, sizeof(buf) - s, fmt, args);
+    OutputDebugStringA(buf);
+    OutputDebugStringA("\n");
+
 #endif
     if (info->m_file) printf("%s:%d: ", info->m_file, info->m_line > 0 ? info->m_line : 0);
     else if (info->m_line >= 0) printf("%d: ", info->m_line);
