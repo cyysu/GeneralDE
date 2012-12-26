@@ -21,7 +21,9 @@ struct bpg_rsp_manage {
     logic_executor_mgr_t m_executor_mgr;
     error_monitor_t m_em;
     uint32_t m_flags;
-
+    dp_mgr_t m_dp;
+    dp_req_t m_dp_req_buf;
+    const char * m_dispatch_recv_at;
     struct cpe_hash_table m_rsps;
 
     size_t m_ctx_capacity;

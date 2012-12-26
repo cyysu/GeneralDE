@@ -31,6 +31,14 @@ cpe_str_dup_len(char * buf, size_t capacity, const char * begin, size_t size) {
     return buf;
 }
 
+char * cpe_str_mem_dup(mem_allocrator_t alloc, const char * str) {
+    size_t capacity = strlen(str) + 1;
+    char * buf = mem_alloc(alloc, capacity);
+    if (buf == NULL) return NULL;
+    memcpy(buf, str, capacity);
+    return buf;
+}
+
 int cpe_str_buf_is_overflow(cpe_str_buf_t buf) {
     return buf->m_overflow;
 }

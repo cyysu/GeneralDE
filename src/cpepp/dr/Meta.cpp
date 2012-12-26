@@ -105,6 +105,26 @@ void Meta::dump_data(write_stream_t stream, const void * data, size_t capacity) 
         0);
 }
 
+const char * Meta::dump_data_array(mem_buffer_t buffer, const void * data, size_t capacity) const {
+    write_stream_buffer stream = CPE_WRITE_STREAM_BUFFER_INITIALIZER(buffer);
+
+    dump_data_array((write_stream_t)&stream, data, capacity);
+
+    stream_putc((write_stream_t)&stream, 0);
+
+    return (const char *)mem_buffer_make_continuous(buffer, 0);
+}
+
+void Meta::dump_data_array(write_stream_t stream, const void * data, size_t capacity) const {
+    dr_json_print_array(
+        stream,
+        data,
+        capacity, 
+        *this,
+        DR_JSON_PRINT_MINIMIZE,
+        0);
+}
+
 void Meta::load_from_cfg(void * data, size_t capacity, cfg_t cfg, int policy) const {
     Utils::ErrorCollector ec;
     if (dr_cfg_read(data, capacity, cfg, *this, policy, ec) <= 0) {

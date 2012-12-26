@@ -127,10 +127,8 @@ void bpg_pkg_clear_data(bpg_pkg_t bpg_pkg) {
     bpg_pkg_pkg_data_set_size(bpg_pkg, sizeof(BASEPKG_HEAD));
 
     head = (BASEPKG_HEAD *)bpg_pkg_pkg_data(bpg_pkg);
+    bzero(head, sizeof(*head));
     head->headlen = sizeof(BASEPKG_HEAD);
-    head->bodylen = 0;
-    head->bodytotallen = 0;
-    head->appendInfoCount = 0;
 }
 
 uint32_t bpg_pkg_cmd(bpg_pkg_t req) {
@@ -166,6 +164,25 @@ uint32_t bpg_pkg_flags(bpg_pkg_t req) {
     head = (BASEPKG_HEAD *)bpg_pkg_pkg_data(req);
 
     return head->flags;
+}
+
+int bpg_pkg_flag_enable(bpg_pkg_t pkg, bpg_pkg_flag_t flag) {
+    BASEPKG_HEAD * head;
+    head = (BASEPKG_HEAD *)bpg_pkg_pkg_data(pkg);
+
+    return ((head->flags & (uint32_t)flag) == (uint32_t)flag) ? 1 : 0;
+}
+
+void bpg_pkg_flag_set_enable(bpg_pkg_t pkg, bpg_pkg_flag_t flag, int is_enable) {
+    BASEPKG_HEAD * head;
+    head = (BASEPKG_HEAD *)bpg_pkg_pkg_data(pkg);
+
+    if (is_enable) {
+        head->flags |= (uint32_t)flag;
+    }
+    else {
+        head->flags &= ~(uint32_t)flag;
+    }
 }
 
 void bpg_pkg_set_flags(bpg_pkg_t req, uint32_t flags) {
