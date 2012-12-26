@@ -334,7 +334,7 @@ int bpg_rsp_copy_bpg_carry_data_to_ctx(bpg_rsp_manage_t mgr, logic_context_t op_
         buf->sn = bpg_pkg_sn(bpg_req);
         buf->cmd = bpg_pkg_cmd(bpg_req);
         buf->carry_data_size = bpg_pkg_carry_data_size(bpg_req);
-        buf->no_response = 0;
+        buf->no_response = bpg_pkg_flag_enable(bpg_req, bpg_pkg_flag_oneway) ? 1 : 0;
 
         if (bpg_pkg_carry_data_meta(bpg_req)) {
             strncpy(buf->carry_meta_name, dr_meta_name(bpg_pkg_carry_data_meta(bpg_req)), sizeof(buf->carry_meta_name));
@@ -379,7 +379,6 @@ logic_context_t bpg_rsp_manage_create_context(bpg_rsp_manage_t bpg_mgr, bpg_pkg_
             : INVALID_LOGIC_CONTEXT_ID;
 
         op_context = logic_context_create(bpg_mgr->m_logic_mgr, sn, bpg_mgr->m_ctx_capacity);
-
         if (op_context == NULL) {
             CPE_ERROR(
                 em, "%s: create context: fail, capacity is %d!",

@@ -24,6 +24,9 @@ public:
 
     PackageManager & pkgManager(void);
 
+    uint64_t clientId(void) const { return bpg_cli_proxy_client_id(*this); }
+    void setClientId(uint64_t id) { bpg_cli_proxy_set_client_id(*this, id); }
+
     Cpe::Dr::MetaLib const & metaLib(void) const;
     Cpe::Dr::Meta const & meta(const char * metaName) const;
 

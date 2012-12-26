@@ -20,6 +20,11 @@ typedef enum bpg_rsp_manage_flag {
     bpg_rsp_manage_flag_sn_use_client = 1 << 0
 } bpg_rsp_manage_flag_t;
 
+typedef enum bpg_rsp_manage_dp_scope {
+    bpg_rsp_manage_dp_scope_global
+    , bpg_rsp_manage_dp_scope_local
+} bpg_rsp_manage_dp_scope_t;
+
 typedef uint32_t bpg_req_sn_t;
 
 typedef struct bpg_rsp_manage * bpg_rsp_manage_t;
