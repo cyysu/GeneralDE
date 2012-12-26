@@ -329,6 +329,13 @@ int dp_rsp_bind_by_cfg_ex(
 
                 cmd = NULL;
             }
+            else {
+                CPE_ERROR(
+                    em,
+                    "%s: dp_rsp_bind_by_cfg: bind numeric cmd %s fail, can`t find cmd from string!",
+                    dp_rsp_name(dp_rsp), cmd);
+                return -1;
+            }
         }
 
         if (cmd) {

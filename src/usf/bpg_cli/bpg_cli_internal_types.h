@@ -14,6 +14,7 @@ struct bpg_cli_proxy {
     error_monitor_t m_em;
     logic_manage_t m_logic_mgr;
     bpg_pkg_manage_t m_pkg_manage;
+    uint64_t m_client_id;
 
     dp_rsp_t m_outgoing_recv_at;
     bpg_pkg_dsp_t m_outgoing_send_to;

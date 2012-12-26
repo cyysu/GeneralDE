@@ -50,6 +50,7 @@ bpg_cli_proxy_create(
     proxy->m_debug = 0;
     proxy->m_logic_mgr = logic_mgr;
     proxy->m_pkg_manage = pkg_manage;
+    proxy->m_client_id = 0;
 
     proxy->m_outgoing_send_to = NULL;
     proxy->m_send_pkg_max_size = 4 * 1024;
@@ -223,6 +224,14 @@ bpg_pkg_manage_t bpg_cli_proxy_pkg_manage(bpg_cli_proxy_t proxy) {
     return proxy->m_pkg_manage;
 }
 
+uint64_t bpg_cli_proxy_client_id(bpg_cli_proxy_t proxy) {
+    return proxy->m_client_id;
+}
+
+void bpg_cli_proxy_set_client_id(bpg_cli_proxy_t proxy, uint64_t client_id) {
+    proxy->m_client_id = client_id;
+}
+
 bpg_pkg_t
 bpg_cli_proxy_pkg_buf(bpg_cli_proxy_t proxy) {
     if (proxy->m_send_pkg_buf) {
@@ -254,7 +263,16 @@ int bpg_cli_proxy_send(
         return -1;
     }
 
-    if (require) bpg_pkg_set_sn(pkg, logic_require_id(require));
+    if (proxy->m_client_id) {
+        bpg_pkg_set_client_id(pkg, proxy->m_client_id);
+    }
+
+    if (require) {
+        bpg_pkg_set_sn(pkg, logic_require_id(require));
+    }
+    else {
+        bpg_pkg_flag_set_enable(pkg, bpg_pkg_flag_oneway, 1);
+    }
 
     rv = bpg_pkg_dsp_dispatch(proxy->m_outgoing_send_to, pkg, proxy->m_em);
 

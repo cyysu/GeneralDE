@@ -239,6 +239,7 @@ logic_queue_t logic_context_queue(logic_context_t context) {
 
 void logic_context_execute(logic_context_t context) {
     logic_context_state_t old_state;
+    logic_context_state_t new_state;
 
     if (context->m_state != logic_context_state_idle) return;
     assert(context->m_runing == 0);
@@ -266,14 +267,14 @@ void logic_context_execute(logic_context_t context) {
         }
     }
 
+    new_state = context->m_state;
+
+    /*logic_context_do_state_change may free context!!!*/
     logic_context_do_state_change(context, old_state);
 
-    if (context->m_state == logic_context_state_waiting
-        && context->m_queue_state == logic_context_queue_none)
-    {
+    if (new_state == logic_context_state_waiting) {
+        if (context->m_queue_state == logic_context_queue_none)
         logic_context_enqueue(context, logic_context_queue_waiting);
-    }
-    else {
     }
 }
 
