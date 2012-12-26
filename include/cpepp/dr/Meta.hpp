@@ -53,6 +53,9 @@ public:
     void dump_data(write_stream_t stream, const void * data, size_t capacity) const;
     const char * dump_data(mem_buffer_t buffer, const void * data, size_t capacity) const;
 
+    void dump_data_array(write_stream_t stream, const void * data, size_t capacity) const;
+    const char * dump_data_array(mem_buffer_t buffer, const void * data, size_t capacity) const;
+
     void set_defaults(void * data, size_t capacity, int policy = 0) const;
 
     template<typename T>

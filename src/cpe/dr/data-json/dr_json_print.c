@@ -98,6 +98,8 @@ static void dr_print_print_basic_data(yajl_gen g, LPDRMETAENTRY entry, const voi
     case CPE_DR_TYPE_UINT32:
     case CPE_DR_TYPE_INT64:
     case CPE_DR_TYPE_UINT64:
+    case CPE_DR_TYPE_FLOAT:
+    case CPE_DR_TYPE_DOUBLE:
         dr_print_print_numeric(g, entry->m_type, data, em);
         break;
     case CPE_DR_TYPE_CHAR:
@@ -271,7 +273,7 @@ void dr_json_print_i(
         --stackPos;
     }
 
-    yajl_gen_map_close(g);
+    //yajl_gen_map_close(g);
 }
 
 int dr_json_print(
@@ -309,6 +311,70 @@ int dr_json_print(
     else {
         CPE_DEF_ERROR_MONITOR(logError, cpe_error_save_last_errno, &ret);
         dr_json_print_i(output, input, capacity, meta, g, &logError);
+    }
+
+    yajl_gen_free(g);    
+
+    return ret;
+}
+
+void dr_json_print_array_i(
+    write_stream_t output,
+    const void * input,
+    size_t capacity,
+    LPDRMETA meta,
+    yajl_gen g,
+    error_monitor_t em)
+{
+    size_t i;
+    char * buf = (char *)input;
+    size_t element_capacity = dr_meta_size(meta);
+    size_t count = capacity / element_capacity;
+
+    yajl_gen_array_open(g);
+
+    for(i = 0; i < count; ++i, buf += element_capacity) {
+        dr_json_print_i(output, buf, element_capacity, meta, g, em);
+    }
+
+    yajl_gen_array_close(g);
+}
+
+int dr_json_print_array(
+    write_stream_t output,
+    const void * input,
+    size_t capacity,
+    LPDRMETA meta,
+    int flag,
+    error_monitor_t em)
+{
+    int ret = 0;
+    yajl_gen g;
+
+    if (output == NULL || input == NULL || meta == NULL) {
+        CPE_ERROR(em, "dr_json_print_array: bad para!");
+        return -1;
+    }
+
+    g = yajl_gen_alloc(NULL);
+    if (g == NULL) {
+        CPE_ERROR_EX(em, CPE_DR_ERROR_NO_MEMORY, "alloc yajl_gen fail!");
+        return -1;
+    }
+
+    yajl_gen_config(g, yajl_gen_beautify, flag & DR_JSON_PRINT_MINIMIZE ? 0 : 1);
+    //yajl_gen_config(g, yajl_gen_validate_utf8, flag & DR_JSON_PRINT_VALIDATE_UTF8 ? 1 : 0);
+    yajl_gen_config(g, yajl_gen_print_callback, stream_write, output);
+
+
+    if (em) {
+        CPE_DEF_ERROR_MONITOR_ADD(logError, em, cpe_error_save_last_errno, &ret);
+        dr_json_print_array_i(output, input, capacity, meta, g, em);
+        CPE_DEF_ERROR_MONITOR_REMOVE(logError, em);
+    }
+    else {
+        CPE_DEF_ERROR_MONITOR(logError, cpe_error_save_last_errno, &ret);
+        dr_json_print_array_i(output, input, capacity, meta, g, &logError);
     }
 
     yajl_gen_free(g);    
