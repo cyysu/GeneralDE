@@ -9,7 +9,6 @@ TEST_F(ReadTest, array_uin32) {
         "</metalib>"
         );
 
-    t_em_set_print();
     EXPECT_EQ(20, read("S", "a1: [1, 2, 3, 4, 5]"));
 
     EXPECT_CFG_EQ(
@@ -27,7 +26,6 @@ TEST_F(ReadTest, array_uin64) {
         "</metalib>"
         );
 
-    t_em_set_print();
     EXPECT_EQ(40, read("S", "a1: [1, 2, 3, 4, 5]"));
 
     EXPECT_CFG_EQ(
@@ -46,7 +44,6 @@ TEST_F(ReadTest, array_with_refer_uin32) {
         "</metalib>"
         );
 
-    t_em_set_print();
     EXPECT_EQ(24, read("S", "a1: [1, 2, 3, 4]"));
 
     EXPECT_CFG_EQ(
@@ -65,7 +62,6 @@ TEST_F(ReadTest, array_in32) {
         "</metalib>"
         );
 
-    t_em_set_print();
     EXPECT_EQ(20, read("S", "a1: [1, 2, 3, 4, 5]"));
 
     EXPECT_CFG_EQ(
@@ -83,7 +79,6 @@ TEST_F(ReadTest, array_uint8) {
         "</metalib>"
         );
 
-    t_em_set_print();
     EXPECT_EQ(5, read("S", "a1: [1, 2, 3, 4, 5]"));
 
     EXPECT_CFG_EQ(
@@ -102,7 +97,6 @@ TEST_F(ReadTest, array_with_refer_uint8) {
         "</metalib>"
         );
 
-    t_em_set_print();
     EXPECT_EQ(6, read("S", "a1: [1, 2, 3, 4]"));
 
     EXPECT_CFG_EQ(
@@ -122,7 +116,6 @@ TEST_F(ReadTest, array_with_refer_uint8_dyn_len) {
         "</metalib>"
         );
 
-    t_em_set_print();
     EXPECT_EQ(5, read("S", "a1: [1, 2, 3, 4]"));
 
     EXPECT_CFG_EQ(
@@ -142,7 +135,6 @@ TEST_F(ReadTest, array_with_refer_uint8_dyn_len_empty) {
         "</metalib>"
         );
 
-    t_em_set_print();
     EXPECT_EQ(2, read("S", "a1: []"));
 
     EXPECT_CFG_EQ(
@@ -162,7 +154,6 @@ TEST_F(ReadTest, array_empty) {
         "</metalib>"
         );
 
-    t_em_set_print();
     EXPECT_EQ(6, read("S", "a1: []"));
 
     EXPECT_CFG_EQ(
@@ -181,7 +172,6 @@ TEST_F(ReadTest, array_float) {
         "</metalib>"
         );
 
-    t_em_set_print();
     EXPECT_EQ(20, read("S", "a1: [1.1, 2.2, 3.3, 4.4, 5.5]"));
 
     EXPECT_CFG_EQ(
@@ -199,7 +189,6 @@ TEST_F(ReadTest, array_double) {
         "</metalib>"
         );
 
-    t_em_set_print();
     EXPECT_EQ(40, read("S", "a1: [1.1, 2.2, 3.3, 4.4, 5.5]"));
 
     EXPECT_CFG_EQ(
@@ -217,7 +206,6 @@ TEST_F(ReadTest, array_string) {
         "</metalib>"
         );
 
-    t_em_set_print();
     EXPECT_EQ(35, read("S", "a1: [a, b, c, d, e]"));
 
     EXPECT_CFG_EQ(
@@ -239,6 +227,7 @@ TEST_F(ReadTest, array_struct) {
         "</metalib>"
         );
 
+    t_em_set_print();
     EXPECT_EQ(metaSize("S"), read("S", "b1: [ { a1: 150 }, { a1: 151 } ]"));
 
     EXPECT_CFG_EQ(

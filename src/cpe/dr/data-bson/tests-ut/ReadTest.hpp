@@ -23,6 +23,7 @@ public:
     LPDRMETALIB m_metaLib;
     struct mem_buffer m_metaLib_buffer;
 
+    int metaSize(const char * typeName);
     void installMeta(const char * data);
 
     int read(const char * typeName, const char * defs) { return read(typeName, typeName, defs); }
