@@ -2,6 +2,7 @@
 #define CPEPP_POM_GRP_STORE_H
 #include "cpepp/utils/ClassCategory.hpp"
 #include "cpe/pom_grp/pom_grp_store.h"
+#include "cpepp/dr/System.hpp"
 #include "System.hpp"
 
 #ifdef _MSC_VER
@@ -20,6 +21,8 @@ public:
     }
 
     StoreTable const & table(const char * name);
+
+    Cpe::Dr::MetaLib const & metalib(void) const { return *(Cpe::Dr::MetaLib const *)pom_grp_store_metalib(*this); }
 
     static Store & _cast(pom_grp_store_t store);
 };
