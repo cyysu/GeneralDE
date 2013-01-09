@@ -150,6 +150,55 @@ static int pom_grp_meta_build_calc_version(
     return 1;
 }
 
+static int pom_grp_meta_build_store_meta_list(
+    struct DRInBuildMetaLib * builder,
+    pom_grp_meta_t meta,
+    LPDRMETA src_main_meta,
+    error_monitor_t em)
+{
+    struct DRInBuildMeta * list_meta;
+    struct DRInBuildMetaEntry * count_entry;
+    struct DRInBuildMetaEntry * data_entry;
+    char name_buf[128];
+
+    list_meta = dr_inbuild_metalib_add_meta(builder);
+    if (list_meta == NULL) {
+        CPE_ERROR(em, "pom_grp_meta_build_store_meta: create list meta fail!");
+        return -1;
+    }
+
+    dr_inbuild_meta_set_current_version(list_meta, dr_meta_current_version(src_main_meta));
+
+    snprintf(name_buf, sizeof(name_buf), "%sList", dr_meta_name(src_main_meta));
+    dr_inbuild_meta_set_name(list_meta, name_buf);
+    dr_inbuild_meta_set_current_version(list_meta, dr_meta_current_version(src_main_meta));
+    dr_inbuild_meta_set_align(list_meta, dr_meta_align(src_main_meta));
+    dr_inbuild_meta_set_type(list_meta, CPE_DR_TYPE_STRUCT);
+
+    count_entry = dr_inbuild_meta_add_entry(list_meta);
+    if (count_entry == NULL) {
+        CPE_ERROR(em, "pom_grp_meta_build_store_meta: create list meta count entry fail!");
+        return -1;
+    }
+    dr_inbuild_entry_set_name(count_entry, "count");
+    dr_inbuild_entry_set_version(count_entry, 1);
+    dr_inbuild_entry_set_type(count_entry, "uint64");
+    dr_inbuild_entry_set_array_count(count_entry, 1);
+
+    data_entry = dr_inbuild_meta_add_entry(list_meta);
+    if (data_entry == NULL) {
+        CPE_ERROR(em, "pom_grp_meta_build_store_meta: create list meta data entry fail!");
+        return -1;
+    }
+    dr_inbuild_entry_set_name(data_entry, "data");
+    dr_inbuild_entry_set_version(data_entry, 1);
+    dr_inbuild_entry_set_type(data_entry, dr_meta_name(src_main_meta));
+    dr_inbuild_entry_set_array_count(data_entry, 0);
+    dr_inbuild_entry_set_array_refer(data_entry, "count");
+
+    return 0;
+}
+
 static int pom_grp_meta_build_store_meta_i(
     struct DRInBuildMetaLib * builder,
     pom_grp_meta_t meta,
@@ -215,6 +264,10 @@ static int pom_grp_meta_build_store_meta_i(
             if (pom_grp_meta_build_store_meta_on_entry_binary(main_meta, entry_meta, str_buffer, em) != 0) return -1;
             break;
         }
+    }
+
+    if (pom_grp_meta_build_store_meta_list(builder, meta, src_main_meta, em) != 0) {
+        return -1;
     }
 
     dr_inbuild_metalib_set_version(builder, pom_grp_meta_build_calc_version(builder));

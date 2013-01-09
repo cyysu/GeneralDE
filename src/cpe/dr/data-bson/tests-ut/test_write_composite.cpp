@@ -123,3 +123,32 @@ TEST_F(WriteTest, type_union_no_select) {
         " 0x00"
         , result());
 }
+
+TEST_F(WriteTest, type_union_select_no_data) {
+    installMeta(
+        "<metalib tagsetversion='1' name='net'  version='1'>"
+        "    <union name='U1' version='1'>"
+        "	     <entry name='a1' type='uint32' id='1'/>"
+        "	     <entry name='a2' type='uint32' id='2'/>"
+        "    </union>"
+        "    <struct name='S2' version='1'>"
+        "        <entry name='s' type='uint32'/>"
+        "	     <entry name='b1' type='U1' id='3' select='s'/>"
+        "    </struct>"
+        "</metalib>"
+        );
+
+    EXPECT_EQ(21, write("S2", "s: 3"));
+    
+    EXPECT_STREQ(
+        "0x15 0x00 0x00 0x00" /*S2.len*/
+        " 0x10" /*s.type*/
+        " 0x73 0x00" /*s.name*/
+        " 0x03 0x00 0x00 0x00" /*s.value*/
+        " 0x03" /*b1.type*/
+        " 0x62 0x31 0x00" /*b1.name*/
+        " 0x05 0x00 0x00 0x00" /*S1.len*/
+        " 0x00" /*S1 end*/
+        " 0x00"
+        , result());
+}

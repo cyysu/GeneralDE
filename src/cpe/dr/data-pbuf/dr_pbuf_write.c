@@ -28,11 +28,6 @@ struct dr_pbuf_write_stack {
     size_t m_input_data_capacity;
 };
 
-void fff_debug() {
-    int i = 0;
-    printf("sss %d\n", i);
-}
-
 #define dr_pbuf_write_size_reserve 1
 
 #define dr_pbuf_write_check_capacity(__capacity)                        \
@@ -41,7 +36,6 @@ void fff_debug() {
                   " output-capacity=%d, require=%d!",                   \
                   (int)(curStack->m_output_capacity - curStack->m_output_size), \
                   (int)(__capacity));                                   \
-fff_debug();\
         return -1;                                                      \
     }
 
