@@ -1,6 +1,6 @@
 From: Lokiwang <wangjian1009@gmail.com>
-Subject: [PATCH] t/support/usf
+Subject: [PATCH] t/svr/chat
 
-统一请求调度框架
+聊天服务
 
 Signed-off-by: Lokiwang <wangjian1009@gmail.com>
