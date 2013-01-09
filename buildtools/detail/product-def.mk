@@ -41,7 +41,6 @@ product-gen-depend-value-list-r=$(call merge-list,,$(foreach p,$(call revert-lis
 # $(call product-def-for-domain,product-name,domain)
 define product-def-for-domain
 
-$(eval domain-list+=$2)
 $(eval $2.product-list+=$1)
 
 .PHONY:$2.$1
