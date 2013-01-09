@@ -1,8 +1,8 @@
 dev-env-list+=linux64
 
 linux64.GCC?=$(if $(GCC),$(GCC),$(shell which gcc))
-linux64.CC=$(linux64.GCC)
-linux64.CXX?=$(if $(GCC),$(GCC),$(shell which g++))
+linux64.CC?=$(if $(GCC),$(GCC),$(shell which gcc))
+linux64.CXX?=$(if $(CXX),$(CXX),$(shell which g++))
 linux64.AR?=$(if $(AR),$(AR),$(shell which ar))
 
 linux64.CFLAGS+=-m64 -fPIC
