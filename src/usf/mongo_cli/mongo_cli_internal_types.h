@@ -17,6 +17,9 @@ struct mongo_cli_proxy {
     
     size_t m_pkg_buf_max_size;
     mongo_pkg_t m_pkg_buf;
+    mongo_pkg_t m_cmd_buf;
+
+    LPDRMETA m_meta_lasterror;
 
     int m_debug;
 };

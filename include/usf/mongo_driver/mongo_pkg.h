@@ -5,6 +5,7 @@
 #include "cpe/utils/buffer.h"
 #include "cpe/dr/dr_types.h"
 #include "mongo_driver_types.h"
+#include "mongo_protocol.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -43,8 +44,12 @@ int mongo_pkg_doc_append(mongo_pkg_t pkg, LPDRMETA meta, void const * data, size
 uint32_t mongo_pkg_id(mongo_pkg_t pkg);
 void mongo_pkg_set_id(mongo_pkg_t pkg, uint32_t id);
 
+uint32_t mongo_pkg_response_to(mongo_pkg_t pkg);
+void mongo_pkg_set_response_to(mongo_pkg_t pkg, uint32_t id);
+
 const char *mongo_pkg_ns(mongo_pkg_t pkg);
 void mongo_pkg_set_ns(mongo_pkg_t pkg, const char * ns);
+void mongo_pkg_append_ns(mongo_pkg_t pkg, const char * ns);
 
 const char * mongo_pkg_dump(mongo_pkg_t req, mem_buffer_t buffer, int level);
 int mongo_pkg_build_from_cfg(mongo_pkg_t req, cfg_t cfg, error_monitor_t em);
@@ -78,7 +83,26 @@ int mongo_pkg_append_start_array(mongo_pkg_t pkg, const char *name);
 int mongo_pkg_append_finish_object(mongo_pkg_t pkg);
 int mongo_pkg_append_finish_array(mongo_pkg_t pkg);
 
+void mongo_pkg_doc_count_update(mongo_pkg_t pkg);
+
+int32_t mongo_doc_size(mongo_doc_t doc);
+void * mongo_doc_data(mongo_doc_t doc);
+
 #define mongo_pkg_doc_it_next(it) ((it)->next ? (it)->next(it) : NULL)
+
+/*mongo req cmd operations*/
+void mongo_pkg_cmd_init(mongo_pkg_t pkg, const char * ns);
+
+/*mongo req query operations*/
+int32_t mongo_pkg_query_flags(mongo_pkg_t pkg);
+void mongo_pkg_query_set_flag(mongo_pkg_t pkg, mongo_pro_flags_query_t flag);
+void mongo_pkg_query_unset_flag(mongo_pkg_t pkg, mongo_pro_flags_query_t flag);
+
+int32_t mongo_pkg_query_number_to_skip(mongo_pkg_t pkg);
+void mongo_pkg_query_set_number_to_skip(mongo_pkg_t pkg, int32_t number_to_skip);
+
+int32_t mongo_pkg_query_number_to_return(mongo_pkg_t pkg);
+void mongo_pkg_query_set_number_to_return(mongo_pkg_t pkg, int32_t number_to_return);
 
 #ifdef __cplusplus
 }

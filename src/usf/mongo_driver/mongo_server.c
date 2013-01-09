@@ -117,16 +117,6 @@ static void mongo_server_free_chanel_buf(net_chanel_t chanel, void * ctx) {
 static void mongo_server_check_is_master(struct mongo_server * server) {
     mongo_driver_t driver = server->m_driver;
     mongo_pkg_t pkg_buf = mongo_driver_pkg_buf(driver);
-    net_ep_t ep;
-
-    ep = net_connector_ep(server->m_connector);
-    if (ep == NULL) {
-        CPE_ERROR(
-            driver->m_em, "%s: server %s %d: check is master: ep is null!",
-            mongo_driver_name(driver), server->m_host, server->m_port);
-        mongo_server_error(server);
-        return;
-    }
 
     if (pkg_buf == NULL) {
         CPE_ERROR(
@@ -143,7 +133,7 @@ static void mongo_server_check_is_master(struct mongo_server * server) {
     if (mongo_pkg_doc_open(pkg_buf) != 0
         || mongo_pkg_append_int32(pkg_buf, "ismaster", 1) != 0
         || mongo_pkg_doc_close(pkg_buf) != 0
-        || mongo_driver_send_internal(driver, ep, pkg_buf))
+        || mongo_driver_send_to_server(driver, server, pkg_buf))
     {
         CPE_ERROR(
             driver->m_em, "%s: server %s %d: check is master: send cmd fail!",
@@ -153,21 +143,9 @@ static void mongo_server_check_is_master(struct mongo_server * server) {
     }
 
     if (driver->m_debug) {
-        if (driver->m_debug >= 2) {
-            struct mem_buffer buffer;
-            mem_buffer_init(&buffer, driver->m_alloc);
-
-            CPE_INFO(
-                driver->m_em, "%s: server %s %d: check is master: send cmd success\n%s",
-                mongo_driver_name(driver), server->m_host, server->m_port, mongo_pkg_dump(pkg_buf, &buffer, 1));
-
-            mem_buffer_clear(&buffer);
-        }
-        else {
-            CPE_INFO(
-                driver->m_em, "%s: server %s %d: check is master: send cmd success!",
-                mongo_driver_name(driver), server->m_host, server->m_port);
-        }
+        CPE_INFO(
+            driver->m_em, "%s: server %s %d: check is master: send cmd success!",
+            mongo_driver_name(driver), server->m_host, server->m_port);
     }
 }
 
@@ -199,6 +177,8 @@ static void mongo_server_on_check_is_master(struct mongo_server * server, mongo_
                 }
             }
             server->m_state = mongo_server_state_connected;
+            driver->m_master_server = server;
+            driver->m_state = mongo_driver_state_connected;
             mongo_driver_update_state(driver);
         }
         else {

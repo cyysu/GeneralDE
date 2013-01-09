@@ -28,7 +28,7 @@ int mongo_server_connect(struct mongo_server * server);
 /*process ops*/
 int mongo_driver_connect_i(mongo_driver_t driver);
 enum mongo_pkg_recv_result mongo_driver_recv_internal(mongo_driver_t driver, net_ep_t ep, mongo_pkg_t pkg);
-int mongo_driver_send_internal(mongo_driver_t driver, net_ep_t ep, mongo_pkg_t pkg);
+int mongo_driver_send_to_server(mongo_driver_t driver, struct mongo_server *, mongo_pkg_t pkg);
 int mongo_driver_send(dp_req_t req, void * ctx, error_monitor_t em);
 void mongo_driver_recv(net_ep_t ep, void * ctx, net_ep_event_t event);
 

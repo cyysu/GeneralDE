@@ -16,6 +16,8 @@ class Package : public Cpe::Utils::SimulateObject {
 public:
     operator mongo_pkg_t() const { return (mongo_pkg_t)this; }
 
+    void init(void) { mongo_pkg_init(*this); }
+
     mongo_db_op_t op(void) const { return mongo_pkg_op(*this); }
     void setOp(mongo_db_op_t op) { mongo_pkg_set_op(*this, op); }
 
@@ -56,6 +58,8 @@ public:
     void appendTimestamp(const char *name, int time, int increment);
     void appendData(const char *name, int64_t millis);
     void appendTimeS(const char *name, time_t secs);
+    void appendObjectStart(const char * name);
+    void appendObjectFinish();
 
     /*other op*/
     const char * dump_data(mem_buffer_t buffer) const { return mongo_pkg_dump(*this, buffer, 0); }

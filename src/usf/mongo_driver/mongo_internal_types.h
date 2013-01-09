@@ -6,7 +6,7 @@
 #include "cpe/dp/dp_types.h"
 #include "cpe/net/net_types.h"
 #include "usf/mongo_driver/mongo_driver_types.h"
-#include "mongo_protocol.h"
+#include "usf/mongo_driver/mongo_protocol.h"
 
 struct mongo_seed {
     mongo_driver_t m_driver;
@@ -72,6 +72,22 @@ struct mongo_driver {
     int m_debug;
 };
 
+struct mongo_pro_header {
+    int32_t id;
+    int32_t response_to;
+    int32_t op;
+};
+
+union mongo_pro_data {
+    struct mongo_pro_data_update m_update;
+    struct mongo_pro_data_insert m_insert;
+    struct mongo_pro_data_query m_query;
+    struct mongo_pro_data_get_more m_get_more;
+    struct mongo_pro_data_delete m_delete;
+    struct mongo_pro_data_kill_cursors m_kill_cursor;
+    struct mongo_pro_data_reply m_reply;
+};
+
 struct mongo_pkg {
     mongo_driver_t m_driver;
     dp_req_t m_dp_req;
@@ -83,7 +99,7 @@ struct mongo_pkg {
     int32_t m_cur_doc_start;
     int32_t m_cur_doc_pos;
     struct mongo_pro_header m_pro_head;
-    struct mongo_pro_reply_fields m_pro_replay_fields;
+    union mongo_pro_data m_pro_data;
 };
 
 enum mongo_pkg_recv_result {

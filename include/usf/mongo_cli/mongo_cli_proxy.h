@@ -1,6 +1,7 @@
 #ifndef USF_MONGO_CLI_PROXY_H
 #define USF_MONGO_CLI_PROXY_H
 #include "cpe/utils/hash_string.h"
+#include "cpe/dr/dr_types.h" 
 #include "gd/app/app_types.h"
 #include "mongo_cli_types.h"
 
@@ -34,7 +35,9 @@ int mongo_cli_proxy_set_incoming_recv_at(mongo_cli_proxy_t agent, const char * o
 
 mongo_pkg_t mongo_cli_proxy_pkg_buf(mongo_cli_proxy_t proxy);
 
-int mongo_cli_proxy_send(mongo_cli_proxy_t agent, mongo_pkg_t pkg, logic_require_t require);
+int mongo_cli_proxy_send(
+    mongo_cli_proxy_t agent, mongo_pkg_t pkg, logic_require_t require,
+    LPDRMETA result_meta, int result_count_init);
 
 #ifdef __cplusplus
 }

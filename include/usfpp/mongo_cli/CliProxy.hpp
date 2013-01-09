@@ -23,8 +23,13 @@ public:
 
     Package & pkgBuf(void);
 
-    void send(logic_require_t require, mongo_pkg_t pkg);
+    void send(logic_require_t require, mongo_pkg_t pkg, LPDRMETA result_meta = NULL, int result_count_init = 0);
     void send(mongo_pkg_t pkg);
+
+    template<typename T>
+    void query(logic_require_t require, mongo_pkg_t pkg) {
+        send(require, pkg, Cpe::Dr::MetaTraits<T>::META);
+    }
 
     static CliProxy & _cast(mongo_cli_proxy_t agent);
     static CliProxy & instance(gd_app_context_t app, const char * name);

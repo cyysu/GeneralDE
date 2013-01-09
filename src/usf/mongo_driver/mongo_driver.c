@@ -148,7 +148,7 @@ int mongo_driver_set_incoming_send_to(mongo_driver_t driver, const char * incomi
 int mongo_driver_set_outgoing_recv_at(mongo_driver_t driver, const char * outgoing_recv_at) {
     char name_buf[128];
 
-    snprintf(name_buf, sizeof(name_buf), "%s.outgoing-recv-rsp", outgoing_recv_at);
+    snprintf(name_buf, sizeof(name_buf), "%s.outgoing-recv-rsp", mongo_driver_name(driver));
 
     if (driver->m_outgoing_recv_at) dp_rsp_free(driver->m_outgoing_recv_at);
 
@@ -156,6 +156,15 @@ int mongo_driver_set_outgoing_recv_at(mongo_driver_t driver, const char * outgoi
     if (driver->m_outgoing_recv_at == NULL) return -1;
 
     dp_rsp_set_processor(driver->m_outgoing_recv_at, mongo_driver_send, driver);
+
+    if (dp_rsp_bind_string(driver->m_outgoing_recv_at, outgoing_recv_at, driver->m_em) != 0) {
+        CPE_ERROR(
+            driver->m_em, "%s: mongo_driver_set_outgoing_recv_at: bing to %s fail!",
+            mongo_driver_name(driver), outgoing_recv_at);
+        dp_rsp_free(driver->m_outgoing_recv_at);
+        driver->m_outgoing_recv_at = NULL;
+        return -1;
+    }
 
     return 0;
 }

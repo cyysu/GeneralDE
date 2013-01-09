@@ -25,8 +25,8 @@ CliProxy & CliProxy::instance(gd_app_context_t app, const char * name) {
     return *(CliProxy*)proxy;
 }
 
-void CliProxy::send(logic_require_t require, mongo_pkg_t pkg) {
-    if (mongo_cli_proxy_send(*this, pkg, require) != 0) {
+void CliProxy::send(logic_require_t require, mongo_pkg_t pkg, LPDRMETA result_meta, int result_count_init) {
+    if (mongo_cli_proxy_send(*this, pkg, require, result_meta, result_count_init) != 0) {
         APP_CTX_THROW_EXCEPTION(
             app(),
             ::std::runtime_error,
@@ -35,7 +35,7 @@ void CliProxy::send(logic_require_t require, mongo_pkg_t pkg) {
 }
 
 void CliProxy::send(mongo_pkg_t pkg) {
-    if (mongo_cli_proxy_send(*this, pkg, NULL) != 0) {
+    if (mongo_cli_proxy_send(*this, pkg, NULL, NULL, 0) != 0) {
         APP_CTX_THROW_EXCEPTION(
             app(),
             ::std::runtime_error,
