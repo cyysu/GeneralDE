@@ -465,7 +465,7 @@ void * mongo_doc_data(mongo_doc_t doc) {
 }
 
 void mongo_pkg_cmd_init(mongo_pkg_t pkg, const char * ns) {
-    const char * sep;
+    char * sep;
 
     mongo_pkg_init(pkg);
     mongo_pkg_set_op(pkg, mongo_db_op_query);
