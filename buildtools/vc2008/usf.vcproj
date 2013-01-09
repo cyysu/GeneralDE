@@ -639,6 +639,15 @@
 							Outputs="$(SolutionDir)..\..\build\vc\protocol\$(SafeRootNamespace)\protocol\logic_use\logic_uni_res_info.h;$(SolutionDir)..\..\build\vc\protocol\$(SafeRootNamespace)\protocol\logic_use\logic_op_async_info.h;$(SolutionDir)..\..\build\vc\protocol\$(SafeRootNamespace)\protocol\logic_use\logic_op_async_info.c"
 						/>
 					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							CommandLine="set PATH=$(SolutionDir)..\..\3rdTools\iconv\vc\bin;$(SolutionDir)..\..\3rdTools\zlib\vc\bin;%PATH%"
+							Outputs="$(SolutionDir)..\..\build\vc\protocol\$(SafeRootNamespace)\protocol\logic_use\logic_uni_res_info.h;$(SolutionDir)..\..\build\vc\protocol\$(SafeRootNamespace)\protocol\logic_use\logic_op_async_info.h;$(SolutionDir)..\..\build\vc\protocol\$(SafeRootNamespace)\protocol\logic_use\logic_op_async_info.c"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\..\src\usf\logic_use\logic_op_basic.c"
@@ -657,11 +666,11 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\build\vc\protocol\usf\protocol\logic_use\logic_uni_res_info.h"
+					RelativePath="..\..\build\protocol\logic_use\logic_uni_res_info.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\build\protocol\logic_use\logic_uni_res_info.h"
+					RelativePath="..\..\build\vc\protocol\usf\protocol\logic_use\logic_uni_res_info.h"
 					>
 				</File>
 				<File
