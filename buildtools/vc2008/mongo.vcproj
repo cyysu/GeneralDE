@@ -40,7 +40,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../../include;../../3rdTools/bson/include"
+				AdditionalIncludeDirectories="&quot;..\..\build\vc\protocol\$(SafeRootNamespace)&quot;;../../include;../../3rdTools/bson/include"
 				PreprocessorDefinitions="WIN32;_LIB;MONGO_STATIC_BUILD;MONGO_USE__INT64"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -48,6 +48,7 @@
 				WarningLevel="3"
 				DebugInformationFormat="4"
 				CompileAs="1"
+				DisableSpecificWarnings="4819"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -104,12 +105,13 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="../../include;../../3rdTools/bson/include"
+				AdditionalIncludeDirectories="&quot;..\..\build\vc\protocol\$(SafeRootNamespace)&quot;;../../include;../../3rdTools/bson/include"
 				PreprocessorDefinitions="WIN32;_LIB;MONGO_STATIC_BUILD;MONGO_USE__INT64"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
 				WarningLevel="3"
 				DebugInformationFormat="3"
+				DisableSpecificWarnings="4819"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -173,6 +175,10 @@
 					RelativePath="..\..\include\usf\mongo_driver\mongo_pkg.h"
 					>
 				</File>
+				<File
+					RelativePath="..\..\include\usf\mongo_driver\mongo_protocol.h"
+					>
+				</File>
 			</Filter>
 		</Filter>
 		<Filter
@@ -181,6 +187,36 @@
 			<Filter
 				Name="mongo_cli"
 				>
+				<File
+					RelativePath="..\..\build\vc\protocol\mongo\protocol\mongo_cli\mongo_cli.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\build\vc\protocol\mongo\protocol\mongo_cli\mongo_cli.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\usf\mongo_cli\mongo_cli.xml"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							CommandLine="set PATH=$(SolutionDir)..\..\3rdTools\iconv\vc\bin;$(SolutionDir)..\..\3rdTools\zlib\vc\bin;%PATH%&#x0D;&#x0A;$(SolutionDir)..\..\build\vc\tools\cpe_dr_tool.exe -i $(InputPath) --output-h $(SolutionDir)..\..\build\vc\protocol\$(SafeRootNamespace)\protocol\mongo_cli --output-lib-c $(SolutionDir)..\..\build\vc\protocol\$(SafeRootNamespace)\protocol\mongo_cli\$(InputName).c --output-lib-c-arg g_metalib_mongo_cli&#x0D;&#x0A;"
+							Outputs="$(SolutionDir)..\..\build\vc\protocol\$(SafeRootNamespace)\protocol\mongo_cli\$(InputName).c"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							CommandLine="set PATH=$(SolutionDir)..\..\3rdTools\iconv\vc\bin;$(SolutionDir)..\..\3rdTools\zlib\vc\bin;%PATH%&#x0D;&#x0A;$(SolutionDir)..\..\build\vc\tools\cpe_dr_tool.exe -i $(InputPath) --output-h $(SolutionDir)..\..\build\vc\protocol\$(SafeRootNamespace)\protocol\mongo_cli --output-lib-c $(SolutionDir)..\..\build\vc\protocol\$(SafeRootNamespace)\protocol\mongo_cli\$(InputName).c --output-lib-c-arg g_metalib_mongo_cli&#x0D;&#x0A;"
+							Outputs="$(SolutionDir)..\..\build\vc\protocol\$(SafeRootNamespace)\protocol\mongo_cli\$(InputName).c"
+						/>
+					</FileConfiguration>
+				</File>
 				<File
 					RelativePath="..\..\src\usf\mongo_cli\mongo_cli_internal_ops.h"
 					>
