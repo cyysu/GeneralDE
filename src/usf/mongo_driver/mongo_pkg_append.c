@@ -222,7 +222,6 @@ int mongo_pkg_doc_append(mongo_pkg_t pkg, LPDRMETA meta, void const * data, size
     size_t output_capacity;
     uint32_t pkg_size;
     int write_size;
-    uint32_t doc_size;
 
     if (pkg->m_cur_doc_start >= 0) {
         CPE_ERROR(
@@ -250,13 +249,10 @@ int mongo_pkg_doc_append(mongo_pkg_t pkg, LPDRMETA meta, void const * data, size
         return -1;
     }
 
-    doc_size = write_size;
-    CPE_COPY_HTON32(buf + pkg_size, &doc_size);
-    buf[pkg_size + doc_size - 1] = 0;
-    
     ++pkg->m_doc_count;
 
-    mongo_pkg_set_size(pkg, pkg_size + doc_size);
+    printf("append: pkg_size=%d, write_size=%d\n", pkg_size, write_size);
+    mongo_pkg_set_size(pkg, pkg_size + write_size);
 
     return 0;
 }
