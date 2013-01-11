@@ -6,7 +6,7 @@ $(call assert-not-null,target-product)
 
 all: $(target-product)
 
-ut: $(foreach domain,$(sort $(domain-list)) \
+ut: $(foreach domain,$(sort $(using-domain-list)) \
           , $(if $(filter $($(target-product).ut),$($(domain).product-list)) \
                  , $(domain).$($(target-product).ut).run))
 
