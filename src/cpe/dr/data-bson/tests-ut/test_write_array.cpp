@@ -250,3 +250,59 @@ TEST_F(WriteTest, array_struct_with_refer_multi_first_empty) {
         , result());
 }
 
+TEST_F(WriteTest, array_union_basic) {
+    installMeta(
+        "<metalib tagsetversion='1' name='net'  version='1'>"
+        "    <union name='U1' version='1'>"
+        "	     <entry name='a1' type='uint32' id='1'/>"
+        "	     <entry name='a2' type='uint32' id='2'/>"
+        "    </union>"
+        "    <struct name='S1' version='1'>"
+        "	     <entry name='s' type='int8' id='1'/>"
+        "	     <entry name='d' type='U1' id='2' select='s'/>"
+        "    </struct>"
+        "    <struct name='S2' version='1'>"
+        "	     <entry name='b1' type='S1' count='2' id='3'/>"
+        "    </struct>"
+        "</metalib>"
+        );
+
+    EXPECT_EQ(76, write("S2", "b1: [ { d: { a1: 1 } }, { d: { a2: 2 } } ]"));
+    
+    EXPECT_STREQ(
+        "0x4C 0x00 0x00 0x00"   /*S2 begin*/
+        " 0x04"
+        " 0x62 0x31 0x00"
+        " 0x43 0x00 0x00 0x00"  /*array begin*/
+        " 0x03"                 /*   [0] begin*/
+        " 0x30 0x00"
+        " 0x1C 0x00 0x00 0x00"  /*   [0] struct begin*/
+        " 0x10"                 /*   [0].s*/
+        " 0x73 0x00"
+        " 0x01 0x00 0x00 0x00"
+        " 0x03"                 /*   [0].d*/
+        " 0x64 0x00"
+        " 0x0D 0x00 0x00 0x00"
+        " 0x10"                 /*   [0].d.a1*/
+        " 0x61 0x31 0x00"
+        " 0x01 0x00 0x00 0x00"
+        " 0x00"                 /*   [0].d end*/
+        " 0x00"                 /*   [0] end*/
+        " 0x03"                 /*   [1] begin*/
+        " 0x31 0x00"
+        " 0x1C 0x00 0x00 0x00"  /*   [1] struct begin*/
+        " 0x10"                 /*   [1].s*/
+        " 0x73 0x00"
+        " 0x02 0x00 0x00 0x00"
+        " 0x03"                 /*   [1].d*/
+        " 0x64 0x00"
+        " 0x0D 0x00 0x00 0x00"
+        " 0x10"                 /*   [1].d.a2*/
+        " 0x61 0x32 0x00"
+        " 0x02 0x00 0x00 0x00"
+        " 0x00"                 /*   [1].d end*/
+        " 0x00"                 /*   [1] end*/
+        " 0x00"                 /*array end*/
+        " 0x00"                 /*S2 end*/
+        , result());
+}
