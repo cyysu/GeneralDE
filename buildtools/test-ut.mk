@@ -10,7 +10,7 @@ include $(CPDE_BUILD_DETAIL_DIR)/create-dirs.mk
 
 all: ut
 
-ut: $(foreach domain,$(sort $(domain-list)) \
+ut: $(foreach domain,$(sort $(using-domain-list)) \
         , $(if $(filter $(target-product),$($(domain).product-list)) \
             , $(domain).$(target-product).run))
 
