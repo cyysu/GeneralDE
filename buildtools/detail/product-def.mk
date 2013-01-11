@@ -78,7 +78,7 @@ project_repository+=$1
 
 .PHONY: $1 $1.clean
 
-$(if $2,$(call product-def-for-domain,$1,$2))
+$(if $2,$(if $(filter $2,$(using-domain-list)),$(call product-def-for-domain,$1,$2)))
 
 $1.clean:
 	$(call with_message,cleaning...)$(RM) $$(r.$1.cleanup)
