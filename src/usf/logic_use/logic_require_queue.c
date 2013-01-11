@@ -118,6 +118,7 @@ int logic_require_queue_add(logic_require_queue_t queue, logic_require_id_t id) 
 
     queue->m_runing_requires[queue->m_runing_require_count] = id;
     ++queue->m_runing_require_count;
+
     for(i = queue->m_runing_require_count - 1; i > 0; --i) {
         logic_require_id_t buf;
         if (queue->m_runing_requires[i] >= queue->m_runing_requires[i - 1]) break;
@@ -126,8 +127,6 @@ int logic_require_queue_add(logic_require_queue_t queue, logic_require_id_t id) 
         queue->m_runing_requires[i] = queue->m_runing_requires[i - 1];
         queue->m_runing_requires[i - 1] = buf;
     }
-
-    ++queue->m_runing_require_count;
 
     if (queue->m_debug >= 2) {
         CPE_INFO(
