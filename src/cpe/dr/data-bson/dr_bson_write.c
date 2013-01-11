@@ -23,6 +23,8 @@ struct dr_bson_write_stack {
     uint32_t m_output_size;
     uint32_t m_output_capacity;
 
+    uint32_t m_is_open;
+
     uint32_t m_array_begin_pos;
 
     char const * m_input_data;
@@ -148,6 +150,7 @@ int dr_bson_write(
     processStack[0].m_array_begin_pos = 0;
     processStack[0].m_input_data = (char const *)input;
     processStack[0].m_input_data_capacity = input_capacity;
+    processStack[0].m_is_open = 0;
 
     for(stackPos = 0; stackPos >= 0;) {
         struct dr_bson_write_stack * curStack;
@@ -189,9 +192,10 @@ int dr_bson_write(
                     em);
             }
 
-            if (curStack->m_entry_pos == 0 && curStack->m_array_pos == 0) { /*reserve for write size*/
+            if (!curStack->m_is_open) { /*reserve for write size*/
                 dr_bson_write_check_capacity(4);
                 curStack->m_output_size += 4;
+                curStack->m_is_open = 1;
             }
 
             if (curStack->m_array_pos == 0) {
@@ -242,6 +246,8 @@ int dr_bson_write(
 
                         nextStack->m_entry_pos = 0;
                         nextStack->m_entry_count = nextStack->m_meta->m_entry_count;
+
+                        nextStack->m_is_open = 0;
 
                         if (curStack->m_entry->m_type == CPE_DR_TYPE_UNION) {
                             LPDRMETAENTRY select_entry;
