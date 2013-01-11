@@ -17,6 +17,6 @@ $(if $(filter $(CPDE_OUTPUT_ROOT)/$(tools.output)/%,$(r.$1.$2.run.cmd)),$2.$1: $
 
 $2.$1.run: $2.$1
 	$(call with_message,runing $1 ...)\
-		$(r.$1.$2.run.full-cmd)
+		$$(r.$1.$2.run.full-cmd)
 
 endef
