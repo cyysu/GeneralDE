@@ -15,14 +15,13 @@ class IdGenerator : public Cpe::Utils::SimulateObject  {
 public:
     operator gd_id_generator_t () const { return (gd_id_generator_t)this; }
 
-    gd_id_t generateId(void);
-    void setNextId(gd_id_t id);
+    uint64_t generate(const char * id_name);
+    uint64_t tryGenerate(const char * id_name);
+
+    const char * name(void) const { return gd_id_generator_name(*this); }
 
     Gd::App::Application & app(void) { return Gd::App::Application::_cast(gd_id_generator_app(*this)); }
     Gd::App::Application const & app(void) const { return Gd::App::Application::_cast(gd_id_generator_app(*this)); }
-
-    const char * name(void) const { return gd_id_generator_name(*this); }
-    cpe_hash_string_t name_hs(void) const { return gd_id_generator_name_hs(*this); }
 
     static IdGenerator & instance(gd_app_context_t app, cpe_hash_string_t name);
     static IdGenerator & instance(gd_app_context_t app, const char * name);
