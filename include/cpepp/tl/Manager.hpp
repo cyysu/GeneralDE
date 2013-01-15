@@ -20,6 +20,7 @@ public:
     void resume(void) { tl_manage_resume(*this); }
 
     tl_time_t curTime(void) const { return tl_manage_time(*this); }
+    uint32_t curTimeSec(void) const { return (uint32_t)(curTime() / 1000); }
 
     int tick(int count = -1) { return tl_manage_tick(*this, count); }
 };
