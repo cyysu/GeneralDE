@@ -372,7 +372,7 @@ int dr_bson_write(
                 }
             }
 
-        ENDENTRY:
+            /*ENDENTRY:*/
             if (curStack->m_entry->m_array_count != 1 && curStack->m_array_pos >= array_count) {
                 uint32_t array_size;
 
