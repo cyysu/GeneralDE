@@ -1,3 +1,4 @@
+#include <cassert>
 #include "gdpp/app/Log.hpp"
 #include "usf/logic/logic_manage.h"
 #include "usfpp/logic_use/LogicOpDynData.hpp"
@@ -41,6 +42,11 @@ void LogicOpDynData::recordRemove(size_t pos) {
             ::std::runtime_error,
             "Tsf4wg::TCaplus::LogicOpDynData::remove: remove at %d fail", (int)pos);
     }
+}
+
+void LogicOpDynData::recordPop(void) {
+    assert(recordCount() > 0);
+    recordRemove(recordCount() - 1);
 }
 
 void * LogicOpDynData::recordAppend(void) {
