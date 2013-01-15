@@ -5,7 +5,7 @@ product-def-c-env-items:= c.flags.cpp c.flags.ld c.sources c.includes \
 
 product-def-all-items+= c.libraries c.frameworks c.ldpathes c.linker c.export-symbols \
                         c.flags.lan.all c.flags.lan c.flags.lan.c c.flags.lan.cc c.flags.lan.m c.flags.lan.mm c.lib.type c.env-includes c.env-libraries\
-                        product.c.frameworks product.c.env-includes product.c.env-libraries\
+                        product.c.frameworks product.c.env-includes product.c.env-libraries c.output-includes product.c.output-includes\
                         $(product-def-c-env-items) $(foreach e,$(dev-env-list),$(addprefix $e.,$(product-def-c-env-items)))
 
 c-source-dir-to-binary-dir = $(addprefix $(CPDE_OUTPUT_ROOT)/$($2.output)/obj,$(subst $(CPDE_ROOT),,$1))
@@ -61,6 +61,10 @@ c-generate-depend-cpp-flags=$(addprefix -I$(CPDE_ROOT)/,\
                                  $(if $(findstring env,$(subst /, ,$(ei)))\
                                     ,-I$(CPDE_ROOT)/$(subst /env/,/$($2.env)/,$(ei)) \
                                     ,$(addprefix -I$(CPDE_ROOT)/,$(addsuffix /$($2.env),$(ei))))) \
+                            $(foreach oi,\
+								 $(call product-gen-depend-list,$1), \
+                                 $(addprefix -I$(call c-source-dir-to-binary-dir,$(r.$(oi).base),$2)/,$(r.$(oi).product.c.output-includes))) \
+                            $(addprefix -I$(call c-source-dir-to-binary-dir,$(r.$1.base),$2)/,$(r.$1.c.output-includes)) \
                             $(addprefix -F,\
 								 $(sort $(r.$1.c.frameworks) $(r.$1.product.c.frameworks) \
 									$(call product-gen-depend-value-list,$1,product.c.frameworks))) \
