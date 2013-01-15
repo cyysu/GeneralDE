@@ -35,6 +35,7 @@ mongo_driver_recv_internal(mongo_driver_t driver, net_ep_t ep, mongo_pkg_t pkg) 
     uint32_t read_pos;
     uint32_t total_len;
     uint32_t reserve;
+    char ns_buf[65];
 
 REENTER:
     buf_size = net_ep_size(ep);
@@ -68,21 +69,24 @@ REENTER:
     switch(pkg->m_pro_head.op) {
     case mongo_db_op_query: {
         MONGO_BUF_READ_32(pkg->m_pro_data.m_query.flags);
-        MONGO_BUF_READ_STR(pkg->m_ns); /*ns*/
+        MONGO_BUF_READ_STR(ns_buf); /*ns*/
+        mongo_pkg_set_ns(pkg, ns_buf);
         MONGO_BUF_READ_32(pkg->m_pro_data.m_query.number_to_skip);
         MONGO_BUF_READ_32(pkg->m_pro_data.m_query.number_to_return);
         break;
     }
     case mongo_db_op_get_more: {
         MONGO_BUF_READ_32(reserve); /*options*/
-        MONGO_BUF_READ_STR(pkg->m_ns); /*ns*/
+        MONGO_BUF_READ_STR(ns_buf); /*ns*/
+        mongo_pkg_set_ns(pkg, ns_buf);
         MONGO_BUF_READ_32(pkg->m_pro_data.m_get_more.number_to_return);
         MONGO_BUF_READ_64(pkg->m_pro_data.m_get_more.cursor_id);
         break;
     }
     case mongo_db_op_insert: {
         MONGO_BUF_READ_32(reserve); /*options*/
-        MONGO_BUF_READ_STR(pkg->m_ns); /*ns*/
+        MONGO_BUF_READ_STR(ns_buf); /*ns*/
+        mongo_pkg_set_ns(pkg, ns_buf);
         break;
     }
     case mongo_db_op_replay: {
@@ -102,13 +106,15 @@ REENTER:
     }
     case mongo_db_op_update: {
         MONGO_BUF_READ_32(reserve); /*options*/
-        MONGO_BUF_READ_STR(pkg->m_ns); /*ns*/
+        MONGO_BUF_READ_STR(ns_buf); /*ns*/
+        mongo_pkg_set_ns(pkg, ns_buf);
         MONGO_BUF_READ_32(pkg->m_pro_data.m_update.flags);
         break;
     }
     case mongo_db_op_delete: {
         MONGO_BUF_READ_32(reserve); /*options*/
-        MONGO_BUF_READ_STR(pkg->m_ns);
+        MONGO_BUF_READ_STR(ns_buf); /*ns*/
+        mongo_pkg_set_ns(pkg, ns_buf);
         MONGO_BUF_READ_32(pkg->m_pro_data.m_delete.flags);
         break;
     }

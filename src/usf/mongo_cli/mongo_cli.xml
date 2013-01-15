@@ -7,4 +7,9 @@
         <entry name="ok" type="float"/>
         <entry name="code" type="int32"/>
     </struct>
+
+    <macro name="MONGO_CMD_FINDANDMODIFY" value="1"/>
+    <struct name="mongo_cmd_info" version="1">
+        <entry name="cmd" type="uint32"/>
+    </struct>
 </metalib>

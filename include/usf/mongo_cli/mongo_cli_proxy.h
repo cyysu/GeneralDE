@@ -30,8 +30,13 @@ gd_app_context_t mongo_cli_proxy_app(mongo_cli_proxy_t agent);
 const char * mongo_cli_proxy_name(mongo_cli_proxy_t agent);
 cpe_hash_string_t mongo_cli_proxy_name_hs(mongo_cli_proxy_t agent);
 
+logic_manage_t mongo_cli_proxy_logic_manage(mongo_cli_proxy_t agent);
+
 int mongo_cli_proxy_set_outgoing_send_to(mongo_cli_proxy_t agent, const char * outgoing_send_to);
 int mongo_cli_proxy_set_incoming_recv_at(mongo_cli_proxy_t agent, const char * outgoing_send_to);
+
+const char * mongo_cli_proxy_dft_db(mongo_cli_proxy_t agent);
+void mongo_cli_proxy_set_dft_db(mongo_cli_proxy_t agent, const char * db_name);
 
 mongo_pkg_t mongo_cli_proxy_pkg_buf(mongo_cli_proxy_t proxy);
 

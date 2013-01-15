@@ -94,7 +94,8 @@ struct mongo_pkg {
     int32_t m_stack[32];
     int32_t m_stackPos;
     uint32_t m_reserve;
-    char m_ns[32];
+    char m_db[32];
+    char m_collection[32];
     int32_t m_doc_count;
     int32_t m_cur_doc_start;
     int32_t m_cur_doc_pos;

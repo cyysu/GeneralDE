@@ -29,7 +29,7 @@
     writepos += 8;
 
 static uint32_t mongo_driver_calc_len(mongo_pkg_t pkg) {
-    size_t ns_len = strlen(pkg->m_ns) + 1;
+    size_t ns_len = strlen(pkg->m_db) + 1 + strlen(pkg->m_collection) + 1;
 
     uint32_t len = 
         16 /* header */
@@ -77,6 +77,7 @@ static uint32_t mongo_driver_calc_len(mongo_pkg_t pkg) {
 
 int mongo_driver_send_to_server(mongo_driver_t driver, struct mongo_server * server, mongo_pkg_t pkg) {
     char buf[128];
+    char ns_buf[65];
     size_t writepos = 0;
     uint32_t reserve = 0;
     uint32_t len = mongo_driver_calc_len(pkg);
@@ -96,21 +97,24 @@ int mongo_driver_send_to_server(mongo_driver_t driver, struct mongo_server * ser
     switch(pkg->m_pro_head.op) {
     case mongo_db_op_query: {
         MONGO_BUF_APPEND_32(pkg->m_pro_data.m_query.flags);
-        MONGO_BUF_APPEND_STR(pkg->m_ns); /*ns*/
+        snprintf(ns_buf, sizeof(ns_buf), "%s.%s", pkg->m_db, pkg->m_collection);
+        MONGO_BUF_APPEND_STR(ns_buf); /*ns*/
         MONGO_BUF_APPEND_32(pkg->m_pro_data.m_query.number_to_skip);
         MONGO_BUF_APPEND_32(pkg->m_pro_data.m_query.number_to_return);
         break;
     }
     case mongo_db_op_get_more: {
         MONGO_BUF_APPEND_32(reserve); /*options*/
-        MONGO_BUF_APPEND_STR(pkg->m_ns); /*ns*/
+        snprintf(ns_buf, sizeof(ns_buf), "%s.%s", pkg->m_db, pkg->m_collection);
+        MONGO_BUF_APPEND_STR(ns_buf); /*ns*/
         MONGO_BUF_APPEND_32(pkg->m_pro_data.m_get_more.number_to_return);
         MONGO_BUF_APPEND_64(pkg->m_pro_data.m_get_more.cursor_id);
         break;
     }
     case mongo_db_op_insert: {
         MONGO_BUF_APPEND_32(reserve); /*options*/
-        MONGO_BUF_APPEND_STR(pkg->m_ns); /*ns*/
+        snprintf(ns_buf, sizeof(ns_buf), "%s.%s", pkg->m_db, pkg->m_collection);
+        MONGO_BUF_APPEND_STR(ns_buf); /*ns*/
         break;
     }
     case mongo_db_op_replay: {
@@ -130,13 +134,15 @@ int mongo_driver_send_to_server(mongo_driver_t driver, struct mongo_server * ser
     }
     case mongo_db_op_update: {
         MONGO_BUF_APPEND_32(reserve); /*options*/
-        MONGO_BUF_APPEND_STR(pkg->m_ns); /*ns*/
+        snprintf(ns_buf, sizeof(ns_buf), "%s.%s", pkg->m_db, pkg->m_collection);
+        MONGO_BUF_APPEND_STR(ns_buf); /*ns*/
         MONGO_BUF_APPEND_32(pkg->m_pro_data.m_update.flags);
         break;
     }
     case mongo_db_op_delete: {
         MONGO_BUF_APPEND_32(reserve); /*options*/
-        MONGO_BUF_APPEND_STR(pkg->m_ns);
+        snprintf(ns_buf, sizeof(ns_buf), "%s.%s", pkg->m_db, pkg->m_collection);
+        MONGO_BUF_APPEND_STR(ns_buf); /*ns*/
         MONGO_BUF_APPEND_32(pkg->m_pro_data.m_delete.flags);
         break;
     }

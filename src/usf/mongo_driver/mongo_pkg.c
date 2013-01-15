@@ -52,8 +52,9 @@ mongo_driver_t mongo_pkg_driver(mongo_pkg_t req) {
 
 void mongo_pkg_init(mongo_pkg_t pkg) {
     pkg->m_stackPos = 0;
-    pkg->m_ns[0] = 0;
-    pkg->m_doc_count = -1;
+    pkg->m_db[0] = 0;
+    pkg->m_collection[0] = 0;
+    pkg->m_doc_count = 0;
     pkg->m_cur_doc_start = -1;
     pkg->m_cur_doc_pos = -1;
     bzero(&pkg->m_pro_head, sizeof(pkg->m_pro_head));
@@ -97,17 +98,64 @@ void mongo_pkg_set_response_to(mongo_pkg_t pkg, uint32_t id) {
     pkg->m_pro_head.response_to = id;
 }
 
-const char * mongo_pkg_ns(mongo_pkg_t pkg) {
-    return pkg->m_ns;
+const char * mongo_pkg_db(mongo_pkg_t pkg) {
+    return pkg->m_db;
 }
 
-void mongo_pkg_set_ns(mongo_pkg_t pkg, const char * ns) {
-    strncpy(pkg->m_ns, ns, sizeof(pkg->m_ns));
+int mongo_pkg_set_db(mongo_pkg_t pkg, const char * db) {
+    size_t len = strlen(db);
+    if (len + 1 > sizeof(pkg->m_db)) {
+        CPE_ERROR(pkg->m_driver->m_em, "mongo_pkg: set db %s: db name len overflow!", db);
+        return -1;
+    }
+
+    memcpy(pkg->m_db, db, len + 1);
+    return 0;
 }
 
-void mongo_pkg_append_ns(mongo_pkg_t pkg, const char * ns) {
-    size_t len = strlen(pkg->m_ns);
-    strncpy(pkg->m_ns + len, ns, sizeof(pkg->m_ns) - len);
+const char * mongo_pkg_collection(mongo_pkg_t pkg) {
+    return pkg->m_collection;
+}
+
+int mongo_pkg_set_collection(mongo_pkg_t pkg, const char * collection) {
+    size_t len = strlen(collection);
+    if (len + 1 > sizeof(pkg->m_collection)) {
+        CPE_ERROR(pkg->m_driver->m_em, "mongo_pkg: set collection %s: collection name len overflow!", collection);
+        return -1;
+    }
+
+    memcpy(pkg->m_collection, collection, len + 1);
+    return 0;
+}
+
+int mongo_pkg_set_ns(mongo_pkg_t pkg, const char * ns) {
+    const char * sep;
+    size_t len;
+
+    sep = strchr(ns, '.');
+    if (sep == NULL) {
+        CPE_ERROR(pkg->m_driver->m_em, "mongo_pkg: set ns %s: ns format error!", ns);
+        return -1;
+    }
+
+    len = sep - ns;
+    if (len + 1 > sizeof(pkg->m_db)) {
+        CPE_ERROR(pkg->m_driver->m_em, "mongo_pkg: set ns %s: db name len overflow!", ns);
+        return -1;
+    }
+
+    memcpy(pkg->m_db, ns, len);
+    pkg->m_db[len] = 0;
+
+    len = strlen(sep + 1);
+    if (len + 1 > sizeof(pkg->m_collection)) {
+        CPE_ERROR(pkg->m_driver->m_em, "mongo_pkg: set ns %s: collection name len overflow!", ns);
+        return -1;
+    }
+
+    memcpy(pkg->m_collection, sep + 1, len + 1);
+
+    return 0;
 }
 
 void * mongo_pkg_data(mongo_pkg_t pkg) {
@@ -197,6 +245,8 @@ size_t mongo_pkg_capacity(mongo_pkg_t pkg) {
 }
 
 int mongo_pkg_it(bson_iterator * it, mongo_pkg_t pkg, int doc_idx) {
+    if (doc_idx >= pkg->m_doc_count) return -1;
+
     if (doc_idx > 0) {
         struct mongo_doc_it doc_it;
         void * doc;
@@ -220,8 +270,35 @@ int mongo_pkg_it(bson_iterator * it, mongo_pkg_t pkg, int doc_idx) {
     }
 }
 
-int mongo_pkg_find(bson_iterator * it, mongo_pkg_t pkg, int doc_idx, const char * path) {
+static int mongo_iterator_find_l1(bson_iterator * it, const char * name, const char * name_end) {
+    size_t strlen = name_end - name;
+    while(bson_iterator_next(it)) {
+        const char * key = bson_iterator_key(it);
+        if (memcmp(key, name, strlen) == 0 && key[strlen] == 0)
+            return 0;
+    }
+
     return -1;
+}
+
+int mongo_iterator_find(bson_iterator * it, const char * path) {
+    const char * end = path + strlen(path);
+    const char * name = path;
+    const char * name_end;
+    do {
+        name_end = strchr(name, '.');
+        if (name_end == NULL) name_end = end;
+
+        if (mongo_iterator_find_l1(it, name, name_end) != 0) return -1;
+        name = name_end + 1;
+    } while(name_end != end);
+
+    return 0;
+}
+
+int mongo_pkg_find(bson_iterator * it, mongo_pkg_t pkg, int doc_idx, const char * path) {
+    if (mongo_pkg_it(it, pkg, doc_idx) != 0) return -1;
+    return mongo_iterator_find(it, path);
 }
 
 void mongo_pkg_doc_count_update(mongo_pkg_t pkg) {
@@ -306,7 +383,7 @@ static void mongo_pkg_data_dump_i(write_stream_t stream, const void * data, int 
             stream_printf(stream,  "%s : %d(%s)\t%d" , key, t, "BSON_INT", bson_iterator_int( &i ));
             break;
         case BSON_LONG:
-            stream_printf(stream,  "%s : %d(%s)\t%lld", key, t, "BSON_LONG", (uint64_t)bson_iterator_long( &i ));
+            stream_printf(stream,  "%s : %d(%s)\t%I64d", key, t, "BSON_LONG", (int64_t)bson_iterator_long( &i ));
             break;
         case BSON_TIMESTAMP:
             ts = bson_iterator_timestamp( &i);
@@ -347,16 +424,16 @@ const char * mongo_pkg_dump(mongo_pkg_t req, mem_buffer_t buffer, int level) {
     switch(req->m_pro_head.op) {
     case mongo_db_op_query:
         stream_printf(
-            (write_stream_t)&stream, "op=query, ns=%s, flags=%d, number_to_skip=%d, number_to_return=%d",
-            req->m_ns, req->m_pro_data.m_query.flags, req->m_pro_data.m_query.number_to_skip, req->m_pro_data.m_query.number_to_return);
+            (write_stream_t)&stream, "op=query, ns=%s.%s, flags=%d, number_to_skip=%d, number_to_return=%d",
+            req->m_db, req->m_collection, req->m_pro_data.m_query.flags, req->m_pro_data.m_query.number_to_skip, req->m_pro_data.m_query.number_to_return);
         break;
     case mongo_db_op_get_more:
         stream_printf(
-            (write_stream_t)&stream, "op=get more, ns=%s, number_to_return=%d, cursor_id=%llu",
-            req->m_ns, req->m_pro_data.m_get_more.number_to_return, req->m_pro_data.m_get_more.cursor_id);
+            (write_stream_t)&stream, "op=get more, ns=%s.%s, number_to_return=%d, cursor_id=%llu",
+            req->m_db, req->m_collection, req->m_pro_data.m_get_more.number_to_return, req->m_pro_data.m_get_more.cursor_id);
         break;
     case mongo_db_op_insert:
-        stream_printf((write_stream_t)&stream, "op=insert, ns=%s", req->m_ns);
+        stream_printf((write_stream_t)&stream, "op=insert, ns=%s.%s", req->m_db, req->m_collection);
         break;
     case mongo_db_op_replay:
         stream_printf((write_stream_t)&stream, "op=replay, response_flag=(");
@@ -375,10 +452,10 @@ const char * mongo_pkg_dump(mongo_pkg_t req, mem_buffer_t buffer, int level) {
         stream_printf((write_stream_t)&stream, "op=kill cursors, cursor_count=%d", req->m_pro_data.m_kill_cursor.cursor_count);
         break;
     case mongo_db_op_update:
-        stream_printf((write_stream_t)&stream, "op=update, ns=%s, flags=%d", req->m_ns, req->m_pro_data.m_update.flags);
+        stream_printf((write_stream_t)&stream, "op=update, ns=%s.%s, flags=%d", req->m_db, req->m_collection, req->m_pro_data.m_update.flags);
         break;
     case mongo_db_op_delete:
-        stream_printf((write_stream_t)&stream, "op=delete, ns=%s, flags=%d", req->m_ns, req->m_pro_data.m_delete.flags);
+        stream_printf((write_stream_t)&stream, "op=delete, ns=%s.%s, flags=%d", req->m_db, req->m_collection, req->m_pro_data.m_delete.flags);
         break;
     default:
         stream_printf((write_stream_t)&stream, "op=%d, unknown!", req->m_pro_head.op);
@@ -464,23 +541,10 @@ void * mongo_doc_data(mongo_doc_t doc) {
     return (void*)doc;
 }
 
-void mongo_pkg_cmd_init(mongo_pkg_t pkg, const char * ns) {
-    char * sep;
-
+void mongo_pkg_cmd_init(mongo_pkg_t pkg) {
     mongo_pkg_init(pkg);
     mongo_pkg_set_op(pkg, mongo_db_op_query);
-
-    mongo_pkg_set_ns(pkg, ns);
-
-    sep = strchr(pkg->m_ns, '.');
-    if (sep) {
-        size_t len = sep - pkg->m_ns;
-        strncpy(sep, ".$cmd", sizeof(pkg->m_ns) - len);
-    }
-    else {
-        mongo_pkg_append_ns(pkg, ".$cmd");
-    }
-
+    mongo_pkg_set_collection(pkg, "$cmd");
     mongo_pkg_query_set_number_to_return(pkg, 1);
 }
 

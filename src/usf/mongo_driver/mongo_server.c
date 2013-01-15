@@ -128,8 +128,8 @@ static void mongo_server_check_is_master(struct mongo_server * server) {
 
     server->m_state = mongo_server_state_checking_is_master;
 
-    mongo_pkg_set_ns(pkg_buf, "admin.$cmd");
-    mongo_pkg_set_op(pkg_buf, mongo_db_op_query);
+    mongo_pkg_cmd_init(pkg_buf);
+    mongo_pkg_set_db(pkg_buf, "admin");
     if (mongo_pkg_doc_open(pkg_buf) != 0
         || mongo_pkg_append_int32(pkg_buf, "ismaster", 1) != 0
         || mongo_pkg_doc_close(pkg_buf) != 0
@@ -155,14 +155,14 @@ static void mongo_server_on_check_is_master(struct mongo_server * server, mongo_
 
     mongo_pkg_it(&it, pkg, 0);
 
-    if(mongo_pkg_find(&it, pkg, 0, "maxBsonObjectSize")) {
+    if(mongo_pkg_find(&it, pkg, 0, "maxBsonObjectSize") == 0) {
         server->m_max_bson_size = bson_iterator_int(&it);
     }
     else {
         server->m_max_bson_size = MONGO_DEFAULT_MAX_BSON_SIZE;
     }
 
-    if(mongo_pkg_find(&it, pkg, 0, "ismaster")) {
+    if(mongo_pkg_find(&it, pkg, 0, "ismaster") == 0) {
         if (bson_iterator_bool( &it ) ) {
             if (driver->m_master_server) {
                 CPE_INFO(

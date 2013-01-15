@@ -56,6 +56,13 @@ mongo_cli_proxy_create(
         return NULL;
     }
 
+    proxy->m_meta_cmd_info = dr_lib_find_meta_by_name((LPDRMETALIB)g_metalib_mongo_cli, "mongo_cmd_info");
+    if (proxy->m_meta_cmd_info == NULL) {
+        CPE_ERROR(em, "%s: find lasterror meta mongo_cmd_info fail!", name);
+        nm_node_free(proxy_node);
+        return NULL;
+    }
+
     snprintf(name_buf, sizeof(name_buf), "%s.require_queue", name);
     proxy->m_require_queue = logic_require_queue_create(app, alloc, em, name_buf, logic_mgr);
     if (proxy->m_require_queue == NULL) {
@@ -111,9 +118,26 @@ const char * mongo_cli_proxy_name(mongo_cli_proxy_t mgr) {
     return nm_node_name(nm_node_from_data(mgr));
 }
 
+const char * mongo_cli_proxy_dft_db(mongo_cli_proxy_t agent) {
+    return agent->m_dft_db;
+}
+
+void mongo_cli_proxy_set_dft_db(mongo_cli_proxy_t agent, const char * db_name) {
+    if (db_name) {
+        strncpy(agent->m_dft_db, db_name, sizeof(agent->m_dft_db));
+    }
+    else {
+        agent->m_dft_db[0] = 0;
+    }
+}
+
 cpe_hash_string_t
 mongo_cli_proxy_name_hs(mongo_cli_proxy_t mgr) {
     return nm_node_name_hs(nm_node_from_data(mgr));
+}
+
+logic_manage_t mongo_cli_proxy_logic_manage(mongo_cli_proxy_t agent) {
+    return logic_require_queue_logic_manage(agent->m_require_queue);
 }
 
 int mongo_cli_proxy_set_outgoing_send_to(mongo_cli_proxy_t proxy, const char * outgoing_send_to) {

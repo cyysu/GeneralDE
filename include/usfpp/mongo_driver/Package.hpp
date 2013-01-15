@@ -24,8 +24,11 @@ public:
     uint32_t id(void) const { return mongo_pkg_id(*this); }
     void setId(uint32_t id) { mongo_pkg_set_id(*this, id); }
 
-    const char * ns(void) const { return mongo_pkg_ns(*this); }
-    void setNs(const char * ns) { mongo_pkg_set_ns(*this, ns); }
+    const char * db(void) const { return mongo_pkg_db(*this); }
+    void setDb(const char * db) { mongo_pkg_set_db(*this, db); }
+
+    const char * collection(void) const { return mongo_pkg_collection(*this); }
+    void setCollection(const char * collection) { mongo_pkg_set_collection(*this, collection); }
 
     /*doc op*/
     void docAppend(LPDRMETA meta, void const * data, size_t size);
