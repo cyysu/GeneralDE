@@ -1,12 +1,13 @@
 #include "gd/app/app_context.h"
 #include "gdpp/app/Log.hpp"
+#include "gdpp/app/Application.hpp"
 #include "gdpp/utils/IdGenerator.hpp"
 
 namespace Gd { namespace Utils {
 
-gd_id_t IdGenerator::generateId(void) {
+gd_id_t IdGenerator::generate(const char * id_name) {
     gd_id_t r;
-    if (gd_id_generator_generate(&r, *this) != 0) {
+    if (gd_id_generator_generate(&r, *this, id_name) != 0) {
         APP_CTX_THROW_EXCEPTION(
             app(),
             ::std::runtime_error,
@@ -16,12 +17,13 @@ gd_id_t IdGenerator::generateId(void) {
     return r;
 }
 
-void IdGenerator::setNextId(gd_id_t id) {
-    if (gd_id_generator_set_next_id(*this, id) != 0) {
-        APP_CTX_THROW_EXCEPTION(
-            app(),
-            ::std::runtime_error,
-            "IdGeneratro %s set next id %d fail!", name(), (int)id);
+gd_id_t IdGenerator::tryGenerate(const char * id_name) {
+    gd_id_t r;
+    if (gd_id_generator_generate(&r, *this, id_name) != 0) {
+        return 0;
+    }
+    else {
+        return r;
     }
 }
 
@@ -31,7 +33,7 @@ IdGenerator & IdGenerator::instance(gd_app_context_t app, cpe_hash_string_t name
         APP_CTX_THROW_EXCEPTION(
             app,
             ::std::runtime_error,
-            "IdGeneratro %s not exist!", cpe_hs_data(name));
+            "IdGenerator %s not exist!", cpe_hs_data(name));
     }
 
     return *(IdGenerator*)r;

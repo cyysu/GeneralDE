@@ -61,7 +61,7 @@ int logic_require_queue_require_count(logic_require_queue_t queue) {
     return queue->m_runing_require_count;
 }
 
-logic_manage_t logic_require_queue_get_mgr(logic_require_queue_t queue) {
+logic_manage_t logic_require_queue_logic_manage(logic_require_queue_t queue) {
     return queue->m_logic_manage;
 }
 
