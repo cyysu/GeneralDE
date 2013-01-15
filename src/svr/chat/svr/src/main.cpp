@@ -11,10 +11,6 @@
 #include "cpepp/cfg/Node.hpp"
 #include "gdpp/app/Application.hpp"
 
-extern "C" {
-extern char g_metalib_The9_gs_data[];
-}
-
 static int svr_main(int argc, char * argv[], int shmkey) {
     gd_app_context_t ctx;
     int rv;

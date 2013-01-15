@@ -10,7 +10,7 @@
 #include "usfpp/bpg_rsp/RspManager.hpp"
 #include "ChatSvrSystem.hpp"
 
-extern "C" char g_metalib_chat_svr_pro[];
+extern "C" char g_metalib_svr_chat_pro[];
 
 namespace Svr { namespace Chat {
 

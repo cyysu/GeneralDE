@@ -12,11 +12,11 @@ $(product).product.c.flags.ld:=-rdynamic
 $(product).cpe-dr.modules:=pro
 #编译data协议定义
 $(product).cpe-dr.pro.generate:=h c
-$(product).cpe-dr.pro.source:=$(addprefix $(product-base)/../../pro/, svr_chat_pro.xml)
-$(product).cpe-dr.pro.h.output:=protocol
+$(product).cpe-dr.pro.source:=$(addprefix $(product-base)/../pro/, cli/svr_chat_pro.xml meta/chanel_info.xml svr/svr_chat_internal_data.xml)
+$(product).cpe-dr.pro.h.output:=protocol/svr/chat
 $(product).cpe-dr.pro.h.with-traits:=pro_meta_traits.cpp
-$(product).cpe-dr.pro.c.output:=protocol/metalib.c
-$(product).cpe-dr.pro.c.arg-name:=g_metalib_chat_svr_pro
+$(product).cpe-dr.pro.c.output:=protocol/svr/chat/metalib.c
+$(product).cpe-dr.pro.c.arg-name:=g_metalib_svr_chat_pro
 
 $(eval $(call product-def,$(product)))
 

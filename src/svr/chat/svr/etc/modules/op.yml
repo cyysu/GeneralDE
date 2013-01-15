@@ -1,2 +1,3 @@
 load:
-  - name: ChatSvr_Op_Chanel_Create
+  - name: ChatSvr_Op_SendMsg
+  - name: ChatSvr_Op_QueryMsg

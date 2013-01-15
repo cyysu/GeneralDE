@@ -5,8 +5,6 @@ app_net_runner_app_init
 app_net_runner_app_fini
 app_net_env_global_init
 app_net_env_global_fini
-gd_id_generator_app_init
-gd_id_generator_app_fini
 gd_timer_mgr_app_init
 gd_timer_mgr_app_fini
 dr_store_manage_app_init
@@ -39,8 +37,14 @@ bpg_cli_proxy_app_init
 bpg_cli_proxy_app_fini
 AppRandom_app_init
 AppRandom_app_fini
-g_metalib_chat_svr_pro
+g_metalib_svr_chat_pro
 ChatSvrLogic_app_init
 ChatSvrLogic_app_fini
-ChatSvr_Op_Chanel_Create_app_init
-ChatSvr_Op_Chanel_Create_app_fini
+ChanelInfoManager_app_init
+ChanelInfoManager_app_fini
+ChanelTimer_app_init
+ChanelTimer_app_fini
+ChatSvr_Op_SendMsg_app_init
+ChatSvr_Op_SendMsg_app_fini
+ChatSvr_Op_QueryMsg_app_init
+ChatSvr_Op_QueryMsg_app_fini
