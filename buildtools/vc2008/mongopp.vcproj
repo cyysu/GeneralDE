@@ -47,6 +47,7 @@
 				RuntimeLibrary="2"
 				WarningLevel="3"
 				DebugInformationFormat="4"
+				DisableSpecificWarnings="4819"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -109,6 +110,7 @@
 				EnableFunctionLevelLinking="true"
 				WarningLevel="3"
 				DebugInformationFormat="3"
+				DisableSpecificWarnings="4819"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -169,6 +171,18 @@
 					>
 				</File>
 			</Filter>
+			<Filter
+				Name="mongo_use"
+				>
+				<File
+					RelativePath="..\..\include\usfpp\mongo_use\MongoIdGenerator.hpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\include\usfpp\mongo_use\System.hpp"
+					>
+				</File>
+			</Filter>
 		</Filter>
 		<Filter
 			Name="src"
@@ -186,6 +200,14 @@
 				>
 				<File
 					RelativePath="..\..\src\usfpp\mongo_driver\Package.cpp"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="mongo_use"
+				>
+				<File
+					RelativePath="..\..\src\usfpp\mongo_use\MongoIdGenerator.cpp"
 					>
 				</File>
 			</Filter>

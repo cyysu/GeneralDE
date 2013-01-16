@@ -1,6 +1,7 @@
 #include <assert.h>
 #include "cpe/pal/pal_platform.h"
 #include "cpe/pal/pal_string.h"
+#include "cpe/pal/pal_stdio.h"
 #include "cpe/net/net_connector.h"
 #include "cpe/net/net_endpoint.h"
 #include "cpe/dp/dp_request.h"
