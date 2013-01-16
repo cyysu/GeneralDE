@@ -1,6 +1,7 @@
 #include <assert.h>
 #include "cpe/pal/pal_external.h"
 #include "cpe/pal/pal_string.h"
+#include "cpe/pal/pal_strings.h"
 #include "cpe/cfg/cfg_read.h"
 #include "cpe/nm/nm_manage.h"
 #include "cpe/nm/nm_read.h"
