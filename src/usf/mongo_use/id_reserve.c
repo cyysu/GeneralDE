@@ -1,5 +1,7 @@
 #include <assert.h>
 #include "cpe/pal/pal_stdio.h"
+#include "cpe/pal/pal_string.h"
+#include "cpe/pal/pal_strings.h"
 #include "cpe/cfg/cfg.h"
 #include "cpe/cfg/cfg_read.h"
 #include "cpe/dr/dr_metalib_manage.h"
@@ -222,6 +224,7 @@ static int mongo_id_reserve_send_insert_pkg(
 
 static logic_op_exec_result_t
 mongo_id_reserve_send(logic_context_t ctx, logic_stack_node_t stack_noe, void * user_data, cfg_t cfg) {
+    logic_require_t require;
     struct mongo_id_reserve_op * op = (struct mongo_id_reserve_op *)user_data;
     const char * id_name = cfg_get_string(cfg, "id-name", NULL);
     uint32_t reserve_count = cfg_get_uint32(cfg, "reserve-count", 0);
@@ -254,8 +257,6 @@ mongo_id_reserve_send(logic_context_t ctx, logic_stack_node_t stack_noe, void * 
         CPE_ERROR(op->m_em, "%s: reserve-count %d error", mongo_id_reserve_op_name(op), reserve_count);
         return logic_op_exec_result_null;
     }
-
-    logic_require_t require;
 
     if (mongo_id_info_have_waiting_require(op->m_id_generator, id_info)) {
         require = logic_require_create(stack_noe, "id-reserve-wait");

@@ -180,6 +180,18 @@
 					>
 				</File>
 			</Filter>
+			<Filter
+				Name="mongo_use"
+				>
+				<File
+					RelativePath="..\..\include\usf\mongo_use\id_generator.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\include\usf\mongo_use\mongo_use_types.h"
+					>
+				</File>
+			</Filter>
 		</Filter>
 		<Filter
 			Name="src"
@@ -234,7 +246,11 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\src\usf\mongo_cli\mongo_cli_proxy_process.c"
+					RelativePath="..\..\src\usf\mongo_cli\mongo_cli_proxy_recv.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\usf\mongo_cli\mongo_cli_proxy_send.c"
 					>
 				</File>
 			</Filter>
@@ -283,6 +299,56 @@
 				</File>
 				<File
 					RelativePath="..\..\src\usf\mongo_driver\mongo_server.c"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="mongo_use"
+				>
+				<File
+					RelativePath="..\..\src\usf\mongo_use\id_generator.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\usf\mongo_use\id_info.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\usf\mongo_use\id_reserve.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\build\vc\protocol\mongo\protocol\mongo_use\mongo_use.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\usf\mongo_use\mongo_use.xml"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							CommandLine="set PATH=$(SolutionDir)..\..\3rdTools\iconv\vc\bin;$(SolutionDir)..\..\3rdTools\zlib\vc\bin;%PATH%&#x0D;&#x0A;$(SolutionDir)..\..\build\vc\tools\cpe_dr_tool.exe -i $(InputPath) --output-h $(SolutionDir)..\..\build\vc\protocol\$(SafeRootNamespace)\protocol\mongo_use --output-lib-c $(SolutionDir)..\..\build\vc\protocol\$(SafeRootNamespace)\protocol\mongo_use\$(InputName).c --output-lib-c-arg g_metalib_mongo_use_data&#x0D;&#x0A;"
+							Outputs="$(SolutionDir)..\..\build\vc\protocol\$(SafeRootNamespace)\protocol\mongo_use\$(InputName).c"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							CommandLine="set PATH=$(SolutionDir)..\..\3rdTools\iconv\vc\bin;$(SolutionDir)..\..\3rdTools\zlib\vc\bin;%PATH%&#x0D;&#x0A;$(SolutionDir)..\..\build\vc\tools\cpe_dr_tool.exe -i $(InputPath) --output-h $(SolutionDir)..\..\build\vc\protocol\$(SafeRootNamespace)\protocol\mongo_use --output-lib-c $(SolutionDir)..\..\build\vc\protocol\$(SafeRootNamespace)\protocol\mongo_use\$(InputName).c --output-lib-c-arg g_metalib_mongo_use_data&#x0D;&#x0A;"
+							Outputs="$(SolutionDir)..\..\build\vc\protocol\$(SafeRootNamespace)\protocol\mongo_use\$(InputName).c"
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="..\..\src\usf\mongo_use\mongo_use_internal_ops.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\usf\mongo_use\mongo_use_internal_types.h"
 					>
 				</File>
 			</Filter>

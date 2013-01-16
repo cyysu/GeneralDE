@@ -75,7 +75,7 @@ static int mongo_cli_proxy_recv_process_find_and_modify(
 
     if (mongo_pkg_find(&bson_it, pkg, 0, "ok") != 0) {
         if (mongo_pkg_find(&bson_it, pkg, 0, "code") != 0) {
-            int32_t err = bson_iterator_double(&bson_it);
+            int32_t err = (int32_t)bson_iterator_int(&bson_it);
             if (proxy->m_debug) {
                 CPE_INFO(proxy->m_em, "%s: recv_response: find_and_modify: error: %d!", mongo_cli_proxy_name(proxy), err);
             }
