@@ -2,6 +2,7 @@
 #include "cpe/pal/pal_stdlib.h"
 #include "cpe/pal/pal_stdio.h"
 #include "cpe/pal/pal_external.h"
+#include "cpe/pal/pal_string.h"
 #include "cpe/cfg/cfg_read.h"
 #include "cpe/utils/error.h"
 #include "cpe/utils/range.h"
