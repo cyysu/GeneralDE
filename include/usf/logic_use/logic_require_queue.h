@@ -24,6 +24,8 @@ logic_require_t logic_require_queue_remove_get(logic_require_queue_t queue, logi
 void logic_require_queue_notify_all(logic_require_queue_t queue, int32_t error);
 void logic_require_queue_cancel_all(logic_require_queue_t queue);
 
+logic_manage_t logic_require_queue_logic_manage(logic_require_queue_t queue);
+
 logic_require_t logic_require_queue_notify(logic_require_queue_t queue, logic_require_id_t id, int32_t error);
 
 #ifdef __cplusplus
