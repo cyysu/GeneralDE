@@ -62,7 +62,7 @@ c-generate-depend-cpp-flags=$(addprefix -I$(CPDE_ROOT)/,\
                             $(foreach oi,\
 								 $(call product-gen-depend-list,$1), \
                                  $(addprefix -I$(call c-source-dir-to-binary-dir,$(r.$(oi).base),$2)/,$(r.$(oi).product.c.output-includes))) \
-                            $(addprefix -I$(call c-source-dir-to-binary-dir,$(r.$1.base),$2)/,$(r.$1.c.output-includes)) \
+                            $(addprefix -I$(call c-source-dir-to-binary-dir,$(r.$1.base),$2)/,$(r.$1.c.output-includes) $(r.$1.product.c.output-includes)) \
                             $(addprefix -F,\
 								 $(sort $(r.$1.c.frameworks) $(r.$1.product.c.frameworks) \
 									$(call product-gen-depend-value-list,$1,product.c.frameworks))) \
