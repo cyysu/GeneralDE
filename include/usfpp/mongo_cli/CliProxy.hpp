@@ -2,6 +2,7 @@
 #define USFPP_MONGO_CLI_PROXY_H
 #include "cpepp/utils/ClassCategory.hpp"
 #include "cpepp/utils/CString.hpp"
+#include "cpepp/dr/System.hpp"
 #include "gdpp/app/Application.hpp"
 #include "usf/mongo_cli/mongo_cli_proxy.h"
 #include "System.hpp"
