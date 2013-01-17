@@ -239,7 +239,11 @@ int stream_vprintf(struct write_stream * stream, const char *format, va_list arg
         }
     
         // Get the conversion qualifier
-        if (*fmt == 'h' || *fmt == 'l' || *fmt == 'L')
+        if (*fmt == 'l' && *(fmt + 1) == 'l') {
+            qualifier = 'I';
+            fmt += 2;
+        }
+        else if (*fmt == 'h' || *fmt == 'l' || *fmt == 'L')
         {
             qualifier = *fmt;
             fmt++;

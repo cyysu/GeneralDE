@@ -34,7 +34,7 @@ public:
     size_t size(void) const { return dr_meta_size(*this); } 
     int align(void) const { return dr_meta_align(*this); } 
 
-    int entryCount(void) const { return dr_meta_align(*this); } 
+    int entryCount(void) const { return dr_meta_entry_num(*this); } 
     Entry const & entryAt(int idx) const;
 
     int findEntryIdx(const char * name) const { return dr_meta_find_entry_idx_by_name(*this, name); }
