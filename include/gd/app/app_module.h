@@ -11,6 +11,7 @@ const char * gd_app_module_name(gd_app_module_t module);
 const char * gd_app_module_type_name(gd_app_module_t module);
 nm_node_t gd_app_module_data(gd_app_context_t context, const char * moduleName);
 gd_app_lib_t gd_app_module_lib(gd_app_module_t module);
+int gd_app_modules_load(gd_app_context_t context);
 
 int gd_app_module_type_init(
     const char * type,
