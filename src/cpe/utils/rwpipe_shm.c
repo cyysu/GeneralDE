@@ -4,6 +4,8 @@
 #include "cpe/pal/pal_string.h"
 #include "cpe/utils/rwpipe_shm.h"
 
+#ifndef _MSC_VER
+
 rwpipe_t rwpipe_shm_init_by_path(const char * key_file, uint32_t capacity, int force_new, error_monitor_t em) {
     int shmid = cpe_shm_key_gen(key_file, 'a');
     if (shmid == -1) {
@@ -114,3 +116,5 @@ rwpipe_t rwpipe_shm_attach(int shmid, error_monitor_t em) {
 
     return q;
 }
+
+#endif
