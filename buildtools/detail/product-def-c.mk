@@ -78,8 +78,9 @@ product-def-c-linker-cpp=$(LINK.cc)
 product-def-c-linker-obj-c=$(LINK.c)
 product-def-c-linker-obj-cpp=$(LINK.cc)
 
+product-def-gen-dep-cmd=$(if $(compiler.$(call compiler-category,$($($1.env).CC)).flags.gen-dep),$(compiler.$(call compiler-category,$($($1.env).CC)).flags.gen-dep) $2)
+
 product-def-rule-c-compile-cmd.c=$($($2.env).CC) \
-                                 $(compiler.$(call compiler-category,$($($2.env).CC)).flags.gen-dep) \
                                  $(compiler.$(call compiler-category,$($($2.env).CC)).flags.warning) \
                                  $($($2.env).CFLAGS) \
                                  $(sort $(call product-gen-depend-value-list,$1,product.c.flags.warning)) \
@@ -90,7 +91,6 @@ product-def-rule-c-compile-cmd.c=$($($2.env).CC) \
                                  $($($2.env).TARGET_ARCH) -c
 
 product-def-rule-c-compile-cmd.cc=$($($2.env).CXX) \
-                                  $(compiler.$(call compiler-category,$($($2.env).CXX)).flags.gen-dep) \
                                   $(compiler.$(call compiler-category,$($($2.env).CXX)).flags.warning) \
                                   $($($2.env).CXXFLAGS) \
                                   $(sort $(call product-gen-depend-value-list,$1,product.c.flags.warning)) \
@@ -101,7 +101,6 @@ product-def-rule-c-compile-cmd.cc=$($($2.env).CXX) \
                                   $($($2.env).TARGET_ARCH) -c 
 
 product-def-rule-c-compile-cmd.mm=$($($2.env).CXX) $($($2.env).MMFLAGS) \
-                                  $(compiler.$(call compiler-category,$($($2.env).CXX)).flags.gen-dep) \
                                   $(compiler.$(call compiler-category,$($($2.env).CXX)).flags.warning) \
                                   $(sort $(call product-gen-depend-value-list,$1,product.c.flags.warning)) \
                                   $(r.$1.product.c.flags.warning) \
@@ -111,7 +110,6 @@ product-def-rule-c-compile-cmd.mm=$($($2.env).CXX) $($($2.env).MMFLAGS) \
                                   $($($2.env).TARGET_ARCH) -c 
 
 product-def-rule-c-compile-cmd.m=$($($2.env).CC) $($($2.env).MFLAGS) \
-                                 $(compiler.$(call compiler-category,$($($2.env).CC)).flags.gen-dep) \
                                  $(compiler.$(call compiler-category,$($($2.env).CC)).flags.warning) \
                                  $(sort $(call product-gen-depend-value-list,$1,product.c.flags.warning)) \
                                  $(r.$1.product.c.flags.warning) \
@@ -127,7 +125,9 @@ product-def-rule-c-compile-cmd.cpp=$(call product-def-rule-c-compile-cmd.cc,$1,$
 define product-def-rule-c-compile-rule
 $1: $2
 	$$(call with_message,compiling $(subst $(CPDE_ROOT)/,,$2) --> $(subst $(CPDE_ROOT)/,,$1) ...)\
-          $(CPDE_C_COMPILE_PREFIX) $$(call product-def-rule-c-compile-cmd$(suffix $2),$3,$4) $$(call c-generate-depend-cpp-flags,$3,$4) -o $$@ $$<
+          $(CPDE_C_COMPILE_PREFIX) $$(call product-def-rule-c-compile-cmd$(suffix $2),$3,$4) $$(call c-generate-depend-cpp-flags,$3,$4) \
+          $$(call product-def-gen-dep-cmd,$4,$$(patsubst %.o,%.d,$$@)) \
+          -o $$@ $$<
 
 endef
 
