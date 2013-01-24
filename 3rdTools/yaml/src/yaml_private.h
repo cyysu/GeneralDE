@@ -1,6 +1,6 @@
 
-#if HAVE_CONFIG_H
-#include <config.h>
+#if YAML_HAVE_CONFIG_H
+#include <yaml_config.h>
 #endif
 
 #include <yaml.h>
