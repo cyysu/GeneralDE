@@ -182,7 +182,7 @@ static int pom_grp_meta_build_store_meta_list(
     }
     dr_inbuild_entry_set_name(count_entry, "count");
     dr_inbuild_entry_set_version(count_entry, 1);
-    dr_inbuild_entry_set_type(count_entry, "uint64");
+    dr_inbuild_entry_set_type(count_entry, "uint32");
     dr_inbuild_entry_set_array_count(count_entry, 1);
 
     data_entry = dr_inbuild_meta_add_entry(list_meta);
