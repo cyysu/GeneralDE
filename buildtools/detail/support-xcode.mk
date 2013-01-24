@@ -7,5 +7,5 @@ tools.cvt.xib-nib.dep=
 # }}}
 # {{{ clang编译器命令行参数设定
 compiler.clang.flags.warning=-Qunused-arguments -Wall -Wno-parentheses-equality
-compiler.clang.flags.gen-dep=-MMD
+compiler.clang.flags.gen-dep=
 # }}}
