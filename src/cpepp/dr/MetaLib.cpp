@@ -59,6 +59,7 @@ MetaLib::_load_from_bin_file(const char * file, Utils::MemBuffer & buf) {
     return _cast(buf.make_continuous(), buf.size());
 }
 
+#ifndef CPE_DR_NO_XML
 MetaLib const &
 MetaLib::_load_from_xml_file(const char * file, Utils::MemBuffer & buf, uint8_t dft_align) {
     Utils::ErrorCollector ec;
@@ -86,5 +87,5 @@ MetaLib::_load_from_xml(const char * xml, Utils::MemBuffer & buf, uint8_t dft_al
 
     return _cast(buf.make_continuous(), buf.size());
 }
-
+#endif
 }}

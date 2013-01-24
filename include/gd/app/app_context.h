@@ -17,6 +17,8 @@ void gd_app_context_free(gd_app_context_t context);
 
 void gd_app_set_main(gd_app_context_t context, gd_app_fn_t fn_main, gd_app_fn_t fn_stop, void * fn_ctx);
 
+void gd_app_ins_set(gd_app_context_t context);
+
 mem_allocrator_t gd_app_alloc(gd_app_context_t context);
 void gd_app_set_alloc(gd_app_context_t context, mem_allocrator_t alloc);
 

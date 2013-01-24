@@ -155,6 +155,10 @@ void gd_app_context_free(gd_app_context_t context) {
     gd_app_em_free_all(context);
     cpe_hash_table_fini(&context->m_named_ems);
 
+    if (gd_app_ins() == context) {
+        gd_app_ins_set(NULL);
+    }
+
     if (g_main_app_context == context) {
 #ifdef GD_APP_MULTI_THREAD
         gd_app_ms_global_fini();
