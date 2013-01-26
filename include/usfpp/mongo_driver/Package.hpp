@@ -64,6 +64,15 @@ public:
     void appendObjectStart(const char * name);
     void appendObjectFinish();
 
+    /*query pkg operations*/
+    int32_t queryFlags(void) const { return mongo_pkg_query_flags(*this); }
+    void querySetFlag(mongo_pro_flags_query_t flag) { mongo_pkg_query_set_flag(*this, flag); }
+    void queryUnSetFlag(mongo_pro_flags_query_t flag) { mongo_pkg_query_unset_flag(*this, flag); }
+    int32_t queryNumberToSkip(void) const { return mongo_pkg_query_number_to_skip(*this); }
+    void querySetNumberToSkip(int32_t number_to_skip) { mongo_pkg_query_set_number_to_skip(*this, number_to_skip); }
+    int32_t queryNumberToReturn(void) const { return mongo_pkg_query_number_to_return(*this); }
+    void querySetNumberToReturn(int32_t number_to_return) { mongo_pkg_query_set_number_to_return(*this, number_to_return); }
+
     /*other op*/
     const char * dump_data(mem_buffer_t buffer) const { return mongo_pkg_dump(*this, buffer, 0); }
 
