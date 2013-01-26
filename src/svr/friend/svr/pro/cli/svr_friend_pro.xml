@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="GBK" standalone="yes"?>
+<metalib tagsetversion="1" name="" version="1">
+
+    <!-- 协议定义 -->
+
+    <!-- 新增好友 -->
+    <struct name="svr_friend_req_add_friend" version="1">
+        <entry name="gid" type="uint64" id="1"/>
+        <entry name="friend_gid" type="uint64" id="2"/>
+    </struct>
+
+    <!-- 删除好友 -->
+    <struct name="svr_friend_req_remove_friend" version="1">
+        <entry name="gid" type="uint64" id="1"/>
+        <entry name="friend_gid" type="uint64" id="2"/>
+    </struct>
+
+    <!-- 将一个帐号和用户ID绑定 -->
+    <struct name="svr_friend_req_bind_account" version="1">
+        <entry name="gid" type="uint64" id="1"/>
+        <entry name="account_type" type="uint16" id="2"/>
+        <entry name="account" type="string" size="128" id="3"/>
+    </struct>
+
+    <!-- 根据帐号列表同步好友 -->
+    <struct name="svr_friend_req_sync" version="1">
+        <entry name="gid" type="uint64" id="1"/>
+        <entry name="account_type" type="uint16" id="2"/>
+        <entry name="account_count" type="uint16" id="3"/>
+        <entry name="accounts" type="string" size="128" count="0" refer="account_count" id="3"/>
+    </struct>
+
+    <!-- 整体协议定义 -->
+    <macrosgroup name="SVR_FRIEND_CMD_ID">
+        <macro name="SVR_FRIEND_CMD_REQ_BIND_ACCOUNT" value="1"/>
+        <macro name="SVR_FRIEND_CMD_RES_BIND_ACCOUNT" value="2"/>
+
+    </macrosgroup>
+
+    <union name="svr_friend_pkg_data" version="1" desc="">
+        <entry name="svr_friend_req_bind_account" type="svr_friend_req_bind_account" id="SVR_FRIEND_CMD_REQ_BIND_ACCOUNT"/>
+    </union>
+
+</metalib>
