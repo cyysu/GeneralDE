@@ -1,3 +1,4 @@
 t/svr/chat
 t/support/mongo
 t/support/app-net
+t/svr/friend
