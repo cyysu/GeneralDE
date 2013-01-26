@@ -6,7 +6,7 @@ $(product).depends:=cpepp_cfg cpepp_dr cpe_dr_data_cfg cpe_dr_data_pbuf \
 
 $(product).c.sources:=$(filter-out %/main.cpp,$(wildcard $(product-base)/*.cpp))
 
-$(product).product.c.includes:=$(subst $(CPDE_ROOT)/,,$(call c-source-dir-to-binary-dir,$(product-base),server))
+$(product).product.c.includes:=$(subst $(CPDE_ROOT)/,,$(call c-source-dir-to-binary-dir,$(product-base)))
 $(product).product.c.flags.ld:=-rdynamic
 
 $(product).cpe-dr.modules:=pro
