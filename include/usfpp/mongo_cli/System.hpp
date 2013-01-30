@@ -7,6 +7,7 @@
 namespace Usf { namespace Mongo {
 
 class CliProxy;
+class Result;
 
 }}
 
