@@ -1,6 +1,6 @@
 From: Lokiwang <wangjian1009@gmail.com>
-Subject: [PATCH] t/support/mongo
+Subject: [PATCH] t/svr/account
 
-提供封装好的mongo db访问接口，配合logic机制使用
+帐号相关业务代码
 
 Signed-off-by: Lokiwang <wangjian1009@gmail.com>
