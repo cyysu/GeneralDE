@@ -87,7 +87,7 @@ iPhoneSimulator.install-dir?=$(HOME)/Library/Application Support/iPhone Simulato
 
 # }}}
 # {{{ toolset def
-IOS_PLATFORM_VERSION_LIST:=6.0 5.0
+IOS_PLATFORM_VERSION_LIST:=6.1 6.0 5.0
 IOS_PLATFORM_NAME?=iPhoneSimulator
 
 IOS_XCODE_ROOT:=$(if $(filter mac,$(OS_NAME)),$(shell xcode-select -print-path))
