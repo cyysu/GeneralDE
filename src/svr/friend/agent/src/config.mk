@@ -13,7 +13,7 @@ $(product).product.c.output-includes:=share
 $(product).cpe-dr.modules:=pro
 #编译data协议定义
 $(product).cpe-dr.pro.generate:=h c
-$(product).cpe-dr.pro.source:=$(addprefix $(product-base)/../../svr/pro/, cli/svr_friend_pro.xml)
+$(product).cpe-dr.pro.source:=$(addprefix $(product-base)/../../svr/pro/, cli/svr_friend_pro.xml svr/svr_friend_internal.xml)
 $(product).cpe-dr.pro.h.output:=share/protocol/svr/friend
 $(product).cpe-dr.pro.h.with-traits:=pro_meta_traits.cpp
 $(product).cpe-dr.pro.c.output:=share/protocol/svr/friend/metalib.c

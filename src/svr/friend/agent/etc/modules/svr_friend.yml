@@ -1,6 +1,9 @@
 load:
   #服务端配置
-  #- name: LmsSvr_Op_Update
+  - name: FriendSvr_Op_Query
+  - name: FriendSvr_Op_Sync
+  - name: FriendSvr_Op_Add
+  - name: FriendSvr_Op_Remove
 
   - name: friend-svr-meta-lib
     type: dr_store_loader
@@ -33,6 +36,7 @@ load:
 
   - name: FriendSvrLogic
     rsp-manage: friend-svr-rsp-manage
+    db-connection: db-client
     debug: 1
 
   #客户端配置

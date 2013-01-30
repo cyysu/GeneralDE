@@ -8,11 +8,11 @@
 
 namespace Svr { namespace Friend {
 
-class FriendSvr_Op_BindAccount : public LogicOp {
+class FriendSvr_Op_Query : public LogicOp {
 public:
     static cpe_hash_string_t NAME;
 
-    FriendSvr_Op_BindAccount(
+    FriendSvr_Op_Query(
         Gd::App::Application & app,
         Gd::App::Module & module,
         Cpe::Cfg::Node & moduleCfg)
@@ -28,6 +28,6 @@ public:
     }
 };
 
-USFPP_LOGICOP_DEF_BASE(FriendSvr_Op_BindAccount);
+USFPP_LOGICOP_DEF_BASE(FriendSvr_Op_Query);
 
 }}
