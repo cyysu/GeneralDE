@@ -8,20 +8,22 @@
 - name: bpg_metalib
 
 - name: ChanelInfoManager
-
+  debug: 1
 
 - name: cli-executor-manage
   type: logic_executor_mgr
 
-- name: cli-logic
-  type: bpg_rsp_manage
-  commit-to: process-client-bind-outgoing
-  executor-manage:  cli-executor-manage
-  debug: 1
-
 - name: client-meta-lib
   type: dr_store_loader
   load-from-symbol: g_metalib_svr_chat_pro
+
+- name: cli-logic
+  type: bpg_rsp_manage
+  rsps-load-from: /rsps
+  rsps-load-meta: client-meta-lib
+  commit-to: process-client-bind-outgoing
+  executor-manage:  cli-executor-manage
+  debug: 1
 
 - name: ChatSvrLogic
   data-meta-name: client-meta-lib
@@ -50,6 +52,7 @@
   pkg-debug-infos:
     #default: summary
     default: detail
+    SVR_CHAT_CMD_REQ_QUERY_MSG: none
 
 - name: ClientBindMgr
   type: bpg_bind_manage
