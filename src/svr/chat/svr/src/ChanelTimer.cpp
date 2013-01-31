@@ -62,7 +62,7 @@ public:
             while(chanelData.chanel_msg_r != chanelData.chanel_msg_w) {
                 SVR_CHAT_MSG const & msg = chanel->msg(chanelData.chanel_msg_r);
 
-                if (msg.send_time + chanelData.expire_time_s <= curTimeS) break;
+                if (msg.send_time + chanelData.expire_time_s >= curTimeS) break;
 
                 ++msg_remove_count;
                 ++chanelData.chanel_msg_r;
