@@ -24,10 +24,10 @@ static int gd_app_run_i(gd_app_context_t context) {
         if (gd_app_cfg_reload(context) != 0) {
             return -1;
         }
+    }
 
-        if (gd_app_modules_load(context) != 0) {
-            return -1;
-        }
+    if (gd_app_modules_load(context) != 0) {
+        return -1;
     }
 
     if (context->m_main == NULL) {
