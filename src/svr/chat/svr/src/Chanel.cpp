@@ -16,14 +16,14 @@ SVR_CHAT_MSG & Chanel::appendMsg(void) {
     SVR_CHAT_MSG * msgs = (SVR_CHAT_MSG *)(m_data + 1);
 
     SVR_CHAT_MSG & r = msgs[m_data->chanel_msg_w];
-    r.sn = m_data->chanel_sn++;
+    r.sn = ++m_data->chanel_sn;
 
     m_data->chanel_msg_w++;
     if (m_data->chanel_msg_w >= m_data->chanel_msg_capacity) {
         m_data->chanel_msg_w = 0;
     }
 
-    if (m_data->chanel_msg_r == m_data->chanel_msg_r) {
+    if (m_data->chanel_msg_r == m_data->chanel_msg_w) {
         m_data->chanel_msg_r++;
         if (m_data->chanel_msg_r >= m_data->chanel_msg_capacity) {
             m_data->chanel_msg_r = 0;

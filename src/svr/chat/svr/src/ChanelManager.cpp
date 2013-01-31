@@ -55,7 +55,7 @@ int ChanelManager::chanelCount(void) const {
 }
 
 Chanel * ChanelManager::findChanel(uint8_t chanel_type, uint64_t chanel_id) {
-    char key_buf(sizeof(Chanel) + sizeof(SVR_CHAT_CHANEL_DATA));
+    char key_buf[sizeof(Chanel) + sizeof(SVR_CHAT_CHANEL_DATA)];
     Chanel * key = (Chanel*)key_buf;
     key->m_data = (SVR_CHAT_CHANEL_DATA *)(key + 1);
 
@@ -80,8 +80,6 @@ Chanel * ChanelManager::createChanel(uint8_t chanel_type, uint64_t chanel_id) {
         return NULL;
     }
 
-    chanel_queue_append(chanel);
-
     chanel->m_data = (SVR_CHAT_CHANEL_DATA *)(chanel + 1);
 
     chanel->m_data->chanel_id = chanel_id;
@@ -91,6 +89,15 @@ Chanel * ChanelManager::createChanel(uint8_t chanel_type, uint64_t chanel_id) {
     chanel->m_data->chanel_msg_capacity = chanelInfo->msg_expire_count;
     chanel->m_data->chanel_msg_r = 0;
     chanel->m_data->chanel_msg_w = 0;
+
+    cpe_hash_entry_init(&chanel->m_hh);
+
+    if (cpe_hash_table_insert_unique(&m_chanels, chanel) != 0) {
+        delete [] (char *)chanel;
+        return NULL;
+    }
+
+    chanel_queue_append(chanel);
 
     return chanel;
 }
