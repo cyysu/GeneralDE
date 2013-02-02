@@ -66,7 +66,7 @@ private:
         pkg.init();
 
         pkg.setCollection("Accounts");
-        pkg.setOp(mongo_db_op_insert);
+        pkg.setOp(mongo_db_op_update);
         pkg.docOpen();
         pkg.appendInt64("_id", (int64_t)req.gid);
 
