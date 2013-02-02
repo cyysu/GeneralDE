@@ -2,5 +2,10 @@
 <metalib tagsetversion="1" name="" version="1">
     <include name="svr_friend_pro" file="svr_friend_pro.xml"/>
 
+    <struct name="svr_friend_i_friend" version="1">
+        <entry name="_id" type="string" size="64"/>
+        <entry name="gid" type="uint64"/>
+        <entry name="friend_gid" type="uint64"/>
+    </struct>
     
 </metalib>
