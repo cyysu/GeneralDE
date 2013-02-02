@@ -501,10 +501,27 @@ void net_connector_disable(net_connector_t connector) {
     net_connector_notify_state_change(connector, old_state);
 }
 
-void net_connector_set_reconnect_span(net_connector_t connector, uint32_t span_ms) {
+void net_connector_set_reconnect_span_ms(net_connector_t connector, uint64_t span_ms) {
     connector->m_reconnect_span = ((double)span_ms / 1000.0);
 }
 
 net_ep_t net_connector_ep(net_connector_t connector) {
     return connector->m_ep;
+}
+
+const char * net_connector_state_str(net_connector_state_t state) {
+    switch(state) {
+    case net_connector_state_disable:
+        return "net_connector_state_disable";
+    case net_connector_state_idle:
+        return "net_connector_state_idle";
+    case net_connector_state_connecting:
+        return "net_connector_state_connecting";
+    case net_connector_state_connected:
+        return "net_connector_state_connected";
+    case net_connector_state_error:
+        return "net_connector_state_connected";
+    default:
+        return "net_connector_state_unknown";
+    }
 }
