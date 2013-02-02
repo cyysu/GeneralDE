@@ -114,6 +114,8 @@ int mongo_driver_app_init(gd_app_context_t app, gd_app_module_t module, cfg_t cf
 
     driver->m_server_read_chanel_size = cfg_get_uint32(cfg, "read-chanel-size", driver->m_server_read_chanel_size);
     driver->m_server_write_chanel_size = cfg_get_uint32(cfg, "write-chanel-size", driver->m_server_write_chanel_size);
+    driver->m_seed_update_span_s = cfg_get_uint32(cfg, "seed-update-span-s", driver->m_seed_update_span_s);
+    driver->m_server_retry_span_s = cfg_get_uint32(cfg, "server-retry-span-s", driver->m_server_retry_span_s);
 
     driver->m_debug = cfg_get_int32(cfg, "debug", driver->m_debug);
 
