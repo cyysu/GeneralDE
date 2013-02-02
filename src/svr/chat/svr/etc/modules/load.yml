@@ -8,7 +8,6 @@
 - name: bpg_metalib
 
 - name: ChanelInfoManager
-  debug: 1
 
 - name: cli-executor-manage
   type: logic_executor_mgr
@@ -32,16 +31,13 @@
   data-meta-validate: 0
 
 - name: ChanelManager
-  debug: 1
 
 - name: ChanelTimer
   once-save-count: 5
   timer-span-s: 5
-  debug: 1
 
 - name: client-pkg-manage
   type: bpg_pkg_manage
-  debug: 2
   base-cvt: pbuf-len
   data-cvt: pbuf
   meta:
