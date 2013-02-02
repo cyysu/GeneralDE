@@ -41,6 +41,8 @@ size_t net_ep_size(net_ep_t ep);
 void * net_ep_peek(net_ep_t ep, void * buf, size_t size);
 void net_ep_erase(net_ep_t ep, size_t size);
 
+const char * net_ep_event_str(net_ep_event_t evt);
+
 #ifdef __cplusplus
 }
 #endif
