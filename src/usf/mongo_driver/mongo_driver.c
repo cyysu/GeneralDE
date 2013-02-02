@@ -4,6 +4,7 @@
 #include "cpe/pal/pal_stdio.h"
 #include "cpe/cfg/cfg_read.h"
 #include "cpe/dp/dp.h"
+#include "cpe/tl/tl_manage.h"
 #include "cpe/nm/nm_manage.h"
 #include "cpe/nm/nm_read.h"
 #include "cpe/net/net_connector.h"
@@ -41,8 +42,6 @@ mongo_driver_create(
     driver->m_em = em;
     driver->m_debug = 0;
     driver->m_state = mongo_driver_state_disable;
-    driver->m_connecting_seed_count = 0;
-    driver->m_connecting_server_count = 0;
 
     driver->m_pkg_buf_max_size = 4 * 1024;
     driver->m_pkg_buf = NULL;
@@ -60,6 +59,8 @@ mongo_driver_create(
     driver->m_master_server = NULL;
     driver->m_server_read_chanel_size = 4 * 1024 * 10;
     driver->m_server_write_chanel_size = 4 * 1024;
+    driver->m_seed_update_span_s = 5 * 60;
+    driver->m_server_retry_span_s = 1;
 
     mem_buffer_init(&driver->m_dump_buffer, driver->m_alloc);
 
@@ -191,61 +192,37 @@ mongo_pkg_t mongo_driver_pkg_buf(mongo_driver_t driver) {
     return driver->m_pkg_buf;
 }
 
-int mongo_driver_connect_i(mongo_driver_t driver) {
-    struct mongo_server * server;
-    struct mongo_seed * seed;
-
-    driver->m_state = mongo_driver_state_connecting;
-
-    TAILQ_FOREACH(server, &driver->m_servers, m_next) {
-        mongo_server_disable(server);
+int mongo_driver_check_update_state(mongo_driver_t driver) {
+    if (TAILQ_EMPTY(&driver->m_seeds) && TAILQ_EMPTY(&driver->m_servers)) {
+        APP_CTX_ERROR(
+            driver->m_app, "%s: check connect: no any seed or server, state chanted to error!",
+            mongo_driver_name(driver));
+        driver->m_state = mongo_driver_state_error;
+        return -1;
     }
 
-    driver->m_connecting_seed_count = 0;
-    driver->m_connecting_server_count = 0;
-    driver->m_master_server = NULL;
-
-    TAILQ_FOREACH(seed, &driver->m_seeds, m_next) {
-        mongo_seed_connect(seed);
+    if (driver->m_master_server) {
+        if (driver->m_state != mongo_driver_state_connected) {
+            CPE_INFO(
+                driver->m_em, "%s: check connect: connect success, master server: %s:%d!",
+                mongo_driver_name(driver), driver->m_master_server->m_host, driver->m_master_server->m_port);
+            driver->m_state = mongo_driver_state_connected;
+        }
     }
-
-    TAILQ_FOREACH(server, &driver->m_servers, m_next) {
-        mongo_server_connect(server);
+    else {
+        if (driver->m_state != mongo_driver_state_connecting) {
+            CPE_INFO(driver->m_em, "%s: check connect: begin connecting!", mongo_driver_name(driver));
+            driver->m_state = mongo_driver_state_connecting;
+        }
     }
-
-    mongo_driver_update_state(driver);
 
     return 0;
 }
 
-void mongo_driver_update_state(mongo_driver_t driver) {
-    if (driver->m_state == mongo_driver_state_connecting) {
-        if (driver->m_connecting_seed_count == 0 && driver->m_connecting_server_count == 0) {
-            if (driver->m_master_server == NULL) {
-                driver->m_state = mongo_driver_state_error;
-                CPE_ERROR(
-                    driver->m_em, "%s: update state: no any seed and server left, can`t find mast server!",
-                    mongo_driver_name(driver));
-            }
-            else {
-                driver->m_state = mongo_driver_state_connected;
-                CPE_INFO(
-                    driver->m_em, "%s: update state: connect success, master server: %s:%d!",
-                    mongo_driver_name(driver), driver->m_master_server->m_host, driver->m_master_server->m_port);
-            }
-        }
-        else {
-            if (driver->m_debug) {
-                driver->m_state = mongo_driver_state_error;
-                CPE_ERROR(
-                    driver->m_em, "%s: update_state: %d seed %d server still processing, keep connectiong!",
-                    mongo_driver_name(driver), driver->m_connecting_seed_count, driver->m_connecting_server_count);
-            }
-        }
-    }
-}
-
 int mongo_driver_enable(mongo_driver_t driver) {
+    struct mongo_seed * seed;
+    struct mongo_server * server;
+
     switch(driver->m_state) {
     case mongo_driver_state_disable:
         break;
@@ -264,10 +241,23 @@ int mongo_driver_enable(mongo_driver_t driver) {
                 mongo_driver_name(driver));
             return 0;
         }
-        break;
     case mongo_driver_state_error:
         break;
     }
 
-    return mongo_driver_connect_i(driver);
+    driver->m_state = mongo_driver_state_connecting;
+
+    TAILQ_FOREACH(seed, &driver->m_seeds, m_next) {
+        mongo_seed_connect(seed);
+    }
+
+    TAILQ_FOREACH(server, &driver->m_servers, m_next) {
+        mongo_server_connect(server);
+    }
+
+    return mongo_driver_check_update_state(driver);
+}
+
+uint32_t mongo_driver_cur_time_s(mongo_driver_t driver) {
+    return (uint32_t) tl_manage_time(gd_app_tl_mgr(driver->m_app)) / 1000;
 }

@@ -1,5 +1,6 @@
 #include <assert.h>
 #include "cpe/pal/pal_string.h"
+#include "cpe/tl/tl_manage.h"
 #include "cpe/net/net_connector.h"
 #include "cpe/net/net_chanel.h"
 #include "cpe/net/net_endpoint.h"
@@ -20,6 +21,8 @@ int mongo_driver_add_seed(mongo_driver_t driver, const char * host, int port) {
     seed->m_driver = driver;
     strncpy(seed->m_host, host, sizeof(seed->m_host));
     seed->m_port = port;
+    seed->m_state = mongo_seed_state_init;
+    seed->m_next_retry_time_s = mongo_driver_cur_time_s(driver);
     seed->m_connector = NULL;
 
     TAILQ_INSERT_TAIL(&driver->m_seeds, seed, m_next);
@@ -149,7 +152,6 @@ int mongo_seed_connect(struct mongo_seed * seed) {
             mongo_driver_name(driver), seed->m_host, seed->m_port);
     }
 
-    ++driver->m_connecting_seed_count;
     return 0;
 
 CONNECT_ERROR:
