@@ -407,3 +407,22 @@ void net_ep_cb(EV_P_ ev_io *w, int revents) {
 
     net_ep_update_events(ep, old_events);
 }
+
+const char * net_ep_event_str(net_ep_event_t evt) {
+    switch(evt) {
+    case net_ep_event_read:
+        return "net_ep_event_read";
+    case net_ep_event_open:
+        return "net_ep_event_open";
+    case net_ep_event_close_by_user:
+        return "net_ep_event_close_by_user";
+    case net_ep_event_close_by_peer:
+        return "net_ep_event_close_by_peer";
+    case net_ep_event_close_by_error:
+        return "net_ep_event_close_by_error";
+    case net_ep_event_close_by_shutdown:
+        return "net_ep_event_close_by_shutdown";
+    default:
+        return "net_ep_event_unknown";
+    }
+}
