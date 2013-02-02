@@ -28,6 +28,8 @@ int net_connector_set_address(
 
 void net_connector_free(net_connector_t connector);
 
+const char * net_connector_state_str(net_connector_state_t state);
+
 net_connector_t
 net_connector_find(net_mgr_t nmgr, const char * name);
 
@@ -48,8 +50,8 @@ int net_connector_remove_monitor(
     net_connector_t connector,
     net_connector_state_monitor_fun_t fun, void * ctx);
 
-void net_connector_set_reconnect_span(
-    net_connector_t connector, uint32_t span_ms);
+void net_connector_set_reconnect_span_ms(
+    net_connector_t connector, uint64_t span_ms);
 
 net_ep_t net_connector_ep(net_connector_t connector);
 
