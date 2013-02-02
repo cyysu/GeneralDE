@@ -2,7 +2,8 @@ product:=friend_agent
 $(product).type:=cpe-dr lib 
 $(product).depends:=cpepp_cfg cpepp_dr cpe_dr_data_cfg cpe_dr_data_pbuf \
                     cpepp_dp cpepp_nm cpepp_pom_grp gdpp_app gdpp_utils gd_dr_cvt \
-                    usfpp_logic_use usfpp_logic usfpp_bpg_pkg usfpp_bpg_rsp
+                    usfpp_logic_use usfpp_logic usfpp_bpg_pkg usfpp_bpg_rsp \
+                    usfpp_mongo_driver usfpp_mongo_cli usfpp_mongo_use \
 
 $(product).c.sources:=$(filter-out %/main.cpp,$(wildcard $(product-base)/*.cpp))
 
