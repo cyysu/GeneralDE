@@ -44,6 +44,10 @@ struct dr_json_parse_ctx {
     struct mem_buffer * m_output_alloc;
     error_monitor_t m_em;
 
+    int m_root_in_array;
+    int m_root_array_count;
+    LPDRMETA m_root_meta;
+
     struct dr_json_parse_stack_info m_typeStacks[CPE_DR_MAX_LEVEL];
     int m_stackPos;
 
@@ -146,6 +150,7 @@ static int dr_json_do_parse_calc_start_pos(
 {
     if (parseType->m_entry->m_array_count == 1) {
         if (parseType->m_in_array) return -1;
+
         return (int)dr_entry_data_start_pos(parseType->m_entry, 0);
     }
     else {
@@ -278,12 +283,28 @@ static int dr_json_start_map(void * ctx) {
         return 1;
     }
 
+    nestStackNode = &c->m_typeStacks[nextStackPos];
+
+    if (c->m_stackPos < 0) {
+        if (c->m_root_in_array) {
+            dr_json_parse_stack_init(
+                nestStackNode,
+                c->m_root_meta,
+                c->m_root_array_count * dr_meta_size(c->m_root_meta),
+                dr_meta_size(c->m_root_meta));
+        }
+        else {
+            dr_json_parse_stack_init(nestStackNode, c->m_root_meta, 0, -1);
+        }
+
+        ++c->m_stackPos;
+        return 1;
+    }
+
     curStack = NULL;
     if (c->m_stackPos >= 0 && c->m_stackPos < CPE_DR_MAX_LEVEL) {
         curStack = &c->m_typeStacks[c->m_stackPos];
     }
-
-    nestStackNode = &c->m_typeStacks[nextStackPos];
 
     ++c->m_stackPos;
     if (curStack == NULL  || curStack->m_entry == NULL) {
@@ -301,7 +322,7 @@ static int dr_json_start_map(void * ctx) {
         dr_json_parse_stack_init(
             nestStackNode,
             refType,
-            startPos,
+            curStack->m_start_pos + startPos,
             curStack->m_entry->m_unitsize);
 
         selectEntry = dr_entry_select_entry(curStack->m_entry);
@@ -327,18 +348,30 @@ static int dr_json_end_map(void * ctx) {
         dr_json_parse_stack_init(&c->m_typeStacks[c->m_stackPos], NULL, 0, 0);
     }
     --c->m_stackPos;
+
+    if (c->m_stackPos == -1) {
+        if (c->m_root_in_array) {
+            ++c->m_root_array_count;
+        }
+    }
+
     return 1;
 }
 
 static int dr_json_start_array(void * ctx) {
     struct dr_json_parse_ctx * c = (struct dr_json_parse_ctx *) ctx;
 
-    if (c->m_stackPos < 0 || c->m_stackPos >= CPE_DR_MAX_LEVEL) {
+    if (c->m_stackPos < 0) {
+        c->m_root_in_array = 1;
         return 1;
     }
-
-    c->m_typeStacks[c->m_stackPos].m_in_array = 1;
-    return 1;
+    else if (c->m_stackPos >= CPE_DR_MAX_LEVEL) {
+        return 1;
+    }
+    else {
+        c->m_typeStacks[c->m_stackPos].m_in_array = 1;
+        return 1;
+    }
 }
 
 static int dr_json_end_array(void * ctx) {
@@ -392,11 +425,13 @@ static void dr_json_parse_ctx_init(
 {
     bzero(ctx, sizeof(struct dr_json_parse_ctx));
 
-    dr_json_parse_stack_init(&ctx->m_typeStacks[0], meta, 0, -1);
-
     ctx->m_output_buf = result;
     ctx->m_output_capacity = capacity;
     ctx->m_output_alloc = result_buffer;
+
+    ctx->m_root_meta = meta;
+    ctx->m_root_in_array = 0;
+    ctx->m_root_array_count = 0;
 
     ctx->m_stackPos = -1;
     ctx->m_em = em;
