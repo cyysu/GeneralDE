@@ -195,3 +195,46 @@ TEST_F(ParseTest, type_union_selector_in_sub) {
 
 }
 
+TEST_F(ParseTest, type_union_array_in_union) {
+    installMeta(
+        "<metalib tagsetversion='1' name='net'  version='1'>"
+        "    <struct name='SS' version='1' align='1'>"
+        "	     <entry name='count' type='int16'/>"
+        "	     <entry name='d' type='int32' count='5' refer='count'/>"
+        "    </struct>"
+        "    <union name='S' version='1' align='1'>"
+        "	     <entry name='a1' type='int16' id='3'/>"
+        "	     <entry name='a2' type='SS' id='4'/>"
+        "    </union>"
+        "    <struct name='S2' version='1' align='1'>"
+        "	     <entry name='s' type='int32'/>"
+        "	     <entry name='u' type='S' select='s'/>"
+        "    </struct>"
+        "</metalib>"
+        );
+
+#pragma pack(push,1)
+    struct T {
+        int32_t s;
+        union {
+            int16_t a1;
+            struct {
+                int16_t count;
+                int32_t d[5];
+            } a2;
+        } u;
+    };
+#pragma pack(pop)
+    t_em_set_print();
+    ASSERT_EQ(
+        sizeof(T),
+        read("{ \"s\" : 4, \"u\" : { \"a1\" : 1, \"a2\" : { \"count\" : 2, \"d\" : [ 5, 9 ] } } }", "S2"));
+
+    struct T * r = (struct T*)result();
+    ASSERT_TRUE(r);
+    EXPECT_EQ(4, r->s);
+    EXPECT_EQ((int16_t)2, r->u.a2.count);
+    EXPECT_EQ((int32_t)5, r->u.a2.d[0]);
+    EXPECT_EQ((int32_t)9, r->u.a2.d[1]);
+}
+
