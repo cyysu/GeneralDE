@@ -237,7 +237,7 @@ int bpg_pkg_manage_app_init(gd_app_context_t app, gd_app_module_t module, cfg_t 
 
     bpg_pkg_manage_set_op_buff_capacity(
         bpg_pkg_manage,
-        cfg_get_int32(cfg, "buff-size", bpg_pkg_manage->m_op_buff_capacity));
+        cfg_get_int32(cfg, "buf-size", bpg_pkg_manage->m_op_buff_capacity));
 
     bpg_pkg_manage->m_debug = cfg_get_int32(cfg, "debug", 0);
 
