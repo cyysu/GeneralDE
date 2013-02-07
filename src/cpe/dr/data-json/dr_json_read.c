@@ -460,6 +460,9 @@ static int dr_json_read_i(
 
     stat = yajl_parse(hand, (const unsigned char *)input, strlen(input));
     if (stat != yajl_status_ok) {  
+        CPE_ERROR_EX(
+            em, CPE_DR_ERROR_NO_MEMORY, "parse json error, stat=%s\n%s",
+            yajl_status_to_string(stat), yajl_get_error(hand, 1, input, strlen(input)));
         yajl_free(hand);
         return 0;
     }
