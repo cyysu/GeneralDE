@@ -72,6 +72,9 @@ int cfg_read_dir(cfg_t cfg, const char * path, cfg_policy_t policy, error_monito
 int cfg_read_file(cfg_t cfg, const char * path, cfg_policy_t policy, error_monitor_t em);
 int cfg_merge(cfg_t cfg, cfg_t input, cfg_policy_t policy, error_monitor_t em);
 
+int cfg_apply_modify(cfg_t cfg, cfg_t modify_info, error_monitor_t em);
+int cfg_apply_modify_seq(cfg_t cfg, cfg_t modify_info, error_monitor_t em);
+
 #ifdef __cplusplus
 }
 #endif
