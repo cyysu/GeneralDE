@@ -120,7 +120,10 @@ static void cpe_dr_generate_h_metas(write_stream_t stream, dr_metalib_source_t s
                 break;
             }
             case CPE_DR_TYPE_STRING: {
-                stream_printf(stream, "char %s[%d]", dr_entry_name(entry), dr_entry_size(entry));
+                size_t array_count = dr_entry_array_count(entry);
+                size_t element_size = dr_entry_size(entry);
+                if (array_count > 1) element_size = element_size / array_count;
+                stream_printf(stream, "char %s[%d]", dr_entry_name(entry), (int)element_size);
                 break;
             }
             case CPE_DR_TYPE_CHAR: {
