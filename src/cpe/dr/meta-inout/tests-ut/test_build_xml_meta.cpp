@@ -360,3 +360,102 @@ TEST_F(BuildFromXmlMetaTest, meta_index_basic) {
     EXPECT_STREQ("a2", dr_entry_name(dr_index_entry_at(i1, 1)));
 }
 
+TEST_F(BuildFromXmlMetaTest, size_with_count_basic) {
+    EXPECT_EQ(
+        0,
+        parseMeta(
+            "<metalib tagsetversion='1' name='net'  version='1'>"
+            "    <struct name='S2' version='1'>"
+            "	     <entry name='a2' type='int16' count='5'/>"
+            "    </struct>"
+            "</metalib>"
+            ));
+
+    ASSERT_TRUE(t_em_no_error());
+
+    LPDRMETA metaS2 = meta("S2");
+    ASSERT_TRUE(metaS2);
+    ASSERT_EQ((size_t)10, dr_meta_size(metaS2));
+}
+
+TEST_F(BuildFromXmlMetaTest, size_with_count_composite) {
+    EXPECT_EQ(
+        0,
+        parseMeta(
+            "<metalib tagsetversion='1' name='net'  version='1'>"
+            "    <struct name='S1' version='1'>"
+            "	     <entry name='a2' type='int16'/>"
+            "    </struct>"
+            "    <struct name='S2' version='1'>"
+            "	     <entry name='a2' type='S1' count='5'/>"
+            "    </struct>"
+            "</metalib>"
+            ));
+
+    ASSERT_TRUE(t_em_no_error());
+
+    LPDRMETA metaS2 = meta("S2");
+    ASSERT_TRUE(metaS2);
+    ASSERT_EQ((size_t)10, dr_meta_size(metaS2));
+}
+
+TEST_F(BuildFromXmlMetaTest, size_with_count_composite_refer) {
+    EXPECT_EQ(
+        0,
+        parseMeta(
+            "<metalib tagsetversion='1' name='net'  version='1'>"
+            "    <struct name='S1' version='1'>"
+            "	     <entry name='a2' type='int16'/>"
+            "    </struct>"
+            "    <struct name='S2' version='1'>"
+            "        <entry name='count' type='int16'/>"
+            "	     <entry name='a2' type='S1' count='5' refer='count'/>"
+            "    </struct>"
+            "</metalib>"
+            ));
+
+    ASSERT_TRUE(t_em_no_error());
+
+    LPDRMETA metaS2 = meta("S2");
+    ASSERT_TRUE(metaS2);
+    ASSERT_EQ((size_t)12, dr_meta_size(metaS2));
+}
+
+
+TEST_F(BuildFromXmlMetaTest, size_with_count_string) {
+    EXPECT_EQ(
+        0,
+        parseMeta(
+            "<metalib tagsetversion='1' name='net'  version='1'>"
+            "    <struct name='S2' version='1'>"
+            "	     <entry name='a2' type='string' size='4' count='5'/>"
+            "    </struct>"
+            "</metalib>"
+            ));
+
+    ASSERT_TRUE(t_em_no_error());
+
+    LPDRMETA metaS2 = meta("S2");
+    ASSERT_TRUE(metaS2);
+    ASSERT_EQ((size_t)20, dr_meta_size(metaS2));
+}
+
+TEST_F(BuildFromXmlMetaTest, size_with_count_refer) {
+    EXPECT_EQ(
+        0,
+        parseMeta(
+            "<metalib tagsetversion='1' name='net'  version='1'>"
+            "    <struct name='S2' version='1'>"
+            "        <entry name='count' type='int16'/>"
+            "	     <entry name='a2' type='string' size='4' count='5' refer='count'/>"
+            "    </struct>"
+            "</metalib>"
+            ));
+
+    ASSERT_TRUE(t_em_no_error());
+
+    LPDRMETA metaS2 = meta("S2");
+    ASSERT_TRUE(metaS2);
+    ASSERT_EQ((size_t)22, dr_meta_size(metaS2));
+}
+
