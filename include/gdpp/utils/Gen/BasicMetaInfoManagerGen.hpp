@@ -17,6 +17,18 @@ class BasicMetaInfoManagerGen : public BaseT {
 public:
     typedef BasicMetaInfoManagerGen Base;
 
+    virtual void load(ElementT const * data, size_t count) {
+        size_t writeCount = m_elements.size();
+
+        m_elements.resize(m_elements.size() + count);
+
+        for(size_t i = 0; i < count; ++i) {
+            m_elements[writeCount++] = data[i];
+        }
+
+        ::std::sort(m_elements.begin(), m_elements.end(), Compare());
+    }
+
     virtual void load(Cpe::Cfg::Node const & configNode) {
         size_t writeCount = m_elements.size();
         size_t readCount = 0;

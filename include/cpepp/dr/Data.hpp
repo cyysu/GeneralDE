@@ -116,6 +116,7 @@ public:
     template<typename T>
     T & as(void) { return *(T *)data(); }
 
+    bool is_valid(void) const { return m_data ? true : false; }
 protected:
     const void * m_data;
     size_t m_capacity;
