@@ -7,5 +7,10 @@
         <entry name="gid" type="uint64"/>
         <entry name="friend_gid" type="uint64"/>
     </struct>
+
+    <struct name="svr_friend_i_friend_list" version="1">
+        <entry name="count" type="uint32"/>
+        <entry name="data" type="svr_friend_i_friend" count="0" refer="count"/>
+    </struct>
     
 </metalib>

@@ -66,7 +66,7 @@ public:
             return onInsertFriend(context, stackNode, require, args);
 		}
         else {
-            APP_CTX_ERROR(context.app(), "%s: unknown requilre %s", name(), require.name().c_str());
+            APP_CTX_ERROR(context.app(), "%s: unknown require %s", name(), require.name().c_str());
             return false;
 		}
     }
@@ -78,7 +78,7 @@ public:
         Cpe::Cfg::Node const & args) const
     {
         if (require.error() != 0) {
-            APP_CTX_ERROR(context.app(), "%s: requilre %s: error, err=%d", name(), require.name().c_str(), require.error());
+            APP_CTX_ERROR(context.app(), "%s: require %s: error, err=%d", name(), require.name().c_str(), require.error());
             return false;
         }
 
