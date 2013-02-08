@@ -257,6 +257,7 @@ static void mongo_server_on_read(struct mongo_server * server, net_ep_t ep) {
         }
 
         switch(server->m_state) {
+        case mongo_server_state_disable:
         case mongo_server_state_init:
         case mongo_server_state_connecting:
         case mongo_server_state_error:

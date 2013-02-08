@@ -14,18 +14,18 @@
 #include "mongo_cli_internal_ops.h"
 
 static int mongo_cli_proxy_recv_build_results(
-    mongo_cli_proxy_t proxy, mongo_pkg_t pkg, logic_data_t result_data, LPDRMETA result_meta)
+    mongo_cli_proxy_t proxy, mongo_pkg_t pkg, logic_data_t * result_data, LPDRMETA result_meta)
 {
     struct mongo_doc_it doc_it;
     mongo_doc_t doc;
 
     mongo_pkg_doc_it(&doc_it, pkg);
     while((doc = mongo_pkg_doc_it_next(&doc_it))) {
-        void * result = logic_data_record_append(result_data);
+        void * result = logic_data_record_append_auto_inc(result_data);
         if (result == NULL) {
             CPE_ERROR(
                 proxy->m_em, "%s: recv_response: append record fail, record count is %d!",
-                mongo_cli_proxy_name(proxy), (int)logic_data_record_count(result_data));
+                mongo_cli_proxy_name(proxy), (int)logic_data_record_count(*result_data));
             return -1;
         }
 
@@ -38,7 +38,7 @@ static int mongo_cli_proxy_recv_build_results(
     return 0;
 }
 
-static int mongo_cli_proxy_recv_build_result_from_it(mongo_cli_proxy_t proxy, bson_iterator * bson_it, logic_data_t result_data, LPDRMETA result_meta) {
+static int mongo_cli_proxy_recv_build_result_from_it(mongo_cli_proxy_t proxy, bson_iterator * bson_it, logic_data_t * result_data, LPDRMETA result_meta) {
     void * result;
     int32_t len;
     const char * value;
@@ -49,11 +49,11 @@ static int mongo_cli_proxy_recv_build_result_from_it(mongo_cli_proxy_t proxy, bs
         return -1;
     }
 
-    result = logic_data_record_append(result_data);
+    result = logic_data_record_append_auto_inc(result_data);
     if (result == NULL) {
         CPE_ERROR(
             proxy->m_em, "%s: recv_response: append record fail, record count is %d!",
-            mongo_cli_proxy_name(proxy), (int)logic_data_record_count(result_data));
+            mongo_cli_proxy_name(proxy), (int)logic_data_record_count(*result_data));
         return -1;
     }
 
@@ -69,7 +69,7 @@ static int mongo_cli_proxy_recv_build_result_from_it(mongo_cli_proxy_t proxy, bs
 }
 
 static int mongo_cli_proxy_recv_process_find_and_modify(
-    mongo_cli_proxy_t proxy, mongo_pkg_t pkg, logic_require_t require, logic_data_t result_data, LPDRMETA result_meta)
+    mongo_cli_proxy_t proxy, mongo_pkg_t pkg, logic_require_t require, logic_data_t * result_data, LPDRMETA result_meta)
 {
     bson_iterator bson_it;
 
@@ -206,10 +206,10 @@ int mongo_cli_proxy_recv(dp_req_t req, void * ctx, error_monitor_t em) {
         cmd_info = cmd_info_data ? (MONGO_CMD_INFO*)logic_data_data(cmd_info_data) : NULL;
 
         if (cmd_info && cmd_info->cmd == MONGO_CMD_FINDANDMODIFY) {
-            return mongo_cli_proxy_recv_process_find_and_modify(proxy, pkg, require, result_data, result_meta);
+            return mongo_cli_proxy_recv_process_find_and_modify(proxy, pkg, require, &result_data, result_meta);
         }
         else {
-            if (mongo_cli_proxy_recv_build_results(proxy, pkg, result_data, result_meta) != 0) {
+            if (mongo_cli_proxy_recv_build_results(proxy, pkg, &result_data, result_meta) != 0) {
                 logic_require_set_error(require);
                 return -1;
             }

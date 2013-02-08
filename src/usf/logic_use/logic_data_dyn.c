@@ -164,8 +164,9 @@ int logic_data_record_set_count(logic_data_t data, size_t record_count) {
     }
 }
 
-void * logic_data_record_append(logic_data_t data) {
+static void * logic_data_record_append_i(logic_data_t * r, int auto_inc) {
     struct dr_meta_dyn_info dyn_info;
+    logic_data_t data = *r;
 
     if (dr_meta_find_dyn_info(logic_data_meta(data), &dyn_info) == 0) {
         int record_count;
@@ -183,10 +184,21 @@ void * logic_data_record_append(logic_data_t data) {
         if (record_count < 0) return NULL;
 
         if (record_count + 1 > record_capacity) {
-            CPE_ERROR(
-                em, "logic_data_record_append: size overflow, size=%d, capacity=%d",
-                record_count, record_capacity);
-            return NULL;
+            if (auto_inc) {
+                size_t new_capacity  = record_capacity < 16 ? 16 : record_capacity * 2;
+                data = logic_data_record_reserve(data, new_capacity);
+                if (r) *r = data;
+                if (data == NULL) {
+                    CPE_ERROR(em, "logic_data_record_append: auto inc size to %d fail!", (int)new_capacity);
+                    return NULL;
+                }
+            }
+            else {
+                CPE_ERROR(
+                    em, "logic_data_record_append: size overflow, size=%d, capacity=%d",
+                    record_count, record_capacity);
+                return NULL;
+            }
         }
 
         buf = logic_data_data(data);
@@ -203,6 +215,14 @@ void * logic_data_record_append(logic_data_t data) {
     else {
         return logic_data_data(data);
     }
+}
+
+void * logic_data_record_append(logic_data_t data) {
+    return logic_data_record_append_i(&data, 0);
+}
+
+void * logic_data_record_append_auto_inc(logic_data_t * data) {
+    return logic_data_record_append_i(data, 1);
 }
 
 int logic_data_record_remove(logic_data_t data, size_t pos) {
