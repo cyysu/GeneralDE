@@ -251,7 +251,6 @@ int mongo_pkg_doc_append(mongo_pkg_t pkg, LPDRMETA meta, void const * data, size
 
     ++pkg->m_doc_count;
 
-    printf("append: pkg_size=%d, write_size=%d\n", pkg_size, write_size);
     mongo_pkg_set_size(pkg, pkg_size + write_size);
 
     return 0;

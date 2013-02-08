@@ -100,6 +100,15 @@ int mongo_driver_app_init(gd_app_context_t app, gd_app_module_t module, cfg_t cf
     driver = mongo_driver_create(app, gd_app_module_name(module), gd_app_alloc(app), gd_app_em(app));
     if (driver == NULL) return -1;
 
+    driver->m_pkg_buf_max_size = cfg_get_uint32(cfg, "pkg-buf-max-size", driver->m_pkg_buf_max_size);
+
+    driver->m_server_read_chanel_size = cfg_get_uint32(cfg, "read-chanel-size", driver->m_server_read_chanel_size);
+    driver->m_server_write_chanel_size = cfg_get_uint32(cfg, "write-chanel-size", driver->m_server_write_chanel_size);
+    driver->m_seed_update_span_s = cfg_get_uint32(cfg, "seed-update-span-s", driver->m_seed_update_span_s);
+    driver->m_server_retry_span_s = cfg_get_uint32(cfg, "server-retry-span-s", driver->m_server_retry_span_s);
+
+    driver->m_debug = cfg_get_int32(cfg, "debug", driver->m_debug);
+
     if (mongo_driver_app_init_load_seeds(app, driver, cfg_find_cfg(cfg, "seeds")) != 0
         || mongo_driver_app_init_load_servers(app, driver, cfg_find_cfg(cfg, "servers")) != 0
         || mongo_driver_set_incoming_send_to(driver, incoming_send_to) != 0
@@ -109,15 +118,6 @@ int mongo_driver_app_init(gd_app_context_t app, gd_app_module_t module, cfg_t cf
         mongo_driver_free(driver);
         return -1;
     }
-
-    driver->m_pkg_buf_max_size = cfg_get_uint32(cfg, "pkg-buf-max-size", driver->m_pkg_buf_max_size);
-
-    driver->m_server_read_chanel_size = cfg_get_uint32(cfg, "read-chanel-size", driver->m_server_read_chanel_size);
-    driver->m_server_write_chanel_size = cfg_get_uint32(cfg, "write-chanel-size", driver->m_server_write_chanel_size);
-    driver->m_seed_update_span_s = cfg_get_uint32(cfg, "seed-update-span-s", driver->m_seed_update_span_s);
-    driver->m_server_retry_span_s = cfg_get_uint32(cfg, "server-retry-span-s", driver->m_server_retry_span_s);
-
-    driver->m_debug = cfg_get_int32(cfg, "debug", driver->m_debug);
 
     if (cfg_get_int32(cfg, "auto-enable", 0)) {
         if (mongo_driver_enable(driver) != 0) {
