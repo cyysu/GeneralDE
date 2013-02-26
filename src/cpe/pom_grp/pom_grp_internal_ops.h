@@ -11,7 +11,7 @@ void pom_grp_entry_meta_free_all(pom_grp_meta_t meta);
 uint32_t pom_grp_store_table_hash(const struct pom_grp_store_table * store_table);
 int pom_grp_store_table_cmp(const struct pom_grp_store_table * l, const struct pom_grp_store_table * r);
 void pom_grp_store_table_free_all(pom_grp_store_t store);
-int pom_grp_store_table_build(pom_grp_store_t store);
+int pom_grp_store_table_build(pom_grp_store_t store, LPDRMETA meta);
 
 /*store entry operations*/
 uint32_t pom_grp_store_entry_hash(const struct pom_grp_store_entry * store_entry);

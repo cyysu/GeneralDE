@@ -80,7 +80,7 @@ static void cpe_dr_generate_h_metas(write_stream_t stream, dr_metalib_source_t s
     int curent_pack;
     int packed;
 
-    curent_pack = __WORDSIZE / 8;
+    curent_pack = 0;
     packed = 0;
     dr_metalib_source_elements(&element_it, source);
     while((element = dr_metalib_source_element_next(&element_it))) {
