@@ -7,6 +7,7 @@ pom_grp_store_t
 pom_grp_store_create(
     mem_allocrator_t alloc,
     pom_grp_meta_t meta,
+    LPDRMETA dr_meta,
     error_monitor_t em)
 {
     pom_grp_store_t store;
@@ -20,10 +21,7 @@ pom_grp_store_create(
     store->m_alloc = alloc;
     store->m_em = em;
     store->m_meta = meta;
-    store->m_store_metalib = NULL;
     store->m_main_table = NULL;
-
-    mem_buffer_init(&store->m_store_metalib_buffer, alloc);
 
     if (cpe_hash_table_init(
             &store->m_tables,
@@ -33,7 +31,6 @@ pom_grp_store_create(
             CPE_HASH_OBJ2ENTRY(pom_grp_store_table, m_hh),
             -1) != 0)
     {
-        mem_buffer_clear(&store->m_store_metalib_buffer);
         mem_free(alloc, store);
         return NULL;
     }
@@ -47,26 +44,13 @@ pom_grp_store_create(
             -1) != 0)
     {
         cpe_hash_table_fini(&store->m_tables);
-        mem_buffer_clear(&store->m_store_metalib_buffer);
         mem_free(alloc, store);
         return NULL;
     }
 
-    if (pom_grp_meta_build_store_meta(&store->m_store_metalib_buffer, meta, em) != 0) {
+    if (pom_grp_store_table_build(store, dr_meta) != 0) {
         cpe_hash_table_fini(&store->m_entries);
         cpe_hash_table_fini(&store->m_tables);
-        mem_buffer_clear(&store->m_store_metalib_buffer);
-        mem_free(alloc, store);
-        return NULL;
-    }
-
-    store->m_store_metalib = (LPDRMETALIB)mem_buffer_make_continuous(&store->m_store_metalib_buffer, 0);
-    assert(store->m_store_metalib);
-
-    if (pom_grp_store_table_build(store) != 0) {
-        cpe_hash_table_fini(&store->m_entries);
-        cpe_hash_table_fini(&store->m_tables);
-        mem_buffer_clear(&store->m_store_metalib_buffer);
         mem_free(alloc, store);
         return NULL;
     }
@@ -79,14 +63,9 @@ void pom_grp_store_free(pom_grp_store_t store) {
     pom_grp_store_entry_free_all(store);
     cpe_hash_table_fini(&store->m_tables);
     cpe_hash_table_fini(&store->m_entries);
-    mem_buffer_clear(&store->m_store_metalib_buffer);
     mem_free(store->m_alloc, store);
 }
 
 pom_grp_meta_t pom_grp_store_meta(pom_grp_store_t store) {
     return store->m_meta;
-}
-
-LPDRMETALIB pom_grp_store_metalib(pom_grp_store_t store) {
-    return store->m_store_metalib;
 }
