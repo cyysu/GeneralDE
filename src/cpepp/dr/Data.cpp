@@ -380,7 +380,7 @@ Data DataElement::operator[] (size_t pos) {
 //class ConstData
 ConstData::ConstData(const void * data, LPDRMETA meta, size_t capacity)
     : m_data(data)
-    , m_capacity(capacity > 0 ? capacity : dr_meta_size(meta))
+    , m_capacity(capacity > 0 ? capacity : (meta ? dr_meta_size(meta) : 0))
     , m_meta(meta)
 {
 }
