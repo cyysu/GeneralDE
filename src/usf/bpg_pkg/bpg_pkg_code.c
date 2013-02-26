@@ -74,7 +74,7 @@ bpg_pkg_encode(
                 CPE_ERROR(
                     em, "%s: encode: encode main meta (%s) error!",
                     bpg_pkg_manage_name(pkg->m_mgr), dr_meta_name(meta));
-                return dr_cvt_result_error;
+                return r;
             }
 
             output_pkg->head.bodylen = use_size;
@@ -296,7 +296,7 @@ bpg_pkg_decode(
                 CPE_ERROR(
                     em, "%s: decode: decode main meta (%s) error, output-size=%d, input-size=%d!",
                     bpg_pkg_manage_name(pkg->m_mgr), dr_meta_name(meta), (int)use_size, (int)tmp_len);
-                return dr_cvt_result_error;
+                return r;
             }
 
             CPE_PAL_ALIGN_DFT(use_size);
