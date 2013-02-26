@@ -23,6 +23,7 @@ public:
     void install(
         const char * om_meta,
         const char * metalib,
+        const char * store_meta,
         const char * main_entry,
         const char * key);
 

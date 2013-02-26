@@ -1,6 +1,8 @@
 #include "cpe/pal/pal_string.h"
 #include "cpe/pal/pal_stdlib.h"
 #include "cpe/utils/buffer.h"
+#include "cpe/utils/file.h"
+#include "cpe/cfg/cfg_read.h"
 #include "cpe/cfg/cfg_manage.h"
 #include "gd/app/app_context.h"
 #include "app_internal_types.h"
@@ -123,6 +125,41 @@ int gd_app_cfg_reload(gd_app_context_t context) {
             CPE_INFO(context->m_em, "load config from %s success!", (char*)mem_buffer_make_continuous(&tbuf, 0));
         }
     }
+
+    if (rv == 0) {
+        mem_buffer_clear_data(&tbuf);
+        mem_buffer_strcat(&tbuf, context->m_root);
+        mem_buffer_strcat(&tbuf, "/alter");
+
+        if (dir_exist((char*)mem_buffer_make_continuous(&tbuf, 0), NULL)
+            || file_exist((char*)mem_buffer_make_continuous(&tbuf, 0), NULL))
+        {
+            cfg_t alter_cfg = cfg_create(context->m_alloc);
+
+            rv = cfg_read_dir(
+                alter_cfg,
+                (char*)mem_buffer_make_continuous(&tbuf, 0),
+                cfg_merge_use_new,
+                context->m_em,
+                context->m_alloc);
+            if (rv == 0) {
+                struct cfg_it childs;
+                cfg_t alter_node;
+
+                cfg_it_init(&childs, alter_cfg);
+                while((alter_node = cfg_it_next(&childs)) && rv == 0) {
+                    rv = cfg_apply_modify_seq(context->m_cfg, alter_node, context->m_em);
+                }
+            }
+
+            cfg_free(alter_cfg);
+
+            if (context->m_debug) {
+                CPE_INFO(context->m_em, "load config alter from %s success!", (char*)mem_buffer_make_continuous(&tbuf, 0));
+            }
+        }
+    }
+
 
     mem_buffer_clear(&tbuf);
 

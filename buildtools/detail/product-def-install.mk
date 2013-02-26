@@ -90,19 +90,11 @@ endef
 # {{{ 各种不同类型的安装函数入口,#$1是项目名，$2是domain,$3后续参数各自定义
 
 define product-def-rule-install-copy-file
-$(call install-def-rule-copy,\
-       $1,\
-       $(CPDE_ROOT)/$(subst /env/,/$($2.env)/,$(patsubst %/env,%/$($2.env),$(word 1,$3))),\
-       $(CPDE_OUTPUT_ROOT)/$($2.output)/$(word 2,$3),\
-       $2)
+$(call install-def-rule-copy,$1,$(CPDE_ROOT)/$(subst /env/,/$($2.env)/,$(patsubst %/env,%/$($2.env),$(word 1,$3))),$(CPDE_OUTPUT_ROOT)/$($2.output)/$(word 2,$3),$2)
 endef
 
 define product-def-rule-install-copy-file-list
-$(foreach f,$(wordlist 2,$(words $3), $3), \
-    $(call install-def-rule-copy,\
-         $1,\
-         $(CPDE_ROOT)/$(subst /env/,/$($2.env)/,$(patsubst %/env,%/$($2.env),$f)),\
-         $(CPDE_OUTPUT_ROOT)/$($2.output)$(word 1,$3)/$f,$2))
+$(foreach f,$(wordlist 2,$(words $3), $3),$(call install-def-rule-copy,$1,$(CPDE_ROOT)/$(subst /env/,/$($2.env)/,$(patsubst %/env,%/$($2.env),$f)),$(CPDE_OUTPUT_ROOT)/$($2.output)$(word 1,$3)/$f,$2))
 endef
 
 define product-def-rule-install-copy-dir

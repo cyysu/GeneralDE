@@ -169,7 +169,7 @@ static int pom_grp_meta_build_store_meta_list(
 
     dr_inbuild_meta_set_current_version(list_meta, dr_meta_current_version(src_main_meta));
 
-    snprintf(name_buf, sizeof(name_buf), "%sList", dr_meta_name(src_main_meta));
+    snprintf(name_buf, sizeof(name_buf), "Store%sList", dr_meta_name(src_main_meta));
     dr_inbuild_meta_set_name(list_meta, name_buf);
     dr_inbuild_meta_set_current_version(list_meta, dr_meta_current_version(src_main_meta));
     dr_inbuild_meta_set_align(list_meta, dr_meta_align(src_main_meta));
@@ -192,7 +192,9 @@ static int pom_grp_meta_build_store_meta_list(
     }
     dr_inbuild_entry_set_name(data_entry, "data");
     dr_inbuild_entry_set_version(data_entry, 1);
-    dr_inbuild_entry_set_type(data_entry, dr_meta_name(src_main_meta));
+
+    snprintf(name_buf, sizeof(name_buf), "Store%s", dr_meta_name(src_main_meta));
+    dr_inbuild_entry_set_type(data_entry, name_buf);
     dr_inbuild_entry_set_array_count(data_entry, 0);
     dr_inbuild_entry_set_array_refer(data_entry, "count");
 
@@ -205,6 +207,7 @@ static int pom_grp_meta_build_store_meta_i(
     mem_buffer_t str_buffer,
     error_monitor_t em)
 {
+    char name_buf[128];
     struct DRInBuildMeta * main_meta;
     LPDRMETALIB src_metalib;
     LPDRMETA src_main_meta;
@@ -244,6 +247,9 @@ static int pom_grp_meta_build_store_meta_i(
     {
         return -1;
     }
+
+    snprintf(name_buf, sizeof(name_buf), "Store%s", dr_meta_name(src_main_meta));
+    dr_inbuild_meta_set_name(main_meta, name_buf);
 
     count = pom_grp_meta_entry_count(meta);
     for(i = 0; i < count; ++i) {
