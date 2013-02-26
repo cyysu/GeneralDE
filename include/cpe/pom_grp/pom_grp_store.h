@@ -14,6 +14,7 @@ pom_grp_store_t
 pom_grp_store_create(
     mem_allocrator_t alloc,
     pom_grp_meta_t meta,
+    LPDRMETA dr_meta,
     error_monitor_t em);
 
 void pom_grp_store_free(pom_grp_store_t store);
@@ -37,7 +38,6 @@ const char * pom_grp_store_entry_name(pom_grp_store_entry_t entry);
 pom_grp_entry_meta_t pom_grp_store_entry_meta(pom_grp_store_entry_t entry);
 
 pom_grp_meta_t pom_grp_store_meta(pom_grp_store_t store);
-LPDRMETALIB pom_grp_store_metalib(pom_grp_store_t store);
 
 int pom_grp_meta_build_store_meta(
     mem_buffer_t buffer,

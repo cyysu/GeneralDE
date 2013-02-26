@@ -1,4 +1,5 @@
 #include <assert.h>
+#include "cpe/pal/pal_stdio.h"
 #include "cpe/dr/dr_metalib_manage.h"
 #include "cpe/pom_grp/pom_grp_store.h"
 #include "cpe/pom_grp/pom_grp_meta.h"
@@ -124,10 +125,9 @@ static int pom_grp_store_table_build_for_entry_list(
     return 0;
 }
 
-int pom_grp_store_table_build(pom_grp_store_t store) {
+int pom_grp_store_table_build(pom_grp_store_t store, LPDRMETA meta) {
     pom_grp_store_table_t main_table;
     uint16_t i, count;
-    LPDRMETA meta;
 
     if (store->m_meta->m_main_entry == NULL) {
         CPE_ERROR(store->m_em, "pom_grp_store_table_build: main entry not exist!");
@@ -138,16 +138,6 @@ int pom_grp_store_table_build(pom_grp_store_t store) {
         CPE_ERROR(
             store->m_em, "pom_grp_store_table_build: main entry %s is not type normal!",
             store->m_meta->m_main_entry->m_name);
-        return -1;
-    }
-
-    meta = dr_lib_find_meta_by_name(
-        store->m_store_metalib,
-        dr_meta_name(pom_grp_entry_meta_normal_meta(store->m_meta->m_main_entry)));
-    if (meta == NULL) {
-        CPE_ERROR(
-            store->m_em, "pom_grp_store_table_build: create main table: meta %s not exist in store metalib!",
-            dr_meta_name(pom_grp_entry_meta_normal_meta(store->m_meta->m_main_entry)));
         return -1;
     }
 
