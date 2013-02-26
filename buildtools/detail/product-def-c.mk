@@ -23,10 +23,13 @@ c-generate-env-arg-name-list=$2 $($1.env).$2 $1.$2
 
 c-generate-depend-ld-flags=$(call $($2.env).export-symbols,$(r.$1.c.export-symbols)) \
                            $(addprefix -L$(CPDE_OUTPUT_ROOT)/,\
+                              $(foreach ei,\
 								 $(call merge-list, $(r.$1.c.ldpathes) \
                                                   , $(call product-gen-depend-value-list,$1,\
                                                            $(call c-generate-env-arg-name-list,$2,product.c.ldpathes)) \
-                                 )) \
+                                 ),\
+                              $(patsubst domain/%,$2/%,$(subst /domain/,/$2/,$(patsubst env/%,$($2.env)/%,$(subst /env/,/$($2.env)/,$(ei)))))) \
+                           ) \
                            $(addprefix -l,$(call merge-list, \
                                                  $(r.$1.c.libraries) $(r.$1.product.c.libraries),\
                                                  $(call product-gen-depend-value-list,$1,\
