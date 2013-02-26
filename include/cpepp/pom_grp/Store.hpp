@@ -22,8 +22,6 @@ public:
 
     StoreTable const & table(const char * name);
 
-    Cpe::Dr::MetaLib const & metalib(void) const { return *(Cpe::Dr::MetaLib const *)pom_grp_store_metalib(*this); }
-
     static Store & _cast(pom_grp_store_t store);
 };
 
