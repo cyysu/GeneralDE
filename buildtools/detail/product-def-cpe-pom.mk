@@ -18,7 +18,8 @@ define product-def-rule-cpe-pom-c-module-metalib-xml
 	$$(call with_message,cpe-pom generaing metalib-xml to $(subst $(CPDE_ROOT)/,,$(r.$1.$3.cpe-pom.$2.generated.metalib-xml)) ...) \
 	LD_LIBRARY_PATH=$(CPDE_OUTPUT_ROOT)/$(tools.output)/lib:$$$$LD_LIBRARY_PATH \
 	$(cpe-pom-tool) metalib-xml \
-                    $(addprefix --pom-meta , $(r.$1.$3.cpe-pom.$2.pom-meta-source)) \
+                    $(addprefix --from-pom-meta , $(r.$1.$3.cpe-pom.$2.pom-meta-source)) \
+                    $(addprefix --from-dr-name , $(r.$1.$3.cpe-pom.$2.pom-dr-name)) \
                     $(addprefix --dr-meta , $(r.$1.$3.cpe-pom.$2.dr-meta-source)) \
                     $(addprefix --align , $(r.$1.$3.cpe-pom.$2.align)) \
                     --output-metalib-xml $$@
@@ -39,7 +40,8 @@ define product-def-rule-cpe-pom-c-module-store-metalib-xml
 	$$(call with_message,cpe-pom generaing store-metalib-xml to $(subst $(CPDE_ROOT)/,,$(r.$1.$3.cpe-pom.$2.generated.store-metalib-xml)) ...) \
 	LD_LIBRARY_PATH=$(CPDE_OUTPUT_ROOT)/$(tools.output)/lib:$$$$LD_LIBRARY_PATH \
 	$(cpe-pom-tool) store-metalib-xml \
-                    $(addprefix --pom-meta , $(r.$1.$3.cpe-pom.$2.pom-meta-source)) \
+                    $(addprefix --from-pom-meta , $(r.$1.$3.cpe-pom.$2.pom-meta-source)) \
+                    $(addprefix --from-dr-name , $(r.$1.$3.cpe-pom.$2.pom-dr-name)) \
                     $(addprefix --dr-meta , $(r.$1.$3.cpe-pom.$2.dr-meta-source)) \
                     $(addprefix --align , $(r.$1.$3.cpe-pom.$2.align)) \
                     --output-metalib-xml $$@
@@ -63,7 +65,8 @@ define product-def-rule-cpe-pom-c-module-c
 	$$(call with_message,cpe-pom generaing lib-c to $(subst $(CPDE_ROOT)/,,$(r.$1.$3.cpe-pom.$2.generated.c)) ...) \
 	LD_LIBRARY_PATH=$(CPDE_OUTPUT_ROOT)/$(tools.output)/lib:$$$$LD_LIBRARY_PATH \
 	$(cpe-pom-tool) mk-clib \
-                    $(addprefix --pom-meta , $(r.$1.$3.cpe-pom.$2.pom-meta-source)) \
+                    $(addprefix --from-pom-meta , $(r.$1.$3.cpe-pom.$2.pom-meta-source)) \
+                    $(addprefix --from-dr-name , $(r.$1.$3.cpe-pom.$2.pom-dr-name)) \
                     $(addprefix --dr-meta , $(r.$1.$3.cpe-pom.$2.dr-meta-source)) \
                     $(addprefix --align , $(r.$1.$3.cpe-pom.$2.align)) \
                     --page-size $(r.$1.$3.cpe-pom.$2.page-size) \
@@ -87,7 +90,8 @@ define product-def-rule-cpe-pom-c-module-hpp
 	$$(call with_message,cpe-pom generaing hpp to $(subst $(CPDE_ROOT)/,,$(r.$1.$3.cpe-pom.$2.generated.hpp)) ...) \
 	LD_LIBRARY_PATH=$(CPDE_OUTPUT_ROOT)/$(tools.output)/lib:$$$$LD_LIBRARY_PATH \
 	$(cpe-pom-tool) mk-hpp \
-                    $(addprefix --pom-meta , $(r.$1.$3.cpe-pom.$2.pom-meta-source)) \
+                    $(addprefix --from-pom-meta , $(r.$1.$3.cpe-pom.$2.pom-meta-source)) \
+                    $(addprefix --from-dr-name , $(r.$1.$3.cpe-pom.$2.pom-dr-name)) \
                     $(addprefix --dr-meta , $(r.$1.$3.cpe-pom.$2.dr-meta-source)) \
                     $(addprefix --align , $(r.$1.$3.cpe-pom.$2.align)) \
                     --output-hpp $$@ \
@@ -97,12 +101,13 @@ define product-def-rule-cpe-pom-c-module-hpp
 endef
 
 define product-def-rule-cpe-pom-c-module
-$(call assert-not-null,$1.cpe-pom.$3.pom-meta-source)
+$(call assert-set-one,$1.cpe-pom.$3.pom-meta-source $1.cpe-pom.$3.pom-dr-name)
 $(call assert-not-null,$1.cpe-pom.$3.page-size)
 $(call assert-not-null,$1.cpe-pom.$3.dr-meta-source)
 $(call assert-not-null,$1.cpe-pom.$3.generate)
 
 $(eval r.$1.$2.cpe-pom.$3.pom-meta-source:=$($1.cpe-pom.$3.pom-meta-source))
+$(eval r.$1.$2.cpe-pom.$3.pom-dr-name:=$($1.cpe-pom.$3.pom-dr-name))
 $(eval r.$1.$2.cpe-pom.$3.page-size:=$($1.cpe-pom.$3.page-size))
 $(eval r.$1.$2.cpe-pom.$3.dr-meta-source:=$($1.cpe-pom.$3.dr-meta-source))
 $(eval r.$1.$2.cpe-pom.$3.generate:=$($1.cpe-pom.$3.generate))
