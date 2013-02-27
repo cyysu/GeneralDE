@@ -1,7 +1,7 @@
 #include "OmGrpMetaTest.hpp" 
 
 TEST_F(OmGrpMetaTest, normal_basic) {
-    install(
+    installFromCfg(
         "TestObj:\n"
         "  attributes:\n"
         "    - entry1: { entry-type: normal, data-type: AttrGroup1 }\n"
@@ -22,7 +22,7 @@ TEST_F(OmGrpMetaTest, normal_basic) {
 }
 
 TEST_F(OmGrpMetaTest, list_basic) {
-    install(
+    installFromCfg(
         "TestObj:\n"
         "  attributes:\n"
         "    - entry1: { entry-type: list, data-type: AttrGroup1, group-count: 3, capacity: 3 }\n"
@@ -43,7 +43,7 @@ TEST_F(OmGrpMetaTest, list_basic) {
 }
 
 TEST_F(OmGrpMetaTest, list_multi) {
-    install(
+    installFromCfg(
         "TestObj:\n"
         "  attributes:\n"
         "    - entry1: { entry-type: list, data-type: AttrGroup1, group-count: 3, capacity: 3 }\n"
@@ -67,7 +67,7 @@ TEST_F(OmGrpMetaTest, list_multi) {
 
 TEST_F(OmGrpMetaTest, bitarry_basic) {
     t_em_set_print();
-    install(
+    installFromCfg(
         "TestObj:\n"
         "  attributes:\n"
         "    - entry1: { entry-type: ba, bit-capacity: 15 }\n"
@@ -85,7 +85,7 @@ TEST_F(OmGrpMetaTest, bitarry_basic) {
 
 TEST_F(OmGrpMetaTest, bitarry_multi_page) {
     t_em_set_print();
-    install(
+    installFromCfg(
         "TestObj:\n"
         "  attributes:\n"
         "    - entry1: { entry-type: ba, byte-per-page: 3, bit-capacity: 38 }\n"
@@ -102,7 +102,7 @@ TEST_F(OmGrpMetaTest, bitarry_multi_page) {
 }
 
 TEST_F(OmGrpMetaTest, binary_basic) {
-    install(
+    installFromCfg(
         "TestObj:\n"
         "  attributes:\n"
         "    - entry1: { entry-type: binary, capacity: 7 }\n"
@@ -120,7 +120,7 @@ TEST_F(OmGrpMetaTest, binary_basic) {
 }
 
 TEST_F(OmGrpMetaTest, basic_multi) {
-    install(
+    installFromCfg(
         "TestObj:\n"
         "  attributes:\n"
         "    - entry1: { entry-type: normal, data-type: AttrGroup1 }\n"
