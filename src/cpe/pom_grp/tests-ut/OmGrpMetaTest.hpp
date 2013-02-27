@@ -19,9 +19,14 @@ public:
     virtual void SetUp();
     virtual void TearDown();
 
-    void install(
+    void installFromCfg(
         const char * om_meta,
         const char * metalib, 
+        uint16_t page_size = 256);
+
+    void installFromMeta(
+        const char * metalib, 
+        const char * meta_name,
         uint16_t page_size = 256);
 
     pom_grp_meta_t m_meta;
