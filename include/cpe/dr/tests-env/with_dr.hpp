@@ -10,6 +10,7 @@ namespace cpe { namespace dr { namespace testenv {
 class with_dr : public ::testenv::env<> {
 public:
     LPDRMETALIB t_create_metalib(const char * xml);
+    const char * t_dump_metalib_xml(LPDRMETALIB metalib);
 };
 
 }}}
