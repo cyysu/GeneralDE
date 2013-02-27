@@ -105,6 +105,7 @@ void prepare_input_meta_file(dr_metalib_builder_t builder, struct arg_file * met
 static int env_init_meta(
     struct pom_tool_env * env, 
     struct arg_file * pom_meta_file,
+    struct arg_str * pom_dr_name,
     struct arg_int * page_size,
     struct arg_file * dr_meta_file,
     struct arg_file * dr_meta_group_root,
@@ -119,11 +120,15 @@ static int env_init_meta(
         return -1;
     }
 
-    if (pom_meta_file->count == 0) {
-        printf("no pom meta file input!");
+    if (pom_meta_file->count == 0 && pom_dr_name->count == 0) {
+        printf("no pom meta file input or dr meta name!");
         return -1;
     }
 
+    if (pom_meta_file->count >= 1 && pom_dr_name->count >= 1) {
+        printf("both pom meta file input and dr meta name!");
+        return -1;
+    }
 
     builder = dr_metalib_builder_create(NULL, env->m_em);
     if (builder == NULL) {
@@ -159,21 +164,38 @@ static int env_init_meta(
         return -1;
     }
 
-    env->m_pom_cfg = cfg_create(NULL);
-    if (env->m_pom_cfg == NULL) {
-        CPE_ERROR(env->m_em, "create cfg fail!");
-        return -1;
-    }
+    env->m_pom_cfg = NULL;
 
-    if (cfg_read_file(env->m_pom_cfg, pom_meta_file->filename[0], cfg_replace, env->m_em) != 0) {
-        CPE_ERROR(env->m_em, "read pom meta from %s fail!", pom_meta_file->filename[0]);
-        return -1;
-    }
+    if (pom_meta_file->count > 0) {
+        env->m_pom_cfg = cfg_create(NULL);
+        if (env->m_pom_cfg == NULL) {
+            CPE_ERROR(env->m_em, "create cfg fail!");
+            return -1;
+        }
 
-    env->m_pom_grp_meta = pom_grp_meta_build_from_cfg(NULL, (page_size && page_size->count) ? page_size->ival[0] : 1024, cfg_child_only(env->m_pom_cfg), env->m_input_metalib, env->m_em);
-    if (env->m_pom_grp_meta == NULL) {
-        CPE_ERROR(env->m_em, "create pom meta from %s fail!", pom_meta_file->filename[0]);
-        return -1;
+        if (cfg_read_file(env->m_pom_cfg, pom_meta_file->filename[0], cfg_replace, env->m_em) != 0) {
+            CPE_ERROR(env->m_em, "read pom meta from %s fail!", pom_meta_file->filename[0]);
+            return -1;
+        }
+
+        env->m_pom_grp_meta = pom_grp_meta_build_from_cfg(NULL, (page_size && page_size->count) ? page_size->ival[0] : 1024, cfg_child_only(env->m_pom_cfg), env->m_input_metalib, env->m_em);
+        if (env->m_pom_grp_meta == NULL) {
+            CPE_ERROR(env->m_em, "create pom meta from %s fail!", pom_meta_file->filename[0]);
+            return -1;
+        }
+    }
+    else {
+        LPDRMETA dr_meta = dr_lib_find_meta_by_name(env->m_input_metalib, pom_dr_name->sval[0]);
+        if (dr_meta == NULL) {
+            CPE_ERROR(env->m_em, "meta %s not exist in metalib!", pom_dr_name->sval[0]);
+            return -1;
+        }
+
+        env->m_pom_grp_meta = pom_grp_meta_build_from_meta(NULL, (page_size && page_size->count) ? page_size->ival[0] : 1024, dr_meta, env->m_em);
+        if (env->m_pom_grp_meta == NULL) {
+            CPE_ERROR(env->m_em, "create pom meta from %s fail!", pom_meta_file->filename[0]);
+            return -1;
+        }
     }
 
     return 0;
@@ -182,7 +204,8 @@ static int env_init_meta(
 int main(int argc, char * argv[]) {
     /*mk meta bin*/
     struct arg_rex  * mk_clib =     arg_rex1(NULL, NULL, "mk-clib", NULL, 0, NULL);
-    struct arg_file  * mk_clib_pom_meta =     arg_file1(NULL, "pom-meta", NULL, "input pom meta file");
+    struct arg_file  * mk_clib_from_pom_meta =     arg_file0(NULL, "from-pom-meta", NULL, "input pom meta file");
+    struct arg_str  * mk_clib_from_dr_name =     arg_str0(NULL, "from-dr-name", NULL, "input dr meta name");
     struct arg_file  * mk_clib_dr_file =     arg_filen(NULL, "dr-meta", NULL, 0, 100, "input dr meta file(s)");
     struct arg_file  * mk_clib_dr_group_root =     arg_file0(NULL, "dr-meta-group-root", NULL, "input dr meta group root");
     struct arg_file  * mk_clib_dr_group =     arg_file0(NULL, "dr-meta-group", NULL, "input dr meta group file");
@@ -192,7 +215,7 @@ int main(int argc, char * argv[]) {
     struct arg_str  * mk_clib_o_argname =     arg_str1(NULL, "output-lib-c-arg", NULL, "output c value arg name");
     struct arg_end  * mk_clib_end = arg_end(20);
     void* mk_clib_argtable[] = { 
-        mk_clib, mk_clib_pom_meta, mk_clib_page_size,
+        mk_clib, mk_clib_from_pom_meta, mk_clib_from_dr_name, mk_clib_page_size,
         mk_clib_dr_file, mk_clib_dr_group_root, mk_clib_dr_group, mk_clib_align,
         mk_clib_o_file, mk_clib_o_argname,
         mk_clib_end
@@ -201,7 +224,8 @@ int main(int argc, char * argv[]) {
 
     /*mk metalib xml*/
     struct arg_rex  * metalib_xml =     arg_rex1(NULL, NULL, "^metalib-xml$", NULL, 0, NULL);
-    struct arg_file  * metalib_xml_pom_meta =     arg_file1(NULL, "pom-meta", NULL, "input pom meta file");
+    struct arg_file  * metalib_xml_from_pom_meta =     arg_file0(NULL, "from-pom-meta", NULL, "input pom meta file");
+    struct arg_str  * metalib_xml_from_dr_name =     arg_str0(NULL, "from-dr-name", NULL, "input dr meta name");
     struct arg_file  * metalib_xml_dr_file =     arg_filen(NULL, "dr-meta", NULL, 0, 100, "input dr meta file(s)");
     struct arg_file  * metalib_xml_dr_group_root =     arg_file0(NULL, "dr-meta-group-root", NULL, "input dr meta group root");
     struct arg_file  * metalib_xml_dr_group =     arg_file0(NULL, "dr-meta-group", NULL, "input dr meta group file");
@@ -209,7 +233,7 @@ int main(int argc, char * argv[]) {
     struct arg_file  * metalib_xml_o_file =     arg_file1(NULL, "output-metalib-xml", NULL, "output metalib xml file");
     struct arg_end  * metalib_xml_end = arg_end(20);
     void* metalib_xml_argtable[] = { 
-        metalib_xml, metalib_xml_pom_meta,
+        metalib_xml, metalib_xml_from_pom_meta, metalib_xml_from_dr_name,
         metalib_xml_dr_file, metalib_xml_dr_group_root, metalib_xml_dr_group, metalib_xml_align,
         metalib_xml_o_file,
         metalib_xml_end
@@ -218,7 +242,8 @@ int main(int argc, char * argv[]) {
 
     /*mk store_metalib xml*/
     struct arg_rex  * store_metalib_xml =     arg_rex1(NULL, NULL, "^store-metalib-xml$", NULL, 0, NULL);
-    struct arg_file  * store_metalib_xml_pom_meta =     arg_file1(NULL, "pom-meta", NULL, "input pom meta file");
+    struct arg_file  * store_metalib_xml_from_pom_meta =     arg_file1(NULL, "from-pom-meta<", NULL, "input pom meta file");
+    struct arg_str  * store_metalib_xml_from_dr_name =     arg_str1(NULL, "from-dr-name<", NULL, "input dr meta name");
     struct arg_file  * store_metalib_xml_dr_file =     arg_filen(NULL, "dr-meta", NULL, 0, 100, "input dr meta file(s)");
     struct arg_file  * store_metalib_xml_dr_group_root =     arg_file0(NULL, "dr-meta-group-root", NULL, "input dr meta group root");
     struct arg_file  * store_metalib_xml_dr_group =     arg_file0(NULL, "dr-meta-group", NULL, "input dr meta group file");
@@ -226,7 +251,7 @@ int main(int argc, char * argv[]) {
     struct arg_file  * store_metalib_xml_o_file =     arg_file1(NULL, "output-metalib-xml", NULL, "output metalib xml file");
     struct arg_end  * store_metalib_xml_end = arg_end(20);
     void* store_metalib_xml_argtable[] = { 
-        store_metalib_xml, store_metalib_xml_pom_meta,
+        store_metalib_xml, store_metalib_xml_from_pom_meta, store_metalib_xml_from_dr_name,
         store_metalib_xml_dr_file, store_metalib_xml_dr_group_root, store_metalib_xml_dr_group, store_metalib_xml_align,
         store_metalib_xml_o_file,
         store_metalib_xml_end
@@ -235,7 +260,8 @@ int main(int argc, char * argv[]) {
 
     /*mk hpp*/
     struct arg_rex  * mk_hpp =     arg_rex1(NULL, NULL, "mk-hpp", NULL, 0, NULL);
-    struct arg_file  * mk_hpp_pom_meta =     arg_file1(NULL, "pom-meta", NULL, "input pom meta file");
+    struct arg_file  * mk_hpp_from_pom_meta =     arg_file0(NULL, "from-pom-meta", NULL, "input pom meta file");
+    struct arg_str  * mk_hpp_from_dr_name =     arg_str0(NULL, "from-dr-name", NULL, "input dr meta name");
     struct arg_file  * mk_hpp_dr_file =     arg_filen(NULL, "dr-meta", NULL, 0, 100, "input dr meta file(s)");
     struct arg_file  * mk_hpp_dr_group_root =     arg_file0(NULL, "dr-meta-group-root", NULL, "input dr meta group root");
     struct arg_file  * mk_hpp_dr_group =     arg_file0(NULL, "dr-meta-group", NULL, "input dr meta group file");
@@ -245,7 +271,7 @@ int main(int argc, char * argv[]) {
     struct arg_str  * mk_hpp_o_namespace =     arg_str0(NULL, "namespace", NULL, "output class namespace");
     struct arg_end  * mk_hpp_end = arg_end(20);
     void* mk_hpp_argtable[] = { 
-        mk_hpp, mk_hpp_pom_meta, 
+        mk_hpp, mk_hpp_from_pom_meta, mk_hpp_from_dr_name, 
         mk_hpp_dr_file, mk_hpp_dr_group_root, mk_hpp_dr_group, mk_hpp_align,
         mk_hpp_o_file, mk_hpp_o_classname, mk_hpp_o_namespace,
         mk_hpp_end
@@ -254,7 +280,8 @@ int main(int argc, char * argv[]) {
 
     /*init shm bin*/
     struct arg_rex  * shm_init =     arg_rex1(NULL, NULL, "shm-init", NULL, 0, NULL);
-    struct arg_file  * shm_init_pom_meta =     arg_file1(NULL, "pom-meta", NULL, "input pom meta file");
+    struct arg_file  * shm_init_from_pom_meta =     arg_file0(NULL, "from-pom-meta", NULL, "input pom meta file");
+    struct arg_str  * shm_init_from_dr_name =     arg_str0(NULL, "from-dr-name", NULL, "input dr meta name");
     struct arg_file  * shm_init_dr_file =     arg_filen(NULL, "dr-meta", NULL, 0, 100, "input dr meta file(s)");
     struct arg_file  * shm_init_dr_group_root =     arg_file0(NULL, "dr-meta-group-root", NULL, "input dr meta group root");
     struct arg_file  * shm_init_dr_group =     arg_file0(NULL, "dr-meta-group", NULL, "input dr meta group file");
@@ -263,7 +290,7 @@ int main(int argc, char * argv[]) {
     struct arg_int  * shm_init_shm_key =     arg_int0(NULL, "shm-key", NULL, "shm key");
     struct arg_end  * shm_init_end = arg_end(20);
     void* shm_init_argtable[] = { 
-        shm_init, shm_init_pom_meta, shm_init_page_size,
+        shm_init, shm_init_from_pom_meta, shm_init_from_dr_name, shm_init_page_size,
         shm_init_dr_file, shm_init_dr_group_root, shm_init_dr_group, shm_init_align,
         shm_init_shm_key,
         shm_init_end
@@ -315,7 +342,8 @@ int main(int argc, char * argv[]) {
     else if (mk_clib_nerrors == 0) {
         if (env_init_meta(
                 &env, 
-                mk_clib_pom_meta,
+                mk_clib_from_pom_meta,
+                mk_clib_from_dr_name,
                 mk_clib_page_size,
                 mk_clib_dr_file,
                 mk_clib_dr_group_root,
@@ -331,7 +359,8 @@ int main(int argc, char * argv[]) {
     else if (metalib_xml_nerrors == 0) {
         if (env_init_meta(
                 &env, 
-                metalib_xml_pom_meta,
+                metalib_xml_from_pom_meta,
+                metalib_xml_from_dr_name,
                 NULL,
                 metalib_xml_dr_file,
                 metalib_xml_dr_group_root,
@@ -347,7 +376,8 @@ int main(int argc, char * argv[]) {
     else if (store_metalib_xml_nerrors == 0) {
         if (env_init_meta(
                 &env, 
-                store_metalib_xml_pom_meta,
+                store_metalib_xml_from_pom_meta,
+                store_metalib_xml_from_dr_name,
                 NULL,
                 store_metalib_xml_dr_file,
                 store_metalib_xml_dr_group_root,
@@ -365,7 +395,8 @@ int main(int argc, char * argv[]) {
     else if (mk_hpp_nerrors == 0) {
         if (env_init_meta(
                 &env, 
-                mk_hpp_pom_meta,
+                mk_hpp_from_pom_meta,
+                mk_hpp_from_dr_name,
                 NULL,
                 mk_hpp_dr_file,
                 mk_hpp_dr_group_root,
