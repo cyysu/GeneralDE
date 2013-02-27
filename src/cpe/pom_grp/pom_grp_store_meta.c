@@ -15,12 +15,26 @@ static int pom_grp_meta_build_store_meta_on_entry_normal(
     error_monitor_t em)
 {
     LPDRMETA entry_meta = pom_grp_entry_meta_normal_meta(entry);
-    assert(entry_meta);
 
-    return (dr_inbuild_meta_copy_entrys(meta, entry_meta) != 0
-            || dr_inbuild_meta_copy_indexes(meta, entry_meta) != 0)
-        ? -1
-        : 0;
+    struct DRInBuildMetaEntry * new_entry = dr_inbuild_meta_add_entry(meta);
+    if (new_entry == NULL) {
+        CPE_ERROR(em, "pom_grp_meta_build_store_meta: create new entry %s fail!", entry->m_name);
+        return -1;
+    }
+
+    dr_inbuild_entry_set_name(new_entry, entry->m_name);
+    dr_inbuild_entry_set_id(new_entry, -1);
+    dr_inbuild_entry_set_type(new_entry, dr_meta_name(entry_meta));
+    dr_inbuild_entry_set_array_count(new_entry, 1);
+
+    if (dr_inbuild_metalib_find_meta(builder, dr_meta_name(entry_meta)) == NULL) {
+        if (dr_inbuild_metalib_copy_meta(builder, entry_meta) == NULL) {
+            CPE_ERROR(em, "pom_grp_meta_build_store_meta: create meta for %s fail!", entry->m_name);
+            return -1;
+        }
+    }
+
+    return 0;
 }
 
 static int pom_grp_meta_build_store_meta_on_entry_ba(
@@ -169,7 +183,7 @@ static int pom_grp_meta_build_store_meta_list(
 
     dr_inbuild_meta_set_current_version(list_meta, dr_meta_current_version(src_main_meta));
 
-    snprintf(name_buf, sizeof(name_buf), "Store%sList", dr_meta_name(src_main_meta));
+    snprintf(name_buf, sizeof(name_buf), "%sList", pom_grp_meta_name(meta));
     dr_inbuild_meta_set_name(list_meta, name_buf);
     dr_inbuild_meta_set_current_version(list_meta, dr_meta_current_version(src_main_meta));
     dr_inbuild_meta_set_align(list_meta, dr_meta_align(src_main_meta));
@@ -193,7 +207,7 @@ static int pom_grp_meta_build_store_meta_list(
     dr_inbuild_entry_set_name(data_entry, "data");
     dr_inbuild_entry_set_version(data_entry, 1);
 
-    snprintf(name_buf, sizeof(name_buf), "Store%s", dr_meta_name(src_main_meta));
+    snprintf(name_buf, sizeof(name_buf), "%s", pom_grp_meta_name(meta));
     dr_inbuild_entry_set_type(data_entry, name_buf);
     dr_inbuild_entry_set_array_count(data_entry, 0);
     dr_inbuild_entry_set_array_refer(data_entry, "count");
@@ -207,7 +221,6 @@ static int pom_grp_meta_build_store_meta_i(
     mem_buffer_t str_buffer,
     error_monitor_t em)
 {
-    char name_buf[128];
     struct DRInBuildMeta * main_meta;
     LPDRMETALIB src_metalib;
     LPDRMETA src_main_meta;
@@ -239,23 +252,22 @@ static int pom_grp_meta_build_store_meta_i(
     dr_inbuild_metalib_set_tagsetversion(builder, dr_lib_tag_set_version(src_metalib));
     dr_inbuild_metalib_set_name(builder, pom_grp_meta_name(meta));
 
+    dr_inbuild_meta_set_name(main_meta, pom_grp_meta_name(meta));
+    dr_inbuild_meta_set_current_version(main_meta, dr_meta_current_version(src_main_meta));
+    dr_inbuild_meta_set_align(main_meta, dr_meta_align(src_main_meta));
+    dr_inbuild_meta_set_id(main_meta, dr_meta_id(src_main_meta));
+    dr_inbuild_meta_set_desc(main_meta, dr_meta_desc(src_main_meta));
+    dr_inbuild_meta_set_type(main_meta, dr_meta_type(src_main_meta));
 
-    if (dr_inbuild_meta_init(main_meta, src_main_meta) != 0
-        || dr_inbuild_meta_copy_entrys(main_meta, src_main_meta) != 0
-        || dr_inbuild_meta_copy_keys(main_meta, src_main_meta) != 0
-        || dr_inbuild_meta_copy_indexes(main_meta, src_main_meta) != 0)
+    if (dr_inbuild_meta_copy_key_entrys(main_meta, src_main_meta) != 0
+        || dr_inbuild_meta_copy_keys(main_meta, src_main_meta) != 0)
     {
         return -1;
     }
 
-    snprintf(name_buf, sizeof(name_buf), "Store%s", dr_meta_name(src_main_meta));
-    dr_inbuild_meta_set_name(main_meta, name_buf);
-
     count = pom_grp_meta_entry_count(meta);
     for(i = 0; i < count; ++i) {
         pom_grp_entry_meta_t entry_meta = pom_grp_meta_entry_at(meta, i);
-        if (entry_meta == meta->m_main_entry) continue;
-
         switch(entry_meta->m_type) {
         case pom_grp_entry_type_normal:
             if (pom_grp_meta_build_store_meta_on_entry_normal(builder, main_meta, entry_meta, str_buffer, em) != 0) return -1;
