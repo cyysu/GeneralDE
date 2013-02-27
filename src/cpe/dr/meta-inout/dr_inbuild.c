@@ -618,8 +618,11 @@ int dr_inbuild_meta_copy_key_entrys(struct DRInBuildMeta * new_meta, LPDRMETA sr
 
     count = dr_meta_key_entry_num(src_meta);
     for(i = 0; i < count; ++i) {
-        if (dr_inbuild_meta_copy_entry(new_meta, dr_meta_key_entry_at(src_meta, i)) == NULL) {
-            rv = -1;
+        LPDRMETAENTRY entry = dr_meta_key_entry_at(src_meta, i);
+        if (dr_entry_is_key(entry)) {
+            if (dr_inbuild_meta_copy_entry(new_meta, entry) == NULL) {
+                rv = -1;
+            }
         }
     }
 

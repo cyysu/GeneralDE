@@ -3,6 +3,87 @@
 #include "cpe/pom_grp/pom_grp_meta.h"
 #include "pom_grp_internal_ops.h"
 
+static int pom_grp_meta_build_from_meta_entry_normal(pom_grp_meta_t meta, LPDRMETAENTRY entry, error_monitor_t em) {
+    LPDRMETA data_meta;
+
+    data_meta = dr_entry_ref_meta(entry);
+    if (data_meta == NULL) {
+        CPE_ERROR(
+            em, "pom_grp_meta_build_from_meta: entry %s: entry-normal meta not exist!",
+            dr_entry_name(entry));
+        return -1;
+    }
+
+    if (pom_grp_entry_meta_normal_create(meta, dr_entry_name(entry), data_meta, em) == NULL) {
+        CPE_ERROR(
+            em, "pom_grp_meta_build_from_meta: entry %s: create normal entry fail!",
+            dr_entry_name(entry));
+        return -1;
+    }
+
+    return 0;
+}
+
+static int pom_grp_meta_build_from_meta_entry_list(pom_grp_meta_t meta, LPDRMETAENTRY entry, error_monitor_t em) {
+    LPDRMETA data_meta;
+    int list_count;
+    int group_count;
+    int standalone;
+
+    data_meta = dr_entry_ref_meta(entry);
+    if (data_meta == NULL) {
+        CPE_ERROR(
+            em, "pom_grp_meta_build_from_meta: entry %s: entry-list meta not exist!",
+            dr_entry_name(entry));
+        return -1;
+    }
+
+    list_count = dr_entry_array_count(entry);
+    if (list_count <= 0) {
+        CPE_ERROR(
+            em, "pom_grp_meta_build_from_meta: entry %s: list-count %d invalid!",
+            dr_entry_name(entry), list_count);
+        return -1;
+    }
+
+    group_count = pom_grp_omm_page_size(meta) / dr_meta_size(data_meta);
+    if (group_count > list_count) { 
+        group_count = list_count;
+    }
+
+    if (group_count > 16) {
+        group_count /= 4;
+    }
+
+    standalone = 0;
+
+    if (pom_grp_entry_meta_list_create(meta, dr_entry_name(entry), data_meta, group_count, list_count, standalone, em) == NULL) {
+        CPE_ERROR(
+            em, "pom_grp_meta_build_from_cfg: entry %s: create list entry fail!",
+            dr_entry_name(entry));
+        return -1;
+    }
+
+    return 0;
+}
+
+static int pom_grp_meta_build_from_meta_entry_ba(pom_grp_meta_t meta, LPDRMETAENTRY entry, error_monitor_t em) {
+    int bit_capacity;
+    int byte_per_page;
+
+    byte_per_page = dr_entry_element_size(entry);
+    bit_capacity = byte_per_page * 8;
+
+    if (pom_grp_entry_meta_ba_create(meta, dr_entry_name(entry), byte_per_page, bit_capacity, em) == NULL) {
+        CPE_ERROR(
+            em, "pom_grp_meta_build_from_meta: entry %s: create ba entry fail!",
+            dr_entry_name(entry));
+        return -1;
+    }
+
+    return 0;
+}
+
 pom_grp_meta_t
 pom_grp_meta_build_from_meta(mem_allocrator_t alloc, uint32_t omm_page_size, LPDRMETA dr_meta, error_monitor_t em) {
     pom_grp_meta_t meta;
@@ -19,53 +100,35 @@ pom_grp_meta_build_from_meta(mem_allocrator_t alloc, uint32_t omm_page_size, LPD
 
     for(i = 0; i < dr_meta_entry_num(dr_meta); ++i) {
         LPDRMETAENTRY entry = dr_meta_entry_at(dr_meta, i);
-    /*     const char * entry_type;  */
+        int entry_type = dr_entry_type(entry);
+        int element_count = dr_entry_array_count(entry);
 
-    /*     if (cfg_child_count(entry_cfg) != 1) { */
-    /*         CPE_ERROR(em, "pom_grp_meta_build_from_cfg: entry config child-count error!"); */
-    /*         ++rv; */
-    /*         continue; */
-    /*     } */
+        if (entry_type == CPE_DR_TYPE_STRUCT) {
+            if (element_count == 1) {
+                if (pom_grp_meta_build_from_meta_entry_normal(meta, entry, em) != 0) {
+                    ++rv;
+                }
+            }
+            else {
+                if (pom_grp_meta_build_from_meta_entry_list(meta, entry, em) != 0) {
+                    ++rv;
+                }
+            }
+        }
+        else if (entry_type == CPE_DR_TYPE_UINT8
+                 && element_count > 1
+                 && dr_entry_array_refer_entry(entry) == NULL)
+        {
+            if (pom_grp_meta_build_from_meta_entry_ba(meta, entry, em) != 0) {
+                ++rv;
+            }
+        }
+    }
 
-    /*     entry_cfg = cfg_child_only(entry_cfg); */
-
-    /*     entry_type = cfg_get_string(entry_cfg, "entry-type", NULL); */
-    /*     if (strcmp(entry_type, "normal") == 0) { */
-    /*         if (pom_grp_meta_build_from_cfg_entry_normal(meta, entry_cfg, metalib, em) != 0) { */
-    /*             ++rv; */
-    /*         } */
-    /*     } */
-    /*     else if (strcmp(entry_type, "list") == 0){ */
-    /*         if (pom_grp_meta_build_from_cfg_entry_list(meta, entry_cfg, metalib, em) != 0) { */
-    /*             ++rv; */
-    /*         } */
-    /*     } */
-    /*     else if (strcmp(entry_type, "ba") == 0) { */
-    /*         if (pom_grp_meta_build_from_cfg_entry_ba(meta, entry_cfg, metalib, em) != 0) { */
-    /*             ++rv; */
-    /*         } */
-    /*     } */
-    /*     else if (strcmp(entry_type, "binary") == 0) { */
-    /*         if (pom_grp_meta_build_from_cfg_entry_binary(meta, entry_cfg, metalib, em) != 0) { */
-    /*             ++rv; */
-    /*         } */
-    /*     } */
-    /*     else { */
-    /*         CPE_ERROR( */
-    /*             em, "pom_grp_meta_build_from_cfg: entry %s: entry-type %s unknown!", */
-    /*             cfg_name(entry_cfg), entry_type); */
-    /*         ++rv; */
-    /*         continue; */
-    /*     } */
-    /* } */
-
-    /* if ((main_entry = cfg_get_string(cfg, "main-entry", NULL))) { */
-    /*     if (pom_grp_meta_set_main_entry(meta, main_entry) != 0) { */
-    /*         CPE_ERROR( */
-    /*             em, "pom_grp_meta_build_from_cfg: set main_entry %s fail!", main_entry); */
-    /*         rv = -1; */
-    /*     } */
-    /* } */
+    if (pom_grp_meta_entry_count(meta) > 0) {
+        if (pom_grp_meta_set_main_entry(meta, pom_grp_entry_meta_name(pom_grp_meta_entry_at(meta, 0))) != 0) {
+            ++rv;
+        }
     }
 
     if (rv == 0) {
