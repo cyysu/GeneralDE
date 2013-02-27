@@ -15,6 +15,13 @@ pom_grp_meta_build_from_cfg(
     LPDRMETALIB metalib,
     error_monitor_t em);
 
+pom_grp_meta_t
+pom_grp_meta_build_from_meta(
+    mem_allocrator_t alloc,
+    uint32_t omm_page_size,
+    LPDRMETA dr_meta,
+    error_monitor_t em);
+
 #ifdef __cplusplus
 }
 #endif
