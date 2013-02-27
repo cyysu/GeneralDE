@@ -80,6 +80,10 @@ const char * pom_grp_meta_name(pom_grp_meta_t meta) {
     return meta->m_name;
 }
 
+uint32_t pom_grp_omm_page_size(pom_grp_meta_t meta) {
+    return meta->m_omm_page_size;
+}
+
 int pom_grp_meta_set_main_entry(pom_grp_meta_t meta, const char * entry_name) {
     if (meta->m_main_entry) return -1;
 
@@ -87,6 +91,10 @@ int pom_grp_meta_set_main_entry(pom_grp_meta_t meta, const char * entry_name) {
     if (meta->m_main_entry == NULL) return -1;
 
     return 0;
+}
+
+pom_grp_entry_meta_t pom_grp_meta_main_entry(pom_grp_meta_t meta) {
+    return meta->m_main_entry;
 }
 
 pom_grp_entry_meta_t
