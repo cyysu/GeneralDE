@@ -13,6 +13,11 @@ define assert-not-null
   $(call assert,$($1),The variable "$1" is null)
 endef
 
+# $(call assert-set-one,make-variable-list)
+define assert-set-one
+  $(if $(filter 1,$(words $(foreach m,$1,$($m)))),,$(warning $1 only can set 1 value))
+endef
+
 # $(call join-path,part1,part2)
 join-path=$(if $(1),$(strip $(1))/$(strip $(2)),$(2))
 

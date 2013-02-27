@@ -22,7 +22,7 @@ void OmGrpObjMgrTest::install(const char * om_meta, const char * metalib, size_t
         m_mgr = NULL;
     }
 
-    m_mgr = t_pom_grp_obj_mgr_create(om_meta, metalib, capacity, page_size);
+    m_mgr = t_pom_grp_obj_mgr_create_by_cfg(om_meta, metalib, capacity, page_size);
 }
 
 void OmGrpObjMgrTest::reload(void) {
