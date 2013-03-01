@@ -18,7 +18,7 @@ const char * ModifyTest::modify(const char * cfg, const char * modify) {
     if (r != 0) {
         char buf[64];
         snprintf(buf, sizeof(buf), "%d", r);
-        return t_strdup(buf);
+        return t_tmp_strdup(buf);
     }
 
     return t_cfg_dump(c);
