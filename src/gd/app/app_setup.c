@@ -1,13 +1,16 @@
 #include <assert.h>
 #include "cpe/pal/pal_stdio.h"
+#include "cpe/pal/pal_stat.h"
 #include "cpe/pal/pal_external.h"
 #include "cpe/utils/memory_debug.h"
 #include "cpe/utils/stream_file.h"
+#include "cpe/utils/file.h"
 #include "cpe/net/net_manage.h"
 #include "cpe/nm/nm_manage.h"
 #include "cpe/nm/nm_read.h"
 #include "cpe/tl/tl_manage.h"
 #include "cpe/cfg/cfg_read.h"
+#include "cpe/cfg/cfg_manage.h"
 #include "gd/app/app_context.h"
 #include "gd/app/app_log.h"
 #include "gd/app/app_module.h"
@@ -182,6 +185,7 @@ static void app_setup_info_clear(nm_node_t node) {
 EXPORT_DIRECTIVE
 int app_setup_app_init(gd_app_context_t app, gd_app_module_t module, cfg_t cfg) {
     struct app_setup_info * setup_info;
+    const char * cfg_dup_path;
 
     gd_app_set_debug(app, cfg_get_int16(cfg, "debug-app", 0));
     net_mgr_set_debug(gd_app_net_mgr(app), cfg_get_int16(cfg, "debug-net", 0));
@@ -200,6 +204,38 @@ int app_setup_app_init(gd_app_context_t app, gd_app_module_t module, cfg_t cfg) 
                 20,
                 gd_app_em(app));
         gd_app_set_alloc(app, setup_info->m_debug_alloc);
+    }
+
+    if ((cfg_dup_path = cfg_get_string(cfg, "cfg-dump", NULL))) {
+        FILE * f;
+        struct mem_buffer buf;
+        const char * dump_dir;
+        mem_buffer_init(&buf, gd_app_alloc(app));
+
+        if ((dump_dir = dir_name(cfg_dup_path, &buf))) {
+            if (dir_mk_recursion(dump_dir, S_IRWXU, gd_app_em(app), gd_app_alloc(app)) != 0) {
+                APP_CTX_ERROR(
+                    app, "%s: create: cfg-dump: create dir %s fail!", 
+                    gd_app_module_name(module), dump_dir);
+            }
+        }
+        mem_buffer_clear(&buf);
+
+        f = file_stream_open(cfg_dup_path, "w", gd_app_em(app));
+        if (f == NULL) {
+            APP_CTX_ERROR(
+                app, "%s: create: cfg-dump: open file %s fail!", 
+                gd_app_module_name(module), cfg_dup_path);
+        }
+        else {
+            struct write_stream_file stream = CPE_WRITE_STREAM_FILE_INITIALIZER(f, gd_app_em(app));
+            if (cfg_write((write_stream_t)&stream, gd_app_cfg(app), gd_app_em(app)) != 0) {
+                APP_CTX_ERROR(
+                    app, "%s: create: cfg-dump: dump cfg fail!", 
+                    gd_app_module_name(module));
+            }
+            file_stream_close(f, gd_app_em(app));
+        }
     }
 
     return 0;
