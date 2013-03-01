@@ -9,3 +9,14 @@ TEST_F(ModifyTest, set_value_basic) {
         modify("a: 12", "set: { a: 13 }"));
 }
 
+TEST_F(ModifyTest, with_basic) {
+    t_em_set_print();
+
+    EXPECT_STREQ(
+        "{ p1={ p2={ a=13 } } }"
+        ,
+        modify(
+            "p1: { p2: { a: 12 } }",
+            "{ with: p1.p2, set: { a: 13 } }"));
+}
+
