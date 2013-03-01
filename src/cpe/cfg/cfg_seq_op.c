@@ -15,6 +15,8 @@ cfg_t cfg_seq_at(cfg_t cfg, int pos) {
     if (cfg->m_type != CPE_CFG_TYPE_SEQUENCE) return NULL;
 
     s = (struct cfg_seq *)cfg;
+
+    if (pos == -1) pos = ((int)s->m_count) - 1;
     if (pos < 0 || pos >= s->m_count) return NULL;
 
     block = &s->m_block_head;
