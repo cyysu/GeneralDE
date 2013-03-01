@@ -7,16 +7,6 @@ static int cfg_apply_modify_set(cfg_t cfg, cfg_t modify_info, error_monitor_t em
     const char * path = cfg_name(modify_info);
 
     switch(cfg_type(modify_info)) {
-    case CPE_CFG_TYPE_SEQUENCE: {
-        cfg_t new_node = cfg_add_seq(cfg, path, em);
-        if (new_node == NULL) return -1;
-        return cfg_merge(new_node, cfg, cfg_replace, em);
-    }
-    case CPE_CFG_TYPE_STRUCT: {
-        cfg_t new_node = cfg_add_struct(cfg, path, em);
-        if (new_node == NULL) return -1;
-        return cfg_merge(new_node, cfg, cfg_replace, em);
-    }
     case CPE_CFG_TYPE_INT8:
         if (cfg_add_int8(cfg, path, cfg_as_int8(modify_info, 0), em) == NULL) {
             return -1;
@@ -73,7 +63,7 @@ static int cfg_apply_modify_set(cfg_t cfg, cfg_t modify_info, error_monitor_t em
         }
         break;
     default:
-        CPE_ERROR(em, "cfg_apply_modify_set: unknown type %d!", cfg_type(modify_info));
+        CPE_ERROR(em, "cfg_apply_modify_set: %s: unknown type %d!", path, cfg_type(modify_info));
         return -1;
     }
 
@@ -82,26 +72,63 @@ static int cfg_apply_modify_set(cfg_t cfg, cfg_t modify_info, error_monitor_t em
 
 int cfg_apply_modify(cfg_t cfg, cfg_t modify_info, error_monitor_t em) {
     const char * op_name;
+    struct cfg_it chils;
+    cfg_t with_cfg, op_cfg;
+    
+    int rv = 0;
 
-    modify_info = cfg_child_only(modify_info);
-    if (modify_info == NULL) {
-        CPE_ERROR(em, "cfg_apply_modify: input format error, should only one child!");
-        return -1;
-    }
-
-    op_name = cfg_name(modify_info);
-    if (strcmp(op_name, "set") == 0) {
-        modify_info = cfg_child_only(modify_info);
-        if (modify_info == NULL) {
-            CPE_ERROR(em, "cfg_apply_modify: argument of set format error, should only one child!");
+    with_cfg = cfg_find_cfg(modify_info, "with");
+    if (with_cfg) {
+        if (cfg_type(with_cfg) != CPE_DR_TYPE_STRING) {
+            CPE_ERROR(em, "cfg_apply_modify: with require string value!");
             return -1;
         }
 
-        return cfg_apply_modify_set(cfg, modify_info, em);
+        cfg = cfg_find_cfg(cfg, cfg_as_string(with_cfg, NULL));
     }
-    else {
-        CPE_ERROR(em, "cfg_apply_modify: unknown op name %s!", op_name);
-        return -1;
+
+    if (cfg == NULL) return 0;
+
+    cfg_it_init(&chils, modify_info);
+    while((op_cfg = cfg_it_next(&chils))) {
+        op_name = cfg_name(op_cfg);
+
+        if (strcmp(op_name, "with") == 0) continue;
+
+        if (strcmp(op_name, "set") == 0) {
+            switch(cfg_type(op_cfg)) {
+            case CPE_CFG_TYPE_SEQUENCE: {
+                struct cfg_it set_childs;
+                cfg_it_init(&set_childs, op_cfg);
+
+                while((op_cfg = cfg_it_next(&set_childs))) {
+                    op_cfg = cfg_child_only(op_cfg);
+                    if (op_cfg == NULL) {
+                        CPE_ERROR(em, "cfg_apply_modify: set: sequence child format error!");
+                        rv = -1;
+                    }
+                    else {
+                        if (cfg_apply_modify_set(cfg, op_cfg, em) != 0) rv = -1;
+                    }
+                }
+            }
+            case CPE_CFG_TYPE_STRUCT: {
+                struct cfg_it set_childs;
+                cfg_it_init(&set_childs, op_cfg);
+
+                while((op_cfg = cfg_it_next(&set_childs))) {
+                    if (cfg_apply_modify_set(cfg, op_cfg, em) != 0) rv = -1;
+                }
+            }
+            default:
+                if (cfg_apply_modify_set(cfg, op_cfg, em) != 0) rv = -1;
+                break;
+            }
+        }
+        else {
+            CPE_ERROR(em, "cfg_apply_modify: unknown op name %s!", op_name);
+            rv = -1;
+        }
     }
 
     return 0;
