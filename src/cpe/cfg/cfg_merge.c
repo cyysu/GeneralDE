@@ -25,6 +25,8 @@ static void cfg_do_merge_struct(cfg_t cfg, cfg_t source, cfg_policy_t policy, er
 }
 
 static void cfg_do_merge_struct_child(cfg_t cfg, cfg_t child, cfg_policy_t policy, error_monitor_t em) {
+    assert(cfg != child);
+
     switch(child->m_type) {
     case CPE_CFG_TYPE_SEQUENCE:
         cfg_do_copy_seq(

@@ -77,7 +77,7 @@ TEST_F(SeqTest, at_from_empty) {
 TEST_F(SeqTest, at_pos_negative) {
     cfg_seq_add_struct(m_seq);
 
-    EXPECT_FALSE(cfg_seq_at(m_seq, -1));
+    EXPECT_FALSE(cfg_seq_at(m_seq, -2));
 }
 
 TEST_F(SeqTest, at_pos_overflow) {
@@ -167,7 +167,7 @@ TEST_F(SeqTest, it_empty) {
     cfg_it_t it;
     cfg_it_init(&it, m_seq);
 
-    ASSERT_FALSE(cfg_it_next(&it));
+    ASSERT_TRUE(cfg_it_next(&it) == NULL);
 }
 
 TEST_F(SeqTest, it_basic) {
@@ -185,13 +185,13 @@ TEST_F(SeqTest, it_basic) {
     ASSERT_TRUE(cfg_b);
     ASSERT_EQ(2, cfg_as_int32(cfg_b, -1));
 
-    ASSERT_FALSE(cfg_it_next(&it));
+    ASSERT_TRUE(cfg_it_next(&it) == NULL);
 }
 
 TEST_F(SeqTest, it_init_cfg_null) {
     cfg_it_t it;
     cfg_it_init(&it, NULL);
 
-    ASSERT_FALSE(cfg_it_next(&it));
+    ASSERT_TRUE(cfg_it_next(&it) == NULL);
 }
 
