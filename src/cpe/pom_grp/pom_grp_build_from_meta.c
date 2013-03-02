@@ -71,7 +71,7 @@ static int pom_grp_meta_build_from_meta_entry_ba(pom_grp_meta_t meta, LPDRMETAEN
     int bit_capacity;
     int byte_per_page;
 
-    byte_per_page = dr_entry_element_size(entry);
+    byte_per_page = dr_entry_size(entry);
     bit_capacity = byte_per_page * 8;
 
     if (pom_grp_entry_meta_ba_create(meta, dr_entry_name(entry), byte_per_page, bit_capacity, em) == NULL) {
