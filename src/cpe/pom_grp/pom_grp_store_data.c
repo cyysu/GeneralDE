@@ -135,7 +135,7 @@ static int pom_grp_store_build_obj_ba(
             dr_entry_size(data_entry)) != 0)
     {
         CPE_ERROR(
-            obj_mgr->m_em, "pom_grp_store_build_obj: binary entry %s: set data fail, size=%d!",
+            obj_mgr->m_em, "pom_grp_store_build_obj: ba entry %s: set data fail, size=%d!",
             entry->m_entry_meta->m_name, (int)dr_entry_size(data_entry));
         return -1;
     }
