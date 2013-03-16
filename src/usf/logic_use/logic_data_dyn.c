@@ -308,12 +308,12 @@ int logic_data_record_remove_by_ins(logic_data_t data, void * p) {
         return -1;
     }
 
-    if (((char *)p - buf) % record_size) {
+    if ((((char *)p - buf) - dyn_info.m_array_start) % record_size) {
         CPE_ERROR(em, "logic_data_record_remove: remove %p address not regular!", p);
         return -1;
     }
 
-    pos = ((char *)p - buf) % record_size;
+    pos = ((((char *)p - buf) - dyn_info.m_array_start) % record_size);
     assert(pos >= 0 && pos < record_count);
 
     if (pos + 1 < record_count) {
