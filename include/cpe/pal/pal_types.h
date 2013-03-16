@@ -63,8 +63,10 @@ typedef int gid_t;
 
 #if (__WORDSIZE == 64)
 typedef int64_t ptr_int_t;
+typedef uint64_t ptr_uint_t;
 #else
 typedef int32_t ptr_int_t;
+typedef uint32_t ptr_uint_t;
 #endif
 
 #endif /* TTYPES_H */
