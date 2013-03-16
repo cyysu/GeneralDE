@@ -49,6 +49,9 @@ public:
 
     RecordType * recordFind(RecordType const & key, int (*cmp)(RecordType const * l, RecordType const * r)) { return (RecordType *)LogicOpDynData::recordFind(&key, (record_cmp_t)cmp); }
     RecordType const * recordFind(RecordType const & key, int (*cmp)(RecordType const * l, RecordType const * r)) const { return (RecordType *)LogicOpDynData::recordFind(&key, (record_cmp_t)cmp); }
+
+    void recordRemove(size_t pos) { return LogicOpDynData::recordRemove(pos); }
+    void recordRemove(RecordType const * o) { return LogicOpDynData::recordRemove((void const*)o); }
 };
 
 }}
