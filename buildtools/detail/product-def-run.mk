@@ -7,7 +7,7 @@ $(eval r.$1.$2.run.cmd:=$(if $(r.$1.$2.run.cmd),$(r.$1.$2.run.cmd),$(r.$1.run.cm
 
 $(eval r.$1.$2.run.full-cmd:= \
 		$$(if $$(r.$1.$2.run.path),cd $$(r.$1.$2.run.path) &&,$$(if $$(r.$1.run.path),cd $$(r.$1.run.path) &&,)) \
-		$$(if $$(r.$1.run.libraries)$$(r.$1.$2.run.libraries),LD_LIBRARY_PATH=$$(call path-list-join,$$(r.$1.run.libraries)$$(r.$1.$2.run.libraries))$$$$$$$$LD_LIBRARY_PATH ,) \
+		$$(if $$(r.$1.run.libraries)$$(r.$1.$2.run.libraries),LD_LIBRARY_PATH=$$(call path-list-join,$$(r.$1.run.libraries)$$(r.$1.$2.run.libraries))$$$$LD_LIBRARY_PATH ,) \
 		$(r.$1.$2.run.cmd) \
 		$$(if $$(r.$1.$2.run.args),$$(r.$1.$2.run.args),$$(r.$1.run.args)))
 
