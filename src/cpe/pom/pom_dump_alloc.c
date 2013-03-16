@@ -53,13 +53,13 @@ static void pom_mgr_dump_alloc_class_info(write_stream_t stream, struct pom_clas
     }
 }
 
-static void pom_grp_dump_range_it(write_stream_t stream, cpe_range_it_t range_it, int level) {
+static void pom_grp_dump_urange_it(write_stream_t stream, cpe_urange_it_t urange_it, int level) {
     int i = 0;
-    struct cpe_range range;
+    struct cpe_urange urange;
 
-    for(range = cpe_range_it_next(range_it);
-        cpe_range_is_valid(range); 
-        ++i, range = cpe_range_it_next(range_it))
+    for(urange = cpe_urange_it_next(urange_it);
+        cpe_urange_is_valid(urange); 
+        ++i, urange = cpe_urange_it_next(urange_it))
     {
         if (i > 8) { stream_putc(stream, '\n'); i = 0; }
 
@@ -70,27 +70,27 @@ static void pom_grp_dump_range_it(write_stream_t stream, cpe_range_it_t range_it
             stream_printf(stream, ", ");
         }
 
-        stream_printf(stream, "["FMT_PTR_INT_T", "FMT_PTR_INT_T")", range.m_start, range.m_end);
+        stream_printf(stream, "["FMT_PTR_INT_T", "FMT_PTR_INT_T")", urange.m_start, urange.m_end);
     }
 }
 
 static void pom_mgr_dump_alloc_buf_info(write_stream_t stream, struct pom_buffer_mgr * buf_mgr, int level) {
-    struct cpe_range_it range_it;
+    struct cpe_urange_it urange_it;
 
     stream_putc_count(stream, ' ', level << 2);
     stream_printf(stream, "free pages:\n");
-    cpe_range_mgr_ranges(&range_it, &buf_mgr->m_free_pages);
-    pom_grp_dump_range_it(stream, &range_it, level + 1);
+    cpe_urange_mgr_uranges(&urange_it, &buf_mgr->m_free_pages);
+    pom_grp_dump_urange_it(stream, &urange_it, level + 1);
 
     stream_putc_count(stream, ' ', level << 2);
     stream_printf(stream, "buffers:\n");
-    cpe_range_mgr_ranges(&range_it, &buf_mgr->m_buffers);
-    pom_grp_dump_range_it(stream, &range_it, level + 1);
+    cpe_urange_mgr_uranges(&urange_it, &buf_mgr->m_buffers);
+    pom_grp_dump_urange_it(stream, &urange_it, level + 1);
 
     stream_putc_count(stream, ' ', level << 2);
     stream_printf(stream, "buffer-ids:\n");
-    cpe_range_mgr_ranges(&range_it, &buf_mgr->m_buffer_ids);
-    pom_grp_dump_range_it(stream, &range_it, level + 1);
+    cpe_urange_mgr_uranges(&urange_it, &buf_mgr->m_buffer_ids);
+    pom_grp_dump_urange_it(stream, &urange_it, level + 1);
 }
 
 void pom_mgr_dump_alloc_info(write_stream_t stream, pom_mgr_t mgr, int level) {

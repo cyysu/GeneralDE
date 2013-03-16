@@ -387,7 +387,7 @@ static int dr_json_end_array(void * ctx) {
 
     curStack->m_in_array = 0;
 
-    refer = dr_entry_array_refer_entry(curStack->m_entry);
+    refer = curStack->m_entry ? dr_entry_array_refer_entry(curStack->m_entry) : NULL;
     if (refer) {
         char * ref_write_pos;
         ref_write_pos = dr_json_parse_get_write_pos(c, curStack, curStack->m_entry->m_array_refer_data_start_pos, dr_entry_element_size(refer));
