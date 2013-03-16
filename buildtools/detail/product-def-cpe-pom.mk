@@ -22,6 +22,7 @@ define product-def-rule-cpe-pom-c-module-metalib-xml
                     $(addprefix --from-dr-name , $(r.$1.$3.cpe-pom.$2.pom-dr-name)) \
                     $(addprefix --dr-meta , $(r.$1.$3.cpe-pom.$2.dr-meta-source)) \
                     $(addprefix --align , $(r.$1.$3.cpe-pom.$2.align)) \
+                    $(addprefix --validate-, $(r.$1.$3.cpe-pom.$2.validate)) \
                     --output-metalib-xml $$@
 endef
 
@@ -44,6 +45,7 @@ define product-def-rule-cpe-pom-c-module-store-metalib-xml
                     $(addprefix --from-dr-name , $(r.$1.$3.cpe-pom.$2.pom-dr-name)) \
                     $(addprefix --dr-meta , $(r.$1.$3.cpe-pom.$2.dr-meta-source)) \
                     $(addprefix --align , $(r.$1.$3.cpe-pom.$2.align)) \
+                    $(addprefix --validate-, $(r.$1.$3.cpe-pom.$2.validate)) \
                     --output-metalib-xml $$@
 endef
 
@@ -69,6 +71,7 @@ define product-def-rule-cpe-pom-c-module-c
                     $(addprefix --from-dr-name , $(r.$1.$3.cpe-pom.$2.pom-dr-name)) \
                     $(addprefix --dr-meta , $(r.$1.$3.cpe-pom.$2.dr-meta-source)) \
                     $(addprefix --align , $(r.$1.$3.cpe-pom.$2.align)) \
+                    $(addprefix --validate-, $(r.$1.$3.cpe-pom.$2.validate)) \
                     --page-size $(r.$1.$3.cpe-pom.$2.page-size) \
                     --output-lib-c $$@ --output-lib-c-arg $($1.cpe-pom.$2.c.arg-name)
 
@@ -94,6 +97,7 @@ define product-def-rule-cpe-pom-c-module-hpp
                     $(addprefix --from-dr-name , $(r.$1.$3.cpe-pom.$2.pom-dr-name)) \
                     $(addprefix --dr-meta , $(r.$1.$3.cpe-pom.$2.dr-meta-source)) \
                     $(addprefix --align , $(r.$1.$3.cpe-pom.$2.align)) \
+                    $(addprefix --validate-, $(r.$1.$3.cpe-pom.$2.validate)) \
                     --output-hpp $$@ \
                     --class-name $($1.cpe-pom.$2.hpp.class-name) \
                     $(addprefix --namespace ,$($1.cpe-pom.$2.hpp.namespace))
@@ -112,6 +116,7 @@ $(eval r.$1.$2.cpe-pom.$3.page-size:=$($1.cpe-pom.$3.page-size))
 $(eval r.$1.$2.cpe-pom.$3.dr-meta-source:=$($1.cpe-pom.$3.dr-meta-source))
 $(eval r.$1.$2.cpe-pom.$3.generate:=$($1.cpe-pom.$3.generate))
 $(eval r.$1.$2.cpe-pom.$3.align:=$($1.cpe-pom.$3.align))
+$(eval r.$1.$2.cpe-pom.$3.validate:=$($1.cpe-pom.$3.validate))
 
 $(foreach p,$(r.$1.$2.cpe-pom.$3.generate), $(call product-def-rule-cpe-pom-c-module-$p,$1,$3,$2))
 
