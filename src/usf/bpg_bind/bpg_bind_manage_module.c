@@ -1,5 +1,6 @@
 #include <assert.h>
 #include "cpe/pal/pal_external.h"
+#include "cpe/pal/pal_stdlib.h"
 #include "cpe/pal/pal_stdio.h"
 #include "cpe/cfg/cfg_read.h"
 #include "cpe/dr/dr_metalib_manage.h"
@@ -21,6 +22,7 @@ int bpg_bind_manage_app_init(gd_app_context_t app, gd_app_module_t module, cfg_t
     cfg_t incoming_send_to;
     const char * outgoing_recv_at;
     cfg_t outgoing_send_to;
+    const char * cmd_kickoff;
 
 	pkg_manage = bpg_pkg_manage_find_nc(app, cfg_get_string(cfg, "pkg-manage", NULL));
 	if (pkg_manage == NULL) {
@@ -99,6 +101,25 @@ int bpg_bind_manage_app_init(gd_app_context_t app, gd_app_module_t module, cfg_t
 		bpg_bind_manage_free(bpg_bind_manage);
 		return -1;
 	}
+
+    if ((cmd_kickoff = cfg_get_string(cfg, "cmd-kickoff", NULL))) {
+        int value = 0;
+        if (dr_lib_find_macro_value(&value, bpg_pkg_manage_data_metalib(pkg_manage), cmd_kickoff) == 0) {
+            bpg_bind_manage->m_cmd_kickoff = value;
+        }
+        else {
+            char *endptr = NULL;
+            value = (int)strtol(cmd_kickoff, &endptr, 10);
+            if (endptr == NULL || *endptr != 0) {
+                CPE_ERROR(gd_app_em(app), "%s: create: cmd-kickof format error!", gd_app_module_name(module));
+                bpg_bind_manage_free(bpg_bind_manage);
+                return -1;
+            }
+            else {
+                bpg_bind_manage->m_cmd_kickoff = value;
+            }
+        }
+    }
 
     bpg_bind_manage->m_debug = cfg_get_int32(cfg, "debug", 0);
 

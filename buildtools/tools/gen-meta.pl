@@ -104,7 +104,7 @@ sub calc_col_fun {
       my ($row, $value, $input_row) = @_;
       my @values = split(/$sep/, $value);
       if ($getPos < @values + 0) {
-        $row->{$resultColName} = $values[$getPos];
+        $row->{$resultColName} = $values[$getPos] if ($values[$getPos] !~ m/^\s*$/);
       }
     };
   }
@@ -115,7 +115,7 @@ sub calc_col_fun {
     return sub {
       my ($row, $value, $input_row) = @_;
       if ($value =~ /$matcher/) {
-        $row->{$resultColName} = $1;
+        $row->{$resultColName} = $1 if ($1 != m/^\s*$/) ;
       }
     };
   }
@@ -140,7 +140,7 @@ sub calc_col_fun {
           }
         }
 
-        $row->{$resultColName} = $1;
+        $row->{$resultColName} = $1 if ( $1 !~ m/^\s*$/) ;
       }
     };
   }
@@ -175,7 +175,7 @@ sub calc_col_fun {
             $row->{$resultColName} = $converts{$input};
           } elsif ($default) {
             if ($default eq '$1') {
-              $row->{$resultColName} = $value;
+              $row->{$resultColName} = $value if ( $value !~ m/^\s*$/ );
             }
             else {
               $row->{$resultColName} = $default;
@@ -193,7 +193,7 @@ sub calc_col_fun {
     return sub {
       my ($row, $value, $input) = @_;
       $value =~ s/$replace_from/$replace_to/;
-      $row->{$resultColName} = $value;
+      $row->{$resultColName} = $value if ($value !~ m/^\s*$/ );
     };
   }
 
@@ -202,13 +202,13 @@ sub calc_col_fun {
 
     return sub {
       my ($row, $old_value) = @_;
-      $row->{$resultColName} = $value;
+      $row->{$resultColName} = $value if ($value !~ m/^\s*$/);
     };
   }
 
   return sub {
     my ($row, $value, $input_row) = @_;
-    $row->{$resultColName} = $value;
+    $row->{$resultColName} = $value if ($value !~ m/^\s*$/);
   };
 }
 
@@ -267,9 +267,13 @@ sub analize_entry_processor_struct_seq_basic {
     my $col_fun = sub {
       my ($row, $value, $input_row) = @_;
 
-      $row->{$entry->{name}} = [];
+      my @value_list = split(/$sep/, $value);
 
-      @{$row->{$entry->{name}}} = split(/$sep/, $value);
+      if (@value_list) {
+        $row->{$entry->{name}} = [];
+
+        @{$row->{$entry->{name}}} = @value_list;
+      }
     };
 
     $col_fun = $col_fun_derator->($col_fun) if defined $col_fun_derator;
@@ -285,14 +289,16 @@ sub analize_entry_processor_struct_seq_basic {
 
         return if (not defined $value) or ($value eq "");
 
-        $row->{$entry->{name}} = []
-          if not exists $row->{$entry->{name}};
+        if ($value !~ m/^\s*$/) {
+          $row->{$entry->{name}} = []
+            if not exists $row->{$entry->{name}};
 
-        while ( @{$row->{$entry->{name}}} < $pos) {
-          push @{$row->{$entry->{name}}}, "";
+          while ( @{$row->{$entry->{name}}} < $pos) {
+            push @{$row->{$entry->{name}}}, "";
+          }
+
+          ${$row->{$entry->{name}}}[$pos] = $value;
         }
-
-        ${$row->{$entry->{name}}}[$pos] = $value;
       };
 
       $col_fun = $col_fun_derator->($col_fun) if defined $col_fun_derator;
@@ -534,8 +540,23 @@ foreach my $colPos ($col_min .. $col_max) {
 
 my @table;
 
+sub is_role_all_empty {
+  my $rowPos = shift;
+
+  foreach my $colPos ( $col_min .. $col_max ) {
+    my $cell = $sheet->get_cell($rowPos, $colPos);
+    next if not defined $cell;
+    next if not defined $cell->value() or $cell->value() =~ m/^\s*$/;
+    return 0;
+  }
+
+  return 1;
+}
+
 foreach my $rowPos ( $row_min + 1 .. $row_max ) {
   my %row;
+
+  last if is_role_all_empty($rowPos);
 
   my %input_row;
   foreach my $colPos ( $col_min .. $col_max ) {
