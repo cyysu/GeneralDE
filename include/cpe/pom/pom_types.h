@@ -28,13 +28,13 @@ typedef ptr_int_t pom_buffer_id_t;
 
 struct pom_buffer_it {
     size_t m_buf_size;
-    struct cpe_range_it m_range_it;
-    struct cpe_range m_curent;
+    struct cpe_urange_it m_urange_it;
+    struct cpe_urange m_curent;
 };
 
 struct pom_buffer_id_it {
-    struct cpe_range_it m_range_it;
-    struct cpe_range m_curent;
+    struct cpe_urange_it m_urange_it;
+    struct cpe_urange m_curent;
 };
 
 struct pom_backend {

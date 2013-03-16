@@ -61,6 +61,13 @@ public:
     LogicOpData & checkCreateData(LPDRMETA meta, size_t capacity = 0);
     LogicOpData & copy(logic_data_t input);
 
+    template<typename T>
+    LogicOpData & copy(T const & data) {
+        LogicOpData & r = checkCreateData(Cpe::Dr::MetaTraits<T>::META, Cpe::Dr::MetaTraits<T>::data_size(data));
+        memcpy(r.data(), &data, Cpe::Dr::MetaTraits<T>::data_size(data));
+        return r;
+    }
+
     bool deleteData(const char * name)  {
         if (logic_data_t r = logic_context_data_find(*this, name)) {
             logic_data_free(r);

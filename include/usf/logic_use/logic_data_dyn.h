@@ -17,7 +17,8 @@ int logic_data_record_count(logic_data_t data);
 int logic_data_record_set_count(logic_data_t data, size_t record_count);
 void * logic_data_record_append(logic_data_t data);
 void * logic_data_record_append_auto_inc(logic_data_t * data);
-int logic_data_record_remove(logic_data_t data, size_t pos);
+int logic_data_record_remove_by_pos(logic_data_t data, size_t pos);
+int logic_data_record_remove_by_ins(logic_data_t data, void * obj);
 
 size_t logic_data_record_capacity(logic_data_t data);
 logic_data_t logic_data_record_reserve(logic_data_t data, size_t record_capacity);
