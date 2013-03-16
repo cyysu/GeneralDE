@@ -102,6 +102,28 @@ void prepare_input_meta_file(dr_metalib_builder_t builder, struct arg_file * met
     }
 }
 
+int validate_meta_entry_id(struct pom_tool_env * env) {
+    size_t meta_pos, meta_count;
+    int error_count = 0;
+
+    meta_count = dr_lib_meta_num(env->m_input_metalib);
+    for(meta_pos = 0; meta_pos < meta_count; ++meta_pos) {
+        size_t entry_pos, entry_count;
+        LPDRMETA meta = dr_lib_meta_at(env->m_input_metalib, meta_pos);
+
+        entry_count = dr_meta_entry_num(meta);
+        for(entry_pos = 0; entry_pos < entry_count; ++entry_pos) {
+            LPDRMETAENTRY entry = dr_meta_entry_at(meta, entry_pos);
+            if (dr_entry_id(entry) == -1) {
+                CPE_ERROR(env->m_em, "%s.%s id not set!", dr_meta_name(meta), dr_entry_name(entry));
+                ++error_count;
+            }
+        }
+    }
+
+    return error_count > 0 ? -1 : 0;
+}
+
 static int env_init_meta(
     struct pom_tool_env * env, 
     struct arg_file * pom_meta_file,
@@ -110,7 +132,8 @@ static int env_init_meta(
     struct arg_file * dr_meta_file,
     struct arg_file * dr_meta_group_root,
     struct arg_file * dr_meta_group,
-    struct arg_int  * dr_meta_align)
+    struct arg_int  * dr_meta_align,
+    struct arg_lit  * dr_meta_validate_entry_id)
 {
     dr_metalib_builder_t builder;
     int build_rv;
@@ -198,6 +221,8 @@ static int env_init_meta(
         }
     }
 
+    if (dr_meta_validate_entry_id->count && validate_meta_entry_id(env) != 0) return -1;
+
     return 0;
 }
 
@@ -210,13 +235,14 @@ int main(int argc, char * argv[]) {
     struct arg_file  * mk_clib_dr_group_root =     arg_file0(NULL, "dr-meta-group-root", NULL, "input dr meta group root");
     struct arg_file  * mk_clib_dr_group =     arg_file0(NULL, "dr-meta-group", NULL, "input dr meta group file");
     struct arg_int  * mk_clib_align =     arg_int0(NULL, "align", NULL,  "meta align");
+    struct arg_lit  * mk_clib_validate_entry_id =     arg_lit0(NULL, "validate-entry-id", "validate entry id");
     struct arg_int  * mk_clib_page_size =     arg_int1(NULL, "page-size", NULL, "object page size");
     struct arg_file  * mk_clib_o_file =     arg_file1(NULL, "output-lib-c", NULL, "output lib c file");
     struct arg_str  * mk_clib_o_argname =     arg_str1(NULL, "output-lib-c-arg", NULL, "output c value arg name");
     struct arg_end  * mk_clib_end = arg_end(20);
     void* mk_clib_argtable[] = { 
         mk_clib, mk_clib_from_pom_meta, mk_clib_from_dr_name, mk_clib_page_size,
-        mk_clib_dr_file, mk_clib_dr_group_root, mk_clib_dr_group, mk_clib_align,
+        mk_clib_dr_file, mk_clib_dr_group_root, mk_clib_dr_group, mk_clib_align, mk_clib_validate_entry_id,
         mk_clib_o_file, mk_clib_o_argname,
         mk_clib_end
     };
@@ -230,11 +256,12 @@ int main(int argc, char * argv[]) {
     struct arg_file  * metalib_xml_dr_group_root =     arg_file0(NULL, "dr-meta-group-root", NULL, "input dr meta group root");
     struct arg_file  * metalib_xml_dr_group =     arg_file0(NULL, "dr-meta-group", NULL, "input dr meta group file");
     struct arg_int  * metalib_xml_align =     arg_int0(NULL, "align", NULL,  "meta align");
+    struct arg_lit  * metalib_xml_validate_entry_id =     arg_lit0(NULL, "validate-entry-id", "validate entry id");
     struct arg_file  * metalib_xml_o_file =     arg_file1(NULL, "output-metalib-xml", NULL, "output metalib xml file");
     struct arg_end  * metalib_xml_end = arg_end(20);
     void* metalib_xml_argtable[] = { 
         metalib_xml, metalib_xml_from_pom_meta, metalib_xml_from_dr_name,
-        metalib_xml_dr_file, metalib_xml_dr_group_root, metalib_xml_dr_group, metalib_xml_align,
+        metalib_xml_dr_file, metalib_xml_dr_group_root, metalib_xml_dr_group, metalib_xml_align, metalib_xml_validate_entry_id,
         metalib_xml_o_file,
         metalib_xml_end
     };
@@ -248,11 +275,13 @@ int main(int argc, char * argv[]) {
     struct arg_file  * store_metalib_xml_dr_group_root =     arg_file0(NULL, "dr-meta-group-root", NULL, "input dr meta group root");
     struct arg_file  * store_metalib_xml_dr_group =     arg_file0(NULL, "dr-meta-group", NULL, "input dr meta group file");
     struct arg_int  * store_metalib_xml_align =     arg_int0(NULL, "align", NULL,  "meta align");
+    struct arg_lit  * store_metalib_xml_validate_entry_id =     arg_lit0(NULL, "validate-entry-id", "validate entry id");
     struct arg_file  * store_metalib_xml_o_file =     arg_file1(NULL, "output-metalib-xml", NULL, "output metalib xml file");
     struct arg_end  * store_metalib_xml_end = arg_end(20);
     void* store_metalib_xml_argtable[] = { 
         store_metalib_xml, store_metalib_xml_from_pom_meta, store_metalib_xml_from_dr_name,
-        store_metalib_xml_dr_file, store_metalib_xml_dr_group_root, store_metalib_xml_dr_group, store_metalib_xml_align,
+        store_metalib_xml_dr_file, store_metalib_xml_dr_group_root, store_metalib_xml_dr_group,
+        store_metalib_xml_align, store_metalib_xml_validate_entry_id,
         store_metalib_xml_o_file,
         store_metalib_xml_end
     };
@@ -266,13 +295,14 @@ int main(int argc, char * argv[]) {
     struct arg_file  * mk_hpp_dr_group_root =     arg_file0(NULL, "dr-meta-group-root", NULL, "input dr meta group root");
     struct arg_file  * mk_hpp_dr_group =     arg_file0(NULL, "dr-meta-group", NULL, "input dr meta group file");
     struct arg_int  * mk_hpp_align =     arg_int0(NULL, "align", NULL,  "meta align");
+    struct arg_lit  * mk_hpp_validate_entry_id =     arg_lit0(NULL, "validate-entry-id", "validate entry id");
     struct arg_file  * mk_hpp_o_file =     arg_file1(NULL, "output-hpp", NULL, "output hpp file");
     struct arg_str  * mk_hpp_o_classname =     arg_str1(NULL, "class-name", NULL, "output class name");
     struct arg_str  * mk_hpp_o_namespace =     arg_str0(NULL, "namespace", NULL, "output class namespace");
     struct arg_end  * mk_hpp_end = arg_end(20);
     void* mk_hpp_argtable[] = { 
         mk_hpp, mk_hpp_from_pom_meta, mk_hpp_from_dr_name, 
-        mk_hpp_dr_file, mk_hpp_dr_group_root, mk_hpp_dr_group, mk_hpp_align,
+        mk_hpp_dr_file, mk_hpp_dr_group_root, mk_hpp_dr_group, mk_hpp_align, mk_hpp_validate_entry_id,
         mk_hpp_o_file, mk_hpp_o_classname, mk_hpp_o_namespace,
         mk_hpp_end
     };
@@ -286,12 +316,13 @@ int main(int argc, char * argv[]) {
     struct arg_file  * shm_init_dr_group_root =     arg_file0(NULL, "dr-meta-group-root", NULL, "input dr meta group root");
     struct arg_file  * shm_init_dr_group =     arg_file0(NULL, "dr-meta-group", NULL, "input dr meta group file");
     struct arg_int  * shm_init_align =     arg_int0(NULL, "align", NULL,  "meta align");
+    struct arg_lit  * shm_init_validate_entry_id =     arg_lit0(NULL, "validate-entry-id", "validate entry id");
     struct arg_int  * shm_init_page_size =     arg_int1(NULL, "page-size", NULL, "object page size");
     struct arg_int  * shm_init_shm_key =     arg_int0(NULL, "shm-key", NULL, "shm key");
     struct arg_end  * shm_init_end = arg_end(20);
     void* shm_init_argtable[] = { 
         shm_init, shm_init_from_pom_meta, shm_init_from_dr_name, shm_init_page_size,
-        shm_init_dr_file, shm_init_dr_group_root, shm_init_dr_group, shm_init_align,
+        shm_init_dr_file, shm_init_dr_group_root, shm_init_dr_group, shm_init_align, shm_init_validate_entry_id,
         shm_init_shm_key,
         shm_init_end
     };
@@ -348,7 +379,8 @@ int main(int argc, char * argv[]) {
                 mk_clib_dr_file,
                 mk_clib_dr_group_root,
                 mk_clib_dr_group,
-                mk_clib_align) != 0)
+                mk_clib_align,
+                mk_clib_validate_entry_id) != 0)
         {
             rv = -1;
             goto EXIT;
@@ -365,7 +397,8 @@ int main(int argc, char * argv[]) {
                 metalib_xml_dr_file,
                 metalib_xml_dr_group_root,
                 metalib_xml_dr_group,
-                metalib_xml_align) != 0)
+                metalib_xml_align,
+                metalib_xml_validate_entry_id) != 0)
         {
             rv = -1;
             goto EXIT;
@@ -382,7 +415,8 @@ int main(int argc, char * argv[]) {
                 store_metalib_xml_dr_file,
                 store_metalib_xml_dr_group_root,
                 store_metalib_xml_dr_group,
-                store_metalib_xml_align) != 0)
+                store_metalib_xml_align,
+                store_metalib_xml_validate_entry_id) != 0)
         {
             rv = -1;
             goto EXIT;
@@ -401,7 +435,8 @@ int main(int argc, char * argv[]) {
                 mk_hpp_dr_file,
                 mk_hpp_dr_group_root,
                 mk_hpp_dr_group,
-                mk_hpp_align) != 0)
+                mk_hpp_align,
+                mk_hpp_validate_entry_id) != 0)
         {
             rv = -1;
             goto EXIT;
