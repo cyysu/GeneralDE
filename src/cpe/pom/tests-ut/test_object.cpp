@@ -4,6 +4,8 @@ TEST_F(MgrTest, object_alloc_basic) {
     CPE_HS_DEF_VAR(className, "class1");
     addClass("class1", 20);
 
+    t_em_set_print();
+
     pom_oid_t oid = obj_alloc(className);
     EXPECT_TRUE(oid != POM_INVALID_OID);
 

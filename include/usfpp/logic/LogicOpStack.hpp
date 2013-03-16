@@ -34,6 +34,23 @@ public:
     LogicOpData & copy(logic_data_t input);
 
     template<typename T>
+    LogicOpData & copy(T const & data) {
+        LogicOpData & r = checkCreateData(Cpe::Dr::MetaTraits<T>::META, Cpe::Dr::MetaTraits<T>::data_size(data));
+        memcpy(r.data(), &data, Cpe::Dr::MetaTraits<T>::data_size(data));
+        return r;
+    }
+
+    bool deleteData(const char * name)  {
+        if (logic_data_t r = logic_stack_data_find(*this, name)) {
+            logic_data_free(r);
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+
+    template<typename T>
     T & data(const char * name = Cpe::Dr::MetaTraits<T>::NAME) { return data(name).as<T>(); }
 
     template<typename T>
