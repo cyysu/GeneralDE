@@ -12,7 +12,7 @@ void * LogicOpDynData::record(size_t i) {
         APP_CTX_THROW_EXCEPTION(
             logic_manage_app(logic_data_mgr(m_data)),
             ::std::runtime_error,
-            "Tsf4wg::TCaplus::LogicOpDynData::recrd: get record at %d fail", (int)i);
+            "Usf::Logic::LogicOpDynData::recrd: get record at %d fail", (int)i);
     }
 
     return r;
@@ -26,7 +26,7 @@ void const * LogicOpDynData::record(size_t i) const {
         APP_CTX_THROW_EXCEPTION(
             logic_manage_app(logic_data_mgr(m_data)),
             ::std::runtime_error,
-            "Tsf4wg::TCaplus::LogicOpDynData::recrd: get record at %d fail", (int)i);
+            "Usf::Logic::LogicOpDynData::recrd: get record at %d fail", (int)i);
     }
 
     return r;
@@ -35,11 +35,22 @@ void const * LogicOpDynData::record(size_t i) const {
 void LogicOpDynData::recordRemove(size_t pos) {
     validate_data();
 
-    if (logic_data_record_remove(m_data, pos) != 0) {
+    if (logic_data_record_remove_by_pos(m_data, pos) != 0) {
         APP_CTX_THROW_EXCEPTION(
             logic_manage_app(logic_data_mgr(m_data)),
             ::std::runtime_error,
-            "Tsf4wg::TCaplus::LogicOpDynData::remove: remove at %d fail", (int)pos);
+            "Usf::Logic::LogicOpDynData::remove: remove at %d fail", (int)pos);
+    }
+}
+
+void LogicOpDynData::recordRemove(void const * p) {
+    validate_data();
+
+    if (logic_data_record_remove_by_ins(m_data, (void*)p) != 0) {
+        APP_CTX_THROW_EXCEPTION(
+            logic_manage_app(logic_data_mgr(m_data)),
+            ::std::runtime_error,
+            "Usf::Logic::LogicOpDynData::remove: remove %p fail", p);
     }
 }
 
@@ -51,7 +62,7 @@ void * LogicOpDynData::recordAppend(void) {
         APP_CTX_THROW_EXCEPTION(
             logic_manage_app(logic_data_mgr(m_data)),
             ::std::runtime_error,
-            "Tsf4wg::TCaplus::LogicOpDynData::append: fail");
+            "Usf::Logic::LogicOpDynData::append: fail");
     }
 
     return r;
