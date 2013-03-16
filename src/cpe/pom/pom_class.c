@@ -19,13 +19,13 @@ static int pom_class_init(struct pom_class * theClass, mem_allocrator_t alloc) {
 
     cpe_hash_entry_init(&theClass->m_hh);
 
-    if (cpe_range_mgr_init(&theClass->m_range_alloc, alloc) != 0) return -1;
+    if (cpe_urange_mgr_init(&theClass->m_urange_alloc, alloc) != 0) return -1;
 
     return 0;
 }
 
 static void pom_class_fini(struct pom_class * theClass) {
-    cpe_range_mgr_fini(&theClass->m_range_alloc);
+    cpe_urange_mgr_fini(&theClass->m_urange_alloc);
 }
 
 static void pom_class_mgr_classes_fini(struct pom_class_mgr * classMgr, int endPos) {
@@ -264,7 +264,7 @@ int pom_class_add_new_page(
     cpe_ba_set_all(alloc_arry, theClass->m_object_per_page, cpe_ba_false);
 
     newRangeStart = theClass->m_object_per_page * theClass->m_page_array_size;
-    cpe_range_put_range(&theClass->m_range_alloc, newRangeStart, newRangeStart + theClass->m_object_per_page);
+    cpe_urange_put_urange(&theClass->m_urange_alloc, newRangeStart, newRangeStart + theClass->m_object_per_page);
 
     theClass->m_page_array[theClass->m_page_array_size] = page;
     ++theClass->m_page_array_size;
@@ -288,20 +288,20 @@ int pom_class_add_old_page(
 
     assert(head->m_obj_per_page == theClass->m_object_per_page);
 
-    if (cpe_range_put_from_ba(
-            &theClass->m_range_alloc,
+    if (cpe_urange_put_from_ba(
+            &theClass->m_urange_alloc,
             alloc_arry,
             head->m_obj_per_page * theClass->m_page_array_size,
             theClass->m_object_per_page,
             cpe_ba_false) != 0)
     {
         size_t i;
-        CPE_ERROR_EX(em, pom_no_memory, "alloc page range no memory!");
+        CPE_ERROR_EX(em, pom_no_memory, "alloc page urange no memory!");
 
-        cpe_range_mgr_clear(&theClass->m_range_alloc);
+        cpe_urange_mgr_clear(&theClass->m_urange_alloc);
         for(i = 0; i < theClass->m_page_array_size; ++i) {
-            cpe_range_put_from_ba(
-                &theClass->m_range_alloc,
+            cpe_urange_put_from_ba(
+                &theClass->m_urange_alloc,
                 pom_class_ba_of_page(theClass->m_page_array[i]),
                 theClass->m_object_per_page * i,
                 theClass->m_object_per_page,
@@ -320,12 +320,11 @@ int pom_class_add_old_page(
 
 int32_t
 pom_class_alloc_object(struct pom_class * theClass) {
-    int32_t r;
+    ptr_uint_t r;
 
     assert(theClass);
 
-    r = cpe_range_get_one(&theClass->m_range_alloc);
-    if (r >= 0) {
+    if (cpe_urange_get_one(&theClass->m_urange_alloc, &r) == 0) {
         cpe_ba_t alloc_arry;
         int32_t pagePos;
 
@@ -336,9 +335,12 @@ pom_class_alloc_object(struct pom_class * theClass) {
 
         assert(cpe_ba_get(alloc_arry, r % theClass->m_object_per_page) == cpe_ba_false);
         cpe_ba_set(alloc_arry, r % theClass->m_object_per_page, cpe_ba_true);
-    }
 
-    return r;
+        return (int32_t)r;
+    }
+    else {
+        return -1;
+    }
 }
 
 void pom_class_free_object(struct pom_class * theClass, int32_t oid, error_monitor_t em) {
@@ -357,8 +359,8 @@ void pom_class_free_object(struct pom_class * theClass, int32_t oid, error_monit
         return;
     }
 
-    if (cpe_range_put_one(&theClass->m_range_alloc, oid) != 0) {
-        CPE_ERROR_EX(em, pom_no_memory, "no memory: free to range fail!")
+    if (cpe_urange_put_one(&theClass->m_urange_alloc, oid) != 0) {
+        CPE_ERROR_EX(em, pom_no_memory, "no memory: free to urange fail!")
         return;
     }
 

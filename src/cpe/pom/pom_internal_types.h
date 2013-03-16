@@ -15,9 +15,9 @@ struct pom_buffer_mgr {
     void * m_backend_ctx;
     size_t m_page_size;
     size_t m_buf_size;
-    struct cpe_range_mgr m_free_pages;
-    struct cpe_range_mgr m_buffers;
-    struct cpe_range_mgr m_buffer_ids;
+    struct cpe_urange_mgr m_free_pages;
+    struct cpe_urange_mgr m_buffers;
+    struct cpe_urange_mgr m_buffer_ids;
 };
 
 #define POM_CLASS_BUF_LEN (POM_MAX_TYPE_COUNT + 1)
@@ -29,7 +29,7 @@ struct pom_class {
     char m_name_buf[cpe_hs_len_to_binary_len(POM_MAX_TYPENAME_LEN)];
     cpe_hash_string_t m_name;
     struct cpe_hash_entry m_hh;
-    struct cpe_range_mgr m_range_alloc;
+    struct cpe_urange_mgr m_urange_alloc;
     mem_allocrator_t m_alloc;
     size_t m_object_size;
 

@@ -17,6 +17,8 @@ struct bpg_bind_manage {
     error_monitor_t m_em;
     bpg_pkg_manage_t m_pkg_manage;
 
+    uint32_t m_cmd_kickoff;
+
     dp_rsp_t m_incoming_recv_at;
     bpg_pkg_dsp_t m_incoming_send_to;
 
