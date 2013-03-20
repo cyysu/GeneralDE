@@ -107,7 +107,7 @@ Cpe::Dr::Data CliProxy::dataBuf(void) {
     return Cpe::Dr::Data(buf, bpg_cli_proxy_buf_capacity(*this));
 }
 
-void CliProxy::send(Usf::Logic::LogicOpRequire & require, Usf::Bpg::Package & pkg) {
+void CliProxy::send(logic_require_t require, Usf::Bpg::Package & pkg) {
     if (bpg_cli_proxy_send(*this, require, pkg) != 0) {
         APP_CTX_THROW_EXCEPTION(
             app(), ::std::runtime_error,
@@ -115,7 +115,7 @@ void CliProxy::send(Usf::Logic::LogicOpRequire & require, Usf::Bpg::Package & pk
     }
 }
 
-void CliProxy::send(Usf::Logic::LogicOpRequire & require, Cpe::Dr::Data const & data) {
+void CliProxy::send(logic_require_t require, Cpe::Dr::Data const & data) {
     Usf::Bpg::Package & pkg = pkgBuf() ;
     pkg.clearData();
     pkg.setErrCode(0);
@@ -123,7 +123,7 @@ void CliProxy::send(Usf::Logic::LogicOpRequire & require, Cpe::Dr::Data const & 
     send(require, pkg);
 }
 
-void CliProxy::send(Usf::Logic::LogicOpRequire & require, const char * metaName, void const * data, size_t size) {
+void CliProxy::send(logic_require_t require, const char * metaName, void const * data, size_t size) {
     Usf::Bpg::Package & pkg = pkgBuf() ;
     pkg.clearData();
     pkg.setErrCode(0);
@@ -131,7 +131,7 @@ void CliProxy::send(Usf::Logic::LogicOpRequire & require, const char * metaName,
     send(require, pkg);
 }
 
-void CliProxy::send(Usf::Logic::LogicOpRequire & require, LPDRMETA meta, void const * data, size_t size) {
+void CliProxy::send(logic_require_t require, LPDRMETA meta, void const * data, size_t size) {
     Usf::Bpg::Package & pkg = pkgBuf() ;
     pkg.clearData();
     pkg.setErrCode(0);
@@ -139,7 +139,7 @@ void CliProxy::send(Usf::Logic::LogicOpRequire & require, LPDRMETA meta, void co
     send(require, pkg);
 }
 
-void CliProxy::send(Usf::Logic::LogicOpRequire & require, uint32_t cmd) {
+void CliProxy::send(logic_require_t require, uint32_t cmd) {
     Usf::Bpg::Package & pkg = pkgBuf() ;
     pkg.clearData();
     pkg.setErrCode(0);
