@@ -1,7 +1,4 @@
 #include <assert.h>
-#if ! defined _MSC_VER
-#include <execinfo.h>
-#endif
 #include "cpe/pal/pal_strings.h"
 #include "cpe/pal/pal_stdio.h"
 #include "cpe/tl/tl_action.h"
