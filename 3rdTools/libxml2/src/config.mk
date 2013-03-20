@@ -3,6 +3,7 @@ $(product).type:=lib
 $(product).depends:=iconv zlib
 $(product).version:=2.7.8
 $(product).product.c.includes:=3rdTools/libxml2/include
+$(product).product.c.env-includes:=3rdTools/libxml2/include
 
 $(product).c.sources := $(addprefix $(product-base)/, \
                    SAX.c \
