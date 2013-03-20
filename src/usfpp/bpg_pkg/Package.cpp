@@ -61,6 +61,11 @@ void Package::setCmdAndData(Cpe::Dr::ConstData const & data) {
     setMainData(data.data(), data.capacity());
 }
 
+void Package::setCmdAndData(Cpe::Dr::Data const & data) {
+    setCmd(mgr().cmdFromMetaName(data.meta().name()));
+    setMainData(data.data(), data.capacity());
+}
+
 void Package::setCmdAndData(Cpe::Dr::ConstData const & data, size_t size) {
     setCmd(mgr().cmdFromMetaName(data.meta().name()));
     setMainData(data.data(), size);
