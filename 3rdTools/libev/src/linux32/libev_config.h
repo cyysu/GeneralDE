@@ -5,7 +5,7 @@
 /* #undef HAVE_CLOCK_GETTIME */
 
 /* "use syscall interface for clock_gettime" */
-#define HAVE_CLOCK_SYSCALL 1
+/* #define HAVE_CLOCK_SYSCALL 1*/
 
 /* Define to 1 if you have the <dlfcn.h> header file. */
 #define HAVE_DLFCN_H 1
@@ -50,7 +50,7 @@
 /* #undef HAVE_PORT_H */
 
 /* Define to 1 if you have the `select' function. */
-#define HAVE_SELECT 1
+#define HAVE_SELECT 0
 
 /* Define to 1 if you have the `signalfd' function. */
 /* #undef HAVE_SIGNALFD */
