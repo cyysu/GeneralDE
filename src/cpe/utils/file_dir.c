@@ -1,6 +1,10 @@
 #include "cpe/pal/pal_string.h"
 #include "file_internal.h"
 
+#ifndef MAXNAMLEN
+#	define MAXNAMLEN 256
+#endif
+
 int dir_mk_recursion(const char * path, mode_t mode, error_monitor_t em, mem_allocrator_t talloc) {
     size_t path_len = strlen(path) + 1;
     char * path_buf = (char *)mem_alloc(talloc, path_len);
@@ -66,7 +70,7 @@ int dir_rm_recursion(const char * path, error_monitor_t em, mem_allocrator_t tal
         }
         strncpy(subPath + pathSize + 1, dp->d_name, MAXNAMLEN);
 
-        if (S_ISDIR(DTTOIF(dp->d_type))) {
+        if (dp->d_type == DT_DIR) {
             rv = dir_rm_recursion(subPath, em, talloc);
         }
         else {

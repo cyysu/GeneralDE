@@ -260,8 +260,8 @@ int logic_data_record_remove_by_pos(logic_data_t data, size_t pos) {
     buf = logic_data_data(data);
     if (pos + 1 < record_count) {
         memmove(
-            buf + record_size * pos,
-            buf + record_size * (pos + 1),
+            buf + dyn_info.m_refer_start + record_size * pos,
+            buf + dyn_info.m_refer_start + record_size * (pos + 1),
             record_size * (record_count - pos - 1)); 
     }
 

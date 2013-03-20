@@ -28,6 +28,7 @@ static int bpg_pkg_manage_app_validate_meta(gd_app_context_t app, gd_app_module_
 static int bpg_pkg_manage_app_load_meta(gd_app_context_t app, gd_app_module_t module, bpg_pkg_manage_t mgr, cfg_t cfg) {
     const char * arg;
     cfg_t cmd_meta_cfg;
+    LPDRMETALIB metalib;
 
     if ((arg = cfg_get_string(cfg, "lib-name", NULL))) {
         if (bpg_pkg_manage_set_data_metalib(mgr, arg) != 0) {
@@ -41,6 +42,14 @@ static int bpg_pkg_manage_app_load_meta(gd_app_context_t app, gd_app_module_t mo
         CPE_ERROR(
             gd_app_em(app), "%s: load meta info: lib-name not configured!",
             bpg_pkg_manage_name(mgr));
+        return -1;
+    }
+
+    metalib = bpg_pkg_manage_data_metalib(mgr);
+    if (metalib == NULL) {
+        CPE_ERROR(
+            gd_app_em(app), "%s: load meta info: no meta lib!",
+            gd_app_module_name(module));
         return -1;
     }
 
@@ -91,6 +100,8 @@ static int bpg_pkg_manage_app_load_meta(gd_app_context_t app, gd_app_module_t mo
         cfg_it_init(&it, cmd_meta_cfg);
 
         while((child_cfg = cfg_it_next(&it))) {
+            int cmd;
+
             child_cfg = cfg_child_only(child_cfg);
             if (child_cfg == NULL) {
                 CPE_ERROR(
@@ -99,10 +110,28 @@ static int bpg_pkg_manage_app_load_meta(gd_app_context_t app, gd_app_module_t mo
                 return -1;
             }
 
-            if (bpg_pkg_manage_add_cmd(mgr, cfg_as_uint32(child_cfg, 0), cfg_name(child_cfg))) {
+            cmd = cfg_as_uint32(child_cfg, 0);
+            if (cmd == 0) {
+                const char * cmd_name = cfg_as_string(child_cfg, NULL);
+                if (cmd_name == NULL) {
+                    CPE_ERROR(
+                        gd_app_em(app), "%s: load meta info: add cmd: read cmd fail, not int or string!",
+                        gd_app_module_name(module));
+                    return -1;
+                }
+
+                if (dr_lib_find_macro_value(&cmd, metalib, cmd_name) != 0) {
+                    CPE_ERROR(
+                        gd_app_em(app), "%s: load meta info: add cmd: read value of cmd %s fail!",
+                        gd_app_module_name(module), cmd_name);
+                    return -1;
+                }
+            }
+
+            if (bpg_pkg_manage_add_cmd(mgr, cmd, cfg_name(child_cfg))) {
                 CPE_ERROR(
-                    gd_app_em(app), "%s: load meta info: add cmd fail!",
-                    gd_app_module_name(module));
+                    gd_app_em(app), "%s: load meta info: add cmd %d ==> %s fail!",
+                    gd_app_module_name(module), cmd, cfg_name(child_cfg));
                 return -1;
             }
         }
