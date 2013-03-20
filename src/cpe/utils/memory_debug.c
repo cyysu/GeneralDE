@@ -1,5 +1,5 @@
 #include <assert.h>
-#if ! defined _MSC_VER
+#if defined CPE_HAVE_EXECINFO_H
 #include <execinfo.h>
 #endif
 #include <cpe/pal/pal_stdlib.h>
@@ -65,7 +65,7 @@ static void * do_debug_allocrator_alloc(size_t size, struct mem_allocrator * all
 
     alloc_info->m_addr = r;
     alloc_info->m_size = size;
-#if ! defined _MSC_VER
+#if defined CPE_HAVE_EXECINFO_H
     alloc_info->m_stack_size = backtrace((void**)(alloc_info + 1), dalloc->m_stack_size);
 #endif
     cpe_hash_entry_init(&alloc_info->m_hh);
@@ -204,7 +204,7 @@ void mem_allocrator_debug_dump(write_stream_t stream, int ident, mem_allocrator_
         stream_putc_count(stream, ' ', ident);
         stream_printf(stream, "address: %p, size: %d\n", info->m_addr, info->m_size);
 
-#if ! defined _MSC_VER
+#if defined CPE_HAVE_EXECINFO_H
         if (info->m_stack_size) {
             char ** symbols = backtrace_symbols((void **)(info + 1), info->m_stack_size);
             if (symbols) {
