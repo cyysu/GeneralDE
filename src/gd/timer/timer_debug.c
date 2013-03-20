@@ -1,6 +1,6 @@
 #include <stdlib.h>
 #include <assert.h>
-#if ! defined _MSC_VER
+#if defined CPE_HAVE_EXECINFO_H
 #include <execinfo.h>
 #endif
 #include "cpe/pal/pal_stdio.h"
@@ -27,7 +27,7 @@ void gd_alloc_info_add(gd_timer_mgr_t mgr, gd_timer_id_t id) {
     if (alloc_info == NULL) {
         size_t alloc_size = sizeof(struct gd_timer_alloc_info);
 
-#if ! defined _MSC_VER
+#if defined CPE_HAVE_EXECINFO_H
         alloc_size += sizeof(void*) * GD_TIMER_STACK_SIZE;
 #endif
 
@@ -47,7 +47,7 @@ void gd_alloc_info_add(gd_timer_mgr_t mgr, gd_timer_id_t id) {
 
     if (alloc_info->m_is_free != 1) {
         fprintf(stderr, "timer id %d is already allocked\n", id);
-#if ! defined _MSC_VER
+#if defined CPE_HAVE_EXECINFO_H
         fprintf(stderr, "   alloc from\n");
         if (alloc_info->m_stack_size) {
             char ** symbols;
@@ -68,7 +68,7 @@ void gd_alloc_info_add(gd_timer_mgr_t mgr, gd_timer_id_t id) {
     assert(alloc_info->m_timer_id == id);
     alloc_info->m_is_free = 0;
 
-#if ! defined _MSC_VER
+#if defined CPE_HAVE_EXECINFO_H
     alloc_info->m_stack_size = backtrace((void**)(alloc_info + 1), GD_TIMER_STACK_SIZE);
 #endif
 
@@ -89,7 +89,7 @@ void gd_alloc_info_remove(gd_timer_mgr_t mgr, gd_timer_id_t id) {
 
     if (alloc_info->m_is_free == 1) {
         fprintf(stderr, "timer id %d is already removed\n", id);
-#if ! defined _MSC_VER
+#if defined CPE_HAVE_EXECINFO_H
         fprintf(stderr, "   remove from\n");
         if (alloc_info->m_stack_size) {
             char ** symbols;
@@ -110,7 +110,7 @@ void gd_alloc_info_remove(gd_timer_mgr_t mgr, gd_timer_id_t id) {
     assert(alloc_info->m_timer_id == id);
     alloc_info->m_is_free = 1;
 
-#if ! defined _MSC_VER
+#if defined CPE_HAVE_EXECINFO_H
     alloc_info->m_stack_size = backtrace((void**)(alloc_info + 1), GD_TIMER_STACK_SIZE);
 #endif
 }

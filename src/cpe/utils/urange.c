@@ -1,7 +1,7 @@
 #include <assert.h>
 #include <stdio.h>
 #include <string.h>
-#if ! defined _MSC_VER
+#if defined CPE_HAVE_EXECINFO_H
 #include <execinfo.h>
 #endif
 #include "cpe/pal/pal_stdlib.h"
@@ -416,7 +416,7 @@ void cpe_urange_alloc_info_add(cpe_urange_mgr_t ra, ptr_uint_t id) {
         cpe_urange_mgr_dump((write_stream_t)&ws, ra);
         fprintf(stderr, "\n");
 
-#if ! defined _MSC_VER
+#if defined CPE_HAVE_EXECINFO_H
         fprintf(stderr, "   alloc from\n");
         if (alloc_info->m_stack_size) {
             char ** symbols;
@@ -437,7 +437,7 @@ void cpe_urange_alloc_info_add(cpe_urange_mgr_t ra, ptr_uint_t id) {
     assert(alloc_info->m_value == id);
     alloc_info->m_is_free = 0;
 
-#if ! defined _MSC_VER
+#if defined CPE_HAVE_EXECINFO_H
     alloc_info->m_stack_size = backtrace((void**)(alloc_info + 1), CPE_RANGE_DEBUG_STACK_SIZE);
 #endif
 }
@@ -452,7 +452,7 @@ void cpe_urange_alloc_info_put(cpe_urange_mgr_t ra, ptr_uint_t id) {
     if (alloc_info == NULL) {
         size_t alloc_size = sizeof(struct cpe_urange_alloc_info);
 
-#if ! defined _MSC_VER
+#if defined CPE_HAVE_EXECINFO_H
         alloc_size += sizeof(void*) * CPE_RANGE_DEBUG_STACK_SIZE;
 #endif
 
@@ -477,7 +477,7 @@ void cpe_urange_alloc_info_put(cpe_urange_mgr_t ra, ptr_uint_t id) {
         cpe_urange_mgr_dump((write_stream_t)&ws, ra);
         fprintf(stderr, "\n");
 
-#if ! defined _MSC_VER
+#if defined CPE_HAVE_EXECINFO_H
         fprintf(stderr, "   put from\n");
         if (alloc_info->m_stack_size) {
             char ** symbols;
@@ -498,7 +498,7 @@ void cpe_urange_alloc_info_put(cpe_urange_mgr_t ra, ptr_uint_t id) {
     assert(alloc_info->m_value == id);
     alloc_info->m_is_free = 1;
 
-#if ! defined _MSC_VER
+#if defined CPE_HAVE_EXECINFO_H
     alloc_info->m_stack_size = backtrace((void**)(alloc_info + 1), CPE_RANGE_DEBUG_STACK_SIZE);
 #endif
 }

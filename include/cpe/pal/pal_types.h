@@ -10,10 +10,6 @@
 #include <wchar.h>
 #include <limits.h>
 
-#if _MSC_VER >= 1400
-#  include <crtdefs.h>
-#endif
-
 #endif
 
 #ifdef WIN32
