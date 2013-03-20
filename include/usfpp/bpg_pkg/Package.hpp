@@ -50,6 +50,7 @@ public:
 
     /*main data and cmd write*/
     void setCmdAndData(Cpe::Dr::ConstData const & data);
+    void setCmdAndData(Cpe::Dr::Data const & data);
     void setCmdAndData(Cpe::Dr::ConstData const & data, size_t size);
     void setCmdAndData(int cmd, const void * data, size_t data_size);
     void setCmdAndData(const char * meta_name, const void * data, size_t data_size);
@@ -57,6 +58,9 @@ public:
 
     template<typename T>
     void setCmdAndData(int cmd, T const & data) { setCmdAndData(cmd, &data, sizeof(data)); }
+
+    template<typename T>
+    void setCmdAndData(T const & data) { setCmdAndData(Cpe::Dr::MetaTraits<T>::META, &data, Cpe::Dr::MetaTraits<T>::data_size(data)); }
 
     /*main data read*/
     Cpe::Dr::Meta const & mainDataMeta(void) const;
@@ -66,14 +70,14 @@ public:
     void const * mainData(void) const { return bpg_pkg_main_data(*this); }
 
     template<typename T>
-    void mainData(T & buf) { mainData(&buf, Cpe::Dr::MetaTraits<T>::size_of(buf)); }
+    void mainData(T & buf) { mainData(&buf, Cpe::Dr::MetaTraits<T>::data_size(buf)); }
     void mainData(Cpe::Dr::Data & data);
 
     /*main data write*/
     void setMainData(void const * data, size_t size);
 
     template<typename T>
-    void setMainData(T const & data) { setMainData(&data, Cpe::Dr::MetaTraits<T>::size_of(data)); }
+    void setMainData(T const & data) { setMainData(&data, Cpe::Dr::MetaTraits<T>::data_size(data)); }
 
     /*append data read*/
     int32_t appendInfoCount(void) const { return bpg_pkg_append_info_count(*this); }
@@ -112,6 +116,11 @@ public:
     template<typename T>
     void addAppendData(int metaId, T const & data) {
         addAppendData(metaId, (void const *)&data, Cpe::Dr::MetaTraits<T>::data_size(data));
+    }
+
+    template<typename T>
+    void addAppendData(T const & data) {
+        addAppendData(Cpe::Dr::MetaTraits<T>::META, (void const *)&data, Cpe::Dr::MetaTraits<T>::data_size(data));
     }
 
     /*other op*/
