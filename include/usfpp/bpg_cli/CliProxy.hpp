@@ -5,6 +5,7 @@
 #include "cpepp/dr/Data.hpp"
 #include "gdpp/app/Application.hpp"
 #include "usf/bpg_cli/bpg_cli_proxy.h"
+#include "usfpp/logic/LogicOpRequire.hpp"
 #include "System.hpp"
 
 #ifdef _MSC_VER
@@ -35,19 +36,19 @@ public:
     Cpe::Dr::Data dataBuf(void);
     Usf::Bpg::Package & pkgBuf(void);
 
-    void send(Usf::Logic::LogicOpRequire & requrest, Usf::Bpg::Package & pkg);
-    void send(Usf::Logic::LogicOpRequire & requrest, Cpe::Dr::Data const & data);
-    void send(Usf::Logic::LogicOpRequire & requrest, const char * metaName, void const * data, size_t size);
-    void send(Usf::Logic::LogicOpRequire & requrest, LPDRMETA meta, void const * data, size_t size);
-    void send(Usf::Logic::LogicOpRequire & requrest, uint32_t cmd);
+    void send(logic_require_t requrest, Usf::Bpg::Package & pkg);
+    void send(logic_require_t requrest, Cpe::Dr::Data const & data);
+    void send(logic_require_t requrest, const char * metaName, void const * data, size_t size);
+    void send(logic_require_t requrest, LPDRMETA meta, void const * data, size_t size);
+    void send(logic_require_t requrest, uint32_t cmd);
 
     template<typename T>
-    void send(Usf::Logic::LogicOpRequire & requrest, T const & data, const char * metaName = Cpe::Dr::MetaTraits<T>::NAME) {
+    void send(logic_require_t requrest, T const & data, const char * metaName = Cpe::Dr::MetaTraits<T>::NAME) {
         send(requrest, metaName, &data, Cpe::Dr::MetaTraits<T>::data_size(data));
     }
 
     template<typename T>
-    void send(Usf::Logic::LogicOpRequire & requrest, LPDRMETA meta, T const & data) {
+    void send(logic_require_t requrest, LPDRMETA meta, T const & data) {
         send(requrest, meta, &data, Cpe::Dr::MetaTraits<T>::data_size(data));
     }
 
