@@ -5,12 +5,23 @@
 
 static int pom_grp_meta_build_from_meta_entry_normal(pom_grp_meta_t meta, LPDRMETAENTRY entry, error_monitor_t em) {
     LPDRMETA data_meta;
+    size_t blob_size;
 
     data_meta = dr_entry_ref_meta(entry);
     if (data_meta == NULL) {
         CPE_ERROR(
             em, "pom_grp_meta_build_from_meta: entry %s: entry-normal meta not exist!",
             dr_entry_name(entry));
+        return -1;
+    }
+
+    blob_size = pom_grp_omm_page_size(meta);
+    if (blob_size > (size_t)USHRT_MAX) blob_size = USHRT_MAX;
+
+    if (dr_meta_size(data_meta) > blob_size) {
+        CPE_ERROR(
+            em, "pom_grp_meta_build_from_meta: entry %s: size %d overflow, max blob size is %d!",
+            dr_entry_name(entry), (int)dr_meta_size(data_meta), (int)blob_size);
         return -1;
     }
 
@@ -29,6 +40,7 @@ static int pom_grp_meta_build_from_meta_entry_list(pom_grp_meta_t meta, LPDRMETA
     int list_count;
     int group_count;
     int standalone;
+    size_t blob_size;
 
     data_meta = dr_entry_ref_meta(entry);
     if (data_meta == NULL) {
@@ -46,7 +58,17 @@ static int pom_grp_meta_build_from_meta_entry_list(pom_grp_meta_t meta, LPDRMETA
         return -1;
     }
 
-    group_count = pom_grp_omm_page_size(meta) / dr_meta_size(data_meta);
+    blob_size = pom_grp_omm_page_size(meta);
+    if (blob_size > (size_t)USHRT_MAX) blob_size = USHRT_MAX;
+
+    if (dr_meta_size(data_meta) > blob_size) {
+        CPE_ERROR(
+            em, "pom_grp_meta_build_from_meta: entry %s: size %d overflow, max blob size is %d!",
+            dr_entry_name(entry), (int)dr_meta_size(data_meta), (int)blob_size);
+        return -1;
+    }
+
+    group_count = blob_size / dr_meta_size(data_meta);
     if (group_count > list_count) { 
         group_count = list_count;
     }
@@ -70,9 +92,13 @@ static int pom_grp_meta_build_from_meta_entry_list(pom_grp_meta_t meta, LPDRMETA
 static int pom_grp_meta_build_from_meta_entry_ba(pom_grp_meta_t meta, LPDRMETAENTRY entry, error_monitor_t em) {
     int bit_capacity;
     int byte_per_page;
+    size_t blob_size;
 
     byte_per_page = dr_entry_size(entry);
     bit_capacity = byte_per_page * 8;
+
+    blob_size = pom_grp_omm_page_size(meta);
+    if (blob_size > (size_t)USHRT_MAX) blob_size = USHRT_MAX;
 
     if (pom_grp_entry_meta_ba_create(meta, dr_entry_name(entry), byte_per_page, bit_capacity, em) == NULL) {
         CPE_ERROR(
