@@ -201,7 +201,7 @@ static int env_init_meta(
             return -1;
         }
 
-        env->m_pom_grp_meta = pom_grp_meta_build_from_cfg(NULL, (page_size && page_size->count) ? page_size->ival[0] : 1024, cfg_child_only(env->m_pom_cfg), env->m_input_metalib, env->m_em);
+        env->m_pom_grp_meta = pom_grp_meta_build_from_cfg(NULL, (page_size && page_size->count) ? page_size->ival[0] : USHRT_MAX, cfg_child_only(env->m_pom_cfg), env->m_input_metalib, env->m_em);
         if (env->m_pom_grp_meta == NULL) {
             CPE_ERROR(env->m_em, "create pom meta from %s fail!", pom_meta_file->filename[0]);
             return -1;
@@ -214,7 +214,7 @@ static int env_init_meta(
             return -1;
         }
 
-        env->m_pom_grp_meta = pom_grp_meta_build_from_meta(NULL, (page_size && page_size->count) ? page_size->ival[0] : 1024, dr_meta, env->m_em);
+        env->m_pom_grp_meta = pom_grp_meta_build_from_meta(NULL, (page_size && page_size->count) ? page_size->ival[0] : USHRT_MAX, dr_meta, env->m_em);
         if (env->m_pom_grp_meta == NULL) {
             CPE_ERROR(env->m_em, "create pom meta from %s fail!", pom_meta_file->filename[0]);
             return -1;
