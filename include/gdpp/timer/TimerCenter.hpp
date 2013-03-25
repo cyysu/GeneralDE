@@ -63,7 +63,7 @@ public:
 
     static TimerCenter & instance(gd_app_context_t app, const char * name = NULL);
     static TimerCenter & _cast(gd_timer_mgr_t evm);
-};	
+};
 
 }}
 
