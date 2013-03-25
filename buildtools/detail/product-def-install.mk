@@ -40,6 +40,7 @@ $3: $2
 	$(call with_message,copy $(subst $(CPDE_ROOT)/,,$2) to $(subst $(CPDE_OUTPUT_ROOT)/,,$3) ...)\
          cp $$< $$@
 
+$(eval r.$1.$4.installed-files += $3)
 $(eval r.$1.cleanup += $3)
 
 endef
@@ -56,6 +57,7 @@ $3: $2 $(call tools.cvt.$(strip $4).dep,$5)
 	$(call with_message,convert $(subst $(CPDE_ROOT)/,,$2) to $(subst $(CPDE_OUTPUT_ROOT)/,,$3) ...)\
           $(call tools.cvt.$(strip $4).cmd,$5)
 
+$(eval r.$1.$4.installed-files += $3)
 $(eval r.$1.cleanup += $3)
 
 endef
