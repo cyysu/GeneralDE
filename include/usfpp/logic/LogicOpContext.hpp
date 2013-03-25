@@ -61,6 +61,8 @@ public:
     LogicOpData & checkCreateData(LPDRMETA meta, size_t capacity = 0);
     LogicOpData & copy(logic_data_t input);
 
+    LogicOpData & copy(LogicOpData const & input) { return copy((logic_data_t)input); }
+
     template<typename T>
     LogicOpData & copy(T const & data) {
         LogicOpData & r = checkCreateData(Cpe::Dr::MetaTraits<T>::META, Cpe::Dr::MetaTraits<T>::data_size(data));

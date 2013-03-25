@@ -201,7 +201,7 @@ int cpe_urange_is_conflict(cpe_urange_mgr_t ra, ptr_uint_t start, ptr_uint_t end
 
     assert(ra);
 
-    if (start < 0 || end <= 0 || end < start) return 0;
+    if (end <= 0 || end < start) return 0;
     if (end == start) return 0;
     if (ra->m_urange_count == 0) return 0;
 
@@ -218,7 +218,7 @@ int cpe_urange_is_conflict(cpe_urange_mgr_t ra, ptr_uint_t start, ptr_uint_t end
 }
 
 int cpe_urange_put_urange(cpe_urange_mgr_t ra, ptr_uint_t start, ptr_uint_t end) {
-    if (start < 0 || end <= 0 || end < start) return -1;
+    if (end <= 0 || end < start) return -1;
     if (end == start) return 0;
 
     assert(ra);
