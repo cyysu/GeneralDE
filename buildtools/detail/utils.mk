@@ -25,6 +25,8 @@ ifneq ($(MAKE_SILENCE),1)
   define with_message
     @$(if $1,echo ">>> $1" &&, )
   endef
+
+  CPE_SILENCE_TAG:=@
 endif
 
 ifeq ($(MAKEFILE_DEBUG),1)
