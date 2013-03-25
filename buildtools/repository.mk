@@ -20,6 +20,7 @@ include $(wildcard $(CPDE_BUILD_DETAIL_DIR)/dev-env-*.mk)
 
 include $(CPDE_BUILD_DETAIL_DIR)/defaults.mk
 include $(wildcard $(CPDE_BUILD_DETAIL_DIR)/support-*.mk)
+include $(CPDE_BUILD_DETAIL_DIR)/post-commands.mk
 include $(CPDE_BUILD_DETAIL_DIR)/product-def.mk
 include $(wildcard $(CPDE_BUILD_DETAIL_DIR)/product-def-*.mk)
 include $(CPDE_BUILD_DETAIL_DIR)/gtest-def.mk
@@ -37,5 +38,6 @@ ifneq ($(CPE_NO_DEP),1)
 	$(foreach p,$($(d).product-list), $(r.$p.$d.makefile.include)))
 endif
 
-include $(CPDE_BUILD_DETAIL_DIR)/create-dirs.mk
+$(eval $(call post-commands-execute))
 
+include $(CPDE_BUILD_DETAIL_DIR)/create-dirs.mk
