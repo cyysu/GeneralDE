@@ -100,8 +100,9 @@ static int dr_bson_read_stack_init(
         int32_t v;                                                      \
         dr_bson_read_check_capacity(4);                                 \
         CPE_COPY_HTON32(&v, curStack->m_input_data + curStack->m_input_pos); \
-        write_buf = dr_bson_read_get_write_pos(&ctx, curStack, dr_bson_read_start_pos(), element_size); \
-        dr_entry_set_from_int32(write_buf, v, entry, em);               \
+        if ((write_buf = dr_bson_read_get_write_pos(&ctx, curStack, dr_bson_read_start_pos(), element_size))) { \
+            dr_entry_set_from_int32(write_buf, v, entry, em);           \
+        }                                                               \
         curStack->m_input_pos += 4;                                     \
     } while(0)
 
@@ -110,8 +111,9 @@ static int dr_bson_read_stack_init(
         uint32_t v;                                                      \
         dr_bson_read_check_capacity(4);                                 \
         CPE_COPY_HTON32(&v, curStack->m_input_data + curStack->m_input_pos); \
-        write_buf = dr_bson_read_get_write_pos(&ctx, curStack, dr_bson_read_start_pos(), element_size); \
-        dr_entry_set_from_uint32(write_buf, v, entry, em);               \
+        if ((write_buf = dr_bson_read_get_write_pos(&ctx, curStack, dr_bson_read_start_pos(), element_size))) {  \
+            dr_entry_set_from_uint32(write_buf, v, entry, em);          \
+        }                                                               \
         curStack->m_input_pos += 4;                                     \
     } while(0)
 
@@ -120,8 +122,9 @@ static int dr_bson_read_stack_init(
         int64_t v;                                                      \
         dr_bson_read_check_capacity(8);                                 \
         CPE_COPY_HTON64(&v, curStack->m_input_data + curStack->m_input_pos); \
-        write_buf = dr_bson_read_get_write_pos(&ctx, curStack, dr_bson_read_start_pos(), element_size); \
-        dr_entry_set_from_int64(write_buf, v, entry, em);               \
+        if ((write_buf = dr_bson_read_get_write_pos(&ctx, curStack, dr_bson_read_start_pos(), element_size))) { \
+            dr_entry_set_from_int64(write_buf, v, entry, em);           \
+        }                                                               \
         curStack->m_input_pos += 8;                                     \
     } while(0)
 
@@ -130,8 +133,9 @@ static int dr_bson_read_stack_init(
         uint64_t v;                                                      \
         dr_bson_read_check_capacity(8);                                 \
         CPE_COPY_HTON64(&v, curStack->m_input_data + curStack->m_input_pos); \
-        write_buf = dr_bson_read_get_write_pos(&ctx, curStack, dr_bson_read_start_pos(), element_size); \
-        dr_entry_set_from_uint64(write_buf, v, entry, em);               \
+        if ((write_buf = dr_bson_read_get_write_pos(&ctx, curStack, dr_bson_read_start_pos(), element_size))) { \
+            dr_entry_set_from_uint64(write_buf, v, entry, em);          \
+        }                                                               \
         curStack->m_input_pos += 8;                                     \
     } while(0)
 
@@ -140,8 +144,9 @@ static int dr_bson_read_stack_init(
         double v;                                                       \
         dr_bson_read_check_capacity(8);                                 \
         CPE_COPY_HTON64(&v, curStack->m_input_data + curStack->m_input_pos); \
-        write_buf = dr_bson_read_get_write_pos(&ctx, curStack, dr_bson_read_start_pos(), element_size); \
-        dr_entry_set_from_double(write_buf, v, entry, em);               \
+        if ((write_buf = dr_bson_read_get_write_pos(&ctx, curStack, dr_bson_read_start_pos(), element_size))) { \
+            dr_entry_set_from_double(write_buf, v, entry, em);          \
+        }                                                               \
         curStack->m_input_pos += 8;                                     \
     } while(0)
 
@@ -152,8 +157,9 @@ static int dr_bson_read_stack_init(
         dr_bson_read_check_capacity(len + 4);                           \
         dr_bson_read_check_min_size(len, 1);                            \
         dr_bson_read_check_end_by_zero(len + 4);                        \
-        write_buf = dr_bson_read_get_write_pos(&ctx, curStack, dr_bson_read_start_pos(), element_size); \
-        dr_entry_set_from_string(write_buf, curStack->m_input_data + curStack->m_input_pos + 4, entry, em); \
+        if ((write_buf = dr_bson_read_get_write_pos(&ctx, curStack, dr_bson_read_start_pos(), element_size))) { \
+            dr_entry_set_from_string(write_buf, curStack->m_input_data + curStack->m_input_pos + 4, entry, em); \
+        }                                                               \
         curStack->m_input_pos += len + 4;                               \
     } while(0)
 
