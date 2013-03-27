@@ -1,7 +1,7 @@
 #ifdef _MSC_VER
 /*
  * dlfcn-win32
- * Copyright (c) 2007 Ramiro Polla
+ * Copyright (c) 2007, 2010 Ramiro Polla, Tycho Andersen
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -20,6 +20,7 @@
 
 #include <windows.h>
 #include "cpe/pal/pal_stdio.h"
+#include "cpe/pal/pal_string.h"
 #include "cpe/pal/msvc_dlfcn.h"
 
 /* Note:
@@ -75,7 +76,6 @@ static void global_add( HMODULE hModule )
         return;
 
     pobject->next = nobject;
-    nobject->next = NULL;
     nobject->previous = pobject;
     nobject->hModule = hModule;
 }
@@ -228,6 +228,15 @@ void *dlopen( const char *file, int mode )
             save_err_str( lpFileName );
         else if( (mode & RTLD_GLOBAL) )
             global_add( hModule );
+        else if( (mode & RTLD_NOLOAD) )
+        {
+            global_object *pobject = global_search( hModule );
+            
+            // when RLTD_NOLOAD is set, POSIX says that the module handle
+            // returned is NULL when the object was not previously loaded.
+            if(!pobject)
+                hModule = NULL;
+        }
     }
 
     /* Return to previous state of the error-mode bit flags. */
@@ -312,6 +321,46 @@ char *dlerror( void )
     current_error = NULL;
 
     return error_pointer;
+}
+
+static char module_name[MAX_PATH];
+// adapted from http://gcc.gnu.org/ml/java-patches/2006-q2/msg00511.html
+int dladdr(void *addr, Dl_info *info)
+{
+  MEMORY_BASIC_INFORMATION mbi;
+  HMODULE hMod;
+
+  //printf("addr: %p\n", addr);
+
+  if (!VirtualQuery (addr, &mbi, sizeof (mbi)))
+  {
+    save_err_str("VirtualQuery() failed!\n");
+    return 0;
+  }
+  hMod = (HMODULE) mbi.AllocationBase;
+
+  // FIXME: We explicitly use the ANSI variant of the function here.
+  if (!GetModuleFileNameA (hMod, module_name, sizeof (module_name)))
+  {
+    save_err_str("GetModuleFileNameA() failed!");
+    return 0;
+  }
+
+  info->dli_fname = module_name;
+  info->dli_fbase = mbi.BaseAddress;
+
+  // this is *probably* right
+  info->dli_saddr = NULL;
+  info->dli_sname = NULL;
+
+  return 1;
+}
+
+void *dlvsym(void *handle, char *symbol, char *version)
+{
+  // FIXME
+  save_err_str("dlvsym() not implemented");
+  return NULL;
 }
 
 #endif
