@@ -12,6 +12,9 @@
 #include "gd/app/app_context.h"
 #include "gd/app/app_tl.h"
 #include "app_internal_ops.h"
+#ifdef ANDROID
+#include "cpe/android/android_env.h"
+#endif
 
 static gd_app_context_t g_main_app_context = NULL;
 
@@ -57,7 +60,12 @@ gd_app_context_create_i(mem_allocrator_t alloc, size_t capacity, void * lib_hand
     TAILQ_INIT(&context->m_tick_chain);
     TAILQ_INIT(&context->m_tls);
 
+#ifdef ANDROID
+    cpe_error_monitor_init(&context->m_em_print, android_cpe_error_log_to_log, NULL);
+#else    
     cpe_error_monitor_init(&context->m_em_print, cpe_error_log_to_consol, NULL);
+#endif
+
     context->m_em = &context->m_em_print;
 
     if (cpe_hash_table_init(
@@ -184,8 +192,9 @@ gd_app_context_create_main(mem_allocrator_t alloc, size_t capacity, int argc, ch
     if (g_main_app_context->m_root == NULL) {
         g_main_app_context->m_root = getcwd(NULL, 0);
         if(g_main_app_context->m_root == NULL) {
-            gd_app_context_free(g_main_app_context);
-            g_main_app_context = NULL;
+            CPE_INFO(g_main_app_context->m_em, "gd_app_context_create: root dir not exist!");
+            /* gd_app_context_free(g_main_app_context); */
+            /* g_main_app_context = NULL; */
         }
     }
 
