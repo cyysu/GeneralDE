@@ -132,7 +132,23 @@ void * mem_buffer_make_continuous(struct mem_buffer * buffer, size_t reserve) {
     trunk = TAILQ_FIRST(&buffer->m_trunks);
 
     if (trunk == TAILQ_END(&buffer->m_trunks)) {
-        return NULL;
+        assert(buffer->m_size == 0);
+        if (reserve > 0) {
+            if (reserve < buffer->m_auto_inc_size) reserve = buffer->m_auto_inc_size;
+
+            trunk = mem_trunk_alloc(buffer->m_default_allocrator, reserve);
+            if (trunk == NULL) {
+                return NULL;
+            }
+
+            TAILQ_INSERT_HEAD(&buffer->m_trunks, trunk, m_next);
+            buffer->m_size = trunk->m_size;
+
+            return mem_trunk_data(trunk);
+        }
+        else {
+            return NULL;
+        }
     }
 
     if (TAILQ_NEXT(trunk, m_next) == TAILQ_END(&buffer->m_trunks)
