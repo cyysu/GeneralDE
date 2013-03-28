@@ -34,11 +34,8 @@ c-generate-depend-ld-flags=$(call $($2.env).export-symbols,$(r.$1.c.export-symbo
                            ) \
                            $(addprefix -l,$(call merge-list, \
                                                  $(r.$1.c.libraries) $(r.$1.product.c.libraries),\
-                                                        $(call c-generate-env-arg-name-list,$2,product.c.libraries)) \
-=======
                                                  $(call product-gen-depend-value-list,$1,$($2.env),\
                                                         $(call c-generate-env-arg-lib-name-list,$2,product.c.libraries)) \
->>>>>>> t/3rdTools/gtest
                                             )) \
                            $(addprefix -l,$(foreach lib,$(call merge-list, \
                                                                $(r.$1.c.env-libraries) $(r.$1.product.c.env-libraries),\
