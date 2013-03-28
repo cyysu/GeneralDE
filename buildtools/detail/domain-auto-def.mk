@@ -12,7 +12,7 @@ $1.ut: $(if $(filter 0,$($1.ut)) \
 endef
 
 define domain-auto-def-product
-$(foreach p,$(call product-gen-depend-list,$($1.product-list) $($1.addition-product-list)) $($1.addition-product-list), \
+$(foreach p,$(call product-gen-depend-list,$($1.env),$($1.product-list) $($1.addition-product-list)) $($1.addition-product-list), \
 	$(if $(filter $p,$($1.product-list)) \
         , \
         , $(eval $(call product-def-for-domain,$p,$1))) \
@@ -21,7 +21,7 @@ $(foreach p,$(call product-gen-depend-list,$($1.product-list) $($1.addition-prod
 $(if $(filter 0,$($1.ut)) \
     , \
     , $(foreach p, $(foreach u,$($1.product-list), $($(u).ut)) \
-                   $(call product-gen-depend-list,$(foreach u,$($1.product-list), $($(u).ut))) \
+                   $(call product-gen-depend-list,$($1.env),$(foreach u,$($1.product-list), $($(u).ut))) \
         , $(if $(filter $p,$($1.product-list)) \
                , \
                , $(eval $(call product-def-for-domain,$p,$1)))))
