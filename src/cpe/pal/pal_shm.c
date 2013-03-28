@@ -2,6 +2,8 @@
 
 #if defined _MSC_VER /*windows*/
 
+#elif defined ANDROID /*android*/
+
 #else /*else windows*/
 #include <sys/stat.h>
 #include <unistd.h>
