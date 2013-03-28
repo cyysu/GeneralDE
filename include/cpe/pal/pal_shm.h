@@ -9,6 +9,7 @@ extern "C" {
 #include <windows.h>
 #include <errno.h>
 
+#elif defined ANDROID /*android*/
 #else
 /*posix */
 
