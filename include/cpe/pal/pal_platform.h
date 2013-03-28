@@ -8,13 +8,16 @@
 #define CPE_LITTLE_ENDIAN
 #endif
 
+#ifndef __WORDSIZE
+#if __SIZEOF_INT__ == 8
+#    define __WORDSIZE (64)
+#else
+#    define __WORDSIZE (64)
+#endif
+#endif
+
 #ifdef _MSC_VER
 #  define CPE_DEFAULT_ALIGN (1)
-#  if defined (__LP64__) || defined (__64BIT__) || defined (_LP64)
-#    define __WORDSIZE (64)
-#  else
-#    define __WORDSIZE (32)
-#  endif
 #else
 #  define CPE_DEFAULT_ALIGN (__WORDSIZE / 8)
 #endif
