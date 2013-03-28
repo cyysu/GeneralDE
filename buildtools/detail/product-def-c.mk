@@ -25,25 +25,30 @@ c-generate-depend-ld-flags=$(call $($2.env).export-symbols,$(r.$1.c.export-symbo
                            $(addprefix -L$(CPDE_OUTPUT_ROOT)/,\
                               $(foreach ei,\
 								 $(call merge-list, $(r.$1.c.ldpathes) \
-                                                  , $(call product-gen-depend-value-list,$1,\
+                                                  , $(call product-gen-depend-value-list,$1,$($2.env),\
                                                            $(call c-generate-env-arg-name-list,$2,product.c.ldpathes)) \
                                  ),\
                               $(patsubst domain/%,$2/%,$(subst /domain/,/$2/,$(patsubst env/%,$($2.env)/%,$(subst /env/,/$($2.env)/,$(ei)))))) \
                            ) \
                            $(addprefix -l,$(call merge-list, \
                                                  $(r.$1.c.libraries) $(r.$1.product.c.libraries),\
+<<<<<<< Updated upstream
                                                  $(call product-gen-depend-value-list,$1,\
                                                         $(call c-generate-env-arg-name-list,$2,product.c.libraries)) \
+=======
+                                                 $(call product-gen-depend-value-list,$1,$($2.env),\
+                                                        $(call c-generate-env-arg-lib-name-list,$2,product.c.libraries)) \
+>>>>>>> Stashed changes
                                             )) \
                            $(addprefix -l,$(foreach lib,$(call merge-list, \
                                                                $(r.$1.c.env-libraries) $(r.$1.product.c.env-libraries),\
-                                                               $(call product-gen-depend-value-list,$1,\
+                                                               $(call product-gen-depend-value-list,$1,$($2.env),\
                                                                       $(call c-generate-env-arg-name-list,$2,product.c.env-libraries)))\
                                                         , $($($2.env).lib.$(lib)))) \
                            $(addprefix -framework ,\
 								 $(sort $(r.$1.c.frameworks) $(r.$1.product.c.frameworks) \
-									$(call product-gen-depend-value-list,$1,product.c.frameworks))) \
-                           $(call revert-list,$(call product-gen-depend-value-list,$1,\
+									$(call product-gen-depend-value-list,$1,$($2.env),product.c.frameworks))) \
+                           $(call revert-list,$(call product-gen-depend-value-list,$1,$($2.env)\
                                         $(call c-generate-env-arg-name-list,$2,product.c.flags.ld))) \
                            $(if $(filter 1,$(GCOV)), -fprofile-arcs -ftest-coverage ) \
                            $(r.$1.c.flags.ld) $(r.$1.$($2.env).c.flags.ld) $(r.$1.$2.c.flags.ld)
@@ -52,26 +57,26 @@ c-generate-depend-ld-flags=$(call $($2.env).export-symbols,$(r.$1.c.export-symbo
 c-generate-depend-cpp-flags=$(addprefix -I$(CPDE_ROOT)/,\
 								 $(sort $(r.$1.c.includes) $(r.$1.$($2.env).c.includes) $(r.$1.$2.c.includes) \
                                     $(r.$1.product.c.includes) $(r.$1.$($2.env).product.c.includes) $(r.$1.$2.product.c.includes) \
-									$(call product-gen-depend-value-list,$1,product.c.includes)\
-									$(call product-gen-depend-value-list,$1,$($2.env).product.c.includes)\
-									$(call product-gen-depend-value-list,$1,$2.product.c.includes)\
+									$(call product-gen-depend-value-list,$1,$($2.env),product.c.includes)\
+									$(call product-gen-depend-value-list,$1,$($2.env),$($2.env).product.c.includes)\
+									$(call product-gen-depend-value-list,$1,$($2.env),$2.product.c.includes)\
                                  )) \
                             $(foreach ei,\
 								 $(sort $(r.$1.c.env-includes) $(r.$1.product.c.env-includes) \
-									$(call product-gen-depend-value-list,$1,product.c.env-includes)), \
+									$(call product-gen-depend-value-list,$1,$($2.env),product.c.env-includes)), \
                                  $(if $(findstring env,$(subst /, ,$(ei)))\
                                     ,-I$(CPDE_ROOT)/$(subst /env/,/$($2.env)/,$(ei)) \
                                     ,$(addprefix -I$(CPDE_ROOT)/,$(addsuffix /$($2.env),$(ei))))) \
                             $(foreach oi,\
-								 $(call product-gen-depend-list,$1), \
+								 $(call product-gen-depend-list,$($2.env),$1), \
                                  $(addprefix -I$(call c-source-dir-to-binary-dir,$(r.$(oi).base),$2)/,$(r.$(oi).product.c.output-includes))) \
                             $(addprefix -I$(call c-source-dir-to-binary-dir,$(r.$1.base),$2)/,$(r.$1.c.output-includes) $(r.$1.product.c.output-includes)) \
                             $(addprefix -F,\
 								 $(sort $(r.$1.c.frameworks) $(r.$1.product.c.frameworks) \
-									$(call product-gen-depend-value-list,$1,product.c.frameworks))) \
-                           $(addprefix -D,$(sort $(call product-gen-depend-value-list,$1,product.c.defs))) \
-                           $(addprefix -D,$(sort $(call product-gen-depend-value-list,$1,$($2.env).product.c.defs))) \
-                           $(addprefix -D,$(sort $(call product-gen-depend-value-list,$1,$2.product.c.defs))) \
+									$(call product-gen-depend-value-list,$1,$($2.env),product.c.frameworks))) \
+                           $(addprefix -D,$(sort $(call product-gen-depend-value-list,$1,$($2.env),product.c.defs))) \
+                           $(addprefix -D,$(sort $(call product-gen-depend-value-list,$1,$($2.env),$($2.env).product.c.defs))) \
+                           $(addprefix -D,$(sort $(call product-gen-depend-value-list,$($2.env),$1,$2.product.c.defs))) \
                            $(if $(filter 1,$(GCOV)), -fprofile-arcs -ftest-coverage ) \
                            $(if $(filter 1,$(GPROF)), -pg ) \
                            $(r.$1.c.flags.cpp) $(r.$1.$($2.env).c.flags.cpp) $(r.$1.$2.c.flags.cpp)
@@ -86,7 +91,7 @@ product-def-gen-dep-cmd=$(if $(compiler.$(call compiler-category,$($($1.env).CC)
 product-def-rule-c-compile-cmd.c=$($($2.env).CC) \
                                  $(compiler.$(call compiler-category,$($($2.env).CC)).flags.warning) \
                                  $($($2.env).CFLAGS) \
-                                 $(sort $(call product-gen-depend-value-list,$1,product.c.flags.warning)) \
+                                 $(sort $(call product-gen-depend-value-list,$1,$($2.env),product.c.flags.warning)) \
                                  $(r.$1.product.c.flags.warning) \
                                  $(r.$1.c.flags.lan.all) \
                                  $(r.$1.c.flags.lan.c) \
@@ -96,7 +101,7 @@ product-def-rule-c-compile-cmd.c=$($($2.env).CC) \
 product-def-rule-c-compile-cmd.cc=$($($2.env).CXX) \
                                   $(compiler.$(call compiler-category,$($($2.env).CXX)).flags.warning) \
                                   $($($2.env).CXXFLAGS) \
-                                  $(sort $(call product-gen-depend-value-list,$1,product.c.flags.warning)) \
+                                  $(sort $(call product-gen-depend-value-list,$1,$($2.env),product.c.flags.warning)) \
                                   $(r.$1.product.c.flags.warning) \
                                   $(r.$1.c.flags.lan.all) \
                                   $(r.$1.c.flags.lan.cc) \
@@ -105,7 +110,7 @@ product-def-rule-c-compile-cmd.cc=$($($2.env).CXX) \
 
 product-def-rule-c-compile-cmd.mm=$($($2.env).CXX) $($($2.env).MMFLAGS) \
                                   $(compiler.$(call compiler-category,$($($2.env).CXX)).flags.warning) \
-                                  $(sort $(call product-gen-depend-value-list,$1,product.c.flags.warning)) \
+                                  $(sort $(call product-gen-depend-value-list,$1,$($2.env),product.c.flags.warning)) \
                                   $(r.$1.product.c.flags.warning) \
                                   $(r.$1.c.flags.lan.all) \
                                   $(r.$1.c.flags.lan.mm) \
@@ -114,7 +119,7 @@ product-def-rule-c-compile-cmd.mm=$($($2.env).CXX) $($($2.env).MMFLAGS) \
 
 product-def-rule-c-compile-cmd.m=$($($2.env).CC) $($($2.env).MFLAGS) \
                                  $(compiler.$(call compiler-category,$($($2.env).CC)).flags.warning) \
-                                 $(sort $(call product-gen-depend-value-list,$1,product.c.flags.warning)) \
+                                 $(sort $(call product-gen-depend-value-list,$1,$($2.env),product.c.flags.warning)) \
                                  $(r.$1.product.c.flags.warning) \
                                  $(r.$1.c.flags.lan.all) \
                                  $(r.$1.c.flags.lan.m) \
