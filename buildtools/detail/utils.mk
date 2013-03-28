@@ -21,7 +21,7 @@ endef
 # $(call join-path,part1,part2)
 join-path=$(if $(1),$(strip $(1))/$(strip $(2)),$(2))
 
-ifneq ($(MAKE_SILENCE),1)
+ifneq ($(V),1)
   define with_message
     @$(if $1,echo ">>> $1" &&, )
   endef
@@ -29,7 +29,7 @@ ifneq ($(MAKE_SILENCE),1)
   CPE_SILENCE_TAG:=@
 endif
 
-ifeq ($(MAKEFILE_DEBUG),1)
+ifeq ($(V),1)
   debug-warning=$(warning $1)
   debug-variables=$(warning $1)
 endif
