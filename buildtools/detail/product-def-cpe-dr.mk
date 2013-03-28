@@ -28,6 +28,7 @@ define product-def-rule-cpe-dr-c-module-traits-cpp
   $(eval r.$1.$3.cpe-dr.$2.generated.traits.cpp:=$(r.$1.$3.cpe-dr.$2.h.output-dir)/$($1.cpe-dr.$2.h.with-traits))
 
   $(eval r.$1.$3.c.sources += $(r.$1.$3.cpe-dr.$2.generated.traits.cpp))
+  $(eval r.$1.$3.generated-sources += $(r.$1.$3.cpe-dr.$2.generated.traits.cpp))
 
   $(r.$1.$3.cpe-dr.$2.generated.traits.cpp): $(r.$1.$3.cpe-dr.$2.source) $(cpe-dr-tool) $(r.$1.$3.cpe-dr.$2.generated.h)
 	$$(call with_message,cpe-dr generaing traits-cpp to $(subst $(CPDE_ROOT)/,,$(r.$1.$3.cpe-dr.$2.generated.traits.cpp)) ...) \
@@ -53,6 +54,7 @@ define product-def-rule-cpe-dr-c-module-h
 
   auto-build-dirs += $(r.$1.$3.cpe-dr.$2.h.output-dir)
 
+  $(eval r.$1.$3.generated-sources += $(r.$1.$3.cpe-dr.$2.generated.h))
   $(eval r.$1.cleanup += $(r.$1.$3.cpe-dr.$2.generated.h))
   $(eval r.$1.$3.c.includes+=$(if $(filter $(CPDE_ROOT)/%, $(r.$1.$3.cpe-dr.$2.h.output)) \
                                   , \
@@ -87,6 +89,7 @@ define product-def-rule-cpe-dr-c-module-c
 
   auto-build-dirs += $(r.$1.$3.cpe-dr.$2.c.output-dir)
 
+  $(eval r.$1.$3.generated-sources += $(r.$1.$3.cpe-dr.$2.generated.c))
   $(eval r.$1.$3.c.sources += $(r.$1.$3.cpe-dr.$2.generated.c))
   $(eval r.$1.cleanup += $(r.$1.$3.cpe-dr.$2.generated.c))
 

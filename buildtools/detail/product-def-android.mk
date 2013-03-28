@@ -30,11 +30,11 @@ endef
 
 # $(call product-def-rule-android-gen-depends-projs,product-name,domain)
 define product-def-rule-android-gen-depends-projs
-$(foreach d,$(r.$1.depends),\
+$(foreach d,$(call product-gen-depend-list,$($2.env),$1),\
    $(if $(filter lib,$($d.type)),\
        $(if $(filter $d,$(android.$2.defined-projects)),,\
             $(eval android.$2.defined-projects+=$d) \
-            $(call product-def-rule-android-i,$d,$2) \
+            $(call product-def-rule-android-rules,$d,$2) \
             $1.$2.android-proj: $d.$2.android-proj \
         ) \
     )) \
@@ -45,18 +45,23 @@ endef
 define product-def-rule-android-app
 $(call assert-not-null,$1.android.manifest)
 
-$(eval $1.$2.android.manifest:=$2-android/$1/AndroidManifest.xml)
-$(eval $1.$2.android.application-mk:=$2-android/$1/jni/Application.mk)
-$(eval $1.$2.android.asserts-dir:=$2-android/$1/asserts)
+$(eval $1.$2.android.manifest:=$2/$1/AndroidManifest.xml)
+$(eval $1.$2.android.application-mk:=$2/$1/jni/Application.mk)
+$(eval $1.$2.android.project-properties:=$2/$1/project.properties)
+$(eval $1.$2.android.asserts-dir:=$2/$1/asserts)
 
 .PHONY: $1.$2.android $1.android $2.android
 
 $2.android android $1.android: $1.$2.android
 
 $1.$2.android: $1.$2.android-proj
-	ndk-build --directory=$(CPDE_OUTPUT_ROOT)/$$($1.$2.android.output)
+	ndk-build --directory=$(CPDE_OUTPUT_ROOT)/$$($1.$2.android.output) $(if $(filter 1,$V),V=1) -k
 
-$1.$2.android-proj: $(CPDE_OUTPUT_ROOT)/$$($1.$2.android.manifest)  $(CPDE_OUTPUT_ROOT)/$$($1.$2.android.application-mk)
+$1.$2.android-proj: $(CPDE_OUTPUT_ROOT)/$$($1.$2.android.manifest)  $(CPDE_OUTPUT_ROOT)/$$($1.$2.android.application-mk) $(CPDE_OUTPUT_ROOT)/$$($1.$2.android.project-properties)
+
+$(CPDE_OUTPUT_ROOT)/$$($1.$2.android.project-properties):
+	$$(call with_message,generating $$($1.$2.android.android-mk))echo '# anto generate by makefile' >> $$@
+	$$(CPE_SILENCE_TAG)echo 'target=android-8' > $$@
 
 $(CPDE_OUTPUT_ROOT)/$$($1.$2.android.manifest): $(r.$1.base)/$($1.android.manifest)
 	$$(call with_message,generating manifest)cp $$< $$@
@@ -66,6 +71,7 @@ $(CPDE_OUTPUT_ROOT)/$$($1.$2.android.application-mk):
 	$$(CPE_SILENCE_TAG)echo 'LOCAL_PATH := $$$$(call my-dir)' > $$@
 	$$(CPE_SILENCE_TAG)echo '' >> $$@
 	$$(CPE_SILENCE_TAG)echo 'APP_STL := gnustl_static' >> $$@
+	$$(CPE_SILENCE_TAG)echo 'APP_ABI := armeabi' >> $$@
 	$$(CPE_SILENCE_TAG)echo 'APP_OPTIM := debug' >> $$@
 
 $(eval product-def-rule-android-asserts-tmp-name:=)
@@ -86,13 +92,13 @@ $(if $(product-def-rule-android-asserts-tmp-name) \
 
 endef
 
-# $(call product-def-rule-android-i,product-name,domain)
-define product-def-rule-android-i
+# $(call product-def-rule-android-rules,product-name,domain)
+define product-def-rule-android-rules
 
 $(if $(filter $1,$(android.$2.project-list)),$(warning $1 is already installed in android.$2),$(eval android.$2.project-list+=$1))
 
-$(eval $1.$2.android.output:=$2-android/$1)
-$(eval $1.$2.android.android-mk:=$2-android/$1/jni/Android.mk)
+$(eval $1.$2.android.output:=$2/$1)
+$(eval $1.$2.android.android-mk:=$2/$1/jni/Android.mk)
 $(eval $1.$2.android.srcs:=$(subst $(CPDE_ROOT),../../../..,\
                            $(subst $(CPDE_OUTPUT_ROOT),../../..,\
                                    $(r.$1.c.sources) $(r.$1.$($2.env).c.sources) $(r.$1.$2.c.sources))))
@@ -103,34 +109,34 @@ auto-build-dirs+=$$(CPDE_OUTPUT_ROOT)/$$(dir $$($1.$2.android.android-mk))
 
 $2.android-proj android-proj: $1.$2.android-proj
 
-$1.$2.android-proj: $(CPDE_OUTPUT_ROOT)/$$($1.$2.android.android-mk)
+$1.$2.android-proj: $(CPDE_OUTPUT_ROOT)/$$($1.$2.android.android-mk) $$(r.$1.$2.generated-sources)
 
-$(CPDE_OUTPUT_ROOT)/$$($1.$2.android.android-mk): $(r.$1.c.sources) $(r.$1.$($2.env).c.sources) $(r.$1.$2.c.sources)
+$(CPDE_OUTPUT_ROOT)/$$($1.$2.android.android-mk):
 	$$(call with_message,generating $$($1.$2.android.android-mk))echo '# anto generate by makefile' >> $$@
 	$$(CPE_SILENCE_TAG)echo 'LOCAL_PATH := $$$$(call my-dir)' > $$@
 	$$(CPE_SILENCE_TAG)echo '' >> $$@
 	$$(CPE_SILENCE_TAG)echo 'include $$$$(CLEAR_VARS)' >> $$@
 	$$(CPE_SILENCE_TAG)echo 'LOCAL_MODULE := $1' >> $$@
 	$$(CPE_SILENCE_TAG)echo 'LOCAL_ARM_MODE := $(ANDROID_ARM_MODE)' >> $$@
-	$$(CPE_SILENCE_TAG)echo 'LOCAL_CPPFLAGS := -frtti -fexceptions' >> $$@
+	$$(CPE_SILENCE_TAG)echo 'LOCAL_CPP_FEATURES := rtti exceptions' >> $$@
+	$$(CPE_SILENCE_TAG)echo 'LOCAL_CFLAGS += ' $$(filter -D%,$$(call c-generate-depend-cpp-flags,$1,$2)) >> $$@
 	$$(CPE_SILENCE_TAG)echo 'LOCAL_C_INCLUDES += ' $$(patsubst -I%,%,$$(filter -I%,$$(call c-generate-depend-cpp-flags,$1,$2))) >> $$@
 	$$(CPE_SILENCE_TAG)echo '' >> $$@
 	$(if $(filter progn,$($1.type)),\
-        $$(CPE_SILENCE_TAG)echo 'LOCAL_LDLIBS := ' \
-                                   -ldl -lgles -llog -landroid \
+        $$(CPE_SILENCE_TAG)echo 'LOCAL_LDLIBS := -L$$$$(SYSROOT)/usr/lib $$($1.android.c.flags.ld)' \
                            >> $$@)
 	$$(CPE_SILENCE_TAG)echo '' >> $$@
 	$$(CPE_SILENCE_TAG)echo 'LOCAL_SRC_FILES += $($1.$2.android.srcs)' >> $$@
 	$$(CPE_SILENCE_TAG)echo '' >> $$@
 	$(if $(filter progn,$($1.type)),\
-	    $$(CPE_SILENCE_TAG)echo 'LOCAL_STATIC_LIBRARIES := ' \
-                              $$(foreach d,$(r.$1.depends),$$(if $$(filter lib,$$($$d.type)),$$d)) \
+	    $$(CPE_SILENCE_TAG)echo 'LOCAL_WHOLE_STATIC_LIBRARIES := ' \
+                              $$(foreach d,$$(call product-gen-depend-list,$($2.env),$1),$$(if $$(filter lib,$$($$d.type)),$$d)) \
                             >> $$@)
 	$$(CPE_SILENCE_TAG)echo '' >> $$@
 	$$(CPE_SILENCE_TAG)echo $(if $(filter progn,$($1.type)),'include $$$$(BUILD_SHARED_LIBRARY)','include $$$$(BUILD_STATIC_LIBRARY)') >> $$@
 	$(if $(filter progn,$($1.type)),\
         $$(CPE_SILENCE_TAG)echo 'include ' \
-                              $$(foreach d,$(r.$1.depends),$$(if $$(filter lib,$$($$d.type)),$(CPDE_OUTPUT_ROOT)/$2-android/$$d/jni/Android.mk)) \
+                              $$(foreach d,$$(call product-gen-depend-list,$($2.env),$1),$$(if $$(filter lib,$$($$d.type)),$(CPDE_OUTPUT_ROOT)/$2/$$d/jni/Android.mk)) \
                             >> $$@)
 
 $(if $(filter progn,$($1.type)),$(call product-def-rule-android-app,$1,$2))
@@ -140,8 +146,15 @@ endef
 # $(call product-def-rule-android,product-name,domain)
 define product-def-rule-android
 
-$(call product-def-rule-android-i,$1,$2)
+$(eval $2-android.output?=$($2.output)-android)
+$(eval $2-android.ut?=0)
+$(eval $2-android.env:=android)
+$(eval $2-android.ignore-types:=android progn lib)
 
-$(call post-commands-add,product-def-rule-android-gen-depends-projs,$1,$2)
+$(call product-def-for-domain,$1,$2-android)
+
+$(call product-def-rule-android-rules,$1,$2-android)
+
+$(call post-commands-add,product-def-rule-android-gen-depends-projs,$1,$2-android)
 
 endef
