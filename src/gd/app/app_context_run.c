@@ -115,9 +115,10 @@ int gd_app_notify_stop(gd_app_context_t context) {
     return 0;
 }
 
-void gd_app_tick(gd_app_context_t context) {
+int gd_app_tick(gd_app_context_t context) {
     struct gd_app_ticker * ticker;
     gd_app_child_context_t child_context;
+    int processed_count = 0;
 
     if (context->m_notify_stop) {
         gd_app_stop(context);
@@ -125,11 +126,13 @@ void gd_app_tick(gd_app_context_t context) {
     }
 
     TAILQ_FOREACH(ticker, &context->m_tick_chain, m_next) {
-        ticker->m_tick(ticker->m_ctx, ticker->m_arg);
+        processed_count += ticker->m_tick(ticker->m_ctx, ticker->m_arg);
     }
 
     TAILQ_FOREACH(child_context, &context->m_inline_childs, m_next) {
-        child_context->m_tick(child_context->m_child);
+        processed_count += child_context->m_tick(child_context->m_child);
     }
+
+    return processed_count;
 }
 

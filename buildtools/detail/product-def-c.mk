@@ -129,7 +129,7 @@ product-def-rule-c-compile-cmd.cpp=$(call product-def-rule-c-compile-cmd.cc,$1,$
 # $(call compile-rule, binary-file, source-files, product-name,domain)
 define product-def-rule-c-compile-rule
 $1: $2
-	$$(call with_message,compiling $(subst $(CPDE_ROOT)/,,$2) --> $(subst $(CPDE_ROOT)/,,$1) ...)\
+	$$(call with_message,$(strip $4).$(strip $3) <== compiling $(patsubst $(r.$3.base)/%,%,$2))\
           $(CPDE_C_COMPILE_PREFIX) $$(call product-def-rule-c-compile-cmd$(suffix $2),$3,$4) $$(call c-generate-depend-cpp-flags,$3,$4) \
           $$(call product-def-gen-dep-cmd,$4,$$(patsubst %.o,%.d,$$@)) \
           -o $$@ $$<
@@ -187,7 +187,7 @@ auto-build-dirs += $(dir $(CPDE_OUTPUT_ROOT)/$(r.$1.$3.product))
 $3.$1: $(CPDE_OUTPUT_ROOT)/$(r.$1.$3.product)
 
 $(CPDE_OUTPUT_ROOT)/$(r.$1.$3.product): $(call c-source-to-object,$(r.$1.c.sources) $(r.$1.$($3.env).c.sources) $(r.$1.$3.c.sources),$3)
-	$$(call with_message,linking $(r.$1.$3.product) ...) \
+	$$(call with_message,$(strip $3).$(strip $1) <== linking $(notdir $(r.$1.$3.product)) ...) \
         $(call product-def-rule-c-link-cmd-$(if $(filter progn,$2),progn,lib-$(r.$1.$3.c.lib.type)),$1, $$(filter %.o,$$^), $$@,$3)
 
 $(foreach f,$(r.$1.c.sources) $(r.$1.$($3.env).c.sources) $(r.$1.$3.c.sources),$(call product-def-rule-c-compile-rule,$(call c-source-to-object,$f,$3),$f,$1,$3))
