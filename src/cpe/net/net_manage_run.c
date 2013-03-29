@@ -12,8 +12,9 @@ void net_mgr_stop(net_mgr_t nmgr) {
 }
 
 int net_mgr_tick(net_mgr_t nmgr) {
+    unsigned int old_value = ev_iteration(nmgr->m_ev_loop);
     ev_run(nmgr->m_ev_loop, EVRUN_NOWAIT);
-    return 0;
+    return ev_iteration(nmgr->m_ev_loop) - old_value - 1;
 }
 
 struct tick_env {
