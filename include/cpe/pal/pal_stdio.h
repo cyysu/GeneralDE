@@ -37,11 +37,16 @@ extern "C" {
 #   endif
 #   define FMT_UINT32_T "%u"
 #   define FMT_INT32_T "%d"
+#   define FMT_UINT16_T "%u"
+#   define FMT_INT16_T "%d"
 # else
 #   define FMT_UINT64_T "%llu"
+
 #   define FMT_INT64_T "%lld"
 #   define FMT_UINT32_T "%u"
 #   define FMT_INT32_T "%d"
+#   define FMT_UINT16_T "%u"
+#   define FMT_INT16_T "%d"
 # endif
 
 #endif
