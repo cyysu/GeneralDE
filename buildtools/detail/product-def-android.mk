@@ -111,7 +111,7 @@ $2.android-proj android-proj: $1.$2.android-proj
 
 $1.$2.android-proj: $(CPDE_OUTPUT_ROOT)/$$($1.$2.android.android-mk) $$(r.$1.$2.generated-sources)
 
-$(CPDE_OUTPUT_ROOT)/$$($1.$2.android.android-mk):
+$(CPDE_OUTPUT_ROOT)/$$($1.$2.android.android-mk): $$(r.$1.c.sources) $$(r.$1.$($2.env).c.sources) $$(r.$1.$2.c.sources))))
 	$$(call with_message,generating $$($1.$2.android.android-mk))echo '# anto generate by makefile' >> $$@
 	$$(CPE_SILENCE_TAG)echo 'LOCAL_PATH := $$$$(call my-dir)' > $$@
 	$$(CPE_SILENCE_TAG)echo '' >> $$@
