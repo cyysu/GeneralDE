@@ -22,11 +22,14 @@ product-gen-depend-list-expand=\
        , $(if $(filter $(strip $(firstword $3)),$2) \
               , $(call product-gen-depend-list-expand\
                        , $1 \
-                       , $2 \
-                       , $(wordlist 2,$(words $3),$3)) \
+                       , $(call product-gen-depend-list-expand\
+                                , $1 \
+                                , $(filter-out $(strip $(firstword $3)),$2) $(strip $(firstword $3)) \
+                                , $(r.$(strip $(firstword $3)).depends) $(r.$(strip $(firstword $3)).$(strip $1).depends)) \
+                       , $(wordlist 2,$(words $3),$3) ) \
               , $(call product-gen-depend-list-expand\
                        , $1 \
-                       , $2 $(strip $(firstword $3))\
+                       , $2 $(strip $(firstword $3)) \
                        , $(wordlist 2,$(words $3),$3) $(r.$(strip $(firstword $3)).depends) $(r.$(strip $(firstword $3)).$(strip $1).depends))) \
        , $2)
 
@@ -35,8 +38,6 @@ product-gen-depend-list=$(call regular-list,$(call product-gen-depend-list-expan
 
 #$(call product-gen-depend-value-list,product-name,env,value-name-list)
 product-gen-depend-value-list=$(call merge-list,,$(foreach p,$(call product-gen-depend-list,$2,$1),$(foreach v,$3,$(r.$p.$v))))
-
-product-gen-depend-value-list-r=$(call merge-list,,$(foreach p,$(call revert-list,$(call product-gen-depend-list,$2,$1)),$(foreach v,$3,$(r.$p.$v))))
 
 # $(call product-def-for-domain,product-name,domain)
 define product-def-for-domain
