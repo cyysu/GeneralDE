@@ -29,7 +29,7 @@ ifneq ($(V),1)
   CPE_SILENCE_TAG:=@
 endif
 
-ifeq ($(V),1)
+ifeq ($(MKD),1)
   debug-warning=$(warning $1)
   debug-variables=$(warning $1)
 endif
