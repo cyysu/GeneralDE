@@ -67,7 +67,7 @@ struct gd_app_child_context {
 
     gd_app_status_t (*m_state)(void * context);
     int (*m_run)(void * context);
-    void (*m_tick)(void * context);
+    int (*m_tick)(void * context);
     void (*m_free)(void * context);
     int (*m_stop)(void * context);
     int (*m_notify_stop)(void * context);
