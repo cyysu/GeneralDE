@@ -48,7 +48,7 @@ c-generate-depend-ld-flags=$(call $($2.env).export-symbols,$(r.$1.c.export-symbo
                            $(addprefix -framework ,\
 								 $(sort $(r.$1.c.frameworks) $(r.$1.product.c.frameworks) \
 									$(call product-gen-depend-value-list,$1,$($2.env),product.c.frameworks))) \
-                           $(call revert-list,$(call product-gen-depend-value-list,$1,$($2.env)\
+                           $(call revert-list,$(call product-gen-depend-value-list,$1,$($2.env), \
                                         $(call c-generate-env-arg-name-list,$2,product.c.flags.ld))) \
                            $(if $(filter 1,$(GCOV)), -fprofile-arcs -ftest-coverage ) \
                            $(r.$1.c.flags.ld) $(r.$1.$($2.env).c.flags.ld) $(r.$1.$2.c.flags.ld)
