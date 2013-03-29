@@ -56,7 +56,7 @@ gd_app_status_t gd_app_state(gd_app_context_t context);
 /*app tick function*/
 int gd_app_tick_add(gd_app_context_t context, gd_app_tick_fun tick, void * tick_ctx, ptr_int_t tick_arg);
 int gd_app_tick_remove(gd_app_context_t context, gd_app_tick_fun tick, void * tick_ctx);
-void gd_app_tick(gd_app_context_t context);
+int gd_app_tick(gd_app_context_t context);
 
 /*app falgs functions*/
 uint32_t gd_app_flags(gd_app_context_t context);
