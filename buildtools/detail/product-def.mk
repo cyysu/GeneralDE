@@ -19,18 +19,13 @@ product-base = $(patsubst %/,%,$(dir $(word $(words $(MAKEFILE_LIST)), $(MAKEFIL
 #$(call product-gen-depend-list-expand,env,cur-list,product-list)
 product-gen-depend-list-expand=\
   $(if $(strip $3) \
-       , $(if $(filter $(strip $(firstword $3)),$2) \
-              , $(call product-gen-depend-list-expand\
-                       , $1 \
-                       , $(call product-gen-depend-list-expand\
-                                , $1 \
-                                , $(filter-out $(strip $(firstword $3)),$2) $(strip $(firstword $3)) \
-                                , $(r.$(strip $(firstword $3)).depends) $(r.$(strip $(firstword $3)).$(strip $1).depends)) \
-                       , $(wordlist 2,$(words $3),$3) ) \
-              , $(call product-gen-depend-list-expand\
-                       , $1 \
-                       , $2 $(strip $(firstword $3)) \
-                       , $(wordlist 2,$(words $3),$3) $(r.$(strip $(firstword $3)).depends) $(r.$(strip $(firstword $3)).$(strip $1).depends))) \
+       , $(call product-gen-depend-list-expand\
+                   , $1 \
+                   , $(call product-gen-depend-list-expand\
+                            , $1 \
+                            , $(filter-out $(strip $(firstword $3)),$2) $(strip $(firstword $3)) \
+                            , $(r.$(strip $(firstword $3)).depends) $(r.$(strip $(firstword $3)).$(strip $1).depends)) \
+                   , $(wordlist 2,$(words $3),$3)) \
        , $2)
 
 #$(call product-gen-depend-list,env,product-list)
