@@ -8,8 +8,8 @@
 #define HAVE_ISNAN /**/
 /* #undef HAVE_LIBHISTORY */
 /* #undef HAVE_LIBREADLINE */
-#define HAVE_LIBPTHREAD /**/
-#define HAVE_PTHREAD_H /**/
+/* #define HAVE_LIBPTHREAD */
+/* #define HAVE_PTHREAD_H */
 
 /* Define if IPV6 support is there */
 #define SUPPORT_IP6 /**/
@@ -18,7 +18,7 @@
 #define HAVE_GETADDRINFO /**/
 
 /* Define to 1 if you have the <ansidecl.h> header file. */
-/* #undef HAVE_ANSIDECL_H */
+/* #define HAVE_ANSIDECL_H 1 */
 
 /* Define to 1 if you have the <arpa/inet.h> header file. */
 #define HAVE_ARPA_INET_H 1
@@ -102,7 +102,7 @@
 /* #undef HAVE_LIBHISTORY */
 
 /* Define if pthread library is there (-lpthread) */
-#define HAVE_LIBPTHREAD /**/
+/* #define HAVE_LIBPTHREAD */
 
 /* Define if readline library is there (-lreadline) */
 /* #undef HAVE_LIBREADLINE */
@@ -117,7 +117,7 @@
 #define HAVE_LOCALTIME 1
 
 /* Define to 1 if you have the <malloc.h> header file. */
-/* #undef HAVE_MALLOC_H */
+#define HAVE_MALLOC_H 1
 
 /* Define to 1 if you have the <math.h> header file. */
 #define HAVE_MATH_H 1
@@ -144,7 +144,7 @@
 #define HAVE_PRINTF 1
 
 /* Define if <pthread.h> is there */
-#define HAVE_PTHREAD_H /**/
+/* #define HAVE_PTHREAD_H */
 
 /* Define to 1 if you have the <resolv.h> header file. */
 #define HAVE_RESOLV_H 1

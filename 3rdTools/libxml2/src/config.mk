@@ -1,8 +1,9 @@
 product:=xml2
 $(product).type:=lib
-$(product).depends:=iconv
+$(product).depends:=iconv zlib
 $(product).version:=2.7.8
 $(product).product.c.includes:=3rdTools/libxml2/include
+$(product).product.c.env-includes:=3rdTools/libxml2/include
 
 $(product).c.sources := $(addprefix $(product-base)/, \
                    SAX.c \
@@ -50,10 +51,9 @@ $(product).c.sources := $(addprefix $(product-base)/, \
                    schematron.c \
                  )
 
-$(product).product.c.libraries:=z
-$(product).c.libraries:=m z dl
+$(product).product.c.env-libraries:=math
+$(product).c.env-libraries:=dl
 $(product).c.env-includes:=3rdTools/libxml2/src
-$(product).c.flags.cpp:= -DHAVE_CONFIG_H -D_REENTRANT -Wno-format -Wno-unused
-$(product).c.flags.ld:=
+$(product).c.flags.cpp:= -DHAVE_CONFIG_H -D_REENTRANT -Wno-format -Wno-unused -Wno-conversion -Wno-self-assign -Wno-parentheses-equality
 
 $(eval $(call product-def,$(product)))
