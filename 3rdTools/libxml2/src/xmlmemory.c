@@ -29,6 +29,9 @@
 #include <ctype.h>
 #endif
 
+#ifdef DEBUG_MEMORY
+#undef DEBUG_MEMORY
+#endif
 /* #define DEBUG_MEMORY */
 
 /**
