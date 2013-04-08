@@ -111,6 +111,8 @@ struct net_ep {
     net_process_fun_t m_process_fun;
     void * m_process_ctx;
     int m_fd;
+    int8_t m_processing;
+    int8_t m_deleted;
     struct ev_io m_watcher;
     struct ev_timer m_timer;
 	enum net_status m_status;
