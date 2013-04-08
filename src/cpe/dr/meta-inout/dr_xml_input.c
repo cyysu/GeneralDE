@@ -8,9 +8,10 @@
 #include "cpe/dr/dr_metalib_build.h"
 #include "cpe/dr/dr_metalib_xml.h"
 #include "cpe/dr/dr_error.h"
+#include "cpe/dr/dr_metalib_build.h"
 #include "../dr_internal_types.h"
 #include "../dr_ctype_ops.h"
-#include "dr_inbuild.h"
+#include "dr_inbuild_types.h"
 #include "dr_inbuild_error.h"
 #include "dr_XMLtags.h"
 #include "dr_builder_ops.h"
@@ -252,7 +253,7 @@ static void dr_build_xml_process_meta(
     }
 
     newMeta->m_data.m_type = metaType;
-    newMeta->m_data.m_align = 1;
+    newMeta->m_data.m_align = ctx->m_metaLib->m_dft_align;
 
     for(index = 0, indexAttribute = 0;
         indexAttribute < nb_attributes && !haveError;
@@ -267,16 +268,24 @@ static void dr_build_xml_process_meta(
         int len = valueEnd - valueBegin;
 
         if (strcmp((char const *)localname, CPE_DR_TAG_NAME) == 0) {
+            char * name;
             if (len > CPE_DR_MACRO_LEN) {
                 DR_NOTIFY_ERROR(ctx->m_em, CPE_DR_ERROR_NAME_LEN_BEYOND_UPLIMIT);
                 return;
             }
 
-            DR_DO_DUP_STR(newMeta->m_name);
+            DR_DO_DUP_STR(name);
+
+            dr_inbuild_meta_set_name(newMeta, name);
         }
         else if (strcmp((char const *)localname, CPE_DR_TAG_DESCIPTION) == 0) {
             if (len > CPE_DR_DESC_LEN) len = CPE_DR_DESC_LEN;
             DR_DO_DUP_STR(newMeta->m_desc);
+        }
+        else if (strcmp((char const *)localname, "primarykey") == 0) {
+            char * names;
+            DR_DO_DUP_STR(names);
+            dr_inbuild_meta_add_key_entries(newMeta, names);
         }
         else if (strcmp((char const *)localname, CPE_DR_TAG_ID) == 0) {
             DR_DO_READ_INT_OR_MACRO(newMeta->m_data.m_id, CPE_DR_ERROR_ENTRY_INVALID_ID_VALUE);
@@ -465,6 +474,61 @@ static void dr_build_xml_process_entry(
     }
 }
 
+static void dr_build_xml_process_index(
+    struct DRXmlParseCtx * ctx,
+    int nb_attributes,
+    const xmlChar** attributes)
+{
+    int indexAttribute = 0;
+    int index = 0;
+    const char * name = NULL;
+    const char * columns = NULL;
+
+    if (ctx->m_state != PS_InMeta || ctx->m_curentMeta == NULL) {
+        return;
+    }
+
+    for(index = 0, indexAttribute = 0;
+        indexAttribute < nb_attributes;
+        ++indexAttribute, index += 5)
+    {
+        const xmlChar *localname = attributes[index];
+        /*const xmlChar *prefix = attributes[index+1];*/
+        /*const xmlChar *nsURI = attributes[index+2];*/
+        const xmlChar *valueBegin = attributes[index+3];
+        const xmlChar *valueEnd = attributes[index+4];
+
+        int len = valueEnd - valueBegin;
+
+        if (strcmp((char const *)localname, "name") == 0) {
+            DR_DO_DUP_STR(name);
+        }
+        else if (strcmp((char const *)localname, "column") == 0) {
+            DR_DO_DUP_STR(columns);
+        }
+        else {
+        }
+    }
+
+    if (name == NULL) {
+        CPE_ERROR(ctx->m_em, "build index for meta %s, name not configured!", ctx->m_curentMeta->m_name);
+    }
+
+    if (columns == NULL) {
+        CPE_ERROR(ctx->m_em, "build index for meta %s, column not configured!", ctx->m_curentMeta->m_name);
+    }
+
+    if (name && columns) {
+        struct dr_inbuild_index * inbuild_index = dr_inbuild_meta_add_index(ctx->m_curentMeta, name);
+        if (inbuild_index == NULL) {
+            CPE_ERROR(ctx->m_em, "build index for meta %s, add index %s fail!", ctx->m_curentMeta->m_name, name);
+        }
+        else if (dr_inbuild_index_add_entries(inbuild_index, columns) != 0) {
+            CPE_ERROR(ctx->m_em, "build index for meta %s, add columns %s to index %s fail!", ctx->m_curentMeta->m_name, columns, name);
+        }
+    }
+}
+
 static void dr_build_xml_process_include(
     struct DRXmlParseCtx * ctx,
     int nb_attributes,
@@ -495,6 +559,7 @@ static void dr_build_xml_process_include(
         }
         if (strcmp((char const *)localname, "file") == 0) {
             DR_DO_DUP_STR(include_file);
+            (void)include_file;
         }
         else {
         }
@@ -531,6 +596,9 @@ static void dr_build_xml_startElement(
 
     if (strcmp((const char *)localname, CPE_DR_TAG_ENTRY) == 0) {
         dr_build_xml_process_entry(ctx, nb_attributes, attributes);
+    }
+    else if (strcmp((const char *)localname, "index") == 0) {
+        dr_build_xml_process_index(ctx, nb_attributes, attributes);
     }
     else if (strcmp((const char *)localname, CPE_DR_TAG_STRUCT) == 0) {
         dr_build_xml_process_meta(ctx, nb_attributes, attributes, CPE_DR_TYPE_STRUCT);
@@ -650,11 +718,12 @@ int  dr_create_lib_from_xml(
     mem_buffer_t buffer,
     const char* buf,
     int bufSize,
+    uint8_t dft_align,
     FILE * errorFp)
 {
     CPE_DEF_ERROR_MONITOR(em, cpe_error_log_to_file, errorFp);
 
-    return dr_create_lib_from_xml_ex(buffer, buf, bufSize, &em);
+    return dr_create_lib_from_xml_ex(buffer, buf, bufSize, dft_align, &em);
 }
 
 void dr_metalib_source_analize_xml(
@@ -686,6 +755,7 @@ void dr_create_lib_from_xml_ex_i(
     const char* buf,
     int bufSize,
     int * ret,
+    uint8_t dft_align,
     error_monitor_t em)
 {
     struct DRInBuildMetaLib * inbuild_lib;
@@ -695,6 +765,8 @@ void dr_create_lib_from_xml_ex_i(
         *ret = -1;
         return;
     }
+
+    dr_inbuild_set_dft_align(inbuild_lib, dft_align);
 
     dr_metalib_source_analize_xml(NULL, inbuild_lib, buf, bufSize, em);
 
@@ -707,18 +779,19 @@ int dr_create_lib_from_xml_ex(
     mem_buffer_t buffer,
     const char* buf,
     int bufSize,
+    uint8_t dft_align,
     error_monitor_t em)
 {
     int ret = 0;
 
     if (em) {
         CPE_DEF_ERROR_MONITOR_ADD(logError, em, cpe_error_save_last_errno, &ret);
-        dr_create_lib_from_xml_ex_i(buffer, buf, bufSize, &ret, em);
+        dr_create_lib_from_xml_ex_i(buffer, buf, bufSize, &ret, dft_align, em);
         CPE_DEF_ERROR_MONITOR_REMOVE(logError, em);
     }
     else {
         CPE_DEF_ERROR_MONITOR(logError, cpe_error_save_last_errno, &ret);
-        dr_create_lib_from_xml_ex_i(buffer, buf, bufSize, &ret, &logError);
+        dr_create_lib_from_xml_ex_i(buffer, buf, bufSize, &ret, dft_align, &logError);
     }
 
     return ret;

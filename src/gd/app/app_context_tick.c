@@ -31,14 +31,6 @@ int gd_app_tick_remove(gd_app_context_t context, gd_app_tick_fun tick, void * ti
     return -1;
 }
 
-void gd_app_tick(gd_app_context_t context) {
-    struct gd_app_ticker * ticker;
-
-    TAILQ_FOREACH(ticker, &context->m_tick_chain, m_next) {
-        ticker->m_tick(ticker->m_ctx, ticker->m_arg);
-    }
-}
-
 void gd_app_tick_chain_free(gd_app_context_t context) {
     while(!TAILQ_EMPTY(&context->m_tick_chain)) {
         struct gd_app_ticker * ticker = TAILQ_FIRST(&context->m_tick_chain);

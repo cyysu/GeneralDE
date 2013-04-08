@@ -13,15 +13,24 @@ extern "C" {
 CPE_DR_API int dr_create_lib_from_xml(
     mem_buffer_t buffer,
     const char* buf, int bufSize,
+    uint8_t dft_align,
     FILE* errorFp);
 
 CPE_DR_API int dr_create_lib_from_xml_ex(
     mem_buffer_t buffer,
     const char* buf, int bufSize,
+    uint8_t dft_align,
     error_monitor_t er);
 
-CPE_DR_API int dr_save_xml(
-    LPDRMETALIB metaLib, const char * fileName);
+CPE_DR_API int dr_save_lib_to_xml_file(
+    LPDRMETALIB metaLib,
+    const char * fileName,
+    error_monitor_t em);
+
+CPE_DR_API char * dr_save_lib_to_xml_buf(
+    mem_buffer_t buffer,
+    LPDRMETALIB metaLib,
+    error_monitor_t em);
 
 #ifdef __cplusplus
 }

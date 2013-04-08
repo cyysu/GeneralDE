@@ -12,8 +12,15 @@ void gd_timer_mgr_free_processor_buf(gd_timer_mgr_t mgr);
 
 struct gd_timer_processor * gd_timer_processor_get(gd_timer_mgr_t mgr, gd_timer_id_t processorId);
 int gd_timer_processor_alloc(gd_timer_mgr_t mgr, gd_timer_id_t * id);
-void gd_timer_processor_free_basic(gd_timer_mgr_t mgr, struct gd_timer_processor * data);
-int gd_timer_processor_free_id(gd_timer_mgr_t mgr, gd_timer_id_t processorId);
+void gd_timer_processor_free(gd_timer_mgr_t mgr, struct gd_timer_processor * data);
+
+#ifdef GD_TIMER_DEBUG
+uint32_t gd_debug_info_hash_fun(const struct gd_timer_alloc_info * o);
+int gd_debug_info_eq_fun(const struct gd_timer_alloc_info * l, const struct gd_timer_alloc_info * r);
+
+void gd_alloc_info_add(gd_timer_mgr_t mgr, gd_timer_id_t id);
+void gd_alloc_info_remove(gd_timer_mgr_t mgr, gd_timer_id_t id);
+#endif
 
 #ifdef __cplusplus
 }

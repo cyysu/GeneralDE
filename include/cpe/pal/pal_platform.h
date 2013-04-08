@@ -8,9 +8,43 @@
 #define CPE_LITTLE_ENDIAN
 #endif
 
-#define CPE_PAL_ALIGN_8(__value) ((((__value) >> 3) + 1) << 3)
-#define CPE_PAL_ALIGN_4(__value) ((((__value) >> 2) + 1) << 2)
-#define CPE_PAL_ALIGN_2(__value) ((((__value) >> 1) + 1) << 1)
+#ifndef __WORDSIZE
+#if __SIZEOF_INT__ == 8
+#    define __WORDSIZE (64)
+#else
+#    define __WORDSIZE (64)
+#endif
+#endif
+
+#ifdef _MSC_VER
+#  define CPE_DEFAULT_ALIGN (1)
+#else
+#  define CPE_DEFAULT_ALIGN (__WORDSIZE / 8)
+#endif
+
+#define CPE_PAL_CALC_ALIGN_8(__value) if ((__value) % 8) { (__value) = ((((__value) >> 3) + 1) << 3); }
+#define CPE_PAL_CALC_ALIGN_4(__value) if ((__value) % 4) { (__value) = ((((__value) >> 2) + 1) << 2); }
+#define CPE_PAL_CALC_ALIGN_2(__value) if ((__value) % 2) { (__value) = ((((__value) >> 1) + 1) << 1); }
+
+#define CPE_PAL_CALC_ALIGN(__value, __align)    \
+    switch(__align) {                           \
+    case 2:                                     \
+        CPE_PAL_CALC_ALIGN_2(__value);          \
+        break;                                  \
+    case 4:                                     \
+        CPE_PAL_CALC_ALIGN_4(__value);          \
+        break;                                  \
+    case 8:                                     \
+        CPE_PAL_CALC_ALIGN_8(__value);          \
+        break;                                  \
+    }
+
+
+#if (__WORDSIZE == 64)
+#define CPE_PAL_ALIGN_DFT CPE_PAL_CALC_ALIGN_8
+#else
+#define CPE_PAL_ALIGN_DFT CPE_PAL_CALC_ALIGN_4
+#endif
 
 #define CPE_SWAP_ENDIAN64(outp, inp) do {           \
         const char * __in = (const char *)(inp);    \
@@ -45,6 +79,12 @@
 #define CPE_COPY_NTOH64(outp, inp) do { memcpy(outp, inp, 8); } while(0)
 #define CPE_COPY_HTON32(outp, inp) do { memcpy(outp, inp, 4); } while(0)
 #define CPE_COPY_NTOH32(outp, inp) do { memcpy(outp, inp, 4); } while(0)
+#endif
+
+#ifdef __GNUC__
+#define INLINE inline
+#else
+#define INLINE static
 #endif
 
 #endif

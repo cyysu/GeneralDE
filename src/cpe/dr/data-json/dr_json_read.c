@@ -44,6 +44,10 @@ struct dr_json_parse_ctx {
     struct mem_buffer * m_output_alloc;
     error_monitor_t m_em;
 
+    int m_root_in_array;
+    int m_root_array_count;
+    LPDRMETA m_root_meta;
+
     struct dr_json_parse_stack_info m_typeStacks[CPE_DR_MAX_LEVEL];
     int m_stackPos;
 
@@ -144,17 +148,15 @@ static int dr_json_do_parse_calc_start_pos(
     struct dr_json_parse_ctx * c, 
     struct dr_json_parse_stack_info * parseType)
 {
-    size_t diffPos;
-
-    diffPos = parseType->m_entry->m_data_start_pos;
-
     if (parseType->m_entry->m_array_count == 1) {
         if (parseType->m_in_array) return -1;
-    }
-    else if (parseType->m_entry->m_array_count > 1) {
-        size_t elementSize;
 
-        if (parseType->m_array_count >= parseType->m_entry->m_array_count) {
+        return (int)dr_entry_data_start_pos(parseType->m_entry, 0);
+    }
+    else {
+        if (parseType->m_entry->m_array_count > 1
+            && parseType->m_array_count >= parseType->m_entry->m_array_count)
+        {
             CPE_ERROR(
                 c->m_em,
                 "process %s.%s, array count overflow!",
@@ -162,44 +164,8 @@ static int dr_json_do_parse_calc_start_pos(
             return -1;
         }
 
-        if (parseType->m_entry->m_type <= CPE_DR_TYPE_COMPOSITE) {
-            LPDRMETA refMeta = dr_entry_ref_meta(parseType->m_entry);
-            if (refMeta == NULL) {
-                CPE_ERROR(
-                    c->m_em, "process %s.%s, ref meta not exist!",
-                    dr_meta_name(parseType->m_meta), c->m_buf);
-                return -1;
-            }
-
-            elementSize = dr_meta_size(refMeta);
-        }
-        else {
-            const struct tagDRCTypeInfo * typeInfo;
-            typeInfo = dr_find_ctype_info_by_type(parseType->m_entry->m_type);
-            if (typeInfo == NULL) {
-                CPE_ERROR(
-                    c->m_em, "process %s.%s, type "FMT_DR_INT_T" is unknown!",
-                    dr_meta_name(parseType->m_meta), c->m_buf,
-                    parseType->m_entry->m_type);
-                return -1;
-            }
-
-            if (typeInfo->m_size <= 0) {
-                CPE_ERROR(
-                    c->m_em, "process %s.%s, type "FMT_DR_INT_T" size is invalid!",
-                    dr_meta_name(parseType->m_meta), c->m_buf,
-                    parseType->m_entry->m_type);
-                return -1;
-            }
-
-            elementSize = typeInfo->m_size;
-        }
-
-        diffPos += elementSize * parseType->m_array_count;
-        ++parseType->m_array_count;
+        return (int)dr_entry_data_start_pos(parseType->m_entry, parseType->m_array_count++);
     }
-
-    return (int)diffPos;
 }
  
 static void dr_json_do_parse_from_string(
@@ -317,12 +283,28 @@ static int dr_json_start_map(void * ctx) {
         return 1;
     }
 
+    nestStackNode = &c->m_typeStacks[nextStackPos];
+
+    if (c->m_stackPos < 0) {
+        if (c->m_root_in_array) {
+            dr_json_parse_stack_init(
+                nestStackNode,
+                c->m_root_meta,
+                c->m_root_array_count * dr_meta_size(c->m_root_meta),
+                dr_meta_size(c->m_root_meta));
+        }
+        else {
+            dr_json_parse_stack_init(nestStackNode, c->m_root_meta, 0, -1);
+        }
+
+        ++c->m_stackPos;
+        return 1;
+    }
+
     curStack = NULL;
     if (c->m_stackPos >= 0 && c->m_stackPos < CPE_DR_MAX_LEVEL) {
         curStack = &c->m_typeStacks[c->m_stackPos];
     }
-
-    nestStackNode = &c->m_typeStacks[nextStackPos];
 
     ++c->m_stackPos;
     if (curStack == NULL  || curStack->m_entry == NULL) {
@@ -340,7 +322,7 @@ static int dr_json_start_map(void * ctx) {
         dr_json_parse_stack_init(
             nestStackNode,
             refType,
-            startPos,
+            curStack->m_start_pos + startPos,
             curStack->m_entry->m_unitsize);
 
         selectEntry = dr_entry_select_entry(curStack->m_entry);
@@ -366,18 +348,30 @@ static int dr_json_end_map(void * ctx) {
         dr_json_parse_stack_init(&c->m_typeStacks[c->m_stackPos], NULL, 0, 0);
     }
     --c->m_stackPos;
+
+    if (c->m_stackPos == -1) {
+        if (c->m_root_in_array) {
+            ++c->m_root_array_count;
+        }
+    }
+
     return 1;
 }
 
 static int dr_json_start_array(void * ctx) {
     struct dr_json_parse_ctx * c = (struct dr_json_parse_ctx *) ctx;
 
-    if (c->m_stackPos < 0 || c->m_stackPos >= CPE_DR_MAX_LEVEL) {
+    if (c->m_stackPos < 0) {
+        c->m_root_in_array = 1;
         return 1;
     }
-
-    c->m_typeStacks[c->m_stackPos].m_in_array = 1;
-    return 1;
+    else if (c->m_stackPos >= CPE_DR_MAX_LEVEL) {
+        return 1;
+    }
+    else {
+        c->m_typeStacks[c->m_stackPos].m_in_array = 1;
+        return 1;
+    }
 }
 
 static int dr_json_end_array(void * ctx) {
@@ -393,7 +387,7 @@ static int dr_json_end_array(void * ctx) {
 
     curStack->m_in_array = 0;
 
-    refer = dr_entry_array_refer_entry(curStack->m_entry);
+    refer = curStack->m_entry ? dr_entry_array_refer_entry(curStack->m_entry) : NULL;
     if (refer) {
         char * ref_write_pos;
         ref_write_pos = dr_json_parse_get_write_pos(c, curStack, curStack->m_entry->m_array_refer_data_start_pos, dr_entry_element_size(refer));
@@ -431,14 +425,17 @@ static void dr_json_parse_ctx_init(
 {
     bzero(ctx, sizeof(struct dr_json_parse_ctx));
 
-    dr_json_parse_stack_init(&ctx->m_typeStacks[0], meta, 0, -1);
-
     ctx->m_output_buf = result;
     ctx->m_output_capacity = capacity;
     ctx->m_output_alloc = result_buffer;
 
+    ctx->m_root_meta = meta;
+    ctx->m_root_in_array = 0;
+    ctx->m_root_array_count = 0;
+
     ctx->m_stackPos = -1;
     ctx->m_em = em;
+    ctx->m_size = dr_meta_size(meta);
 }
 
 static int dr_json_read_i(
@@ -463,6 +460,9 @@ static int dr_json_read_i(
 
     stat = yajl_parse(hand, (const unsigned char *)input, strlen(input));
     if (stat != yajl_status_ok) {  
+        CPE_ERROR_EX(
+            em, CPE_DR_ERROR_NO_MEMORY, "parse json error, stat=%s\n%s",
+            yajl_status_to_string(stat), yajl_get_error(hand, 1, input, strlen(input)));
         yajl_free(hand);
         return 0;
     }

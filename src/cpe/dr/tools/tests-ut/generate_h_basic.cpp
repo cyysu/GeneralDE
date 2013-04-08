@@ -5,7 +5,7 @@ TEST_F(GenerateTest, h_basic) {
     add_buffer(
         "a",
         "<metalib tagsetversion='1' name='net'  version='10'>"
-        "    <struct name='PkgHead' desc='PkgHead.desc' version='1' id='33'>"
+        "    <struct name='PkgHead' desc='PkgHead.desc' version='1' id='33' align='1'>"
         "	     <entry name='a1' type='int8'/>"
         "    </struct>"
         "</metalib>");
@@ -23,9 +23,9 @@ TEST_F(GenerateTest, h_basic) {
         "\n"
         "#pragma pack(1)\n"
         "\n"
-        "struct PkgHead {\n"
+        "typedef struct _PkgHead {\n"
         "    int8_t a1;\n"
-        "};\n"
+        "} PKGHEAD;\n"
         "\n"
         "#pragma pack()\n"
         "\n"

@@ -27,6 +27,8 @@ void cfg_seq_item_delete(struct cfg_seq * s, cfg_t cfg);
 void cfg_seq_init(struct cfg_seq * s);
 void cfg_seq_fini(struct cfg_seq * s);
 
+cfg_t cfg_check_or_create(cfg_t cfg, const char * path, error_monitor_t em, char * buf, size_t buf_capacity);
+
 #ifdef __cplusplus
 }
 #endif

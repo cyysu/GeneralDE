@@ -72,14 +72,14 @@ struct DRCtypeTypePrintOps g_dr_print_ops[] = {
     , {/*CPE_DR_TYPE_FLOAT*/ dr_printf_float_to_stream}
     , {/*CPE_DR_TYPE_DOUBLE*/ dr_printf_double_to_stream}
     , {/*CPE_DR_TYPE_IP*/ NULL}
-    , {/*CPE_DR_TYPE_CHAR*/ dr_printf_char_to_stream}
+    , {/*CPE_DR_TYPE_WCHAR*/ dr_printf_char_to_stream}
     , {/*CPE_DR_TYPE_STRING*/ dr_printf_string_to_stream}
     , {/*CPE_DR_TYPE_STRING*/ dr_printf_string_to_stream}
     , {/*CPE_DR_TYPE_VOID*/ NULL}
     , {/*CPE_DR_TYPE_UINT8*/ dr_printf_uint8_to_stream}
 };
 
-int dr_print_to_stream(write_stream_t output, const void * input, LPDRMETAENTRY entry, error_monitor_t em) {
+int dr_entry_print_to_stream(write_stream_t output, const void * input, LPDRMETAENTRY entry, error_monitor_t em) {
     if (entry == NULL) {
         return -1;
     }

@@ -2,6 +2,7 @@
 #include "cpe/utils/error.h"
 #include "cpe/cfg/cfg_manage.h"
 #include "cpe/tl/tl_manage.h"
+#include "cpe/nm/nm_manage.h"
 #include "cpe/net/net_manage.h"
 #include "gd/app/tests-env/with_app.hpp"
 #include "cpe/utils/tests-env/with_em.hpp"
@@ -39,7 +40,7 @@ void with_app::t_app_create(size_t capacity, int argc, char ** argv) {
     t_app_free();
 
     m_app =
-        gd_app_context_create(t_allocrator(), capacity, argc, argv);
+        gd_app_context_create_main(t_allocrator(), capacity, argc, argv);
 
     ASSERT_TRUE(m_app) << "create app fail!" ;
 
@@ -96,6 +97,10 @@ with_app::t_app_install_module(
 
 int with_app::t_app_uninstall_module(const char * name) {
     return gd_app_uninstall_module(t_app(), name);
+}
+
+void with_app::t_app_uninstall_modules_by_type(const char * name) {
+    nm_mgr_free_nodes_with_type_name(t_nm(), name);
 }
 
 int with_app::t_app_install_rsps(
@@ -189,5 +194,22 @@ void with_app::t_app_init_module_type(
             global_fini,
             env_em ? env_em->t_em() : NULL));
 }
+
+extern "C" {
+struct gd_app_module_type *
+gd_app_module_type_find(const char * type_name);
+void gd_app_module_type_free(struct gd_app_module_type * module_type, error_monitor_t em);
+}
+
+void with_app::t_app_fini_module_type(const char * name) {
+    utils::testenv::with_em * env_em = tryEnvOf<utils::testenv::with_em>();
+    struct gd_app_module_type * module_type = gd_app_module_type_find(name);
+    if (module_type) {
+        
+
+        gd_app_module_type_free(module_type, env_em ? env_em->t_em() : NULL);
+    }
+}
+
 
 }}}

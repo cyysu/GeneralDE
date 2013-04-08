@@ -16,13 +16,13 @@ otm_manage_create(
 
 void otm_manage_free(otm_manage_t mgr);
 
-int otm_manage_buf_init(otm_manage_t mgr, tl_time_t cur_time, otm_memo_t memo, size_t memo_capacitiy);
+int otm_manage_buf_init(otm_manage_t mgr, uint32_t cur_time_s, otm_memo_t memo, size_t memo_capacitiy);
 
-void otm_manage_tick(otm_manage_t mgr, tl_time_t cur_time, void * obj_ctx, otm_memo_t memo_buf, size_t memo_capacity);
+void otm_manage_tick(otm_manage_t mgr, uint32_t cur_time_s, void * obj_ctx, otm_memo_t memo_buf, size_t memo_capacity);
 
-int otm_manage_enable(otm_manage_t mgr, otm_timer_id_t id, tl_time_t cur_time, tl_time_t first_exec_span, otm_memo_t memo_buf, size_t memo_capacitiy);
+int otm_manage_enable(otm_manage_t mgr, otm_timer_id_t id, uint32_t cur_time_s, uint32_t first_exec_span_s, otm_memo_t memo_buf, size_t memo_capacitiy);
 int otm_manage_disable(otm_manage_t mgr, otm_timer_id_t id, otm_memo_t memo_buf, size_t memo_capacitiy);
-int otm_manage_perform(otm_manage_t mgr, tl_time_t cur_time,  otm_timer_id_t id, void * obj_ctx, otm_memo_t memo_buf, size_t memo_capacitiy);
+int otm_manage_perform(otm_manage_t mgr, uint32_t cur_time_s,  otm_timer_id_t id, void * obj_ctx, otm_memo_t memo_buf, size_t memo_capacitiy);
 
 error_monitor_t otm_manage_em(otm_manage_t mgr);
 void otm_manage_timers(otm_manage_t mgr, otm_timer_it_t it);

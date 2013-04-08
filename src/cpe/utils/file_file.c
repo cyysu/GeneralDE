@@ -1,6 +1,7 @@
 #include <assert.h>
 #include <string.h>
 #include "file_internal.h"
+#include "cpe/pal/pal_stdio.h"
 #include "cpe/utils/stream_mem.h"
 #include "cpe/utils/stream_buffer.h"
 
@@ -212,6 +213,26 @@ ssize_t file_stream_size(FILE * fp, error_monitor_t em) {
     }
 
     return (ssize_t)buffer.st_size;
+}
+
+const char * dir_name(const char * input, mem_buffer_t tbuf) {
+    int len;
+
+    if (input == NULL) return NULL;
+
+    len = strlen(input);
+
+    while(len > 0) {
+        char c = input[--len];
+        if (c == '/' || c == '\\') {
+            char * r = (char *)mem_buffer_alloc(tbuf, len + 1);
+            if (len > 1) { memcpy(r, input, len); }
+            r[len] = 0; 
+            return r;
+        }
+    }
+
+    return NULL;
 }
 
 const char * file_name_suffix(const char * input) {

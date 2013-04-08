@@ -77,6 +77,57 @@ TEST_F(PathReadTest, map_seq) {
     EXPECT_STREQ("abc", (const char *)cfg_data(cfg));
 }
 
+TEST_F(PathReadTest, map_seq_filter_string) {
+    EXPECT_EQ(
+        0, read(
+            "a:\n"
+            "   - a1: aa\n"
+            "   - a1: bb"
+            ));
+
+    cfg_t cfg = cfg_find_cfg(m_root, "a[a1=bb]");
+    ASSERT_TRUE(cfg);
+    EXPECT_STREQ("bb", cfg_as_string(cfg_find_cfg(cfg, "a1"), NULL));
+}
+
+TEST_F(PathReadTest, map_seq_filter_string_not_exist) {
+    EXPECT_EQ(
+        0, read(
+            "a:\n"
+            "   - a1: aa\n"
+            "   - a1: bb"
+            ));
+
+    cfg_t cfg = cfg_find_cfg(m_root, "a[a1=cc]");
+    ASSERT_TRUE(cfg == NULL);
+}
+
+TEST_F(PathReadTest, map_seq_filter_int) {
+    EXPECT_EQ(
+        0, read(
+            "a:\n"
+            "   - a1: -4\n"
+            "   - a1: -5"
+            ));
+
+    cfg_t cfg = cfg_find_cfg(m_root, "a[a1=-5]");
+    ASSERT_TRUE(cfg);
+    EXPECT_EQ((int32_t)-5, cfg_as_int32(cfg_find_cfg(cfg, "a1"), 0));
+}
+
+TEST_F(PathReadTest, map_seq_filter_uint) {
+    EXPECT_EQ(
+        0, read(
+            "a:\n"
+            "   - a1: 4\n"
+            "   - a1: 5"
+            ));
+
+    cfg_t cfg = cfg_find_cfg(m_root, "a[a1=4]");
+    ASSERT_TRUE(cfg);
+    EXPECT_EQ((int32_t)4, cfg_as_int32(cfg_find_cfg(cfg, "a1"), 0));
+}
+
 TEST_F(PathReadTest, map_seq_seq) {
     EXPECT_EQ(
         0, read(
@@ -89,6 +140,7 @@ TEST_F(PathReadTest, map_seq_seq) {
     ASSERT_TRUE(cfg);
     EXPECT_EQ(123, cfg_as_int32(cfg, -1));
 }
+
 TEST_F(PathReadTest, map_seq_map) {
     EXPECT_EQ(
         0, read(

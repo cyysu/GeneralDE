@@ -30,8 +30,8 @@ public:
 };
 
 TEST_F(CtypeOpsFromStringTest, char_basic) {
-    EXPECT_EQ(0, parse("char", "a"));
-    EXPECT_EQ('a', m_buf[0]);
+    EXPECT_EQ(0, parse("char", "12"));
+    EXPECT_EQ(12, m_buf[0]);
 }
 
 TEST_F(CtypeOpsFromStringTest, char_too_many) {
@@ -43,8 +43,8 @@ TEST_F(CtypeOpsFromStringTest, char_empty) {
 }
 
 TEST_F(CtypeOpsFromStringTest, uchar_basic) {
-    EXPECT_EQ(0, parse("uchar", "a"));
-    EXPECT_EQ('a', m_buf[0]);
+    EXPECT_EQ(0, parse("uchar", "12"));
+    EXPECT_EQ(12, m_buf[0]);
 }
 
 TEST_F(CtypeOpsFromStringTest, uchar_too_many) {

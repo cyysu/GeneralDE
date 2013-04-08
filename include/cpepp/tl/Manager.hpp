@@ -4,6 +4,11 @@
 #include "cpe/tl/tl_manage.h"
 #include "System.hpp"
 
+#ifdef _MSC_VER
+# pragma warning(push)
+# pragma warning(disable:4624)
+#endif
+
 namespace Cpe { namespace Tl {
 
 class Manager : public Cpe::Utils::SimulateObject {
@@ -15,10 +20,15 @@ public:
     void resume(void) { tl_manage_resume(*this); }
 
     tl_time_t curTime(void) const { return tl_manage_time(*this); }
+    uint32_t curTimeSec(void) const { return (uint32_t)(curTime() / 1000); }
 
     int tick(int count = -1) { return tl_manage_tick(*this, count); }
 };
 
 }}
+
+#ifdef _MSC_VER
+# pragma warning(pop)
+#endif
 
 #endif

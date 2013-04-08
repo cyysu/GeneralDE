@@ -19,15 +19,15 @@ public:
 };
 
 TEST_F(CtypeOpsPrintfTest, char_basic) {
-    char data = 'a';
-    EXPECT_EQ(1, printf("char", &data));
-    EXPECT_STREQ("a", m_buf);
+    char data = 21;
+    EXPECT_EQ(2, printf("char", &data));
+    EXPECT_STREQ("21", m_buf);
 }
 
 TEST_F(CtypeOpsPrintfTest, uchar_basic) {
-    unsigned char data = 'a';
-    EXPECT_EQ(1, printf("uchar", &data));
-    EXPECT_STREQ("a", m_buf);
+    unsigned char data = 23;
+    EXPECT_EQ(2, printf("uchar", &data));
+    EXPECT_STREQ("23", m_buf);
 }
 
 TEST_F(CtypeOpsPrintfTest, int8_basic) {

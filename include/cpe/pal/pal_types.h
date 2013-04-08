@@ -10,14 +10,9 @@
 #include <wchar.h>
 #include <limits.h>
 
-#if _MSC_VER >= 1400
-#  include <crtdefs.h>
-#endif
-
 #endif
 
 #ifdef WIN32
-
 typedef int socklen_t;
 typedef int ssize_t;
 typedef long suseconds_t;
@@ -64,8 +59,10 @@ typedef int gid_t;
 
 #if (__WORDSIZE == 64)
 typedef int64_t ptr_int_t;
+typedef uint64_t ptr_uint_t;
 #else
 typedef int32_t ptr_int_t;
+typedef uint32_t ptr_uint_t;
 #endif
 
 #endif /* TTYPES_H */

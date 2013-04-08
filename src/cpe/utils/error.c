@@ -79,23 +79,27 @@ void cpe_error_log_to_file(struct error_info * info, void * context, const char 
 }
 
 void cpe_error_log_to_consol(struct error_info * info, void * context, const char * fmt, va_list args) {
+/*
 #if defined(_MSC_VER)
-	char buf[10240];
+    char buf[10240];
     size_t s;
     s = 0;
 
     if (info->m_file) s += snprintf(buf, sizeof(buf), "%s:%d: ", info->m_file, info->m_line > 0 ? info->m_line : 0);
     else if (info->m_line >= 0) s += snprintf(buf + s, sizeof(buf) - s, "%d: ", info->m_line);
 
-	vsnprintf(buf + s, sizeof(buf) - s, fmt, args);
-	OutputDebugStringA(buf);
-	OutputDebugStringA("\n");
+    vsnprintf(buf + s, sizeof(buf) - s, fmt, args);
+    OutputDebugStringA(buf);
+    OutputDebugStringA("\n");
 #endif
+//*/
+//*
     if (info->m_file) printf("%s:%d: ", info->m_file, info->m_line > 0 ? info->m_line : 0);
     else if (info->m_line >= 0) printf("%d: ", info->m_line);
 
     vprintf(fmt, args);
     printf("\n");
+//*/
 }
 
 void cpe_error_log_to_consol_and_flush(struct error_info * info, void * context, const char * fmt, va_list args) {

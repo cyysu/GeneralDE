@@ -11,14 +11,14 @@ typedef uint32_t otm_timer_id_t;
 
 typedef struct otm_memo {
     otm_timer_id_t m_id;
-    tl_time_t m_last_action_time;
-    tl_time_t m_next_action_time;
+    uint32_t m_last_action_time_s;
+    uint32_t m_next_action_time_s;
 } * otm_memo_t;
 
 typedef struct otm_timer * otm_timer_t;
 typedef struct otm_manage * otm_manage_t;
 
-typedef void (*otm_process_fun_t) (otm_timer_t timer, otm_memo_t memo, tl_time_t cur_exec_time, void * obj_ctx);
+typedef void (*otm_process_fun_t) (otm_timer_t timer, otm_memo_t memo, uint32_t cur_exec_time_s, void * obj_ctx);
 
 typedef struct otm_timer_it {
     otm_timer_t (*next)(struct otm_timer_it * it);

@@ -9,7 +9,7 @@ TEST_F(BuildFromXmlMetaTest, struct_data) {
         0,
         parseMeta(
             "<metalib tagsetversion='1' name='net'  version='10'>"
-            "    <struct name='PkgHead' desc='PkgHead.desc' version='1' id='33'>"
+            "    <struct name='PkgHead' desc='PkgHead.desc' version='1' id='33' align='1'>"
             "	     <entry name='a1' type='int8'/>"
             "    </struct>"
             "</metalib>"
@@ -35,7 +35,7 @@ TEST_F(BuildFromXmlMetaTest, id_use_macro) {
         parseMeta(
             "<metalib tagsetversion='1' name='net'  version='10'>"
             "    <macro name='macro_1' value='100'/>"
-            "    <struct name='PkgHead' desc='PkgHead.desc' version='1' id='macro_1'/>"
+            "    <struct name='PkgHead' desc='PkgHead.desc' version='1' id='macro_1' align='1'/>"
             "</metalib>"
             ));
 
@@ -48,7 +48,7 @@ TEST_F(BuildFromXmlMetaTest, struct_no_entry) {
         CPE_DR_ERROR_META_NO_ENTRY,
         parseMeta(
             "<metalib tagsetversion='1' name='net'  version='10'>"
-            "    <struct name='PkgHead' desc='PkgHead.desc' version='1' id='33'/>"
+            "    <struct name='PkgHead' desc='PkgHead.desc' version='1' id='33' align='1'/>"
             "</metalib>"
             ));
 }
@@ -58,7 +58,7 @@ TEST_F(BuildFromXmlMetaTest, union_data) {
         0,
         parseMeta(
             "<metalib tagsetversion='1' name='net'  version='10'>"
-            "    <union name='PkgHead' desc='PkgHead.desc' version='1' id='33'>"
+            "    <union name='PkgHead' desc='PkgHead.desc' version='1' id='33' align='1'>"
             "	     <entry name='a1' type='int8'/>"
             "    </union>"
             "</metalib>"
@@ -258,3 +258,204 @@ TEST_F(BuildFromXmlMetaTest, composite_basic) {
     ASSERT_TRUE(dr_meta_find_entry_by_name(metaS2, "m_s"));
     EXPECT_TRUE(metaS == dr_entry_ref_meta(dr_meta_find_entry_by_name(metaS2, "m_s")));
 }
+
+TEST_F(BuildFromXmlMetaTest, meta_order_origin) {
+    EXPECT_EQ(
+        0,
+        parseMeta(
+            "<metalib tagsetversion='1' name='net'  version='10'>"
+            "    <struct name='A2' version='1'>"
+            "	     <entry name='a1' type='int8'/>"
+            "    </struct>"
+            "    <struct name='A1' version='1'>"
+            "	     <entry name='a1' type='int8'/>"
+            "    </struct>"
+            "</metalib>"
+            ));
+
+    EXPECT_EQ(2, dr_lib_meta_num(m_metaLib));
+    EXPECT_STREQ("A2", dr_meta_name(dr_lib_meta_at(m_metaLib, 0)));
+    EXPECT_STREQ("A1", dr_meta_name(dr_lib_meta_at(m_metaLib, 1)));
+}
+
+TEST_F(BuildFromXmlMetaTest, meta_key_basic) {
+    EXPECT_EQ(
+        0,
+        parseMeta(
+            "<metalib tagsetversion='1' name='net'  version='10'>"
+            "    <struct name='A1' version='1' primarykey='a1,a2'>"
+            "	     <entry name='a1' type='int8'/>"
+            "	     <entry name='a2' type='int8'/>"
+            "	     <entry name='a3' type='int8'/>"
+            "    </struct>"
+            "</metalib>"
+            ));
+
+    EXPECT_EQ(1, dr_lib_meta_num(m_metaLib));
+
+    LPDRMETA meta = dr_lib_meta_at(m_metaLib, 0);
+    ASSERT_TRUE(meta);
+
+    ASSERT_EQ(2, dr_meta_key_entry_num(meta));
+    
+    EXPECT_STREQ("a1", dr_entry_name(dr_meta_key_entry_at(meta, 0)));
+    EXPECT_STREQ("a2", dr_entry_name(dr_meta_key_entry_at(meta, 1)));
+}
+
+TEST_F(BuildFromXmlMetaTest, meta_key_not_exist) {
+    EXPECT_EQ(
+        -1,
+        parseMeta(
+            "<metalib tagsetversion='1' name='net'  version='10'>"
+            "    <struct name='A1' version='1' primarykey='not-exist-key'>"
+            "	     <entry name='a1' type='int8'/>"
+            "	     <entry name='a2' type='int8'/>"
+            "	     <entry name='a3' type='int8'/>"
+            "    </struct>"
+            "</metalib>"
+            ));
+}
+
+TEST_F(BuildFromXmlMetaTest, meta_key_duplicate) {
+    EXPECT_NE(
+        0,
+        parseMeta(
+            "<metalib tagsetversion='1' name='net'  version='10'>"
+            "    <struct name='A1' version='1' primarykey='a1,a1'>"
+            "	     <entry name='a1' type='int8'/>"
+            "	     <entry name='a2' type='int8'/>"
+            "	     <entry name='a3' type='int8'/>"
+            "    </struct>"
+            "</metalib>"
+            ));
+}
+
+TEST_F(BuildFromXmlMetaTest, meta_index_basic) {
+    EXPECT_EQ(
+        0,
+        parseMeta(
+            "<metalib tagsetversion='1' name='net'  version='10'>"
+            "    <struct name='A1' version='1'>"
+            "	     <entry name='a1' type='int8'/>"
+            "	     <entry name='a2' type='int8'/>"
+            "	     <entry name='a3' type='int8'/>"
+            "        <index name='index1' column='a1,a2'/>"
+            "    </struct>"
+            "</metalib>"
+            ));
+
+    EXPECT_EQ(1, dr_lib_meta_num(m_metaLib));
+
+    LPDRMETA meta = dr_lib_meta_at(m_metaLib, 0);
+    ASSERT_TRUE(meta);
+
+    ASSERT_EQ(1, dr_meta_index_num(meta));
+
+    dr_index_info_t i1 = dr_meta_index_at(meta, 0);
+
+    EXPECT_STREQ("index1", dr_index_name(i1));
+    ASSERT_EQ(2, dr_index_entry_num(i1));
+    
+    EXPECT_STREQ("a1", dr_entry_name(dr_index_entry_at(i1, 0)));
+    EXPECT_STREQ("a2", dr_entry_name(dr_index_entry_at(i1, 1)));
+}
+
+TEST_F(BuildFromXmlMetaTest, size_with_count_basic) {
+    EXPECT_EQ(
+        0,
+        parseMeta(
+            "<metalib tagsetversion='1' name='net'  version='1'>"
+            "    <struct name='S2' version='1'>"
+            "	     <entry name='a2' type='int16' count='5'/>"
+            "    </struct>"
+            "</metalib>"
+            ));
+
+    ASSERT_TRUE(t_em_no_error());
+
+    LPDRMETA metaS2 = meta("S2");
+    ASSERT_TRUE(metaS2);
+    ASSERT_EQ((size_t)10, dr_meta_size(metaS2));
+}
+
+TEST_F(BuildFromXmlMetaTest, size_with_count_composite) {
+    EXPECT_EQ(
+        0,
+        parseMeta(
+            "<metalib tagsetversion='1' name='net'  version='1'>"
+            "    <struct name='S1' version='1'>"
+            "	     <entry name='a2' type='int16'/>"
+            "    </struct>"
+            "    <struct name='S2' version='1'>"
+            "	     <entry name='a2' type='S1' count='5'/>"
+            "    </struct>"
+            "</metalib>"
+            ));
+
+    ASSERT_TRUE(t_em_no_error());
+
+    LPDRMETA metaS2 = meta("S2");
+    ASSERT_TRUE(metaS2);
+    ASSERT_EQ((size_t)10, dr_meta_size(metaS2));
+}
+
+TEST_F(BuildFromXmlMetaTest, size_with_count_composite_refer) {
+    EXPECT_EQ(
+        0,
+        parseMeta(
+            "<metalib tagsetversion='1' name='net'  version='1'>"
+            "    <struct name='S1' version='1'>"
+            "	     <entry name='a2' type='int16'/>"
+            "    </struct>"
+            "    <struct name='S2' version='1'>"
+            "        <entry name='count' type='int16'/>"
+            "	     <entry name='a2' type='S1' count='5' refer='count'/>"
+            "    </struct>"
+            "</metalib>"
+            ));
+
+    ASSERT_TRUE(t_em_no_error());
+
+    LPDRMETA metaS2 = meta("S2");
+    ASSERT_TRUE(metaS2);
+    ASSERT_EQ((size_t)12, dr_meta_size(metaS2));
+}
+
+
+TEST_F(BuildFromXmlMetaTest, size_with_count_string) {
+    EXPECT_EQ(
+        0,
+        parseMeta(
+            "<metalib tagsetversion='1' name='net'  version='1'>"
+            "    <struct name='S2' version='1'>"
+            "	     <entry name='a2' type='string' size='4' count='5'/>"
+            "    </struct>"
+            "</metalib>"
+            ));
+
+    ASSERT_TRUE(t_em_no_error());
+
+    LPDRMETA metaS2 = meta("S2");
+    ASSERT_TRUE(metaS2);
+    ASSERT_EQ((size_t)20, dr_meta_size(metaS2));
+}
+
+TEST_F(BuildFromXmlMetaTest, size_with_count_refer) {
+    EXPECT_EQ(
+        0,
+        parseMeta(
+            "<metalib tagsetversion='1' name='net'  version='1'>"
+            "    <struct name='S2' version='1'>"
+            "        <entry name='count' type='int16'/>"
+            "	     <entry name='a2' type='string' size='4' count='5' refer='count'/>"
+            "    </struct>"
+            "</metalib>"
+            ));
+
+    ASSERT_TRUE(t_em_no_error());
+
+    LPDRMETA metaS2 = meta("S2");
+    ASSERT_TRUE(metaS2);
+    ASSERT_EQ((size_t)22, dr_meta_size(metaS2));
+}
+

@@ -38,7 +38,7 @@ TEST_F(RunTest, run) {
             net_listener_using_port(listener));
     ASSERT_TRUE(connector);
 
-    net_connector_set_monitor(
+    net_connector_add_monitor(
         connector, run_test_connector_state_monitor, this);
 
     net_connector_enable(connector);

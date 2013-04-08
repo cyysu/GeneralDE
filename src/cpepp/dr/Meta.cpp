@@ -85,20 +85,43 @@ Meta const & Meta::_cast(LPDRMETA meta) {
     return *(Meta const *)meta;
 }
 
-const char * Meta::dump_data(mem_buffer_t buffer, const void * data) const {
+const char * Meta::dump_data(mem_buffer_t buffer, const void * data, size_t capacity) const {
     write_stream_buffer stream = CPE_WRITE_STREAM_BUFFER_INITIALIZER(buffer);
 
-    dump_data((write_stream_t)&stream, data);
+    dump_data((write_stream_t)&stream, data, capacity);
+
+    stream_putc((write_stream_t)&stream, 0);
 
     return (const char *)mem_buffer_make_continuous(buffer, 0);
 }
 
-void Meta::dump_data(write_stream_t stream, const void * data) const {
+void Meta::dump_data(write_stream_t stream, const void * data, size_t capacity) const {
     dr_json_print(
         stream,
         data,
+        capacity, 
         *this,
-        DR_JSON_PRINT_BEAUTIFY,
+        DR_JSON_PRINT_MINIMIZE,
+        0);
+}
+
+const char * Meta::dump_data_array(mem_buffer_t buffer, const void * data, size_t capacity) const {
+    write_stream_buffer stream = CPE_WRITE_STREAM_BUFFER_INITIALIZER(buffer);
+
+    dump_data_array((write_stream_t)&stream, data, capacity);
+
+    stream_putc((write_stream_t)&stream, 0);
+
+    return (const char *)mem_buffer_make_continuous(buffer, 0);
+}
+
+void Meta::dump_data_array(write_stream_t stream, const void * data, size_t capacity) const {
+    dr_json_print_array(
+        stream,
+        data,
+        capacity, 
+        *this,
+        DR_JSON_PRINT_MINIMIZE,
         0);
 }
 
@@ -111,6 +134,23 @@ void Meta::load_from_cfg(void * data, size_t capacity, cfg_t cfg, int policy) co
 
 bool Meta::try_load_from_cfg(void * data, size_t capacity, cfg_t cfg, error_monitor_t em, int policy) const {
     if (dr_cfg_read(data, capacity, cfg, *this, policy, em) <= 0) {
+        bzero(data, capacity);
+        return false;
+    }
+    else {
+        return true;
+    }
+}
+
+void Meta::load_from_json(void * data, size_t capacity, const char * json) const {
+    Utils::ErrorCollector ec;
+    if (dr_json_read(data, capacity, json, *this, ec) <= 0) {
+        ec.checkThrowWithMsg< ::std::runtime_error>();
+    }
+}
+
+bool Meta::try_load_from_json(void * data, size_t capacity, const char * json, error_monitor_t em) const {
+    if (dr_json_read(data, capacity, json, *this, em) <= 0) {
         bzero(data, capacity);
         return false;
     }
@@ -153,6 +193,28 @@ void Meta::copy_same_entries(
     copy_same_entries(
         data, capacity,
         srcData, MetaLib::_cast(dr_meta_owner_lib(*this)).meta(srcMeta), srcCapacity,
+        policy, em);
+}
+
+void Meta::copy_same_entries_part(
+    void * data, size_t capacity,
+    const void * src, LPDRMETA srcMeta, const char * columns, size_t srcCapacity,
+    int policy, error_monitor_t em) const
+{
+    dr_meta_copy_same_entry_part(
+        data, capacity, *this,
+        src, (srcCapacity == 0 ? dr_meta_size(srcMeta) : srcCapacity), srcMeta, columns,
+        policy, em);
+}
+
+void Meta::copy_same_entries_part(
+    void * data, size_t capacity,
+    const void * srcData, const char * srcMeta, const char * columns, size_t srcCapacity,
+    int policy, error_monitor_t em) const
+{
+    copy_same_entries_part(
+        data, capacity,
+        srcData, MetaLib::_cast(dr_meta_owner_lib(*this)).meta(srcMeta), columns, srcCapacity,
         policy, em);
 }
 

@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <ctype.h>
 #include "cpe/pal/pal_stdio.h"
 #include "cpe/pal/pal_string.h"
 #include "cpe/utils/string_utils.h"
@@ -27,6 +28,14 @@ cpe_str_dup_len(char * buf, size_t capacity, const char * begin, size_t size) {
     memcpy(buf, begin, size);
     buf[size] = 0;
 
+    return buf;
+}
+
+char * cpe_str_mem_dup(mem_allocrator_t alloc, const char * str) {
+    size_t capacity = strlen(str) + 1;
+    char * buf = mem_alloc(alloc, capacity);
+    if (buf == NULL) return NULL;
+    memcpy(buf, str, capacity);
     return buf;
 }
 
@@ -129,4 +138,24 @@ int cpe_str_buf_printf(cpe_str_buf_t buf, const char * fmt, ...) {
     va_end(args);
 
     return buf->m_overflow;
+}
+
+void cpe_str_toupper(char * data) {
+    while(*data) {
+        *data = toupper(*data);
+        ++data;
+    }
+}
+
+void cpe_str_tolower(char * data) {
+    while(*data) {
+        *data = tolower(*data);
+        ++data;
+    }
+}
+
+int cpe_str_cmp_part(const char * part_str, size_t part_str_len, const char * full_str) {
+    int r = strncmp(part_str, full_str, part_str_len);
+    if (r == 0) return full_str[part_str_len] == 0 ? 0 : - (int)part_str_len;
+    return r;
 }

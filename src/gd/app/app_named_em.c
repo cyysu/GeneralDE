@@ -13,6 +13,8 @@ error_monitor_t gd_app_named_em(gd_app_context_t context, const char * name) {
     struct gd_app_em key;
     struct gd_app_em * app_em;
 
+    if (name == NULL) return context->m_em;
+
     key.m_name = name;
 
     app_em = (struct gd_app_em *)cpe_hash_table_find(&context->m_named_ems, &key);
@@ -50,7 +52,7 @@ int gd_app_set_named_em(gd_app_context_t context, const char * name, error_monit
     return 0;
 }
 
-inline static void gd_app_em_free(gd_app_context_t context, struct gd_app_em * app_em) {
+static void gd_app_em_free(gd_app_context_t context, struct gd_app_em * app_em) {
     assert(app_em);
     cpe_hash_table_remove_by_ins(&context->m_named_ems, app_em);
     mem_free(context->m_alloc, app_em);

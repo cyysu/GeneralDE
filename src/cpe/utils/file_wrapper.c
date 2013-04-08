@@ -266,7 +266,7 @@ void file_stream_close(FILE * fp, error_monitor_t em) {
 int inode_stat_by_path(const char * path, struct stat * buf, int ignoreError, error_monitor_t em) {
     int status;
     status = stat(path, buf);
-    if (status == 0) {
+    if (status == -1) {
         if (errno == ignoreError) return status;
 
         switch(errno) {

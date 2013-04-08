@@ -6,6 +6,11 @@
 #include "System.hpp"
 #include "TimerProcessor.hpp"
 
+#ifdef _MSC_VER
+# pragma warning(push)
+# pragma warning(disable:4624)
+#endif
+
 namespace Gd { namespace Timer {
 
 class TimerCenter : public Cpe::Utils::SimulateObject {
@@ -58,8 +63,12 @@ public:
 
     static TimerCenter & instance(gd_app_context_t app, const char * name = NULL);
     static TimerCenter & _cast(gd_timer_mgr_t evm);
-};	
+};
 
 }}
+
+#ifdef _MSC_VER
+# pragma warning(pop)
+#endif
 
 #endif

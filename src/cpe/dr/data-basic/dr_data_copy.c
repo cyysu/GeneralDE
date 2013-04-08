@@ -71,13 +71,37 @@ dr_meta_copy_union_find_select_entry_name(
     return dr_entry_name(src_union_entry);
 }
 
-void dr_meta_copy_same_entry(
+int dr_meta_copy_same_entry(
     void * des_data, size_t des_capacity, LPDRMETA des_meta,
     void const * src_data, size_t src_capacity, LPDRMETA src_meta, 
     int policy, error_monitor_t em)
 {
+    return dr_meta_copy_same_entry_part(
+        des_data, des_capacity, des_meta,
+        src_data, src_capacity, src_meta,
+        NULL,
+        policy, em);
+}
+
+static int dr_meta_copy_same_entry_need_process(const char * columns, const char * name) {
+    char * p = strstr(columns, name);
+    if (p && (p == columns || *(p - 1) == ':')) {
+        p = p + strlen(name);
+        if (*p == 0 || *p == ':') return 1;
+    }
+
+    return 0;
+}
+
+int dr_meta_copy_same_entry_part(
+    void * des_data, size_t des_capacity, LPDRMETA des_meta,
+    void const * src_data, size_t src_capacity, LPDRMETA src_meta, 
+    const char * columns,
+    int policy, error_monitor_t em)
+{
     struct CopySameEntryProcessStack processStack[CPE_DR_MAX_LEVEL];
     int stackPos;
+    int des_used_size;
 
     assert(des_data);
     assert(des_meta);
@@ -95,6 +119,7 @@ void dr_meta_copy_same_entry(
     processStack[0].m_src_data = (const char *)src_data;
     processStack[0].m_src_capacity = src_capacity;
 
+    des_used_size = 0;
     for(stackPos = 0; stackPos >= 0;) {
         struct CopySameEntryProcessStack * curStack;
 
@@ -118,6 +143,12 @@ void dr_meta_copy_same_entry(
             int32_t des_array_count_max, src_array_count_max;
 
         LOOPENTRY:
+            if (stackPos == 0
+                && columns
+                && !dr_meta_copy_same_entry_need_process(columns, dr_entry_name(curStack->m_des_entry))) {
+                continue;
+            }
+
             des_element_size = dr_entry_element_size(curStack->m_des_entry);
             if (des_element_size == 0) continue;
 
@@ -140,7 +171,7 @@ void dr_meta_copy_same_entry(
                     if (dr_ctype_try_read_int32(
                             &readBuf, 
                             curStack->m_src_data + src_entry->m_array_refer_data_start_pos,
-                            src_entry->m_type,
+                            srcRefer->m_type,
                             0) == 0)
                     {
                         src_array_count_max = readBuf;
@@ -153,10 +184,11 @@ void dr_meta_copy_same_entry(
             {
                 char * des_entry_data;
                 const char * src_entry_data;
-                size_t des_entry_capacity, des_left_capacity;
+                size_t des_entry_capacity, des_left_capacity, des_total_size;
                 size_t src_entry_capacity, src_left_capacity;
 
-                des_entry_data = curStack->m_des_data + curStack->m_des_entry->m_data_start_pos + (des_element_size * curStack->m_array_pos);
+                des_total_size = dr_entry_data_start_pos(curStack->m_des_entry, curStack->m_array_pos) + des_element_size;
+                des_entry_data = curStack->m_des_data + dr_entry_data_start_pos(curStack->m_des_entry, curStack->m_array_pos);
                 if ((size_t)(des_entry_data - curStack->m_des_data) > curStack->m_des_capacity) continue;
 
                 des_left_capacity = curStack->m_des_capacity - (des_entry_data - curStack->m_des_data);
@@ -169,7 +201,7 @@ void dr_meta_copy_same_entry(
                     des_entry_capacity = des_left_capacity;
                 }
 
-                src_entry_data = curStack->m_src_data + src_entry->m_data_start_pos + (src_element_size * curStack->m_array_pos);
+                src_entry_data = curStack->m_src_data + dr_entry_data_start_pos(src_entry, curStack->m_array_pos);
                 if ((size_t)(src_entry_data - curStack->m_src_data) > curStack->m_src_capacity) continue;
 
                 src_left_capacity = curStack->m_src_capacity - (src_entry_data - curStack->m_src_data);
@@ -245,10 +277,12 @@ void dr_meta_copy_same_entry(
                     ++curStack->m_array_pos;
                     ++stackPos;
                     curStack = nextStack;
+                    if (stackPos == 0 && des_total_size > des_used_size) des_used_size = des_total_size;
                     goto LOOPENTRY;
                 }
                 else {
                     dr_entry_set_from_ctype(des_entry_data, src_entry_data, src_entry->m_type, curStack->m_des_entry, 0);
+                    if (stackPos == 0 && des_total_size > des_used_size) des_used_size = des_total_size;
                 }
             }
 
@@ -265,5 +299,37 @@ void dr_meta_copy_same_entry(
         }
 
         --stackPos;
+    }
+
+    return des_used_size;
+}
+
+int dr_entry_copy_same_entry(
+    void * desData, size_t desCapacity, LPDRMETAENTRY desEntry,
+    void const * srcData, size_t srcCapacity, LPDRMETAENTRY srcEntry,
+    int policy, error_monitor_t em)
+{
+    if (!dr_meta_copy_check_type_copyable(desEntry->m_type, srcEntry->m_type)) return 0;
+
+    if (desEntry->m_type <= CPE_DR_TYPE_COMPOSITE) {
+        return dr_meta_copy_same_entry(
+            desData, desCapacity, dr_entry_ref_meta(desEntry),
+            srcData, srcCapacity, dr_entry_ref_meta(srcEntry),
+            policy, em);
+    }
+    else {
+        int des_element_size = dr_entry_element_size(desEntry);
+        int src_element_size = dr_entry_element_size(srcEntry);
+
+        if (des_element_size == 0
+            || des_element_size > desCapacity
+            || src_element_size == 0
+            || src_element_size > srcCapacity)
+        {
+            return 0;
+        }
+
+        dr_entry_set_from_ctype(desData, srcEntry, srcEntry->m_type, desEntry, 0);
+        return des_element_size;
     }
 }

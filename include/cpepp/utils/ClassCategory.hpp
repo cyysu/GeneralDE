@@ -1,6 +1,11 @@
 #ifndef CPEPP_UTILS_CLASSCATEGORY_H
 #define CPEPP_UTILS_CLASSCATEGORY_H
 
+#ifdef _MSC_VER
+# pragma warning(push)
+# pragma warning(disable:4624)
+#endif
+
 namespace Cpe { namespace Utils {
 
 class Noncopyable {
@@ -23,5 +28,9 @@ class SimulateObject : public Noncreatable, public Nondestoryable, public Noncop
  };
 
 }}
+
+#ifdef _MSC_VER
+# pragma warning(pop)
+#endif
 
 #endif

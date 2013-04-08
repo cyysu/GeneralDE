@@ -29,6 +29,15 @@ int dr_json_read_to_buffer(
 int dr_json_print(
     write_stream_t output,
     const void * input,
+    size_t capacity,
+    LPDRMETA meta,
+    int flag,
+    error_monitor_t em);
+
+int dr_json_print_array(
+    write_stream_t output,
+    const void * input,
+    size_t capacity,
     LPDRMETA meta,
     int flag,
     error_monitor_t em);
