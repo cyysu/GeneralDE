@@ -14,6 +14,13 @@ int cpe_range_put_from_ba(
     size_t ba_capacity,
     cpe_ba_value_t require);
 
+int cpe_urange_put_from_ba(
+    cpe_urange_mgr_t ra,
+    cpe_ba_t ba,
+    int32_t baStartPos,
+    size_t ba_capacity,
+    cpe_ba_value_t require);
+
 #ifdef __cplusplus
 }
 #endif

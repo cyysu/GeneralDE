@@ -6,6 +6,11 @@
 #include "cpe/pom_grp/pom_grp_store.h"
 #include "System.hpp"
 
+#ifdef _MSC_VER
+# pragma warning(push)
+# pragma warning(disable:4624)
+#endif
+
 namespace Cpe { namespace PomGrp {
 
 class StoreTable : public Cpe::Utils::SimulateObject {
@@ -17,5 +22,9 @@ public:
 };
 
 }}
+
+#ifdef _MSC_VER
+# pragma warning(pop)
+#endif
 
 #endif

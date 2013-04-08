@@ -8,6 +8,8 @@
 #include "cpe/pom_grp/pom_grp_obj_mgr.h"
 #include "pom_grp_internal_types.h"
 
+#ifndef _MSC_VER
+
 int pom_grp_shm_init(
     LPDRMETALIB metalib, pom_grp_meta_t grp_meta,
     int shm_key, int shm_size, int force, error_monitor_t em)
@@ -199,3 +201,4 @@ int pom_grp_shm_dump(int shm_key, write_stream_t stream, int ident, error_monito
     return 0;
 }
 
+#endif

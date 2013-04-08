@@ -20,15 +20,22 @@
 #include "protocol/bpg_rsp/bpg_rsp_carry_info.h"
 #include "bpg_rsp_internal_ops.h"
 
+enum bpg_rsp_queue_next_op {
+    bpg_rsp_queue_next_op_success
+    , bpg_rsp_queue_next_op_exec
+    , bpg_rsp_queue_next_op_error
+};
+
 static int bpg_rsp_copy_pkg_to_ctx(bpg_rsp_t rsp, logic_context_t op_context, bpg_pkg_t req, error_monitor_t em);
 static void bpg_rsp_commit_error(bpg_rsp_t rsp, logic_context_t op_context, int err);
-static int bpg_rsp_queue_context(bpg_rsp_manage_t bpg_mgr, bpg_rsp_t rsp, logic_context_t op_context, error_monitor_t em);
+static enum bpg_rsp_queue_next_op bpg_rsp_queue_context(bpg_rsp_manage_t bpg_mgr, bpg_rsp_t rsp, logic_context_t op_context, uint64_t client_id, error_monitor_t em);
 
 int bpg_rsp_execute(dp_req_t dp_req, void * ctx, error_monitor_t em) {
     bpg_rsp_t bpg_rsp;
     bpg_rsp_manage_t bpg_mgr;
     logic_context_t op_context;
     bpg_pkg_t req;
+    enum bpg_rsp_queue_next_op next_op;
 
     bpg_rsp = (bpg_rsp_t)ctx;
     assert(bpg_rsp);
@@ -83,17 +90,24 @@ int bpg_rsp_execute(dp_req_t dp_req, void * ctx, error_monitor_t em) {
         return 0;
     }
 
-    if (bpg_rsp->m_queue_info) {
-        if (bpg_rsp_queue_context(bpg_mgr, bpg_rsp, op_context, em) == 0) {
-            logic_context_set_commit(op_context, bpg_rsp_commit, bpg_rsp);
-        }
-        else {
-            bpg_rsp_commit_error(bpg_rsp, op_context, -1);
-        }
-    }
-    else {
+    next_op = bpg_rsp_queue_context(bpg_mgr, bpg_rsp, op_context, bpg_pkg_client_id(req), em);
+    switch(next_op) {
+    case bpg_rsp_queue_next_op_success:
+        logic_context_set_commit(op_context, bpg_rsp_commit, bpg_rsp);
+        break;
+    case bpg_rsp_queue_next_op_exec:
         logic_context_set_commit(op_context, bpg_rsp_commit, bpg_rsp);
         logic_context_execute(op_context);
+        break;
+    case bpg_rsp_queue_next_op_error:
+        bpg_rsp_commit_error(bpg_rsp, op_context, -1);
+        break;
+    default:
+        CPE_ERROR(
+            em, "%s.%s: bpg_rsp_execute: unknown next op %d!",
+            bpg_rsp_manage_name(bpg_mgr), bpg_rsp_name(bpg_rsp), next_op);
+        bpg_rsp_commit_error(bpg_rsp, op_context, -1);
+        return 0;
     }
 
     return 0;
@@ -127,13 +141,13 @@ bpg_rsp_queue_get_or_create(
     return queue;
 }
 
-static int bpg_rsp_queue_context(
-    bpg_rsp_manage_t mgr, bpg_rsp_t rsp, logic_context_t op_context, error_monitor_t em)
+static enum bpg_rsp_queue_next_op bpg_rsp_queue_context(
+    bpg_rsp_manage_t mgr, bpg_rsp_t rsp, logic_context_t op_context, uint64_t client_id, error_monitor_t em)
 {
     struct bpg_rsp_queue_info * queue_info = rsp->m_queue_info;
     logic_queue_t queue;
 
-    assert(queue_info);
+    if (queue_info == NULL) return bpg_rsp_queue_next_op_exec;
 
     switch(queue_info->m_scope) {
     case bpg_rsp_queue_scope_global:
@@ -143,7 +157,7 @@ static int bpg_rsp_queue_context(
         cpe_hs_printf(
             (cpe_hash_string_t)queue_info->m_name_buf,
             sizeof(queue_info->m_name_buf),
-            "%s."FMT_SIZE_T, bpg_rsp_queue_name(queue_info), 1);
+            "%s."FMT_SIZE_T, bpg_rsp_queue_name(queue_info), client_id);
         queue = bpg_rsp_queue_get_or_create(mgr, rsp, (cpe_hash_string_t)queue_info->m_name_buf, queue_info, em);
         break;
     }
@@ -151,7 +165,7 @@ static int bpg_rsp_queue_context(
         CPE_ERROR(
             em, "%s.%s: bpg_rsp_execute: bpg_rsp_queue_context: unknown scope type!",
             bpg_rsp_manage_name(mgr), bpg_rsp_name(rsp));
-        return -1;
+        return bpg_rsp_queue_next_op_error;
     }
 
     if (queue) {
@@ -163,13 +177,18 @@ static int bpg_rsp_queue_context(
                 logic_queue_name(queue), logic_queue_max_count(queue), logic_queue_count(queue));
         }
 
-        return 0;
+        if (logic_queue_head(queue) == op_context) {
+            return bpg_rsp_queue_next_op_exec;
+        }
+        else {
+            return bpg_rsp_queue_next_op_success;
+        }
     }
     else {
         CPE_ERROR(
             em, "%s.%s: bpg_rsp_execute: add to queue fail!",
             bpg_rsp_manage_name(mgr), bpg_rsp_name(rsp));
-        return -1;
+        return bpg_rsp_queue_next_op_error;
     }
 }
 
@@ -177,7 +196,7 @@ static int bpg_rsp_copy_main_to_ctx(bpg_rsp_t rsp, logic_context_t op_context, b
     LPDRMETA data_meta;
     logic_data_t data;
     bpg_rsp_manage_t mgr;
-    size_t output_size;
+    size_t size;
 
     mgr = rsp->m_mgr;
 
@@ -191,27 +210,16 @@ static int bpg_rsp_copy_main_to_ctx(bpg_rsp_t rsp, logic_context_t op_context, b
         return 0;
     }
 
-    data = logic_context_data_get_or_create(op_context, data_meta, bpg_pkg_body_origin_len(req));
+    size = bpg_pkg_main_data_len(req);
+    data = logic_context_data_get_or_create(op_context, data_meta, size);
     if (data == NULL) {
         CPE_ERROR(
             em, "%s.%s: bpg_rsp_execute: copy_pkg_to_ctx: %s create data fail, capacity=%d!",
-            bpg_rsp_manage_name(mgr), bpg_rsp_name(rsp), dr_meta_name(data_meta), bpg_pkg_body_origin_len(req));
+            bpg_rsp_manage_name(mgr), bpg_rsp_name(rsp), dr_meta_name(data_meta), (int)size);
         return -1;
     }
 
-    output_size = logic_data_capacity(data);
-    if (bpg_pkg_get_main_data(
-            req,
-            data_meta,
-            logic_data_data(data), &output_size,
-            em) != 0)
-    {
-        CPE_ERROR(
-            em, "%s.%s: bpg_rsp_execute: copy_pkg_to_ctx: %s decode data fail!",
-            bpg_rsp_manage_name(mgr), bpg_rsp_name(rsp), 
-            dr_meta_name(data_meta));
-        return -1;
-    }
+    memcpy(logic_data_data(data), bpg_pkg_main_data(req), size);
 
     return 0;
 }
@@ -222,7 +230,7 @@ static int bpg_rsp_copy_append_to_ctx(bpg_rsp_t rsp, logic_context_t op_context,
     int i;
     bpg_rsp_manage_t mgr;
     int32_t append_info_count;
-    size_t output_size;
+    size_t size;
 
     mgr = rsp->m_mgr;
     assert(mgr);
@@ -247,25 +255,16 @@ static int bpg_rsp_copy_append_to_ctx(bpg_rsp_t rsp, logic_context_t op_context,
             return -1;
         }
 
-        data = logic_context_data_get_or_create(op_context, data_meta, bpg_pkg_append_info_origin_size(append_info));
+        size = bpg_pkg_append_info_size(append_info);
+        data = logic_context_data_get_or_create(op_context, data_meta, size);
         if (data == NULL) {
             CPE_ERROR(
                 em, "%s.%s: bpg_rsp_execute: copy_pkg_to_ctx: append %d: %s create data fail, capacity=%d!",
-                bpg_rsp_manage_name(mgr), bpg_rsp_name(rsp), i, dr_meta_name(data_meta), bpg_pkg_append_info_origin_size(append_info));
+                bpg_rsp_manage_name(mgr), bpg_rsp_name(rsp), i, dr_meta_name(data_meta), (int)size);
             return -1;
         }
 
-        output_size = logic_data_capacity(data);
-        if (bpg_pkg_get_append_data(
-                req, append_info, data_meta,
-                logic_data_data(data), &output_size,
-                em) != 0)
-        {
-            CPE_ERROR(
-                em, "%s.%s: bpg_rsp_execute: copy_pkg_to_ctx: append %d: %s decode data fail!",
-                bpg_rsp_manage_name(mgr), bpg_rsp_name(rsp), i, dr_meta_name(data_meta));
-            return -1;
-        }
+        memcpy(logic_data_data(data), bpg_pkg_append_data(req, append_info), size);
     }
 
     return 0;
@@ -335,7 +334,7 @@ int bpg_rsp_copy_bpg_carry_data_to_ctx(bpg_rsp_manage_t mgr, logic_context_t op_
         buf->sn = bpg_pkg_sn(bpg_req);
         buf->cmd = bpg_pkg_cmd(bpg_req);
         buf->carry_data_size = bpg_pkg_carry_data_size(bpg_req);
-        buf->no_response = 0;
+        buf->no_response = bpg_pkg_flag_enable(bpg_req, bpg_pkg_flag_oneway) ? 1 : 0;
 
         if (bpg_pkg_carry_data_meta(bpg_req)) {
             strncpy(buf->carry_meta_name, dr_meta_name(bpg_pkg_carry_data_meta(bpg_req)), sizeof(buf->carry_meta_name));
@@ -354,6 +353,12 @@ int bpg_rsp_copy_bpg_carry_data_to_ctx(bpg_rsp_manage_t mgr, logic_context_t op_
 }
 
 static void bpg_rsp_commit_error(bpg_rsp_t rsp, logic_context_t op_context, int err) {
+    if (rsp->m_mgr->m_debug) {
+        CPE_INFO(
+            gd_app_em(rsp->m_mgr->m_app), "%s.%s: commit error, error=%d!",
+            bpg_rsp_manage_name(rsp->m_mgr), bpg_rsp_name(rsp), err);
+    }
+
     logic_context_errno_set(op_context, err);
     bpg_rsp_commit(op_context, rsp);
 }
@@ -374,7 +379,6 @@ logic_context_t bpg_rsp_manage_create_context(bpg_rsp_manage_t bpg_mgr, bpg_pkg_
             : INVALID_LOGIC_CONTEXT_ID;
 
         op_context = logic_context_create(bpg_mgr->m_logic_mgr, sn, bpg_mgr->m_ctx_capacity);
-
         if (op_context == NULL) {
             CPE_ERROR(
                 em, "%s: create context: fail, capacity is %d!",
@@ -529,6 +533,7 @@ bpg_rsp_manage_create_op_by_name(
     logic_data_t input_carry_data;
     logic_data_t carry_data;
     bpg_rsp_carry_info_t carry_info;
+    enum bpg_rsp_queue_next_op next_op;
 
     assert(rsp_name);
 
@@ -584,7 +589,6 @@ bpg_rsp_manage_create_op_by_name(
         if (only_binding && dp_binding_next(&binding_it) == NULL) {
             uint32_t cmd;
             if (dp_binding_numeric(&cmd, only_binding) == 0) {
-                printf("xx set cmd %d\n", cmd);
                 bpg_rsp_context_set_cmd(carry_info, cmd);
             }
         }
@@ -618,18 +622,21 @@ bpg_rsp_manage_create_op_by_name(
         return NULL;
     }
 
-    if (rsp->m_queue_info) {
-        if (bpg_rsp_queue_context(bpg_mgr, rsp, context, em) == 0) {
-            logic_context_set_commit(context, bpg_rsp_commit, rsp);
-        }
-        else {
-            bpg_rsp_manage_free_context(bpg_mgr, context);
-            return NULL;
-        }
-    }
-    else {
+    next_op = bpg_rsp_queue_context(bpg_mgr, rsp, context, bpg_rsp_context_client_id(carry_info), em);
+    switch(next_op) {
+    case bpg_rsp_queue_next_op_success:
+    case bpg_rsp_queue_next_op_exec:
         logic_context_set_commit(context, bpg_rsp_commit, rsp);
-        logic_context_execute(context);
+        break;
+    case bpg_rsp_queue_next_op_error:
+        bpg_rsp_manage_free_context(bpg_mgr, context);
+        return NULL;
+    default:
+        CPE_ERROR(
+            em, "%s.%s: create op: unknown next op %d!",
+            bpg_rsp_manage_name(bpg_mgr), rsp_name, next_op);
+        bpg_rsp_manage_free_context(bpg_mgr, context);
+        return NULL;
     }
 
     return context;

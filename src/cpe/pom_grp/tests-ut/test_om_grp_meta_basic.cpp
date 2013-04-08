@@ -1,13 +1,13 @@
 #include "OmGrpMetaTest.hpp" 
 
 TEST_F(OmGrpMetaTest, normal_basic) {
-    install(
+    installFromCfg(
         "TestObj:\n"
         "  attributes:\n"
         "    - entry1: { entry-type: normal, data-type: AttrGroup1 }\n"
         ,
         "<metalib tagsetversion='1' name='net'  version='1'>"
-        "    <struct name='AttrGroup1' version='1'>"
+        "    <struct name='AttrGroup1' version='1' align='1'>"
         "	     <entry name='a1' type='uint32' id='1'/>"
         "    </struct>"
         "</metalib>"
@@ -22,13 +22,13 @@ TEST_F(OmGrpMetaTest, normal_basic) {
 }
 
 TEST_F(OmGrpMetaTest, list_basic) {
-    install(
+    installFromCfg(
         "TestObj:\n"
         "  attributes:\n"
         "    - entry1: { entry-type: list, data-type: AttrGroup1, group-count: 3, capacity: 3 }\n"
         ,
         "<metalib tagsetversion='1' name='net'  version='1'>"
-        "    <struct name='AttrGroup1' version='1'>"
+        "    <struct name='AttrGroup1' version='1' align='1'>"
         "	     <entry name='a1' type='uint32' id='1'/>"
         "    </struct>"
         "</metalib>"
@@ -43,14 +43,14 @@ TEST_F(OmGrpMetaTest, list_basic) {
 }
 
 TEST_F(OmGrpMetaTest, list_multi) {
-    install(
+    installFromCfg(
         "TestObj:\n"
         "  attributes:\n"
         "    - entry1: { entry-type: list, data-type: AttrGroup1, group-count: 3, capacity: 3 }\n"
         "    - entry2: { entry-type: list, data-type: AttrGroup1, group-count: 3, capacity: 3 }\n"
         ,
         "<metalib tagsetversion='1' name='net'  version='1'>"
-        "    <struct name='AttrGroup1' version='1'>"
+        "    <struct name='AttrGroup1' version='1' align='1'>"
         "	     <entry name='a1' type='uint32' id='1'/>"
         "    </struct>"
         "</metalib>"
@@ -67,7 +67,7 @@ TEST_F(OmGrpMetaTest, list_multi) {
 
 TEST_F(OmGrpMetaTest, bitarry_basic) {
     t_em_set_print();
-    install(
+    installFromCfg(
         "TestObj:\n"
         "  attributes:\n"
         "    - entry1: { entry-type: ba, bit-capacity: 15 }\n"
@@ -85,7 +85,7 @@ TEST_F(OmGrpMetaTest, bitarry_basic) {
 
 TEST_F(OmGrpMetaTest, bitarry_multi_page) {
     t_em_set_print();
-    install(
+    installFromCfg(
         "TestObj:\n"
         "  attributes:\n"
         "    - entry1: { entry-type: ba, byte-per-page: 3, bit-capacity: 38 }\n"
@@ -102,7 +102,7 @@ TEST_F(OmGrpMetaTest, bitarry_multi_page) {
 }
 
 TEST_F(OmGrpMetaTest, binary_basic) {
-    install(
+    installFromCfg(
         "TestObj:\n"
         "  attributes:\n"
         "    - entry1: { entry-type: binary, capacity: 7 }\n"
@@ -120,7 +120,7 @@ TEST_F(OmGrpMetaTest, binary_basic) {
 }
 
 TEST_F(OmGrpMetaTest, basic_multi) {
-    install(
+    installFromCfg(
         "TestObj:\n"
         "  attributes:\n"
         "    - entry1: { entry-type: normal, data-type: AttrGroup1 }\n"
@@ -129,10 +129,10 @@ TEST_F(OmGrpMetaTest, basic_multi) {
         "    - entry4: { entry-type: binary, capacity: 5 }\n"
         ,
         "<metalib tagsetversion='1' name='net'  version='1'>"
-        "    <struct name='AttrGroup1' version='1'>"
+        "    <struct name='AttrGroup1' version='1' align='1'>"
         "	     <entry name='a1' type='uint32' id='1'/>"
         "    </struct>"
-        "    <struct name='AttrGroup2' version='1'>"
+        "    <struct name='AttrGroup2' version='1' align='1'>"
         "	     <entry name='b1' type='string' size='5' id='1'/>"
         "    </struct>"
         "</metalib>"

@@ -38,6 +38,7 @@ ssize_t file_stream_load_to_buffer(mem_buffer_t buffer, FILE * fp, error_monitor
 ssize_t file_stream_load_to_stream(write_stream_t stream, FILE * fp, error_monitor_t em);
 
 /*file name operations*/
+const char * dir_name(const char * input, mem_buffer_t tbuf);
 const char * file_name_suffix(const char * input);
 const char * file_name_base(const char * input, mem_buffer_t tbuf);
 const char * file_name_no_dir(const char * input);

@@ -24,6 +24,24 @@ Event & EventCenter::createEvent(LPDRMETA data_meta, ssize_t data_capacity) {
     return *(Event *)r;
 }
 
+Event & EventCenter::createDynEvent(const char * typeName, size_t record_capacity) {
+    Cpe::Utils::ErrorCollector em;
+    gd_evt_t r = gd_evt_dyn_create(*this, typeName, record_capacity, em);
+    if (r == NULL) {
+        em.checkThrowWithMsg< no_responser_error>();
+    }
+    return *(Event *)r;
+}
+
+Event & EventCenter::createDynEvent(LPDRMETA data_meta, size_t record_capacity) {
+    Cpe::Utils::ErrorCollector em;
+    gd_evt_t r = gd_evt_dyn_create_ex(*this, data_meta, record_capacity, em);
+    if (r == NULL) {
+        em.checkThrowWithMsg< no_responser_error>();
+    }
+    return *(Event *)r;
+}
+
 void EventCenter::sendEvent(const char * target, Event & event) {
     event.setTarget(target);
 

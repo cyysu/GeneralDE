@@ -1,5 +1,6 @@
 #include <assert.h>
 #include "cpe/pal/pal_platform.h"
+#include "cpe/pal/pal_strings.h"
 #include "cpe/dr/dr_metalib_cmp.h"
 #include "cpe/dr/dr_metalib_manage.h"
 #include "cpe/pom_grp/pom_grp_meta.h"
@@ -17,13 +18,14 @@ pom_grp_meta_create(
     pom_grp_meta_t meta;
 
     name_len = strlen(name) + 1;
+    CPE_PAL_ALIGN_DFT(name_len);
 
-    buf = mem_alloc(alloc, CPE_PAL_ALIGN(name_len) + sizeof(struct pom_grp_meta));
+    buf = mem_alloc(alloc, name_len + sizeof(struct pom_grp_meta));
     if (buf == NULL) return NULL;
 
     memcpy(buf, name, name_len);
 
-    meta = (pom_grp_meta_t)(buf + CPE_PAL_ALIGN(name_len));
+    meta = (pom_grp_meta_t)(buf + name_len);
     meta->m_alloc = alloc;
     meta->m_name = buf;
     meta->m_omm_page_size = omm_page_size;
@@ -78,6 +80,10 @@ const char * pom_grp_meta_name(pom_grp_meta_t meta) {
     return meta->m_name;
 }
 
+uint32_t pom_grp_omm_page_size(pom_grp_meta_t meta) {
+    return meta->m_omm_page_size;
+}
+
 int pom_grp_meta_set_main_entry(pom_grp_meta_t meta, const char * entry_name) {
     if (meta->m_main_entry) return -1;
 
@@ -85,6 +91,10 @@ int pom_grp_meta_set_main_entry(pom_grp_meta_t meta, const char * entry_name) {
     if (meta->m_main_entry == NULL) return -1;
 
     return 0;
+}
+
+pom_grp_entry_meta_t pom_grp_meta_main_entry(pom_grp_meta_t meta) {
+    return meta->m_main_entry;
 }
 
 pom_grp_entry_meta_t

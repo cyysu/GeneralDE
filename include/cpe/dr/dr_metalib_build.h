@@ -12,6 +12,8 @@ extern "C" {
 struct DRInBuildMetaLib * dr_inbuild_create_lib(void);
 void dr_inbuild_free_lib(struct DRInBuildMetaLib * ctx);
 
+void dr_inbuild_set_dft_align(struct DRInBuildMetaLib * inBuildMetaLib, uint8_t align);
+
 int dr_inbuild_tsort(
     struct DRInBuildMetaLib * inBuildMetaLib,
     error_monitor_t er);

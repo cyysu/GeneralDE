@@ -61,6 +61,25 @@ public:
     LogicOpData & checkCreateData(LPDRMETA meta, size_t capacity = 0);
     LogicOpData & copy(logic_data_t input);
 
+    LogicOpData & copy(LogicOpData const & input) { return copy((logic_data_t)input); }
+
+    template<typename T>
+    LogicOpData & copy(T const & data) {
+        LogicOpData & r = checkCreateData(Cpe::Dr::MetaTraits<T>::META, Cpe::Dr::MetaTraits<T>::data_size(data));
+        memcpy(r.data(), &data, Cpe::Dr::MetaTraits<T>::data_size(data));
+        return r;
+    }
+
+    bool deleteData(const char * name)  {
+        if (logic_data_t r = logic_context_data_find(*this, name)) {
+            logic_data_free(r);
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+
     template<typename T>
     T & contextData(void) { return *(T*)contextData(); }
 
@@ -72,6 +91,21 @@ public:
 
     template<typename T>
     T const & data(const char * name = Cpe::Dr::MetaTraits<T>::NAME) const { return data(name).as<T>(); }
+
+    template<typename T>
+    T * findData(const char * name = Cpe::Dr::MetaTraits<T>::NAME) { 
+        LogicOpData * r = findData(name);
+        return r ? &r->as<T>() : NULL;
+    }
+
+    template<typename T>
+    T const * findData(const char * name = Cpe::Dr::MetaTraits<T>::NAME) const { 
+        LogicOpData const * r = findData(name);
+        return r ? &r->as<T>() : NULL;
+    }
+
+    template<typename T>
+    bool deleteData(void) { return deleteData(Cpe::Dr::MetaTraits<T>::NAME); }
 
     template<typename T>
     T & checkCreateData(size_t capacity = 0, LPDRMETA meta = Cpe::Dr::MetaTraits<T>::META) {

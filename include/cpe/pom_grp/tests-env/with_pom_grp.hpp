@@ -13,25 +13,42 @@ public:
 
     const char * t_pom_grp_meta_dump(pom_grp_meta_t meta);
 
-    pom_grp_meta_t t_pom_grp_meta_create(
+    pom_grp_meta_t t_pom_grp_meta_create_by_cfg(
         const char * om_meta,
         const char * metalib, 
         uint16_t page_size = 256);
 
-    pom_grp_meta_t t_pom_grp_meta_create(
+    pom_grp_meta_t t_pom_grp_meta_create_by_cfg(
         const char * om_meta,
         LPDRMETALIB metalib,
         uint16_t page_size = 256);
 
-    pom_grp_obj_mgr_t t_pom_grp_obj_mgr_create(
+    pom_grp_obj_mgr_t t_pom_grp_obj_mgr_create_by_cfg(
         const char * om_meta,
         const char * metalib, 
         size_t capacity = 2048, uint16_t page_size = 256);
 
-    pom_grp_obj_mgr_t t_pom_grp_obj_mgr_create(
+    pom_grp_obj_mgr_t t_pom_grp_obj_mgr_create_by_cfg(
         const char * om_meta,
         LPDRMETALIB metalib, 
         size_t capacity = 2048, uint16_t page_size = 256);
+
+    pom_grp_meta_t t_pom_grp_meta_create_by_meta(
+        const char * metalib, 
+        const char * metaname,
+        uint16_t page_size = 256);
+
+    pom_grp_meta_t t_pom_grp_meta_create_by_meta(
+        LPDRMETA meta, uint16_t page_size = 256);
+
+    pom_grp_obj_mgr_t t_pom_grp_obj_mgr_create_by_meta(
+        const char * metalib,
+        const char * metaname, 
+        size_t capacity = 2048, uint16_t page_size = 256);
+
+    pom_grp_obj_mgr_t t_pom_grp_obj_mgr_create_by_meta(
+        LPDRMETA meta, size_t capacity = 2048, uint16_t page_size = 256);
+
 
     pom_grp_obj_t t_pom_grp_obj_create(
         pom_grp_obj_mgr_t obj_mgr,

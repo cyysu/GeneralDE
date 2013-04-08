@@ -2,6 +2,8 @@
 #include "cpe/pal/pal_stdio.h"
 #include "cpe/dr/dr_metalib_init.h"
 #include "cpe/dr/dr_metalib_manage.h"
+#include "cpe/dr/dr_data.h"
+#include "cpe/dp/dp_manage.h"
 #include "cpe/dp/dp_request.h"
 #include "cpe/dp/dp_manage.h"
 #include "usf/logic/logic_context.h"
@@ -143,11 +145,9 @@ static int bpg_rsp_commit_build_pkg_append_info_from_ctx(
     data = logic_context_data_find(op_context, dr_meta_name(data_meta));
     if (data == NULL) return -1;
 
-    if (bpg_pkg_add_append_data(
-            pkg, data_meta, 
-            logic_data_data(data), logic_data_capacity(data), &size,
-            em) != 0)
-    {
+    size = dr_meta_calc_data_len(data_meta, logic_data_data(data), logic_data_capacity(data));
+
+    if (bpg_pkg_add_append_data(pkg, data_meta, logic_data_data(data), size, em) != 0) {
         CPE_ERROR(
             em, "%s.%s: copy_ctx_to_pdu: %s: append data to pkg fail!",
             bpg_rsp_manage_name(rsp->m_mgr), bpg_rsp_name(rsp), dr_meta_name(data_meta));
@@ -294,7 +294,8 @@ static int bpg_rsp_commit_build_pkg_main_info(bpg_rsp_t rsp, logic_context_t op_
         return 0;
     }
 
-    if (bpg_pkg_set_main_data(pkg, meta, logic_data_data(data), logic_data_capacity(data), &size, em) != 0) {
+    size = dr_meta_calc_data_len(meta, logic_data_data(data), logic_data_capacity(data));
+    if (bpg_pkg_set_main_data(pkg, logic_data_data(data), size, em) != 0) {
         CPE_ERROR(
             em, "%s.%s: copy_ctx_to_pdu: main: set data fail, meta = %s!",
             bpg_rsp_manage_name(rsp->m_mgr), bpg_rsp_name(rsp), dr_meta_name(meta));

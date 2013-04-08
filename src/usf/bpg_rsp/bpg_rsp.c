@@ -1,5 +1,6 @@
 #include <assert.h>
 #include "cpe/pal/pal_string.h"
+#include "cpe/pal/pal_platform.h"
 #include "cpe/cfg/cfg_read.h"
 #include "gd/app/app_context.h"
 #include "cpe/dp/dp_manage.h"
@@ -19,6 +20,7 @@ bpg_rsp_t bpg_rsp_create(bpg_rsp_manage_t mgr, const char * name) {
     assert(name);
 
     name_len = strlen(name) + 1;
+    CPE_PAL_ALIGN_DFT(name_len);
 
     buf = mem_alloc(mgr->m_alloc, sizeof(struct bpg_rsp) + name_len);
     if (buf == NULL) {
@@ -59,7 +61,7 @@ void bpg_rsp_free(bpg_rsp_t rsp) {
         rsp->m_executor_ref = NULL;
     }
 
-    dp_rsp = dp_rsp_find_by_name(gd_app_dp_mgr(rsp->m_mgr->m_app), bpg_rsp_name(rsp));
+    dp_rsp = dp_rsp_find_by_name(rsp->m_mgr->m_dp, bpg_rsp_name(rsp));
     if (dp_rsp) {
         dp_rsp_free(dp_rsp);
     }
@@ -75,7 +77,7 @@ bpg_rsp_find(bpg_rsp_manage_t mgr, const char * rsp_name) {
 }
 
 dp_rsp_t bpg_rsp_dp(bpg_rsp_t rsp) {
-    return dp_rsp_find_by_name(gd_app_dp_mgr(rsp->m_mgr->m_app), bpg_rsp_name(rsp));
+    return dp_rsp_find_by_name(rsp->m_mgr->m_dp, bpg_rsp_name(rsp));
 }
 
 logic_executor_t bpg_rsp_executor(bpg_rsp_t rsp) {

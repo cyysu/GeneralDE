@@ -43,6 +43,8 @@ TEST_F(ParseTest, struct_ignore_unknown_key) {
 
     ASSERT_EQ(metaSize("S2"), read("{ \"a1\" : 12, \"not-exist\": 15, \"a2\" : 14 }", "S2"));
 
+    ASSERT_TRUE(result());
+
     EXPECT_EQ(12, dr_ctype_read_int16(result(0), CPE_DR_TYPE_INT16));
     EXPECT_EQ(14, dr_ctype_read_int16(result(2), CPE_DR_TYPE_INT16));
 }
@@ -86,6 +88,8 @@ TEST_F(ParseTest, struct_ignore_nest_not_struct) {
     ASSERT_EQ(metaSize("S2")
               , read("{ \"a1\" : { \"a2\": 15 },"
                      " \"a2\" : 14 }", "S2"));
+
+    ASSERT_TRUE(result());
 
     EXPECT_EQ(14, dr_ctype_read_int16(result(2), CPE_DR_TYPE_INT16));
 }

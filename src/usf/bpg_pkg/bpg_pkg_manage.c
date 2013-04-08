@@ -50,6 +50,9 @@ bpg_pkg_manage_create(
     mgr->m_data_cvt = NULL;
     mgr->m_metalib_ref = NULL;
     mgr->m_pkg_debug_default_level = bpg_pkg_debug_none;
+    mgr->m_op_buff = NULL;
+    mgr->m_op_buff_capacity = 2048;
+    mgr->m_zip_size_threshold = (uint32_t)(-1);
 
     mgr->m_metalib_basepkg_ref =
         dr_ref_create(
@@ -106,6 +109,9 @@ bpg_pkg_manage_create(
         return NULL;
     }
 
+    mem_buffer_init(&mgr->m_dump_buff, mgr->m_alloc);
+    mem_buffer_init(&mgr->m_zip_buff, mgr->m_alloc);
+
     nm_node_set_type(mgr_node, &s_nm_node_type_bpg_pkg_manage);
 
     return mgr;
@@ -141,6 +147,14 @@ static void bpg_pkg_manage_clear(nm_node_t node) {
 
     bpg_pkg_debug_info_free_all(mgr);
     cpe_hash_table_fini(&mgr->m_pkg_debug_infos);
+
+    mem_buffer_clear(&mgr->m_dump_buff);
+    mem_buffer_clear(&mgr->m_zip_buff);
+
+    if (mgr->m_op_buff) {
+        mem_free(gd_app_alloc(mgr->m_app), mgr->m_op_buff);
+        mgr->m_op_buff = NULL;
+    }
 }
 
 void bpg_pkg_manage_free(bpg_pkg_manage_t mgr) {
@@ -390,4 +404,30 @@ int bpg_pkg_find_cmd_from_meta_name(uint32_t * cmd, bpg_pkg_manage_t mgr, const 
     else {
         return -1;
     }
+}
+
+int bpg_pkg_manage_set_op_buff_capacity(bpg_pkg_manage_t mgr, size_t buf_size) {
+    mgr->m_op_buff_capacity = buf_size;
+    if (mgr->m_op_buff) {
+        mem_free(gd_app_alloc(mgr->m_app), mgr->m_op_buff);
+        mgr->m_op_buff = NULL;
+    }
+
+    return 0;
+}
+
+void * bpg_pkg_op_buff(bpg_pkg_manage_t mgr) {
+    if (mgr->m_op_buff == NULL) {
+        mgr->m_op_buff = mem_alloc(gd_app_alloc(mgr->m_app), mgr->m_op_buff_capacity);
+    }
+
+    return mgr->m_op_buff;
+}
+
+uint32_t bpg_pkg_zip_size_threshold(bpg_pkg_manage_t mgr) {
+    return mgr->m_zip_size_threshold;
+}
+
+void bpg_pkg_set_zip_size_threshold(bpg_pkg_manage_t mgr, uint32_t threaded) {
+    mgr->m_zip_size_threshold = threaded;
 }

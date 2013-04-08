@@ -3,7 +3,7 @@
 #include "cpe/dr/dr_ctypes_op.h"
 #include "cpe/cfg/cfg_manage.h"
 #include "cpe/cfg/cfg_read.h"
-#include "cfg_internal_types.h"
+#include "cfg_internal_ops.h"
 
 static void cfg_do_merge_struct(cfg_t cfg, cfg_t source, cfg_policy_t policy, error_monitor_t em);
 static void cfg_do_merge_struct_child(cfg_t cfg, cfg_t child, cfg_policy_t policy, error_monitor_t em);
@@ -25,6 +25,8 @@ static void cfg_do_merge_struct(cfg_t cfg, cfg_t source, cfg_policy_t policy, er
 }
 
 static void cfg_do_merge_struct_child(cfg_t cfg, cfg_t child, cfg_policy_t policy, error_monitor_t em) {
+    assert(cfg != child);
+
     switch(child->m_type) {
     case CPE_CFG_TYPE_SEQUENCE:
         cfg_do_copy_seq(
@@ -209,6 +211,10 @@ int cfg_merge(cfg_t cfg, cfg_t source, cfg_policy_t policy, error_monitor_t em) 
         assert(policy == cfg_merge_use_new || policy == cfg_replace);
 
         if (cfg->m_type == CPE_CFG_TYPE_SEQUENCE) {
+            if (policy == cfg_replace) {
+                cfg_seq_fini((struct cfg_seq *)cfg);
+            }
+
             cfg_do_copy_seq(cfg, source, em);
         }
         else {

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<metalib tagsetversion="1" name="TSData" version="1">
+
+    <struct name="TS_Error" version="1" desc="">
+        <entry name="result" type="uint32" id="1" desc=""/>
+    </struct>
+
+    <macrosgroup name="TS_CMD_ID">
+        <macro name="TS_CMD_REQ_REGISTER_CLIENT" value="1"/>
+        <macro name="TS_CMD_RES_REGISTER_CLIENT" value="2"/>
+        <macro name="TS_CMD_REQ_TRANSFER" value="3"/>
+        <macro name="TS_CMD_RES_TRANSFER" value="4"/>
+    </macrosgroup>
+
+    <macrosgroup name="TS_CMD_RET_CODE">
+        <macro name="TS_RET_OK" value="0"/>
+        <macro name="TS_INTERNAL_ERROR" value="1"/>
+        <macro name="TS_RET_CLIENT_ALREADY_EXIST" value="2"/>
+    </macrosgroup>
+  
+    <struct name="tspkg_head" version="1" >
+        <entry name="app_type" type="uint16" id="1"/>
+        <entry name="app_id" type="uint16" id="1"/>
+        <entry name="cmd" type="uint32" id="3"/>
+        <entry name="bodylen" type="uint16" id="5"/>
+    </struct>
+
+</metalib>
+

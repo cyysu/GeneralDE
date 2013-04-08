@@ -1,5 +1,6 @@
 #include <assert.h>
 #include "cpe/pal/pal_stdio.h"
+#include "cpe/pal/pal_strings.h"
 #include "cpe/pom/pom_object.h"
 #include "cpe/pom/pom_manage.h"
 #include "cpe/pom_grp/pom_grp_meta.h"

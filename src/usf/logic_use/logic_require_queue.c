@@ -61,7 +61,7 @@ int logic_require_queue_require_count(logic_require_queue_t queue) {
     return queue->m_runing_require_count;
 }
 
-logic_manage_t logic_require_queue_get_mgr(logic_require_queue_t queue) {
+logic_manage_t logic_require_queue_logic_manage(logic_require_queue_t queue) {
     return queue->m_logic_manage;
 }
 
@@ -118,6 +118,7 @@ int logic_require_queue_add(logic_require_queue_t queue, logic_require_id_t id) 
 
     queue->m_runing_requires[queue->m_runing_require_count] = id;
     ++queue->m_runing_require_count;
+
     for(i = queue->m_runing_require_count - 1; i > 0; --i) {
         logic_require_id_t buf;
         if (queue->m_runing_requires[i] >= queue->m_runing_requires[i - 1]) break;
@@ -126,8 +127,6 @@ int logic_require_queue_add(logic_require_queue_t queue, logic_require_id_t id) 
         queue->m_runing_requires[i] = queue->m_runing_requires[i - 1];
         queue->m_runing_requires[i - 1] = buf;
     }
-
-    ++queue->m_runing_require_count;
 
     if (queue->m_debug >= 2) {
         CPE_INFO(
@@ -179,9 +178,9 @@ int logic_require_queue_remove(logic_require_queue_t queue, logic_require_id_t i
     }
 
     found_pos = found - queue->m_runing_requires;
-    assert(found_pos >= 0 && found_pos < queue->m_runing_require_count);
+    assert(found_pos >= 0 && (uint32_t)found_pos < queue->m_runing_require_count);
 
-    if (found_pos + 1 < queue->m_runing_require_count) {
+    if ((uint32_t)(found_pos + 1) < queue->m_runing_require_count) {
         memmove(found, found + 1, sizeof(logic_require_id_t) * (queue->m_runing_require_count - found_pos - 1));
     }
 
@@ -237,4 +236,23 @@ void logic_require_queue_notify_all(logic_require_queue_t queue, int32_t error) 
     }
 }
 
+void logic_require_queue_cancel_all(logic_require_queue_t queue) {
+    uint32_t i;
+    int notified_count = 0;
 
+    for(i = 0; i < queue->m_runing_require_count; ++i) {
+        logic_require_t require = logic_require_find(queue->m_logic_manage, queue->m_runing_requires[i]);
+        if (require) {
+            ++notified_count;
+            logic_require_cancel(require);
+        }
+    }
+
+    queue->m_runing_require_count = 0;
+
+    if (queue->m_debug) {
+        CPE_INFO(
+            queue->m_em, "%s: cancel_all: processed %d requires!",
+            queue->m_name, notified_count);
+    }
+}

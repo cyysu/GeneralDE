@@ -4,7 +4,7 @@
 TEST_F(SetDefaultsTest, multi_entry_basic) {
     installMeta(
         "<metalib tagsetversion='1' name='net' version='1'>"
-        "    <struct name='S' version='1'>"
+        "    <struct name='S' version='1' align='1'>"
         "	     <entry name='a1' type='int16' defaultvalue='23'/>"
         "	     <entry name='a2' type='int16' defaultvalue='45'/>"
         "    </struct>"
@@ -19,7 +19,7 @@ TEST_F(SetDefaultsTest, multi_entry_basic) {
 TEST_F(SetDefaultsTest, numeric_basic) {
     installMeta(
         "<metalib tagsetversion='1' name='net' version='1'>"
-        "    <struct name='S' version='1'>"
+        "    <struct name='S' version='1' align='1'>"
         "	     <entry name='a1' type='int16' defaultvalue='23'/>"
         "    </struct>"
         "</metalib>");
@@ -32,7 +32,7 @@ TEST_F(SetDefaultsTest, numeric_basic) {
 TEST_F(SetDefaultsTest, numeric_no_default) {
     installMeta(
         "<metalib tagsetversion='1' name='net' version='1'>"
-        "    <struct name='S' version='1'>"
+        "    <struct name='S' version='1' align='1'>"
         "	     <entry name='a1' type='int16'/>"
         "    </struct>"
         "</metalib>");
@@ -45,7 +45,7 @@ TEST_F(SetDefaultsTest, numeric_no_default) {
 TEST_F(SetDefaultsTest, numeric_no_default_ignore) {
     installMeta(
         "<metalib tagsetversion='1' name='net' version='1'>"
-        "    <struct name='S' version='1'>"
+        "    <struct name='S' version='1' align='1'>"
         "	     <entry name='a1' type='int16'/>"
         "    </struct>"
         "</metalib>");
@@ -58,7 +58,7 @@ TEST_F(SetDefaultsTest, numeric_no_default_ignore) {
 TEST_F(SetDefaultsTest, string_basic) {
     installMeta(
         "<metalib tagsetversion='1' name='net' version='1'>"
-        "    <struct name='S' version='1'>"
+        "    <struct name='S' version='1' align='1'>"
         "	     <entry name='a1' type='string' size='6' defaultvalue='23'/>"
         "    </struct>"
         "</metalib>");
@@ -71,7 +71,7 @@ TEST_F(SetDefaultsTest, string_basic) {
 TEST_F(SetDefaultsTest, string_no_default) {
     installMeta(
         "<metalib tagsetversion='1' name='net' version='1'>"
-        "    <struct name='S' version='1'>"
+        "    <struct name='S' version='1' align='1'>"
         "	     <entry name='a1' type='string' size='6'/>"
         "    </struct>"
         "</metalib>");
@@ -84,7 +84,7 @@ TEST_F(SetDefaultsTest, string_no_default) {
 TEST_F(SetDefaultsTest, sequence_value_basic) {
     installMeta(
         "<metalib tagsetversion='1' name='net' version='1'>"
-        "    <struct name='S' version='1'>"
+        "    <struct name='S' version='1' align='1'>"
         "	     <entry name='a1' type='int16' count='4' defaultvalue='23'/>"
         "    </struct>"
         "</metalib>");
@@ -100,10 +100,10 @@ TEST_F(SetDefaultsTest, sequence_value_basic) {
 TEST_F(SetDefaultsTest, sequence_struct_basic) {
     installMeta(
         "<metalib tagsetversion='1' name='net' version='1'>"
-        "    <struct name='S1' version='1'>"
+        "    <struct name='S1' version='1' align='1'>"
         "	     <entry name='b1' type='int16' defaultvalue='23'/>"
         "    </struct>"
-        "    <struct name='S' version='1'>"
+        "    <struct name='S' version='1' align='1'>"
         "	     <entry name='a1' type='S1' count='4'/>"
         "    </struct>"
         "</metalib>");
@@ -118,10 +118,10 @@ TEST_F(SetDefaultsTest, sequence_struct_basic) {
 TEST_F(SetDefaultsTest, sequence_struct_sequence) {
     installMeta(
         "<metalib tagsetversion='1' name='net' version='1'>"
-        "    <struct name='S1' version='1'>"
+        "    <struct name='S1' version='1' align='1'>"
         "	     <entry name='b1' type='int16' count='5' defaultvalue='23'/>"
         "    </struct>"
-        "    <struct name='S' version='1'>"
+        "    <struct name='S' version='1' align='1'>"
         "	     <entry name='a1' type='S1' count='4'/>"
         "    </struct>"
         "</metalib>");
@@ -136,11 +136,11 @@ TEST_F(SetDefaultsTest, sequence_struct_sequence) {
 TEST_F(SetDefaultsTest, union_basic) {
     installMeta(
         "<metalib tagsetversion='1' name='net'  version='1'>"
-        "    <struct name='A' version='1'>"
+        "    <struct name='A' version='1' align='1'>"
         "	     <entry name='a1' type='int32' defaultvalue='9'/>"
         "	     <entry name='a2' type='int16' defaultvalue='10'/>"
         "    </struct>"
-        "    <struct name='B' version='1'>"
+        "    <struct name='B' version='1' align='1'>"
         "	     <entry name='b1' type='int16' defaultvalue='11'/>"
         "	     <entry name='b2' type='int16' defaultvalue='12'/>"
         "    </struct>"
@@ -159,11 +159,11 @@ TEST_F(SetDefaultsTest, union_basic) {
 TEST_F(SetDefaultsTest, union_with_selector) {
     installMeta(
         "<metalib tagsetversion='1' name='net'  version='1'>"
-        "    <struct name='A' version='1'>"
+        "    <struct name='A' version='1' align='1'>"
         "	     <entry name='a1' type='int32' defaultvalue='9'/>"
         "	     <entry name='a2' type='int16' defaultvalue='10'/>"
         "    </struct>"
-        "    <struct name='B' version='1'>"
+        "    <struct name='B' version='1' align='1'>"
         "	     <entry name='b1' type='int16' defaultvalue='11'/>"
         "	     <entry name='b2' type='int16' defaultvalue='12'/>"
         "    </struct>"
@@ -171,7 +171,7 @@ TEST_F(SetDefaultsTest, union_with_selector) {
         "	     <entry name='u1' type='A' id='2'/>"
         "	     <entry name='u2' type='B' id='3'/>"
         "    </union>"
-        "    <struct name='S' version='1'>"
+        "    <struct name='S' version='1' align='1'>"
         "	     <entry name='type' type='int16' defaultvalue='2'/>"
         "        <entry name='data' type='U' select='type'/>"
         "    </struct>"

@@ -34,7 +34,8 @@ net_connector_create(
     size_t baseLen;
     baseLen = strlen(name) + 1;
 
-    nameLen = CPE_PAL_ALIGN_8(baseLen);
+    nameLen = baseLen;
+    CPE_PAL_ALIGN_DFT(nameLen);
 
     buf = mem_alloc(nmgr->m_alloc, sizeof(struct net_connector) + nameLen);
     if (buf == NULL) return NULL;
@@ -46,6 +47,7 @@ net_connector_create(
     connector->m_name = buf;
     connector->m_state = net_connector_state_disable;
     connector->m_monitors = NULL;
+    connector->m_reconnect_span = 30.0;
 
     connector->m_ep = NULL;
     cpe_hash_entry_init(&connector->m_hh);
@@ -431,7 +433,7 @@ static void net_connector_cb_prepaire(net_connector_t connector) {
     }
     else if (connector->m_state == net_connector_state_error) {
         connector->m_timer.data = connector;
-        ev_timer_init (&connector->m_timer, net_connector_timer_cb_reconnect, 60., 0.);
+        ev_timer_init (&connector->m_timer, net_connector_timer_cb_reconnect, connector->m_reconnect_span, 0.);
         ev_timer_start(connector->m_mgr->m_ev_loop, &connector->m_timer);
     }
 }
@@ -499,6 +501,27 @@ void net_connector_disable(net_connector_t connector) {
     net_connector_notify_state_change(connector, old_state);
 }
 
+void net_connector_set_reconnect_span_ms(net_connector_t connector, uint64_t span_ms) {
+    connector->m_reconnect_span = ((double)span_ms / 1000.0);
+}
+
 net_ep_t net_connector_ep(net_connector_t connector) {
     return connector->m_ep;
+}
+
+const char * net_connector_state_str(net_connector_state_t state) {
+    switch(state) {
+    case net_connector_state_disable:
+        return "net_connector_state_disable";
+    case net_connector_state_idle:
+        return "net_connector_state_idle";
+    case net_connector_state_connecting:
+        return "net_connector_state_connecting";
+    case net_connector_state_connected:
+        return "net_connector_state_connected";
+    case net_connector_state_error:
+        return "net_connector_state_connected";
+    default:
+        return "net_connector_state_unknown";
+    }
 }

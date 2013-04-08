@@ -28,10 +28,13 @@ public:
     Utils::CString const & desc(void) const { return Utils::CString::_cast(dr_meta_desc(*this)); } 
     int id(void) const { return dr_meta_id(*this); } 
 
+    bool isDynamic(void) const;
+    LPDRMETA recordMeta(void) const;
+
     size_t size(void) const { return dr_meta_size(*this); } 
     int align(void) const { return dr_meta_align(*this); } 
 
-    int entryCount(void) const { return dr_meta_align(*this); } 
+    int entryCount(void) const { return dr_meta_entry_num(*this); } 
     Entry const & entryAt(int idx) const;
 
     int findEntryIdx(const char * name) const { return dr_meta_find_entry_idx_by_name(*this, name); }
@@ -49,6 +52,9 @@ public:
 
     void dump_data(write_stream_t stream, const void * data, size_t capacity) const;
     const char * dump_data(mem_buffer_t buffer, const void * data, size_t capacity) const;
+
+    void dump_data_array(write_stream_t stream, const void * data, size_t capacity) const;
+    const char * dump_data_array(mem_buffer_t buffer, const void * data, size_t capacity) const;
 
     void set_defaults(void * data, size_t capacity, int policy = 0) const;
 
@@ -71,6 +77,9 @@ public:
 
     void load_from_cfg(void * data, size_t capacity, cfg_t cfg, int policy = DR_CFG_READ_CHECK_NOT_EXIST_ATTR) const;
     bool try_load_from_cfg(void * data, size_t capacity, cfg_t cfg, error_monitor_t em = 0, int policy = 0) const;
+
+    void load_from_json(void * data, size_t capacity, const char * json) const;
+    bool try_load_from_json(void * data, size_t capacity, const char * json, error_monitor_t em = 0) const;
 
     template<typename T>
     void load_from_cfg(T & data, cfg_t cfg, int policy = DR_CFG_READ_CHECK_NOT_EXIST_ATTR) const {

@@ -1,3 +1,4 @@
+#include <cassert>
 #include "gdpp/app/Log.hpp"
 #include "usf/logic/logic_manage.h"
 #include "usfpp/logic_use/LogicOpDynData.hpp"
@@ -12,7 +13,7 @@ void * LogicOpDynData::record(size_t i) {
         APP_CTX_THROW_EXCEPTION(
             logic_manage_app(logic_data_mgr(m_data)),
             ::std::runtime_error,
-            "Tsf4wg::TCaplus::LogicOpDynData::recrd: get record at %d fail", (int)i);
+            "Usf::Logic::LogicOpDynData::recrd: get record at %d fail", (int)i);
     }
 
     return r;
@@ -26,39 +27,48 @@ void const * LogicOpDynData::record(size_t i) const {
         APP_CTX_THROW_EXCEPTION(
             logic_manage_app(logic_data_mgr(m_data)),
             ::std::runtime_error,
-            "Tsf4wg::TCaplus::LogicOpDynData::recrd: get record at %d fail", (int)i);
+            "Usf::Logic::LogicOpDynData::recrd: get record at %d fail", (int)i);
     }
 
     return r;
 }
 
+void LogicOpDynData::recordRemove(size_t pos) {
+    validate_data();
+
+    if (logic_data_record_remove_by_pos(m_data, pos) != 0) {
+        APP_CTX_THROW_EXCEPTION(
+            logic_manage_app(logic_data_mgr(m_data)),
+            ::std::runtime_error,
+            "Usf::Logic::LogicOpDynData::remove: remove at %d fail", (int)pos);
+    }
+}
+
+void LogicOpDynData::recordRemove(void const * p) {
+    validate_data();
+
+    if (logic_data_record_remove_by_ins(m_data, (void*)p) != 0) {
+        APP_CTX_THROW_EXCEPTION(
+            logic_manage_app(logic_data_mgr(m_data)),
+            ::std::runtime_error,
+            "Usf::Logic::LogicOpDynData::remove: remove %p fail", p);
+    }
+}
+
+void LogicOpDynData::recordPop(void) {
+    assert(recordCount() > 0);
+    recordRemove(recordCount() - 1);
+}
+
 void * LogicOpDynData::recordAppend(void) {
     validate_data();
 
-    if (isDynamic()) {
-        size_t count = logic_data_record_count(m_data);
-        size_t capacity = logic_data_record_capacity(m_data);
-
-        if (count >= capacity) {
-            size_t new_capacity  = capacity < 16 ? 16 : capacity * 2;
-            gd_app_context_t app = logic_manage_app(logic_data_mgr(m_data));
-
-            m_data = logic_data_record_reserve(m_data, new_capacity);
-            if (m_data == NULL) {
-                APP_CTX_THROW_EXCEPTION(
-                    app,
-                    ::std::runtime_error,
-                    "Tsf4wg::TCaplus::LogicOpDynData::append: reserve to %d fail", (int)new_capacity);
-            }
-        }
-    }
-
-    void * r = logic_data_record_append(m_data);
+    void * r = logic_data_record_append_auto_inc(&m_data);
     if (r == NULL) {
         APP_CTX_THROW_EXCEPTION(
             logic_manage_app(logic_data_mgr(m_data)),
             ::std::runtime_error,
-            "Tsf4wg::TCaplus::LogicOpDynData::append: fail");
+            "Usf::Logic::LogicOpDynData::append: fail");
     }
 
     return r;

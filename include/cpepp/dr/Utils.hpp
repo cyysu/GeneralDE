@@ -33,6 +33,16 @@ inline void set_defaults(T & data, int policy = 0) {
 }
 
 template<class T>
+inline void load_from_json(T & data, const char * json) {
+    MetaTraits<T>::META.load_from_json(&data, sizeof(data), json);
+}
+
+template<typename T>
+inline bool try_load_from_json(T & data, const char * json, error_monitor_t em = NULL) {
+    return MetaTraits<T>::META.try_load_from_json(&data, sizeof(data), json, em);
+}
+
+template<class T>
 inline void load_from_cfg(T & data, cfg_t cfg, int policy = DR_CFG_READ_CHECK_NOT_EXIST_ATTR) {
     MetaTraits<T>::META.load_from_cfg(&data, sizeof(data), cfg, policy);
 }
@@ -44,12 +54,12 @@ inline bool try_load_from_cfg(T & data, cfg_t cfg, error_monitor_t em = 0, int p
 
 template<typename T>
 inline const char * dump_data(mem_buffer_t buffer, T const & data) {
-    return MetaTraits<T>::META.dump_data(buffer, &data, sizeof(data));
+    return MetaTraits<T>::META.dump_data(buffer, &data, MetaTraits<T>::data_size(data));
 }
 
 template<typename T>
 inline void dump_data(write_stream_t stream, T const & data) {
-    MetaTraits<T>::META.dump_data(stream, &data, sizeof(data));
+    MetaTraits<T>::META.dump_data(stream, &data, MetaTraits<T>::data_size(data));
 }
 
 template<typename T>

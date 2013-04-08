@@ -49,20 +49,24 @@ static void bpg_bind_manage_kickoff_old(
             bpg_bind_manage_name(mgr));
     }
     else {
-        bpg_pkg_init(kickoff_pkg);
-        bpg_pkg_set_connection_id(kickoff_pkg, old_connection_id);
-        bpg_pkg_set_cmd(kickoff_pkg, 10413);
-        bpg_pkg_set_client_id(kickoff_pkg, old_client_id);
+        if (mgr->m_cmd_kickoff > 0){
+            bpg_pkg_init(kickoff_pkg);
+            bpg_pkg_set_connection_id(kickoff_pkg, old_connection_id);
+            bpg_pkg_set_cmd(kickoff_pkg, mgr->m_cmd_kickoff);
+            bpg_pkg_set_client_id(kickoff_pkg, old_client_id);
 
-        if (bpg_pkg_dsp_dispatch(mgr->m_outgoing_send_to, kickoff_pkg, em) != 0) {
-            CPE_ERROR(
-                mgr->m_em, "%s: kickoff_old: send kickof pkg fail, client-id=%d, connection-id=%d!",
-                bpg_bind_manage_name(mgr), new_client_id, old_connection_id);
-        }
-        else {
-            CPE_INFO(
-                mgr->m_em, "%s: kickoff_old: send kickof pkg success, client-id=%d, connection-id=%d!",
-                bpg_bind_manage_name(mgr), new_client_id, old_connection_id);
+            if (bpg_pkg_dsp_dispatch(mgr->m_outgoing_send_to, kickoff_pkg, em) != 0) {
+                CPE_ERROR(
+                    mgr->m_em, "%s: kickoff_old: send kickof pkg fail, client-id=%d, connection-id=%d!",
+                    bpg_bind_manage_name(mgr), new_client_id, old_connection_id);
+            }
+            else {
+                if (mgr->m_debug) {
+                    CPE_INFO(
+                        mgr->m_em, "%s: kickoff_old: send kickof pkg success, client-id=%d, connection-id=%d!",
+                        bpg_bind_manage_name(mgr), new_client_id, old_connection_id);
+                }
+            }
         }
     }
 
@@ -143,7 +147,7 @@ int bpg_bind_manage_incoming_rsp(dp_req_t req, void * ctx, error_monitor_t em) {
         }
     }
 
-    if (found_binding == NULL) {
+    if (found_binding == NULL && client_id != 0) {
         if (bpg_bind_binding_create(mgr, client_id, connection_id) != 0) { 
             CPE_ERROR( 
                 mgr->m_em, "%s: ep %d: binding: create binding fail!", 

@@ -54,7 +54,44 @@ bpg_rsp_addition_data_create(logic_context_t ctx, size_t capacity) {
 }
 
 int bpg_rsp_meta_id_cmp(const void *m1, const void *m2) {
-    return *((const int32_t *)m2) - *((const int32_t *)m1);
+	// sort meta_id in ascending sort.
+    //return *((const int32_t *)m2) - *((const int32_t *)m1);
+	return *((const int32_t *)m1) - *((const int32_t *)m2);
+}
+
+int bpg_rsp_addition_data_remove(logic_context_t ctx, uint32_t meta_id) {
+    logic_data_t data;
+    BPG_RSP_ADDITION_DATA * addition_data;
+    int32_t * element;
+    int element_pos;
+
+    data = logic_context_data_find(ctx, "bpg_rsp_addition_data");
+
+    addition_data = data == NULL
+        ? NULL
+        : (BPG_RSP_ADDITION_DATA *)logic_data_data(data);
+
+    if (addition_data == NULL) {
+        return -1;
+    }
+
+    element =
+        (int32_t *)bsearch(
+            &meta_id, addition_data->pieces,
+            addition_data->count, sizeof(meta_id),
+            bpg_rsp_meta_id_cmp);
+    if (element == NULL) {
+        return -1;
+    }
+
+    element_pos = element - addition_data->pieces;
+    if (element_pos + 1 < addition_data->count) {
+        memmove(element, element + 1, sizeof(*element) * (addition_data->count  - 1 - element_pos));
+    }
+
+    --addition_data->count;
+
+    return 0;
 }
 
 int bpg_rsp_addition_data_add(logic_context_t ctx, uint32_t meta_id) {

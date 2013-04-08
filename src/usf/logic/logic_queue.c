@@ -103,6 +103,10 @@ cpe_hash_string_t logic_queue_name_hs(logic_queue_t queue) {
     return queue->m_name;
 }
 
+logic_context_t logic_queue_head(logic_queue_t queue) {
+    return TAILQ_FIRST(&queue->m_contexts);
+}
+
 int logic_queue_enqueue_head(logic_queue_t queue, logic_context_t context) {
     assert(context->m_queue_state == logic_context_queue_pending);
 
@@ -178,7 +182,16 @@ int logic_queue_enqueue_after(logic_context_t pre, logic_context_t context) {
 
     queue = pre->m_logic_queue;
     if (queue == NULL) return -1;
-    if (queue->m_max_count > 0 && queue->m_count >= queue->m_max_count) return -1;
+    if (queue->m_max_count > 0 && queue->m_count >= queue->m_max_count) {
+        APP_CTX_ERROR(
+            queue->m_mgr->m_app,
+            "%s: queue %s: enqueue after "FMT_UINT32_T": context "FMT_UINT32_T", overflow, max-count=%d",
+            logic_manage_name(queue->m_mgr), cpe_hs_data(queue->m_name),
+            logic_context_id(pre),
+            logic_context_id(context),
+            queue->m_max_count);
+        return -1;
+    }
 
     TAILQ_INSERT_AFTER(&queue->m_contexts, pre, context, m_next_logic_queue);
 

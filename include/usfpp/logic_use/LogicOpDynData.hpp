@@ -12,6 +12,8 @@ namespace Usf { namespace Logic {
 
 class LogicOpDynData {
 public:
+    typedef int(*record_cmp_t)(const void *, const void *);
+
     LogicOpDynData(LogicOpDynData & o) : m_data(o.m_data) {
     }
 
@@ -62,7 +64,7 @@ public:
     Cpe::Dr::Meta const & recordMeta(void) const { return *(Cpe::Dr::Meta const *)logic_data_record_meta(m_data); }
     size_t recordSize(void) const { return logic_data_record_size(m_data); }
 
-    bool isDynamic(void) const { return logic_data_record_is_dyn(m_data); }
+    bool isDynamic(void) const { return logic_data_record_is_dyn(m_data) ? true : false; }
 
     void setRecordCount(size_t count);
     size_t recordCount(void) const { return logic_data_record_count(m_data); }
@@ -74,6 +76,13 @@ public:
     void const * record(size_t i) const;
 
     void * recordAppend(void);
+    void recordRemove(size_t pos);
+    void recordRemove(void const * o);
+    void recordPop(void);
+
+    void recordSort(record_cmp_t cmp) { logic_data_record_sort(m_data, cmp); }
+    void * recordFind(void const * key, record_cmp_t cmp) { return logic_data_record_find(m_data, key, cmp); }
+    void const * recordFind(void const * key, record_cmp_t cmp) const { return logic_data_record_find(m_data, key, cmp); }
 
     template<typename T>
     void copy_same_entries_to(T & data, LPDRMETA src_meta = T::META, int policy = 0) {
@@ -94,7 +103,7 @@ public:
     
     template<typename T>
     T & recordAppend(void) { return *(T*)this->recordAppend(); }
-    
+
     const char * dump(mem_buffer_t buffer) const { return logic_data_dump(m_data, buffer); }
 
     void destory(void) { logic_data_free(m_data); m_data = NULL; }

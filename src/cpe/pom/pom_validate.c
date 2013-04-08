@@ -10,28 +10,28 @@ struct pom_validating_page {
 };
 
 static uint32_t pom_validating_page_hash(const struct pom_validating_page * p) {
-    return (uint32_t)(((ptr_int_t)p->m_page) & 0xFFFFFFFF);
+    return (uint32_t)(((ptr_uint_t)p->m_page) & 0xFFFFFFFF);
 }
 
 static int pom_validating_page_eq(const struct pom_validating_page * l, const struct pom_validating_page * r) {
-    return l->m_page == r->m_page ? 1 : 0;
+    return l->m_page == r->m_page;
 }
 
 static void pom_grp_validate_build_pages_from_buf(cpe_hash_table_t pages, pom_mgr_t mgr, error_monitor_t em) {
-    struct cpe_range_it buf_range_it;
-    struct cpe_range buf_range;
+    struct cpe_urange_it buf_urange_it;
+    struct cpe_urange buf_urange;
     struct pom_buffer_mgr * buf_mgr;
 
     buf_mgr = &mgr->m_bufMgr;
 
-    cpe_range_mgr_ranges(&buf_range_it, &buf_mgr->m_buffer_ids);
+    cpe_urange_mgr_uranges(&buf_urange_it, &buf_mgr->m_buffer_ids);
 
-    for(buf_range = cpe_range_it_next(&buf_range_it);
-        cpe_range_is_valid(buf_range);
-        buf_range = cpe_range_it_next(&buf_range_it))
+    for(buf_urange = cpe_urange_it_next(&buf_urange_it);
+        cpe_urange_is_valid(buf_urange);
+        buf_urange = cpe_urange_it_next(&buf_urange_it))
     {
-        for(; buf_range.m_start != buf_range.m_end; ++buf_range.m_start) {
-            char * page_buf = (char *)pom_buffer_mgr_get_buf(buf_mgr, buf_range.m_start, NULL);
+        for(; buf_urange.m_start != buf_urange.m_end; ++buf_urange.m_start) {
+            char * page_buf = (char *)pom_buffer_mgr_get_buf(buf_mgr, buf_urange.m_start, NULL);
             size_t size = buf_mgr->m_buf_size;
 
             while(size >= buf_mgr->m_page_size) {
@@ -52,6 +52,7 @@ static void pom_grp_validate_build_pages_from_buf(cpe_hash_table_t pages, pom_mg
 
                 if (cpe_hash_table_insert_unique(pages, validating_page) != 0) {
                     CPE_ERROR(em, "page %p: duplicate!", cur_page);
+                    mem_free(mgr->m_alloc, validating_page);
                     continue;
                 }
             }
@@ -109,30 +110,26 @@ static void pom_mgr_validate_allocked_pages(pom_mgr_t mgr, cpe_hash_table_t page
 
 static void pom_mgr_validate_free_pages(pom_mgr_t mgr, cpe_hash_table_t pages, error_monitor_t em) {
     struct pom_validating_page key;
-    struct cpe_range_it range_it;
-    struct cpe_range range;
+    struct cpe_urange_it urange_it;
+    struct cpe_urange urange;
     struct pom_buffer_mgr * buf_mgr;
     struct pom_validating_page * validating_page;
 
     buf_mgr = &mgr->m_bufMgr;
 
-    cpe_range_mgr_ranges(&range_it, &buf_mgr->m_free_pages);
+    cpe_urange_mgr_uranges(&urange_it, &buf_mgr->m_free_pages);
 
-    for(range = cpe_range_it_next(&range_it);
-        cpe_range_is_valid(range); 
-        range = cpe_range_it_next(&range_it))
+    for(urange = cpe_urange_it_next(&urange_it);
+        cpe_urange_is_valid(urange); 
+        urange = cpe_urange_it_next(&urange_it))
     {
-        char * page_buf = (void*)range.m_start;
+        char * page_buf = (void*)urange.m_start;
 
-        while(page_buf < (char*)range.m_end) {
+        while(page_buf < (char*)urange.m_end) {
             struct pom_data_page_head * page = (struct pom_data_page_head * )page_buf;
             page_buf += buf_mgr->m_page_size;
 
-            if (((char*)range.m_end - (char*)page) < buf_mgr->m_page_size) {
-                CPE_ERROR(
-                    em, "page %p: page-size overflow, page-size=%d, left-size=%d!",
-                    page, (int)buf_mgr->m_page_size, (int)((char*)range.m_end - (char*)page));
-            }
+            if (((char*)urange.m_end - (char*)page) < buf_mgr->m_page_size) continue;
 
             if (page->m_magic != POM_PAGE_MAGIC) {
                 CPE_ERROR(em, "page %p: free page magic(%x) error!", page, page->m_magic);
@@ -174,7 +171,8 @@ static void pom_mgr_validate_bad_pages(pom_mgr_t mgr, cpe_hash_table_t pages, er
     page = cpe_hash_it_next(&page_it);
     while (page) {
         struct pom_validating_page * next = cpe_hash_it_next(&page_it);
-        CPE_ERROR(em, "page %p: not allocked or free!", page->m_page);
+        struct pom_data_page_head * data_page = (struct pom_data_page_head * )page->m_page;
+        CPE_ERROR(em, "page %p: class id %d: not allocked or free!", data_page, data_page->m_classId);
         cpe_hash_table_remove_by_ins(pages, page);
         mem_free(mgr->m_alloc, page);
         page = next;

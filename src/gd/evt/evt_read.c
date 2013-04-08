@@ -53,28 +53,62 @@ gd_evt_t gd_evt_create_ex(gd_evt_mgr_t evm, LPDRMETA data_meta, ssize_t data_cap
 }
 
 gd_evt_t gd_evt_create(gd_evt_mgr_t evm, const char * typeName, ssize_t data_capacity, error_monitor_t em) {
-    LPDRMETALIB metalib;
-    LPDRMETA meta;
+    struct gd_evt_def key;
+    struct gd_evt_def * evt_def;
 
     assert(evm);
 
     if (em == NULL) em = evm->m_em;
 
-    metalib = gd_evt_mgr_metalib(evm);
-    if (metalib == NULL) {
-        CPE_ERROR(em, "%s: create event: metalib not exist", gd_evt_mgr_name(evm));
-        return NULL;
-    }
+    key.m_evt_name = typeName;
 
-    meta = dr_lib_find_meta_by_name(metalib, typeName);
-    if (meta == NULL) {
+    evt_def = cpe_hash_table_find(&evm->m_evt_defs, &key);
+    if (evt_def == NULL) {
         CPE_ERROR(
-            em, "%s: create event: meta %s not in metalib %s!", 
-            gd_evt_mgr_name(evm), typeName, dr_lib_name(metalib));
+            em, "%s: create event: event %s not exist!", 
+            gd_evt_mgr_name(evm), typeName);
         return NULL;
     }
 
-    return gd_evt_create_ex(evm, meta, data_capacity, em);
+    return gd_evt_create_ex(evm, evt_def->m_evt_meta, data_capacity, em);
+}
+
+gd_evt_t gd_evt_dyn_create_ex(gd_evt_mgr_t evm, LPDRMETA data_meta, size_t record_capacity, error_monitor_t em) {
+    struct dr_meta_dyn_info dyn_info;
+    LPDRMETA record_meta;
+
+    if (dr_meta_find_dyn_info(data_meta, &dyn_info) != 0) {
+        CPE_ERROR(
+            em, "%s: create dyn event: event %s is not dynamic!", 
+            gd_evt_mgr_name(evm), dr_meta_name(data_meta));
+        return NULL;
+    }
+
+    record_meta = dr_entry_self_meta(dyn_info.m_array_entry);
+    assert(record_meta);
+
+    return gd_evt_create_ex(evm, data_meta, dr_meta_size(data_meta) + record_capacity * dr_meta_size(record_meta), em);
+}
+
+gd_evt_t gd_evt_dyn_create(gd_evt_mgr_t evm, const char * typeName, size_t record_capacity, error_monitor_t em) {
+    struct gd_evt_def key;
+    struct gd_evt_def * evt_def;
+
+    assert(evm);
+
+    if (em == NULL) em = evm->m_em;
+
+    key.m_evt_name = typeName;
+
+    evt_def = cpe_hash_table_find(&evm->m_evt_defs, &key);
+    if (evt_def == NULL) {
+        CPE_ERROR(
+            em, "%s: create event: event %s not exist!", 
+            gd_evt_mgr_name(evm), typeName);
+        return NULL;
+    }
+
+    return gd_evt_dyn_create_ex(evm, evt_def->m_evt_meta, record_capacity, em);
 }
 
 int gd_evt_send(

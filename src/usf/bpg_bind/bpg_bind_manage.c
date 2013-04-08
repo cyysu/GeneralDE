@@ -45,6 +45,7 @@ bpg_bind_manage_create(
     mgr->m_em = em;
     mgr->m_debug = 0;
     mgr->m_pkg_manage = pkg_mgr;
+    mgr->m_cmd_kickoff = 0;
 
     mgr->m_data_pkg = NULL;
     mgr->m_control_pkg = NULL;

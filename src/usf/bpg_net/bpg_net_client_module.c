@@ -91,6 +91,9 @@ int bpg_net_client_app_init(gd_app_context_t app, gd_app_module_t module, cfg_t 
 
     bpg_net_client->m_debug = cfg_get_int8(cfg, "debug", bpg_net_client->m_debug);
 
+    bpg_net_client_set_reconnect_span_ms(
+        bpg_net_client, cfg_get_uint32(cfg, "reconnect-span-ms", 30000));
+
     if (bpg_net_client->m_debug) {
         CPE_INFO(
             gd_app_em(app),

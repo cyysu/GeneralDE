@@ -88,7 +88,7 @@ void dr_cfg_write_i(
             }
 
             for(; curStack->m_array_pos < array_count; ++curStack->m_array_pos) {
-                const char * entryData = curStack->m_src_data + curStack->m_entry->m_data_start_pos + (elementSize * curStack->m_array_pos);
+                const char * entryData = curStack->m_src_data + dr_entry_data_start_pos(curStack->m_entry, curStack->m_array_pos);
 
                 if (curStack->m_entry->m_type <= CPE_DR_TYPE_COMPOSITE) {
                     if (stackPos + 1 < CPE_DR_MAX_LEVEL) {

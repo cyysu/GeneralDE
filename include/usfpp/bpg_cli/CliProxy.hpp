@@ -5,6 +5,7 @@
 #include "cpepp/dr/Data.hpp"
 #include "gdpp/app/Application.hpp"
 #include "usf/bpg_cli/bpg_cli_proxy.h"
+#include "usfpp/logic/LogicOpRequire.hpp"
 #include "System.hpp"
 
 #ifdef _MSC_VER
@@ -24,6 +25,9 @@ public:
 
     PackageManager & pkgManager(void);
 
+    uint64_t clientId(void) const { return bpg_cli_proxy_client_id(*this); }
+    void setClientId(uint64_t id) { bpg_cli_proxy_set_client_id(*this, id); }
+
     Cpe::Dr::MetaLib const & metaLib(void) const;
     Cpe::Dr::Meta const & meta(const char * metaName) const;
 
@@ -32,34 +36,41 @@ public:
     Cpe::Dr::Data dataBuf(void);
     Usf::Bpg::Package & pkgBuf(void);
 
-    void send(Usf::Logic::LogicOpRequire & requrest, Usf::Bpg::Package & pkg);
-    void send(Usf::Logic::LogicOpRequire & requrest, Cpe::Dr::Data const & data);
-    void send(Usf::Logic::LogicOpRequire & requrest, const char * metaName, void const * data, size_t size);
-    void send(Usf::Logic::LogicOpRequire & requrest, LPDRMETA meta, void const * data, size_t size);
+    void send(logic_require_t requrest, Usf::Bpg::Package & pkg);
+    void send(logic_require_t requrest, Cpe::Dr::Data const & data);
+    void send(logic_require_t requrest, const char * metaName, void const * data, size_t size);
+    void send(logic_require_t requrest, LPDRMETA meta, void const * data, size_t size);
+    void send(logic_require_t requrest, uint32_t cmd);
 
     template<typename T>
-    void send(Usf::Logic::LogicOpRequire & requrest, T const & data, const char * metaName = Cpe::Dr::MetaTraits<T>::NAME) {
-        send(requrest, metaName, &data, sizeof(data));
+    void send(logic_require_t requrest, T const & data, const char * metaName = Cpe::Dr::MetaTraits<T>::NAME) {
+        send(requrest, metaName, &data, Cpe::Dr::MetaTraits<T>::data_size(data));
     }
 
     template<typename T>
-    void send(Usf::Logic::LogicOpRequire & requrest, LPDRMETA meta, T const & data) {
-        send(requrest, meta, &data, sizeof(data));
+    void send(logic_require_t requrest, LPDRMETA meta, T const & data) {
+        send(requrest, meta, &data, Cpe::Dr::MetaTraits<T>::data_size(data));
     }
 
     void send(Usf::Bpg::Package & pkg);
     void send(Cpe::Dr::Data const & data);
     void send(const char * metaName, void const * data, size_t size);
     void send(LPDRMETA meta, void const * data, size_t size);
+    void send(uint32_t cmd);
 
     template<typename T>
     void send(T const & data, const char * metaName = Cpe::Dr::MetaTraits<T>::NAME) {
-        send( metaName, &data, sizeof(data));
+        send( metaName, &data, Cpe::Dr::MetaTraits<T>::data_size(data));
     }
 
     template<typename T>
     void send(LPDRMETA meta, T const & data) {
-        send(meta, &data, sizeof(data));
+        send(meta, &data, Cpe::Dr::MetaTraits<T>::data_size(data));
+    }
+
+    template<typename T>
+    Cpe::Dr::Data dataBuf(size_t capacity = 0, const char * metaName = Cpe::Dr::MetaTraits<T>::NAME) {
+        return dataBuf(metaName, capacity);
     }
 
     static CliProxy & _cast(bpg_cli_proxy_t cli_proxy);

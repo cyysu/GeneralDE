@@ -127,8 +127,8 @@ void pom_mgr_buffers(struct pom_buffer_it * it, pom_mgr_t omm) {
     assert(omm);
 
     it->m_buf_size = omm->m_bufMgr.m_buf_size;
-    cpe_range_mgr_ranges(&it->m_range_it, &omm->m_bufMgr.m_buffers);
-    it->m_curent = cpe_range_it_next(&it->m_range_it);
+    cpe_urange_mgr_uranges(&it->m_urange_it, &omm->m_bufMgr.m_buffers);
+    it->m_curent = cpe_urange_it_next(&it->m_urange_it);
 }
 
 void * pom_next_buffer(struct pom_buffer_it * it) {
@@ -136,17 +136,17 @@ void * pom_next_buffer(struct pom_buffer_it * it) {
 
     assert(it);
 
-    if (cpe_range_size(it->m_curent) <= 0) {
+    if (cpe_urange_size(it->m_curent) <= 0) {
         return NULL;
     }
 
-    assert((cpe_range_size(it->m_curent) % it->m_buf_size) == 0);
+    assert((cpe_urange_size(it->m_curent) % it->m_buf_size) == 0);
 
     r = (void*)it->m_curent.m_start;
     it->m_curent.m_start += it->m_buf_size;
 
-    if (cpe_range_size(it->m_curent) <= 0) {
-        it->m_curent = cpe_range_it_next(&it->m_range_it);
+    if (cpe_urange_size(it->m_curent) <= 0) {
+        it->m_curent = cpe_urange_it_next(&it->m_urange_it);
     }
 
     return r;
@@ -156,8 +156,8 @@ void pom_mgr_buffer_ids(struct pom_buffer_id_it * it, pom_mgr_t omm) {
     assert(it);
     assert(omm);
 
-    cpe_range_mgr_ranges(&it->m_range_it, &omm->m_bufMgr.m_buffer_ids);
-    it->m_curent = cpe_range_it_next(&it->m_range_it);
+    cpe_urange_mgr_uranges(&it->m_urange_it, &omm->m_bufMgr.m_buffer_ids);
+    it->m_curent = cpe_urange_it_next(&it->m_urange_it);
 }
 
 pom_buffer_id_t
@@ -165,14 +165,14 @@ pom_next_buffer_id(struct pom_buffer_id_it * it) {
     pom_buffer_id_t r;
     assert(it);
 
-    if (cpe_range_size(it->m_curent) <= 0) {
+    if (cpe_urange_size(it->m_curent) <= 0) {
         return POM_INVALID_BUFFER_ID;
     }
 
     r = it->m_curent.m_start++;
 
-    if (cpe_range_size(it->m_curent) <= 0) {
-        it->m_curent = cpe_range_it_next(&it->m_range_it);
+    if (cpe_urange_size(it->m_curent) <= 0) {
+        it->m_curent = cpe_urange_it_next(&it->m_urange_it);
     }
 
     return r;

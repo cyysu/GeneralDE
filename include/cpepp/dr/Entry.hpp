@@ -37,6 +37,9 @@ public:
 
     Entry const * selector(void) const { return (Entry const *)dr_entry_select_entry(*this); }
 
+    size_t startPos(int index = 0) const { return dr_entry_data_start_pos(*this, index); }
+    int isKey(void) const { return dr_entry_is_key(*this) ? true : false; }
+
     static Entry const & _cast(LPDRMETAENTRY entry);
 };
 

@@ -126,7 +126,8 @@ REINTER:
 }
 
 void logic_stack_exec(struct logic_stack * stack, int32_t stop_stack_pos, logic_context_t ctx) {
-    while(ctx->m_state == logic_context_state_idle
+    while(ctx->m_deleting == 0
+          && ctx->m_state == logic_context_state_idle
           && stack->m_item_pos > stop_stack_pos)
     {
         struct logic_stack_node * stack_item = logic_stack_node_at(stack, stack->m_item_pos);
@@ -318,4 +319,14 @@ void logic_stack_node_requires(logic_stack_node_t stack, logic_require_it_t it) 
     data->m_stack = stack;
     data->m_next = TAILQ_FIRST(&stack->m_requires);
     it->next = logic_stack_require_next;
+}
+
+int logic_stack_node_have_waiting_require(logic_stack_node_t stack) {
+    logic_require_t require;
+
+    TAILQ_FOREACH(require, &stack->m_requires, m_next_for_stack) {
+        if (require->m_state == logic_require_state_waiting) return 1;
+    }
+
+    return 0;
 }
