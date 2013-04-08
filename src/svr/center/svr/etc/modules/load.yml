@@ -1,0 +1,11 @@
+- include: framework
+- include: client
+
+- name: CenterSvrLogic
+  data-meta-name: client-meta-lib
+  data-meta-dump: 0
+  rsp-manage: cli-logic
+  data-meta-validate: 0
+
+- name: SvrManager
+
