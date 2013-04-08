@@ -1,17 +1,22 @@
 #include <assert.h>
+#include "cpe/pal/pal_strings.h"
 #include "cpe/pal/pal_string.h"
+#include "cpe/pal/pal_stdio.h"
 #include "cpe/cfg/cfg_read.h"
+#include "cpe/dr/dr_metalib_manage.h"
 #include "cpe/dp/dp_manage.h"
 #include "cpe/dp/dp_responser.h"
 #include "cpe/nm/nm_manage.h"
 #include "cpe/nm/nm_read.h"
 #include "gd/app/app_log.h"
 #include "gd/app/app_context.h"
+#include "usf/logic_use/logic_require_queue.h"
 #include "usf/mongo_driver/mongo_pkg.h"
 #include "usf/mongo_cli/mongo_cli_proxy.h"
 #include "mongo_cli_internal_ops.h"
 
 static void mongo_cli_proxy_clear(nm_node_t node);
+extern char g_metalib_mongo_cli[];
 
 struct nm_node_type s_nm_node_type_mongo_cli_proxy = {
     "usf_mongo_cli_proxy",
@@ -27,6 +32,7 @@ mongo_cli_proxy_create(
     mem_allocrator_t alloc,
     error_monitor_t em)
 {
+    char name_buf[64];
     mongo_cli_proxy_t proxy;
     nm_node_t proxy_node;
 
@@ -41,6 +47,29 @@ mongo_cli_proxy_create(
     proxy->m_em = em;
     proxy->m_debug = 0;
     proxy->m_driver = mongo_driver;
+    proxy->m_pkg_buf_max_size = 4 * 1024;
+
+    proxy->m_meta_lasterror = dr_lib_find_meta_by_name((LPDRMETALIB)g_metalib_mongo_cli, "mongo_lasterror");
+    if (proxy->m_meta_lasterror == NULL) {
+        CPE_ERROR(em, "%s: find lasterror meta mongo_lasterror fail!", name);
+        nm_node_free(proxy_node);
+        return NULL;
+    }
+
+    proxy->m_meta_cmd_info = dr_lib_find_meta_by_name((LPDRMETALIB)g_metalib_mongo_cli, "mongo_cmd_info");
+    if (proxy->m_meta_cmd_info == NULL) {
+        CPE_ERROR(em, "%s: find lasterror meta mongo_cmd_info fail!", name);
+        nm_node_free(proxy_node);
+        return NULL;
+    }
+
+    snprintf(name_buf, sizeof(name_buf), "%s.require_queue", name);
+    proxy->m_require_queue = logic_require_queue_create(app, alloc, em, name_buf, logic_mgr);
+    if (proxy->m_require_queue == NULL) {
+        CPE_ERROR(em, "%s: create logic usr require queue fail!", name);
+        nm_node_free(proxy_node);
+        return NULL;
+    }
 
     nm_node_set_type(proxy_node, &s_nm_node_type_mongo_cli_proxy);
 
@@ -50,7 +79,8 @@ mongo_cli_proxy_create(
 static void mongo_cli_proxy_clear(nm_node_t node) {
     mongo_cli_proxy_t proxy;
     proxy = (mongo_cli_proxy_t)nm_node_data(node);
-    (void)proxy;
+
+    logic_require_queue_free(proxy->m_require_queue);
 }
 
 void mongo_cli_proxy_free(mongo_cli_proxy_t proxy) {
@@ -88,9 +118,26 @@ const char * mongo_cli_proxy_name(mongo_cli_proxy_t mgr) {
     return nm_node_name(nm_node_from_data(mgr));
 }
 
+const char * mongo_cli_proxy_dft_db(mongo_cli_proxy_t agent) {
+    return agent->m_dft_db;
+}
+
+void mongo_cli_proxy_set_dft_db(mongo_cli_proxy_t agent, const char * db_name) {
+    if (db_name) {
+        strncpy(agent->m_dft_db, db_name, sizeof(agent->m_dft_db));
+    }
+    else {
+        agent->m_dft_db[0] = 0;
+    }
+}
+
 cpe_hash_string_t
 mongo_cli_proxy_name_hs(mongo_cli_proxy_t mgr) {
     return nm_node_name_hs(nm_node_from_data(mgr));
+}
+
+logic_manage_t mongo_cli_proxy_logic_manage(mongo_cli_proxy_t agent) {
+    return logic_require_queue_logic_manage(agent->m_require_queue);
 }
 
 int mongo_cli_proxy_set_outgoing_send_to(mongo_cli_proxy_t proxy, const char * outgoing_send_to) {
@@ -112,7 +159,7 @@ int mongo_cli_proxy_set_outgoing_send_to(mongo_cli_proxy_t proxy, const char * o
 int mongo_cli_proxy_set_incoming_recv_at(mongo_cli_proxy_t proxy, const char * incoming_recv_at) {
     char name_buf[128];
 
-    snprintf(name_buf, sizeof(name_buf), "%s.incoming-recv-rsp", incoming_recv_at);
+    snprintf(name_buf, sizeof(name_buf), "%s.incoming-recv-rsp", mongo_cli_proxy_name(proxy));
 
     if (proxy->m_incoming_recv_at) dp_rsp_free(proxy->m_incoming_recv_at);
 
@@ -120,6 +167,15 @@ int mongo_cli_proxy_set_incoming_recv_at(mongo_cli_proxy_t proxy, const char * i
     if (proxy->m_incoming_recv_at == NULL) return -1;
 
     dp_rsp_set_processor(proxy->m_incoming_recv_at, mongo_cli_proxy_recv, proxy);
+
+    if (dp_rsp_bind_string(proxy->m_incoming_recv_at, incoming_recv_at, proxy->m_em) != 0) {
+        CPE_ERROR(
+            proxy->m_em, "%s: set incoming_recv_at: bind to %s fail!",
+            mongo_cli_proxy_name(proxy), incoming_recv_at);
+        dp_rsp_free(proxy->m_incoming_recv_at);
+        proxy->m_incoming_recv_at = NULL;
+        return -1;
+    }
 
     return 0;
 }
@@ -138,4 +194,13 @@ mongo_cli_proxy_pkg_buf(mongo_cli_proxy_t proxy) {
     }
 
     return proxy->m_pkg_buf;
+}
+
+mongo_pkg_t
+mongo_cli_proxy_cmd_buf(mongo_cli_proxy_t proxy) {
+    if (proxy->m_cmd_buf == NULL) {
+        proxy->m_cmd_buf = mongo_pkg_create(proxy->m_driver, 128);
+    }
+
+    return proxy->m_cmd_buf;
 }

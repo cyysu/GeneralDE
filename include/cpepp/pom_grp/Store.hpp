@@ -2,7 +2,13 @@
 #define CPEPP_POM_GRP_STORE_H
 #include "cpepp/utils/ClassCategory.hpp"
 #include "cpe/pom_grp/pom_grp_store.h"
+#include "cpepp/dr/System.hpp"
 #include "System.hpp"
+
+#ifdef _MSC_VER
+# pragma warning(push)
+# pragma warning(disable:4624)
+#endif
 
 namespace Cpe { namespace PomGrp {
 
@@ -20,5 +26,9 @@ public:
 };
 
 }}
+
+#ifdef _MSC_VER
+# pragma warning(pop)
+#endif
 
 #endif

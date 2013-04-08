@@ -1,5 +1,6 @@
 #include <assert.h>
 #include <ctype.h>
+#include "cpe/pal/pal_platform.h"
 #include "cpe/dr/dr_ctypes_info.h"
 #include "cpe/dr/dr_metalib_builder.h"
 #include "cpe/dr/dr_metalib_manage.h"
@@ -93,7 +94,7 @@ static void cpe_dr_generate_h_metas(write_stream_t stream, dr_metalib_source_t s
         if (meta == NULL) continue;
 
         if (dr_meta_align(meta) != curent_pack) {
-            stream_printf(stream, "\n#pragma pack(1)\n");
+            stream_printf(stream, "\n#pragma pack(%d)\n", dr_meta_align(meta));
             curent_pack = dr_meta_align(meta);
             packed = 1;
         }
@@ -119,7 +120,10 @@ static void cpe_dr_generate_h_metas(write_stream_t stream, dr_metalib_source_t s
                 break;
             }
             case CPE_DR_TYPE_STRING: {
-                stream_printf(stream, "char %s[%d]", dr_entry_name(entry), dr_entry_size(entry));
+                size_t array_count = dr_entry_array_count(entry);
+                size_t element_size = dr_entry_size(entry);
+                if (array_count > 1) element_size = element_size / array_count;
+                stream_printf(stream, "char %s[%d]", dr_entry_name(entry), (int)element_size);
                 break;
             }
             case CPE_DR_TYPE_CHAR: {
@@ -185,7 +189,6 @@ static void cpe_dr_generate_h_traits(write_stream_t stream, dr_metalib_source_t 
         meta = dr_lib_find_meta_by_name(ctx->m_metalib, dr_metalib_source_element_name(element));
         if (meta == NULL) continue;
 
-        
         meta_name = dr_meta_name(meta);
         stream_printf(stream, "template<> struct MetaTraits<");
         stream_toupper(stream, meta_name);
@@ -196,7 +199,7 @@ static void cpe_dr_generate_h_traits(write_stream_t stream, dr_metalib_source_t 
         stream_printf(stream, "    static Meta const & META;\n");
         stream_printf(stream, "    static const char * const NAME;\n");
 
-        if (dr_meta_find_dyn_info(meta, &dyn_info) == 0) {
+        if (dr_meta_type(meta) == CPE_DR_TYPE_STRUCT && dr_meta_find_dyn_info(meta, &dyn_info) == 0) {
             stream_printf(stream, "    typedef ");
             cpe_dr_generate_h_print_type(stream, dyn_info.m_array_entry);
             stream_printf(stream, " dyn_element_type;\n");
@@ -205,14 +208,32 @@ static void cpe_dr_generate_h_traits(write_stream_t stream, dr_metalib_source_t 
             stream_printf(stream, "    static const int dyn_count = %d;\n", dr_entry_array_count(dyn_info.m_array_entry));
 
             if (dyn_info.m_refer_entry) {
+                char buf[256];
+
                 stream_printf(stream, "    typedef ");
                 cpe_dr_generate_h_print_type(stream, dyn_info.m_refer_entry);
                 stream_printf(stream, " dyn_size_type;\n");
 
                 stream_printf(stream, "    static const int dyn_refer_start_pos = %d;\n", dyn_info.m_refer_start);
+
+                stream_printf(stream, "    static size_t data_size( ");
+                stream_toupper(stream, meta_name);
+                stream_printf(
+                    stream, " const & o) { return sizeof(o) - sizeof(dyn_element_type) + sizeof(dyn_element_type) * o.%s; }\n",
+                    dr_meta_off_to_path(meta, dyn_info.m_refer_start, buf, sizeof(buf)));
+            }
+            else {
+                stream_printf(stream, "    static size_t data_size( ");
+                stream_toupper(stream, meta_name);
+                stream_printf(stream, " const & o) { return sizeof(o); }\n");
             }
         }
-        
+        else {
+            stream_printf(stream, "    static size_t data_size( ");
+            stream_toupper(stream, meta_name);
+            stream_printf(stream, " const & o) { return sizeof(o); }\n");
+        }
+
         stream_printf(stream, "};\n\n");
     }
 

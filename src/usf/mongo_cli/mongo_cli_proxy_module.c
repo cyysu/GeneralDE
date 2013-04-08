@@ -78,6 +78,8 @@ int mongo_cli_proxy_app_init(gd_app_context_t app, gd_app_module_t module, cfg_t
         return -1;
     }
 
+    mongo_cli_proxy_set_dft_db(proxy, cfg_get_string(cfg, "dft-db", NULL));
+
     proxy->m_pkg_buf_max_size = cfg_get_uint32(cfg, "buf-size", proxy->m_pkg_buf_max_size);
     proxy->m_debug = cfg_get_int32(cfg, "debug", proxy->m_debug);
 

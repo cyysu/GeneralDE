@@ -18,8 +18,8 @@
 	<Configurations>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory="$(SolutionDir)../../build/$(ConfigurationName).win32"
-			IntermediateDirectory="$(SolutionDir)../../build/$(ConfigurationName).Intermediate.win32/$(ProjectName)"
+			OutputDirectory="$(SolutionDir)..\..\build\vc\$(ConfigurationName)\lib"
+			IntermediateDirectory="$(SolutionDir)..\..\build\vc\$(ConfigurationName)\$(ProjectName)\building"
 			ConfigurationType="4"
 			CharacterSet="1"
 			>
@@ -42,10 +42,10 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="../../include;../../3rdTools/yaml/include;../../3rdTools/yajl/include;../../3rdTools/libev/include;../../3rdTools/libxml2/include;../../3rdTools/iconv/vc/include"
-				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;YAML_DECLARE_STATIC"
+				PreprocessorDefinitions="WIN32;_LIB;YAML_DECLARE_STATIC"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
-				RuntimeLibrary="3"
+				RuntimeLibrary="2"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				DebugInformationFormat="4"
@@ -83,8 +83,8 @@
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="$(SolutionDir)../../build/$(ConfigurationName).win32"
-			IntermediateDirectory="$(SolutionDir)../../build/$(ConfigurationName).Intermediate.win32/$(ProjectName)"
+			OutputDirectory="$(SolutionDir)..\..\build\vc\$(ConfigurationName)\lib"
+			IntermediateDirectory="$(SolutionDir)..\..\build\vc\$(ConfigurationName)\$(ProjectName)\building"
 			ConfigurationType="4"
 			CharacterSet="1"
 			WholeProgramOptimization="1"
@@ -181,6 +181,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\include\cpe\dr\dr_bson.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\include\cpe\dr\dr_cfg.h"
 					>
 				</File>
@@ -198,6 +202,10 @@
 				</File>
 				<File
 					RelativePath="..\..\include\cpe\dr\dr_data.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\include\cpe\dr\dr_data_cvt.h"
 					>
 				</File>
 				<File
@@ -225,6 +233,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\include\cpe\dr\dr_metalib_cmp.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\include\cpe\dr\dr_metalib_init.h"
 					>
 				</File>
@@ -233,7 +245,15 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\include\cpe\dr\dr_metalib_validate.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\include\cpe\dr\dr_metalib_xml.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\include\cpe\dr\dr_pbuf.h"
 					>
 				</File>
 				<File
@@ -269,11 +289,23 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\include\cpe\pal\pal_fcntl.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\include\cpe\pal\pal_getopt.h"
 					>
 				</File>
 				<File
+					RelativePath="..\..\include\cpe\pal\pal_platform.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\include\cpe\pal\pal_queue.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\include\cpe\pal\pal_shm.h"
 					>
 				</File>
 				<File
@@ -521,6 +553,90 @@
 					>
 				</File>
 			</Filter>
+			<Filter
+				Name="pom"
+				>
+				<File
+					RelativePath="..\..\include\cpe\pom\pom_class.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\include\cpe\pom\pom_debuger.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\include\cpe\pom\pom_error.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\include\cpe\pom\pom_manage.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\include\cpe\pom\pom_object.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\include\cpe\pom\pom_types.h"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="pom_grp"
+				>
+				<File
+					RelativePath="..\..\include\cpe\pom_grp\pom_grp_cfg.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\include\cpe\pom_grp\pom_grp_meta.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\include\cpe\pom_grp\pom_grp_meta_build.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\include\cpe\pom_grp\pom_grp_obj.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\include\cpe\pom_grp\pom_grp_obj_mgr.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\include\cpe\pom_grp\pom_grp_shm.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\include\cpe\pom_grp\pom_grp_store.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\include\cpe\pom_grp\pom_grp_types.h"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="otm"
+				>
+				<File
+					RelativePath="..\..\include\cpe\otm\otm_manage.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\include\cpe\otm\otm_memo.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\include\cpe\otm\otm_timer.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\include\cpe\otm\otm_types.h"
+					>
+				</File>
+			</Filter>
 		</Filter>
 		<Filter
 			Name="src"
@@ -632,6 +748,10 @@
 						>
 					</File>
 					<File
+						RelativePath="..\..\src\cpe\dr\basic\dr_metalib_cmp.c"
+						>
+					</File>
+					<File
 						RelativePath="..\..\src\cpe\dr\basic\dr_metalib_dump.c"
 						>
 					</File>
@@ -712,6 +832,10 @@
 						>
 					</File>
 					<File
+						RelativePath="..\..\src\cpe\dr\meta-inout\dr_xml_output.c"
+						>
+					</File>
+					<File
 						RelativePath="..\..\src\cpe\dr\meta-inout\dr_XMLtags.h"
 						>
 					</File>
@@ -741,26 +865,26 @@
 					</File>
 				</Filter>
 				<Filter
-					Name="cvt"
+					Name="data-pbuf"
 					>
 					<File
-						RelativePath="..\..\src\cpe\dr\cvt\dr_cvt.c"
+						RelativePath="..\..\src\cpe\dr\data-pbuf\dr_pbuf_internal_ops.h"
 						>
 					</File>
 					<File
-						RelativePath="..\..\src\cpe\dr\cvt\dr_cvt_def_copy.c"
+						RelativePath="..\..\src\cpe\dr\data-pbuf\dr_pbuf_internal_types.h"
 						>
 					</File>
 					<File
-						RelativePath="..\..\src\cpe\dr\cvt\dr_cvt_internal_ops.h"
+						RelativePath="..\..\src\cpe\dr\data-pbuf\dr_pbuf_read.c"
 						>
 					</File>
 					<File
-						RelativePath="..\..\src\cpe\dr\cvt\dr_cvt_internal_types.h"
+						RelativePath="..\..\src\cpe\dr\data-pbuf\dr_pbuf_varint.c"
 						>
 					</File>
 					<File
-						RelativePath="..\..\src\cpe\dr\cvt\dr_cvt_type.c"
+						RelativePath="..\..\src\cpe\dr\data-pbuf\dr_pbuf_write.c"
 						>
 					</File>
 				</Filter>
@@ -769,6 +893,26 @@
 					>
 					<File
 						RelativePath="..\..\src\cpe\dr\meta-validate\dr_validate_align.c"
+						>
+					</File>
+				</Filter>
+				<Filter
+					Name="dr-bson"
+					>
+					<File
+						RelativePath="..\..\src\cpe\dr\data-bson\dr_bson_internal_ops.h"
+						>
+					</File>
+					<File
+						RelativePath="..\..\src\cpe\dr\data-bson\dr_bson_internal_types.h"
+						>
+					</File>
+					<File
+						RelativePath="..\..\src\cpe\dr\data-bson\dr_bson_read.c"
+						>
+					</File>
+					<File
+						RelativePath="..\..\src\cpe\dr\data-bson\dr_bson_write.c"
 						>
 					</File>
 				</Filter>
@@ -894,6 +1038,10 @@
 				</File>
 				<File
 					RelativePath="..\..\src\cpe\utils\string_utils.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\cpe\utils\tsort_str.c"
 					>
 				</File>
 			</Filter>
@@ -1046,6 +1194,178 @@
 				</File>
 				<File
 					RelativePath="..\..\src\cpe\tl\tl_time.c"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="pom"
+				>
+				<File
+					RelativePath="..\..\src\cpe\pom\pom_backend_memory.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\cpe\pom\pom_buffer.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\cpe\pom\pom_class.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\cpe\pom\pom_debuger.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\cpe\pom\pom_dump_alloc.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\cpe\pom\pom_dump_page.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\cpe\pom\pom_internal_ops.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\cpe\pom\pom_internal_types.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\cpe\pom\pom_manage.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\cpe\pom\pom_object.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\cpe\pom\pom_page_head.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\cpe\pom\pom_validate.c"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="pom_grp"
+				>
+				<File
+					RelativePath="..\..\src\cpe\pom_grp\pom_grp_build.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\cpe\pom_grp\pom_grp_cfg_dump.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\cpe\pom_grp\pom_grp_cfg_load.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\cpe\pom_grp\pom_grp_data.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\cpe\pom_grp\pom_grp_entry_meta.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\cpe\pom_grp\pom_grp_internal_ops.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\cpe\pom_grp\pom_grp_internal_types.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\cpe\pom_grp\pom_grp_meta.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\cpe\pom_grp\pom_grp_meta_bin.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\cpe\pom_grp\pom_grp_obj.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\cpe\pom_grp\pom_grp_obj_entry_binary.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\cpe\pom_grp\pom_grp_obj_entry_bitarry.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\cpe\pom_grp\pom_grp_obj_entry_list.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\cpe\pom_grp\pom_grp_obj_entry_normal.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\cpe\pom_grp\pom_grp_obj_mgr.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\cpe\pom_grp\pom_grp_obj_mgr_dump.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\cpe\pom_grp\pom_grp_obj_mgr_init.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\cpe\pom_grp\pom_grp_shm.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\cpe\pom_grp\pom_grp_store.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\cpe\pom_grp\pom_grp_store_data.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\cpe\pom_grp\pom_grp_store_entry.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\cpe\pom_grp\pom_grp_store_meta.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\cpe\pom_grp\pom_grp_store_table.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\cpe\pom_grp\pom_grp_validate.c"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="otm"
+				>
+				<File
+					RelativePath="..\..\src\cpe\otm\otm_internal_ops.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\cpe\otm\otm_internal_types.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\cpe\otm\otm_manage.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\cpe\otm\otm_timer.c"
 					>
 				</File>
 			</Filter>

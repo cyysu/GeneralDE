@@ -30,12 +30,12 @@ gd_app_context_t gd_evt_mgr_app(gd_evt_mgr_t mgr);
 const char * gd_evt_mgr_name(gd_evt_mgr_t mgr);
 cpe_hash_string_t gd_evt_mgr_name_hs(gd_evt_mgr_t mgr);
 
-LPDRMETALIB gd_evt_mgr_metalib(gd_evt_mgr_t em);
 tl_t gd_evt_mgr_tl(gd_evt_mgr_t mgr);
 
 void gd_evg_mgr_set_carry_info(gd_evt_mgr_t em, LPDRMETA carry_meta, size_t carry_size);
 
-int gd_evt_mgr_set_metalib(gd_evt_mgr_t mgr, const char * libname);
+int gd_evt_mgr_register_evt(gd_evt_mgr_t mgr, LPDRMETA cmd_meta);
+int gd_evt_mgr_register_evt_in_metalib(gd_evt_mgr_t mgr, LPDRMETALIB metalib);
 
 int gd_evt_mgr_regist_responser(
     gd_evt_mgr_t mgr,

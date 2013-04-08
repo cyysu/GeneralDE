@@ -62,7 +62,7 @@ static int bpg_rsp_create_dp_rsp_and_bind(bpg_rsp_t bpg_rsp, cfg_t cfg, LPDRMETA
     if (cfg_respons == NULL) return 0;
 
     dp_rsp = dp_rsp_create(
-        gd_app_dp_mgr(bpg_rsp->m_mgr->m_app),
+        bpg_rsp->m_mgr->m_dp,
         bpg_rsp_name(bpg_rsp));
     if (dp_rsp == NULL) {
         CPE_ERROR(

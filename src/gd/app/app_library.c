@@ -1,7 +1,8 @@
 #define _GNU_SOURCE
-#include <stdio.h>
 #include <assert.h>
-#include <string.h>
+#include "cpe/pal/pal_string.h"
+#include "cpe/pal/pal_stdio.h"
+#include "cpe/pal/pal_strings.h"
 #include "cpe/pal/pal_dlfcn.h"
 #include "gd/app/app_library.h"
 #include "app_internal_ops.h"
@@ -13,8 +14,8 @@ struct gd_app_lib {
     TAILQ_ENTRY(gd_app_lib) m_next;
 };
 
-static void * gd_app_default_lib_handler = NULL;
-
+void * gd_app_default_lib_handler = NULL;
+static int gd_app_default_lib_handler_loaded = 0;
 static
 gd_app_lib_list_t g_app_libs = TAILQ_HEAD_INITIALIZER(g_app_libs);
 
@@ -126,6 +127,20 @@ void * gd_app_lib_sym(struct gd_app_lib * lib, const char * symName, error_monit
     void * sym;
 
     dlerror();
+
+    if (gd_app_default_lib_handler_loaded == 0 && lib == NULL && gd_app_default_lib_handler == NULL) {
+        Dl_info dl_info;
+        bzero(&dl_info, sizeof (dl_info));
+        gd_app_default_lib_handler_loaded = 1;
+        if (dladdr(&gd_app_lib_sym, &dl_info) == 0) {
+            CPE_ERROR(em, "locate default lib handler fail: %s", dlerror());
+        }
+        else {
+            CPE_ERROR(em, "locate default lib handler success: %s at 0x%p", dl_info.dli_fname, dl_info.dli_fbase);
+            gd_app_default_lib_handler = dlopen(dl_info.dli_fname, RTLD_NOW);
+            dlclose(gd_app_default_lib_handler);
+        }
+    }
 
     sym = lib
         ? dlsym(lib->m_handler, symName)

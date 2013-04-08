@@ -187,8 +187,8 @@ int dr_meta_copy_same_entry_part(
                 size_t des_entry_capacity, des_left_capacity, des_total_size;
                 size_t src_entry_capacity, src_left_capacity;
 
-                des_total_size = curStack->m_des_entry->m_data_start_pos + (des_element_size * curStack->m_array_pos) + des_element_size;
-                des_entry_data = curStack->m_des_data + curStack->m_des_entry->m_data_start_pos + (des_element_size * curStack->m_array_pos);
+                des_total_size = dr_entry_data_start_pos(curStack->m_des_entry, curStack->m_array_pos) + des_element_size;
+                des_entry_data = curStack->m_des_data + dr_entry_data_start_pos(curStack->m_des_entry, curStack->m_array_pos);
                 if ((size_t)(des_entry_data - curStack->m_des_data) > curStack->m_des_capacity) continue;
 
                 des_left_capacity = curStack->m_des_capacity - (des_entry_data - curStack->m_des_data);
@@ -201,7 +201,7 @@ int dr_meta_copy_same_entry_part(
                     des_entry_capacity = des_left_capacity;
                 }
 
-                src_entry_data = curStack->m_src_data + src_entry->m_data_start_pos + (src_element_size * curStack->m_array_pos);
+                src_entry_data = curStack->m_src_data + dr_entry_data_start_pos(src_entry, curStack->m_array_pos);
                 if ((size_t)(src_entry_data - curStack->m_src_data) > curStack->m_src_capacity) continue;
 
                 src_left_capacity = curStack->m_src_capacity - (src_entry_data - curStack->m_src_data);

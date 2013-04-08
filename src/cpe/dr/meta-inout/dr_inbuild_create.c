@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <assert.h>
+#include "cpe/pal/pal_platform.h"
 #include "cpe/pal/pal_string.h"
 #include "cpe/pal/pal_strings.h"
 #include "cpe/utils/tsort.h"
@@ -411,6 +412,9 @@ int dr_inbuild_calc_lib_paras(
     return CPE_SUCCESS;
 }
 
+void dr_inbuild_set_dft_align(struct DRInBuildMetaLib * inBuildMetaLib, uint8_t align) {
+    inBuildMetaLib->m_dft_align = align ? align : CPE_DEFAULT_ALIGN;
+}
 
 int dr_inbuild_tsort(
     struct DRInBuildMetaLib * inBuildLib,

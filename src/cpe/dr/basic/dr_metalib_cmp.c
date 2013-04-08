@@ -12,9 +12,10 @@ int dr_meta_compatible(LPDRMETA l, LPDRMETA r) {
 
     if (l->m_type != r->m_type
         || l->m_id != r->m_id
-        || l->m_data_size != r->m_data_size
+        || l->m_real_data_size != r->m_real_data_size
         || l->m_entry_count != r->m_entry_count
         || l->m_align != r->m_align
+        || l->m_require_align != r->m_require_align
         || strcmp(dr_meta_name(l), dr_meta_name(r)) != 0)
         return 0;
 
@@ -64,9 +65,10 @@ int dr_metalib_compatible_part(LPDRMETALIB full, LPDRMETALIB part) {
 
         if (l_meta->m_type != r_meta->m_type
             || l_meta->m_id != r_meta->m_id
-            || l_meta->m_data_size != r_meta->m_data_size
+            || l_meta->m_real_data_size != r_meta->m_real_data_size
             || l_meta->m_entry_count != r_meta->m_entry_count
-            || l_meta->m_align != r_meta->m_align)
+            || l_meta->m_align != r_meta->m_align
+            || l_meta->m_require_align != r_meta->m_require_align)
             return 0;
 
         entry_count = l_meta->m_entry_count;

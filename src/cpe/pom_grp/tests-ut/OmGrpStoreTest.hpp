@@ -20,16 +20,14 @@ public:
     virtual void SetUp();
     virtual void TearDown();
 
-    void install(
-        const char * om_meta,
-        const char * metalib,
-        const char * main_entry,
-        const char * key);
+    void install(const char * om_meta, const char * metalib);
 
-    const char * store_meta(void);
+    const char * str_store_meta(void);
+    LPDRMETALIB store_meta(void);
 
     pom_grp_meta_t m_meta;
     pom_grp_store_t m_store;
+    LPDRMETALIB m_input_metalib;
 };
 
 #endif

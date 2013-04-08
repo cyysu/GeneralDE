@@ -1,18 +1,19 @@
 #include <assert.h>
+#include "cpe/pal/pal_strings.h"
+#include "cpe/pal/pal_platform.h"
 #include "cpe/dr/dr_metalib_manage.h"
-#include "gd/dr_cvt/dr_cvt.h"
 #include "usf/bpg_pkg/bpg_pkg.h"
 #include "protocol/base/base_package.h"
 #include "bpg_pkg_internal_types.h"
 
-int bpg_pkg_set_main_data(bpg_pkg_t pkg, LPDRMETA meta, void const * buf, size_t capacity, size_t * size, error_monitor_t em) {
+int bpg_pkg_set_main_data(bpg_pkg_t pkg, void const * buf, size_t size, error_monitor_t em) {
     BASEPKG_HEAD * head;
     size_t cur_size;
-    size_t use_size;
-    size_t input_size;
+    size_t remain_size;
+
+    CPE_PAL_ALIGN_DFT(size);
 
     assert(pkg);
-    assert(meta);
     assert(buf);
 
     head = (BASEPKG_HEAD *)bpg_pkg_pkg_data(pkg);
@@ -23,126 +24,93 @@ int bpg_pkg_set_main_data(bpg_pkg_t pkg, LPDRMETA meta, void const * buf, size_t
     }
 
     cur_size = sizeof(BASEPKG_HEAD);
-
-    use_size = bpg_pkg_pkg_data_capacity(pkg) - cur_size;
-    input_size = capacity;
-    if (dr_cvt_encode(
-            bpg_pkg_data_cvt(pkg),
-            meta, ((char *)bpg_pkg_pkg_data(pkg)) + cur_size, &use_size,
-            buf, &input_size,
-            em, pkg->m_mgr->m_debug) != 0)
-    {
-        CPE_ERROR(em, "bpg_pkg_set_data: encode fail!");
-        return -1;
-    }
-
-    bpg_pkg_pkg_data_set_size(pkg, cur_size + use_size);
-
-    head->bodylen = use_size;
-    head->originBodyLen = capacity;
-    head->bodytotallen = use_size;
-
-    if (size) *size = use_size;
-
-    return 0;
-}
-
-int bpg_pkg_get_main_data(bpg_pkg_t pkg, LPDRMETA meta, void * buf, size_t * capacity, error_monitor_t em) {
-    size_t input_size;
-    size_t output_size;
-
-    input_size = bpg_pkg_body_len(pkg);
-    output_size = *capacity;
-
-    if (dr_cvt_decode(
-            bpg_pkg_data_cvt(pkg),
-            meta,
-            buf, &output_size,
-            bpg_pkg_body_data(pkg), &input_size,
-            em, pkg->m_mgr->m_debug) != 0)
-    {
+    remain_size = bpg_pkg_pkg_data_capacity(pkg) - cur_size;
+    if (remain_size < size) {
         CPE_ERROR(
-            em, "bpg_pkg_get_data: %s decode data fail, input len is %d, output len is %d!",
-            dr_meta_name(meta), bpg_pkg_body_len(pkg), (int)*capacity);
+            em, "bpg_pkg_set_data: not enough buf! buf-size=%d, input-size=%d",
+            (int)remain_size, (int)size);
         return -1;
     }
 
-    *capacity = output_size;
+    memcpy(bpg_pkg_body_data(pkg), buf, size);
+
+    bpg_pkg_pkg_data_set_size(pkg, cur_size + size);
+
+    head->bodylen = size;
+    head->bodytotallen = size;
 
     return 0;
 }
 
-int bpg_pkg_add_append_data(bpg_pkg_t pkg, LPDRMETA meta, const void * buf, size_t capacity, size_t * size, error_monitor_t em) {
+void * bpg_pkg_main_data(bpg_pkg_t pkg) {
+    return bpg_pkg_body_data(pkg);
+}
+
+size_t bpg_pkg_main_data_len(bpg_pkg_t pkg) {
+    BASEPKG_HEAD * head;
+
+    head = (BASEPKG_HEAD *)bpg_pkg_pkg_data(pkg);
+
+    return head->bodylen;
+}
+
+int bpg_pkg_add_append_data(bpg_pkg_t pkg, LPDRMETA meta, const void * buf, size_t size, error_monitor_t em) {
     BASEPKG * basepkg;
     APPENDINFO * appendInfo;
     size_t cur_size;
-    size_t use_size;
-    size_t input_size;
+    size_t remain_size;
+
+    CPE_PAL_ALIGN_DFT(size);
 
     assert(pkg);
 
     basepkg = (BASEPKG *)bpg_pkg_pkg_data(pkg);
 
     if (basepkg->head.appendInfoCount >= APPEND_INFO_MAX_COUNT) {
-        CPE_ERROR(em, "bpg_pkg_pkg_data: max append info reached!");
+        CPE_ERROR(em, "bpg_pkg_add_append_data: max append info reached!");
         return -1;
     }
 
     cur_size = bpg_pkg_pkg_data_size(pkg);
-    use_size = bpg_pkg_pkg_data_capacity(pkg) - cur_size;
-    input_size = capacity;
-
-    if (dr_cvt_encode(
-            bpg_pkg_data_cvt(pkg),
-            meta,
-            ((char *)bpg_pkg_pkg_data(pkg)) + cur_size, &use_size,
-            buf, &input_size,
-            em, pkg->m_mgr->m_debug) != 0)
-    {
+    remain_size = bpg_pkg_pkg_data_capacity(pkg) - cur_size;
+    if (remain_size < size) {
         CPE_ERROR(
-            em, "bpg_pkg_pkg_data: encode fail, decode-buf-size=%d!",
-            (int)(bpg_pkg_pkg_data_capacity(pkg) - cur_size));
+            em, "bpg_pkg_add_append_data: not enough buf! buf-size=%d, input-size=%d",
+            (int)remain_size, (int)size);
         return -1;
     }
+
+    memcpy(((char *)bpg_pkg_pkg_data(pkg)) + cur_size, buf, size);
 
     appendInfo = &basepkg->head.appendInfos[basepkg->head.appendInfoCount++];
     appendInfo->id = dr_meta_id(meta);
-    appendInfo->size = use_size;
-    appendInfo->originSize = capacity;
+    appendInfo->size = size;
 
-    bpg_pkg_pkg_data_set_size(pkg, cur_size + use_size);
+    bpg_pkg_pkg_data_set_size(pkg, cur_size + size);
 
-    basepkg->head.bodytotallen += use_size;
+    basepkg->head.bodytotallen += size;
 
-    if (size) *size = use_size;
     return 0;
 }
 
-int bpg_pkg_get_append_data(
-    bpg_pkg_t pkg, bpg_pkg_append_info_t append_inf,
-    LPDRMETA meta, void * buf, size_t * capacity, error_monitor_t em)
-{
-    size_t input_size;
-    size_t output_size;
+void * bpg_pkg_append_data(bpg_pkg_t pkg, bpg_pkg_append_info_t append_info) {
+    int pos;
+    BASEPKG * basepkg;
+    char * buf;
+    int i;
 
-    input_size = bpg_pkg_append_info_size(append_inf);
-    output_size = *capacity;
+    basepkg = (BASEPKG *)bpg_pkg_pkg_data(pkg);
 
-    if (dr_cvt_decode(
-            bpg_pkg_data_cvt(pkg),
-            meta,
-            buf, &output_size,
-            bpg_pkg_append_info_data(pkg, append_inf), &input_size,
-            em, pkg->m_mgr->m_debug) != 0)
-    {
-        CPE_ERROR(
-            em, "bpg_pkg_get_append_info: %s decode data fail, input len is %d, output len is %d!",
-            dr_meta_name(meta), bpg_pkg_append_info_size(append_inf), (int)*capacity);
-        return -1;
+    pos = (((APPENDINFO *)append_info) - basepkg->head.appendInfos);
+
+    if (pos < 0 || pos > basepkg->head.appendInfoCount) return NULL;
+
+    buf = (char*)basepkg->body;
+    buf += basepkg->head.bodylen;
+
+    for(i = 0; i < pos; ++i) {
+        buf += basepkg->head.appendInfos[i].size;
     }
 
-    *capacity = output_size;
-
-    return 0;
+    return buf;
 }
-

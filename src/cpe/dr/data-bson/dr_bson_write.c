@@ -14,6 +14,7 @@
 
 struct dr_bson_write_stack {
     LPDRMETA m_meta;
+    LPDRMETAENTRY m_parent_entry;
     LPDRMETAENTRY m_entry;
     int m_entry_pos;
     int m_entry_count;
@@ -21,6 +22,8 @@ struct dr_bson_write_stack {
     unsigned char * m_output_data;
     uint32_t m_output_size;
     uint32_t m_output_capacity;
+
+    uint32_t m_is_open;
 
     uint32_t m_array_begin_pos;
 
@@ -85,9 +88,7 @@ struct dr_bson_write_stack {
         curStack->m_output_size += s + 1;                               \
     } while(0)
 
-static inline char dr_bson_calc_bson_type(LPDRMETAENTRY entry) {
-    if (entry->m_array_count != 1) return dr_bson_type_array;
-
+static char dr_bson_calc_bson_type(LPDRMETAENTRY entry) {
     switch(entry->m_type) {
     case CPE_DR_TYPE_INT8:
     case CPE_DR_TYPE_INT16:
@@ -138,6 +139,7 @@ int dr_bson_write(
     assert(meta);
 
     processStack[0].m_meta = meta;
+    processStack[0].m_parent_entry = NULL;
     processStack[0].m_entry = dr_meta_entry_at(meta, 0);
     processStack[0].m_entry_pos = 0;
     processStack[0].m_entry_count = meta->m_entry_count;
@@ -148,6 +150,7 @@ int dr_bson_write(
     processStack[0].m_array_begin_pos = 0;
     processStack[0].m_input_data = (char const *)input;
     processStack[0].m_input_data_capacity = input_capacity;
+    processStack[0].m_is_open = 0;
 
     for(stackPos = 0; stackPos >= 0;) {
         struct dr_bson_write_stack * curStack;
@@ -170,7 +173,6 @@ int dr_bson_write(
             size_t elementSize;
             int32_t array_count;
             LPDRMETAENTRY refer;
-            char type;
 
         LOOPENTRY:
             elementSize = dr_entry_element_size(curStack->m_entry);
@@ -190,17 +192,21 @@ int dr_bson_write(
                     em);
             }
 
-            if (curStack->m_array_pos >= array_count) continue;
-
-            if (curStack->m_entry_pos == 0 && curStack->m_array_pos == 0) { /*reserve for write size*/
+            if (!curStack->m_is_open) { /*reserve for write size*/
                 dr_bson_write_check_capacity(4);
                 curStack->m_output_size += 4;
+                curStack->m_is_open = 1;
             }
 
             if (curStack->m_array_pos == 0) {
                 /*write type*/
-                type = dr_bson_calc_bson_type(curStack->m_entry);
-                dr_bson_write_char(type);
+                if (curStack->m_entry->m_array_count != 1) {
+                    dr_bson_write_char(dr_bson_type_array);
+                }
+                else {
+                    dr_bson_write_char(dr_bson_calc_bson_type(curStack->m_entry));
+                }
+
                 dr_bson_write_cstring(dr_entry_name(curStack->m_entry));
             }
 
@@ -213,7 +219,7 @@ int dr_bson_write(
             for(; curStack->m_array_pos < array_count; ++curStack->m_array_pos) {
                 const char * entryData;
 
-                entryData = curStack->m_input_data + curStack->m_entry->m_data_start_pos + (elementSize * curStack->m_array_pos);
+                entryData = curStack->m_input_data + dr_entry_data_start_pos(curStack->m_entry, curStack->m_array_pos);
 
                 switch(curStack->m_entry->m_type) {
                 case CPE_DR_TYPE_UNION:
@@ -228,6 +234,7 @@ int dr_bson_write(
                         nextStack = &processStack[stackPos + 1];
                         nextStack->m_meta = dr_entry_ref_meta(curStack->m_entry);
                         if (nextStack->m_meta == 0) break;
+                        nextStack->m_parent_entry = curStack->m_entry;
 
                         nextStack->m_input_data = entryData;
                         nextStack->m_input_data_capacity = elementSize;
@@ -239,6 +246,8 @@ int dr_bson_write(
 
                         nextStack->m_entry_pos = 0;
                         nextStack->m_entry_count = nextStack->m_meta->m_entry_count;
+
+                        nextStack->m_is_open = 0;
 
                         if (curStack->m_entry->m_type == CPE_DR_TYPE_UNION) {
                             LPDRMETAENTRY select_entry;
@@ -253,7 +262,11 @@ int dr_bson_write(
                                 
                                 nextStack->m_entry_pos =
                                     dr_meta_find_entry_idx_by_id(nextStack->m_meta, union_entry_id);
-                                if (nextStack->m_entry_pos < 0) continue;
+                                if (nextStack->m_entry_pos < 0) {
+                                    dr_bson_write_int32(5);
+                                    dr_bson_write_char(0);
+                                    continue;
+                                }
 
                                 nextStack->m_entry_count = nextStack->m_entry_pos + 1;
                             }
@@ -266,7 +279,7 @@ int dr_bson_write(
                         ++stackPos;
                         curStack = nextStack;
                         goto LOOPENTRY;
-                        }
+                    }
                     break;
                 }
                 case CPE_DR_TYPE_CHAR:
@@ -332,7 +345,7 @@ int dr_bson_write(
                     dr_entry_try_read_double(&value.d, entryData, curStack->m_entry, NULL);
 
                     if (curStack->m_entry->m_array_count != 1) {
-                        dr_bson_write_char(dr_bson_type_int64);
+                        dr_bson_write_char(dr_bson_type_double);
                         dr_bson_write_printf("%d", curStack->m_array_pos);
                     }
 
@@ -359,6 +372,7 @@ int dr_bson_write(
                 }
             }
 
+            /*ENDENTRY:*/
             if (curStack->m_entry->m_array_count != 1 && curStack->m_array_pos >= array_count) {
                 uint32_t array_size;
 
@@ -370,10 +384,7 @@ int dr_bson_write(
         }
 
         dr_bson_write_char(0);
-
-        if (curStack->m_output_size >= 4) {
-            CPE_COPY_HTON32(curStack->m_output_data, &curStack->m_output_size);
-        }
+        CPE_COPY_HTON32(curStack->m_output_data, &curStack->m_output_size);
 
         if (--stackPos >= 0) {
             struct dr_bson_write_stack * preStack;

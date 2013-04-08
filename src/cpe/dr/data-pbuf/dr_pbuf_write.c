@@ -32,7 +32,10 @@ struct dr_pbuf_write_stack {
 
 #define dr_pbuf_write_check_capacity(__capacity)                        \
     if (curStack->m_output_capacity - curStack->m_output_size < (__capacity)) { \
-        CPE_ERROR(em, "dr_pbuf_write: not enouth buf!");                \
+        CPE_ERROR(em, "dr_pbuf_write: not enouth buf,"                  \
+                  " output-capacity=%d, require=%d!",                   \
+                  (int)(curStack->m_output_capacity - curStack->m_output_size), \
+                  (int)(__capacity));                                   \
         return -1;                                                      \
     }
 
@@ -147,7 +150,7 @@ int dr_pbuf_write(
                     curStack->m_output_size += dr_pbuf_write_size_reserve;
                 }
 
-                entryData = curStack->m_input_data + curStack->m_entry->m_data_start_pos + (elementSize * curStack->m_array_pos);
+                entryData = curStack->m_input_data + dr_entry_data_start_pos(curStack->m_entry, curStack->m_array_pos);
 
                 switch(curStack->m_entry->m_type) {
                 case CPE_DR_TYPE_UNION:

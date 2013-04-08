@@ -48,7 +48,7 @@ dr_dm_data_create(dr_dm_manage_t mgr, const void * data, size_t data_size, const
     role_id = dr_entry_read_int64(data, mgr->m_id_index->m_entry);
     if (role_id == 0) {
         if (mgr->m_id_generate) {
-            if (gd_id_generator_generate(&role_id, mgr->m_id_generate) != 0) {
+            if (gd_id_generator_generate(&role_id, mgr->m_id_generate, dr_dm_manage_name(mgr)) != 0) {
                 CPE_ERROR(
                     mgr->m_em, "%s: dr_dm_data_create: generate id from %s fail!",
                     dr_dm_manage_name(mgr), gd_id_generator_name(mgr->m_id_generate));
@@ -157,7 +157,7 @@ dr_dm_data_t dr_dm_data_find_by_id(dr_dm_manage_t mgr, dr_dm_data_id_t id) {
     key = dr_dm_manage_key_buf(mgr);
 
     if (dr_entry_set_from_uint64(
-            (char*)dr_dm_data_data(key) + dr_entry_data_start_pos(mgr->m_id_index->m_entry)
+            (char*)dr_dm_data_data(key) + dr_entry_data_start_pos(mgr->m_id_index->m_entry, 0)
             , id, mgr->m_id_index->m_entry, NULL) != 0)
         return NULL;
 
@@ -180,7 +180,7 @@ dr_dm_data_t dr_dm_data_find_by_id(dr_dm_manage_t mgr, dr_dm_data_id_t id) {
         key = dr_dm_manage_key_buf(mgr);                              \
         if (dr_entry_set_from_ ## __type_name(                          \
                 (char *)dr_dm_data_data(key)                            \
-                + dr_entry_data_start_pos(index->m_entry),              \
+                + dr_entry_data_start_pos(index->m_entry, 0),              \
                 input, index->m_entry, NULL) != 0)                      \
         {                                                               \
             return NULL;                                                \

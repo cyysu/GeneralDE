@@ -17,8 +17,8 @@
 	<Configurations>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory="$(SolutionDir)../../build/$(ConfigurationName).win32"
-			IntermediateDirectory="$(SolutionDir)../../build/$(ConfigurationName).win32"
+			OutputDirectory="$(SolutionDir)..\..\build\vc\$(ConfigurationName)\lib"
+			IntermediateDirectory="$(SolutionDir)..\..\build\vc\$(ConfigurationName)\$(ProjectName)\building"
 			ConfigurationType="4"
 			CharacterSet="2"
 			>
@@ -44,7 +44,7 @@
 				PreprocessorDefinitions="_CRT_SECURE_NO_WARNINGS;WIN32"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
-				RuntimeLibrary="3"
+				RuntimeLibrary="2"
 				WarningLevel="3"
 				DebugInformationFormat="4"
 			/>
@@ -78,8 +78,8 @@
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="$(SolutionDir)../../build/$(ConfigurationName).win32"
-			IntermediateDirectory="$(SolutionDir)../../build/$(ConfigurationName).win32"
+			OutputDirectory="$(SolutionDir)..\..\build\vc\$(ConfigurationName)\lib"
+			IntermediateDirectory="$(SolutionDir)..\..\build\vc\$(ConfigurationName)\$(ProjectName)\building"
 			ConfigurationType="4"
 			CharacterSet="2"
 			WholeProgramOptimization="1"

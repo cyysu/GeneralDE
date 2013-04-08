@@ -8,6 +8,8 @@
 extern "C" {
 #endif
 
+typedef struct mongo_doc * mongo_doc_t;
+
 typedef enum mongo_driver_state {
     mongo_driver_state_disable = -1
     , mongo_driver_state_connecting
@@ -20,19 +22,8 @@ typedef enum mongo_driver_error {
     , mongo_driver_not_connected
 } mongo_driver_error_t;
 
-typedef enum mongo_db_op {
-    mongo_db_op_replay = 1,
-    mongo_db_op_msg = 1000,
-    mongo_db_op_update = 2001,
-    mongo_db_op_insert = 2002,
-    mongo_db_op_query = 2004,
-    mongo_db_op_get_more = 2005,
-    mongo_db_op_delete = 2006,
-    mongo_db_op_kill_cursors = 2007
-} mongo_db_op_t;
-
 typedef struct mongo_doc_it {
-    void * (*next)(struct mongo_doc_it * it);
+    mongo_doc_t (*next)(struct mongo_doc_it * it);
     char m_data[16];
 } * mongo_doc_it_t;
 

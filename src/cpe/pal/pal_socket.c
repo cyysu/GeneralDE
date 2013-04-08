@@ -3,6 +3,7 @@
 
 #ifdef _MSC_VER
 #include <string.h>
+
 #ifdef _DEBUG
 int cpe_sock_close(int fd)
 {
@@ -81,29 +82,8 @@ int cpe_sock_set_reuseaddr(int fd, int is_reuseaddr) {
     //return setsockopt(fd,  SOL_SOCKET, SO_EXCLUSIVEADDRUSE, &flag, sizeof(flag));
     return setsockopt(_get_osfhandle(fd),  SOL_SOCKET, SO_REUSEADDR, &flag, sizeof(flag));
 #else
-    int flags;
-    if ((flags = fcntl(fd, F_GETFL)) == -1) {
-        return -1;
-    }
-
-    if (is_reuseaddr) {
-        if (flags & SO_REUSEADDR) {
-            return 0;
-        }
-        else {
-            flags |= SO_REUSEADDR;
-        }
-    }
-    else {
-        if (!(flags & SO_REUSEADDR)) {
-            return 0;
-        }
-        else {
-            flags &= ~SO_REUSEADDR;
-        }
-    }
-
-    return fcntl(fd, F_SETFL, flags);
+	int opt = is_reuseaddr;
+	return setsockopt( fd , SOL_SOCKET , SO_REUSEADDR , &opt , sizeof(opt) );
 #endif
 }
 

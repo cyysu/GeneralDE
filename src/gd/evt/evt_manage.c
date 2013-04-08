@@ -1,5 +1,4 @@
 #include <assert.h>
-#include "cpe/pal/pal_external.h"
 #include "cpe/pal/pal_stdio.h"
 #include "cpe/utils/stream_error.h"
 #include "cpe/cfg/cfg_read.h"
@@ -9,11 +8,10 @@
 #include "cpe/dp/dp_responser.h"
 #include "cpe/dp/dp_request.h"
 #include "cpe/dp/dp_manage.h"
+#include "cpe/dr/dr_metalib_manage.h"
 #include "gd/app/app_log.h"
 #include "gd/app/app_context.h"
 #include "gd/app/app_module.h"
-#include "gd/dr_store/dr_ref.h"
-#include "gd/dr_store/dr_store_manage.h"
 #include "gd/evt/evt_manage.h"
 #include "gd/evt/evt_read.h"
 #include "evt_internal_ops.h"
@@ -46,7 +44,6 @@ gd_evt_mgr_create(
     mgr->m_em = em;
     mgr->m_debug = 0;
     mgr->m_req = NULL;
-    mgr->m_metalib = NULL;
     mgr->m_oid_max_len = 32;
     mgr->m_carry_size = 0;
     mgr->m_carry_meta = NULL;
@@ -97,9 +94,43 @@ gd_evt_mgr_create(
         return NULL;
     }
 
+    if (cpe_hash_table_init(
+            &mgr->m_evt_defs,
+            mgr->m_alloc,
+            (cpe_hash_fun_t) gd_evt_def_hash,
+            (cpe_hash_cmp_t) gd_evt_def_eq,
+            CPE_HASH_OBJ2ENTRY(gd_evt_def, m_hh),
+            -1) != 0)
+    {
+        CPE_ERROR(em, "gd_evt_mgr_create: create: init evt def hash hash table fail!");
+        cpe_hash_table_fini(&mgr->m_responser_to_processor);
+        dp_req_free(mgr->m_req);
+        tl_free(mgr->m_tl);
+        cpe_range_mgr_fini(&mgr->m_ids);
+        nm_node_free(mgr_node);
+        return NULL;
+    }
+
     nm_node_set_type(mgr_node, &s_nm_node_type_gd_evt_mgr);
 
     return mgr;
+}
+
+static void gd_evt_mgr_evt_def_free_all(gd_evt_mgr_t mgr) {
+    struct cpe_hash_it evt_def_it;
+    struct gd_evt_def * evt_def;
+
+    cpe_hash_it_init(&evt_def_it, &mgr->m_evt_defs);
+
+    evt_def = cpe_hash_it_next(&evt_def_it);
+    while(evt_def) {
+        struct gd_evt_def * next = cpe_hash_it_next(&evt_def_it);
+
+        cpe_hash_table_remove_by_ins(&mgr->m_evt_defs, evt_def);
+        mem_free(mgr->m_alloc, evt_def);
+        
+        evt_def = next;
+    }
 }
 
 static void gd_evt_mgr_clear(nm_node_t node) {
@@ -112,11 +143,12 @@ static void gd_evt_mgr_clear(nm_node_t node) {
 
     if (mgr->m_req) dp_req_free(mgr->m_req);
 
-    if (mgr->m_metalib) dr_ref_free(mgr->m_metalib);
-
     tl_free(mgr->m_tl);
 
     cpe_hash_table_fini(&mgr->m_responser_to_processor);
+
+    gd_evt_mgr_evt_def_free_all(mgr);
+    cpe_hash_table_fini(&mgr->m_evt_defs);
 }
 
 void gd_evt_mgr_free(gd_evt_mgr_t mgr) {
@@ -164,24 +196,46 @@ gd_evt_mgr_name_hs(gd_evt_mgr_t mgr) {
     return nm_node_name_hs(nm_node_from_data(mgr));
 }
 
-int gd_evt_mgr_set_metalib(gd_evt_mgr_t mgr, const char * libname) {
-    dr_store_manage_t dr_store_mgr;
-    dr_store_mgr = dr_store_manage_default(mgr->m_app);
-    if (dr_store_mgr == NULL) {
+int gd_evt_mgr_register_evt(gd_evt_mgr_t mgr, LPDRMETA cmd_meta) {
+    struct gd_evt_def * evt_def;
+
+
+    evt_def = mem_alloc(mgr->m_alloc, sizeof(struct gd_evt_def));
+    if (evt_def == NULL) {
         CPE_ERROR(
-            mgr->m_em, "%s: set metalib %s: default dr_store_manage not exist!",
-            gd_evt_mgr_name(mgr), libname);
+            mgr->m_em, "bpg_pkg_manage %s: register evt %s, alloc fail!", 
+            gd_evt_mgr_name(mgr), dr_meta_name(cmd_meta));
         return -1;
     }
 
-    if (mgr->m_metalib) dr_ref_free(mgr->m_metalib);
+    evt_def->m_evt_name = dr_meta_name(cmd_meta);
+    evt_def->m_evt_meta = cmd_meta;
+    cpe_hash_entry_init(&evt_def->m_hh);
 
-    mgr->m_metalib = dr_ref_create(dr_store_mgr, libname);
-    return mgr->m_metalib == NULL ? -1 : 0;
+    if (cpe_hash_table_insert_unique(&mgr->m_evt_defs, evt_def) != 0) {
+        CPE_ERROR(
+            mgr->m_em, "bpg_pkg_manage %s: register evt %s, event already exist!",
+            gd_evt_mgr_name(mgr), dr_meta_name(cmd_meta));
+        mem_free(mgr->m_alloc, evt_def);
+        return -1;
+    }
+
+    return 0;
 }
 
-LPDRMETALIB gd_evt_mgr_metalib(gd_evt_mgr_t mgr) {
-    return mgr->m_metalib ? dr_ref_lib(mgr->m_metalib) : NULL;
+int gd_evt_mgr_register_evt_in_metalib(gd_evt_mgr_t mgr, LPDRMETALIB metalib) {
+    int rv;
+    int i, count;
+
+    rv = 0;
+    count = dr_lib_meta_num(metalib);
+    for(i = 0; i < count; ++i) {
+        if (gd_evt_mgr_register_evt(mgr, dr_lib_meta_at(metalib, i)) != 0) {
+            rv = -1;
+        }
+    }
+
+    return rv;
 }
 
 tl_t gd_evt_mgr_tl(gd_evt_mgr_t mgr) {
@@ -321,6 +375,14 @@ static void gd_evt_mgr_dispatch_evt(tl_event_t input, void * context) {
 }
 
 
+uint32_t gd_evt_def_hash(const struct gd_evt_def * o) {
+    return cpe_hash_str(o->m_evt_name, strlen(o->m_evt_name));
+}
+
+int gd_evt_def_eq(const struct gd_evt_def * l, const struct gd_evt_def * r) {
+    return strcmp(l->m_evt_name, r->m_evt_name) == 0;
+}
+
 CPE_HS_DEF_VAR(s_gd_evt_mgr_default_name, "gd_evt_mgr");
 
 CPE_HS_DEF_VAR(gd_evt_req_type_name, "app.event.req");
@@ -329,51 +391,3 @@ struct nm_node_type s_nm_node_type_gd_evt_mgr = {
     "gd_evt_mgr",
     gd_evt_mgr_clear
 };
-
-EXPORT_DIRECTIVE
-int gd_evt_mgr_app_init(gd_app_context_t app, gd_app_module_t module, cfg_t cfg) {
-    gd_evt_mgr_t gd_evt_mgr;
-    const char * meta;
-
-    meta = cfg_get_string(cfg, "meta", NULL);
-    if (meta == NULL) {
-        APP_CTX_ERROR(
-            app, "%s: create: meta not configured!",
-            gd_app_module_name(module));
-        return -1;
-    }
-
-    gd_evt_mgr =
-        gd_evt_mgr_create(
-            app, gd_app_module_name(module), gd_app_alloc(app), gd_app_em(app));
-    if (gd_evt_mgr == NULL) return -1;
-
-    if (gd_evt_mgr_set_metalib(gd_evt_mgr, meta) != 0) {
-        APP_CTX_ERROR(
-            app, "%s: create: set meta %s fail!",
-            gd_app_module_name(module), meta);
-        gd_evt_mgr_free(gd_evt_mgr);
-        return -1;
-    }
-
-    gd_evt_mgr->m_debug = cfg_get_int32(cfg, "debug", 0);
-
-    if (gd_evt_mgr->m_debug) {
-        CPE_INFO(
-            gd_app_em(app), "%s: create: done",
-            gd_evt_mgr_name(gd_evt_mgr));
-    }
-
-    return 0;
-}
-
-EXPORT_DIRECTIVE
-void gd_evt_mgr_app_fini(gd_app_context_t app, gd_app_module_t module) {
-    gd_evt_mgr_t gd_evt_mgr;
-
-    gd_evt_mgr = gd_evt_mgr_find_nc(app, gd_app_module_name(module));
-    if (gd_evt_mgr) {
-        gd_evt_mgr_free(gd_evt_mgr);
-    }
-}
-

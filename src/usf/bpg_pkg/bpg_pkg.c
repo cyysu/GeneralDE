@@ -1,5 +1,6 @@
 #include <assert.h>
 #include "cpe/pal/pal_strings.h"
+#include "cpe/pal/pal_platform.h"
 #include "cpe/utils/stream_buffer.h"
 #include "cpe/dr/dr_metalib_init.h"
 #include "cpe/dr/dr_metalib_manage.h"
@@ -31,6 +32,8 @@ bpg_pkg_create(
         bpg_pkg_type_name,
         sizeof(struct bpg_pkg) + carry_data_capacity + pkg_capacity);
     if (dp_req == NULL) return NULL;
+
+    bzero(dp_req_data(dp_req), dp_req_capacity(dp_req));
 
     bpg_pkg = (bpg_pkg_t)dp_req_data(dp_req);
 
@@ -104,15 +107,18 @@ int bpg_pkg_pkg_data_set_size(bpg_pkg_t req, size_t size) {
 
 void bpg_pkg_init(bpg_pkg_t bpg_pkg) {
     BASEPKG_HEAD * head;
+    size_t old_data_size;
+
+    old_data_size = dp_req_size(bpg_pkg->m_dp_req);
+    if (old_data_size > sizeof(struct bpg_pkg)) {
+        bzero(bpg_pkg + 1, old_data_size - sizeof(struct bpg_pkg));
+    }
 
     bpg_pkg_pkg_data_set_size(bpg_pkg, sizeof(BASEPKG_HEAD));
 
     bpg_pkg->m_connection_id = BPG_INVALID_CONNECTION_ID;
 
     head = (BASEPKG_HEAD *)bpg_pkg_pkg_data(bpg_pkg);
-    bzero(head, sizeof(BASEPKG_HEAD));
-    head->magic = BASEPKG_HEAD_MAGIC;
-    head->version = 1;
 }
 
 void bpg_pkg_clear_data(bpg_pkg_t bpg_pkg) {
@@ -121,11 +127,8 @@ void bpg_pkg_clear_data(bpg_pkg_t bpg_pkg) {
     bpg_pkg_pkg_data_set_size(bpg_pkg, sizeof(BASEPKG_HEAD));
 
     head = (BASEPKG_HEAD *)bpg_pkg_pkg_data(bpg_pkg);
+    bzero(head, sizeof(*head));
     head->headlen = sizeof(BASEPKG_HEAD);
-    head->bodylen = 0;
-    head->originBodyLen = 0;
-    head->bodytotallen = 0;
-    head->appendInfoCount = 0;
 }
 
 uint32_t bpg_pkg_cmd(bpg_pkg_t req) {
@@ -161,6 +164,25 @@ uint32_t bpg_pkg_flags(bpg_pkg_t req) {
     head = (BASEPKG_HEAD *)bpg_pkg_pkg_data(req);
 
     return head->flags;
+}
+
+int bpg_pkg_flag_enable(bpg_pkg_t pkg, bpg_pkg_flag_t flag) {
+    BASEPKG_HEAD * head;
+    head = (BASEPKG_HEAD *)bpg_pkg_pkg_data(pkg);
+
+    return ((head->flags & (uint32_t)flag) == (uint32_t)flag) ? 1 : 0;
+}
+
+void bpg_pkg_flag_set_enable(bpg_pkg_t pkg, bpg_pkg_flag_t flag, int is_enable) {
+    BASEPKG_HEAD * head;
+    head = (BASEPKG_HEAD *)bpg_pkg_pkg_data(pkg);
+
+    if (is_enable) {
+        head->flags |= (uint32_t)flag;
+    }
+    else {
+        head->flags &= ~(uint32_t)flag;
+    }
 }
 
 void bpg_pkg_set_flags(bpg_pkg_t req, uint32_t flags) {
@@ -269,11 +291,7 @@ void bpg_pkg_set_body_total_len(bpg_pkg_t pkg, uint32_t totallen) {
 }
 
 void * bpg_pkg_body_data(bpg_pkg_t pkg) {
-    BASEPKG * basepkg;
-
-    basepkg = (BASEPKG *)bpg_pkg_pkg_data(pkg);
-
-    return basepkg->body;
+    return ((char *)bpg_pkg_pkg_data(pkg)) + sizeof(BASEPKG_HEAD);
 }
     
 uint32_t bpg_pkg_body_len(bpg_pkg_t pkg) {
@@ -281,12 +299,6 @@ uint32_t bpg_pkg_body_len(bpg_pkg_t pkg) {
     head = (BASEPKG_HEAD *)bpg_pkg_pkg_data(pkg);
 
     return head->bodylen;
-}
-
-uint32_t bpg_pkg_body_origin_len(bpg_pkg_t pkg) {
-    BASEPKG_HEAD * head;
-    head = (BASEPKG_HEAD *)bpg_pkg_pkg_data(pkg);
-    return head->originBodyLen;
 }
 
 int32_t bpg_pkg_append_info_count(bpg_pkg_t pkg) {
@@ -308,34 +320,8 @@ uint32_t bpg_pkg_append_info_id(bpg_pkg_append_info_t append_info) {
     return ((APPENDINFO *)append_info)->id;
 }
 
-void * bpg_pkg_append_info_data(bpg_pkg_t pkg, bpg_pkg_append_info_t append_info) {
-    int pos;
-    BASEPKG * basepkg;
-    char * buf;
-    int i;
-
-    basepkg = (BASEPKG *)bpg_pkg_pkg_data(pkg);
-
-    pos = (((APPENDINFO *)append_info) - basepkg->head.appendInfos);
-
-    if (pos < 0 || pos > basepkg->head.appendInfoCount) return NULL;
-
-    buf = (char*)basepkg->body;
-    buf += basepkg->head.bodylen;
-
-    for(i = 0; i < pos; ++i) {
-        buf += basepkg->head.appendInfos[i].size;
-    }
-
-    return buf;
-}
-
 uint32_t bpg_pkg_append_info_size(bpg_pkg_append_info_t append_info) {
     return ((APPENDINFO *)append_info)->size;
-}
-
-uint32_t bpg_pkg_append_info_origin_size(bpg_pkg_append_info_t append_info) {
-    return ((APPENDINFO *)append_info)->originSize;
 }
 
 bpg_pkg_debug_level_t bpg_pkg_debug_level(bpg_pkg_t req) {
@@ -343,86 +329,63 @@ bpg_pkg_debug_level_t bpg_pkg_debug_level(bpg_pkg_t req) {
 }
 
 const char * bpg_pkg_dump(bpg_pkg_t req, mem_buffer_t buffer) {
-    struct mem_buffer decode_buffer;
-    size_t buf_size;
     struct write_stream_buffer stream = CPE_WRITE_STREAM_BUFFER_INITIALIZER(buffer);
     LPDRMETALIB metalib;
     LPDRMETA meta;
-    BASEPKG * pkg;
+    BASEPKG_HEAD * head;
+    const char * data;
     int i;
 
-    mem_buffer_init(&decode_buffer, NULL);
     mem_buffer_clear_data(buffer);
 
-    pkg = (BASEPKG *)bpg_pkg_pkg_data(req);
+    data = bpg_pkg_pkg_data(req);
+
+    head = (BASEPKG_HEAD *)data;
     
     stream_printf(((write_stream_t)&stream), "head: ");
 
     metalib = dr_ref_lib(req->m_mgr->m_metalib_basepkg_ref);
     if ((meta = metalib ? dr_lib_find_meta_by_name(metalib, "basepkg_head") : NULL)) {
-        dr_json_print((write_stream_t)&stream, &pkg->head, sizeof(pkg->head), meta, DR_JSON_PRINT_BEAUTIFY, 0);
+        dr_json_print((write_stream_t)&stream, head, sizeof(BASEPKG_HEAD), meta, DR_JSON_PRINT_MINIMIZE, 0);
     }
     else {
-        stream_printf((write_stream_t)&stream, "[no meta] cmd=%d", pkg->head.cmd);
+        stream_printf((write_stream_t)&stream, "[no meta] cmd=%d", head->cmd);
     }
+    data += sizeof(BASEPKG_HEAD);
 
     stream_printf(((write_stream_t)&stream), "\nbody: ");
-
-    if (pkg->head.bodylen > 0) {
+    if (head->bodylen > 0) {
         if ((meta = bpg_pkg_main_data_meta(req, NULL))) {
             stream_printf(((write_stream_t)&stream), " %s", dr_meta_name(meta));
-
-            mem_buffer_set_size(&decode_buffer, bpg_pkg_body_origin_len(req));
-            buf_size = mem_buffer_size(&decode_buffer);
-            if (bpg_pkg_get_main_data(req, meta, mem_buffer_make_continuous(&decode_buffer, 0), &buf_size, NULL) == 0) {
-                dr_json_print(
-                    (write_stream_t)&stream,
-                    mem_buffer_make_continuous(&decode_buffer, 0),
-                    mem_buffer_size(&decode_buffer),
-                    meta,
-                    DR_JSON_PRINT_BEAUTIFY, 0);
-            }
-            else {
-                stream_printf((write_stream_t)&stream, "[decode fail] bodylen=%d", pkg->head.bodylen);
-            }
+            dr_json_print((write_stream_t)&stream, data, head->bodylen, meta, DR_JSON_PRINT_MINIMIZE, 0);
         }
         else {
-            stream_printf((write_stream_t)&stream, "[no meta] bodylen=%d", pkg->head.bodylen);
+            stream_printf((write_stream_t)&stream, "[no meta] bodylen=%d", head->bodylen);
         }
+
+        data += head->bodylen;
     }
     else {
         stream_printf((write_stream_t)&stream, "[no data]");
     }
 
-    for(i = 0; i < bpg_pkg_append_info_count(req); ++i) {
-        bpg_pkg_append_info_t append_info = bpg_pkg_append_info_at(req, i);
+    metalib = dr_ref_lib(req->m_mgr->m_metalib_ref);
+    for(i = 0; i < head->appendInfoCount; ++i) {
+        APPENDINFO const * append_info = &head->appendInfos[i];
 
-        if ((meta = bpg_pkg_append_data_meta(req, append_info, NULL))) {
-            stream_printf((write_stream_t)&stream, "\nappend %d(%s): ", dr_meta_id(meta), dr_meta_name(meta));
+        if ((meta = metalib ? dr_lib_find_meta_by_id(metalib, append_info->id) : NULL)) {
+            stream_printf((write_stream_t)&stream, "\nappend %d(%s): ", append_info->id, dr_meta_name(meta));
 
-
-            mem_buffer_set_size(&decode_buffer, bpg_pkg_append_info_origin_size(append_info));
-            buf_size = mem_buffer_size(&decode_buffer);
-            if (bpg_pkg_get_append_data(req, append_info, meta, mem_buffer_make_continuous(&decode_buffer, 0), &buf_size, NULL) == 0) {
-                dr_json_print((write_stream_t)&stream, mem_buffer_make_continuous(&decode_buffer, 0), mem_buffer_size(&decode_buffer), meta, DR_JSON_PRINT_BEAUTIFY, 0);
-            }
-            else {
-                stream_printf(
-                    (write_stream_t)&stream, "[decode fail] id=%d, size=%d, origin-size=%d",
-                    bpg_pkg_append_info_id(append_info),
-                    bpg_pkg_append_info_size(append_info),
-                    bpg_pkg_append_info_origin_size(append_info));
-            }
+            dr_json_print((write_stream_t)&stream, data, append_info->size, meta, DR_JSON_PRINT_MINIMIZE, 0);
         }
         else {
             stream_printf(
                 (write_stream_t)&stream, "\nappend [no meta]: id=%d, size=%d, origin-size=%d", 
-                bpg_pkg_append_info_id(append_info),
-                bpg_pkg_append_info_size(append_info),
-                bpg_pkg_append_info_origin_size(append_info));
+                append_info->id, append_info->size, append_info->size);
         }
+
+        data += append_info->size;
     }
-    mem_buffer_clear(&decode_buffer);
 
     stream_putc((write_stream_t)&stream, 0);
 

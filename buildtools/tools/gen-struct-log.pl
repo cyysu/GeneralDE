@@ -10,31 +10,40 @@ my $inputFile;
 my $outputH;
 my $outputC;
 my $prefix;
-my $category;
+my @categories;
 
 GetOptions("input-file=s" => \$inputFile,
            "output-h=s"   => \$outputH,
            "output-c=s"   => \$outputC,
            "prefix=s" => \$prefix,
-           "category=s" => \$category);
+           "category=s" => \@categories);
 
 $inputFile = decode("utf8", $inputFile);
 $outputH = decode("utf8", $outputH);
 $outputC = decode("utf8", $outputC);
 
-sub generate_c_entry_to_string_datetime_def {
-  (my $meta_name, my $entry, my $output) = @_;
+sub entry_is_auto_gen {
+  my $v = shift;
 
-  print $output "    struct tm tm_" . $entry->{name} . ";\n";
-  print $output "    char buf_" . $entry->{name} . "[60];\n";
+  return 0 if not defined $v;
+  return 1 if $v =~ m/^-.*/;
+  return 1 if $v =~ m/^\@.+\|.*/;
+  return 0;
+}
+
+sub generate_c_entry_to_string_datetime_def {
+  (my $meta_name, my $meta, my $entry_name, my $entry, my $output) = @_;
+
+  print $output "    struct tm tm_" . $entry_name . ";\n";
+  print $output "    char buf_" . $entry_name . "[60];\n";
   print $output "\n";
 }
 
 sub generate_c_entry_to_string_datetime_init {
-  (my $meta_name, my $entry, my $output) = @_;
+  (my $meta_name, my $meta, my $entry_name, my $entry, my $output) = @_;
 
-  print $output "    localtime_r(&$entry->{name}, &tm_$entry->{name});\n";
-  print $output "    strftime(buf_$entry->{name},sizeof(buf_$entry->{name}),\"%Y-%m-%d %T\",&tm_$entry->{name});\n";
+  print $output "    localtime_r(&" . $entry_name . ", &tm_". $entry_name . ");\n";
+  print $output "    strftime(buf_" . $entry_name . ",sizeof(buf_" . $entry_name . "),\"%Y-%m-%d %T\",&tm_" . $entry_name . ");\n";
   print $output "\n";
 }
 
@@ -55,52 +64,74 @@ my $type_info_def = { int8 => { formator => "\"FMT_INT8_T\"", type => "int8_t" }
 my $xml_lib_source = XMLin($inputFile, KeyAttr => {struct => 'name', union => 'name'}, ForceArray => [ 'struct', 'union' ]);
 
 sub generate_h_entry {
-  (my $meta_name, my $entry, my $output) = @_;
+  (my $meta_name, my $meta, my $entry_name, my $entry, my $output) = @_;
 
-  return if defined $entry->{desc} and $entry->{desc} =~ m/^-.*/;
+  return if entry_is_auto_gen($entry->{desc});
 
   my $type_info = $type_info_def->{$entry->{type}};
 
-  print $meta_name . "." . $entry->{name} . ": type '" . $entry->{type} ."' not support!\n" and return
+  print $meta_name . "." . $entry_name . ": type '" . $entry->{type} ."' not support!\n" and return
     if not defined $type_info;
 
-  print $output "\n    , $type_info->{type} $entry->{name}";
+  print $output "\n    , $type_info->{type} $entry_name";
 }
 
 sub generate_c_entry_formator {
-  (my $meta_name, my $entry, my $output) = @_;
+  (my $meta_name, my $meta, my $entry_name, my $entry, my $output) = @_;
 
   if (defined $entry->{desc} and $entry->{desc} =~ m/^-.*/) {
-    print $output "|";
-    return;
+    print $output "|0";
   }
+  elsif (defined $entry->{desc} and $entry->{desc} =~ m/^\@(.+)\|.*/) {
+    my $type_info = $type_info_def->{$entry->{type}};
 
-  my $type_info = $type_info_def->{$entry->{type}};
+    print $output "|0" if not defined $type_info;
 
-  print $output "|" if not defined $type_info;
+    print $output "|$type_info->{formator}";
+  }
+  else {
+    my $type_info = $type_info_def->{$entry->{type}};
 
-  print $output "|$type_info->{formator}";
+    print $output "|0" if not defined $type_info;
+
+    print $output "|$type_info->{formator}";
+  }
 }
 
 sub generate_c_entry_arg {
-  (my $meta_name, my $entry, my $output) = @_;
+  (my $meta_name, my $meta, my $entry_name, my $entry, my $output) = @_;
 
-  return if defined $entry->{desc} and $entry->{desc} =~ m/^-.*/;
+  if (defined $entry->{desc} and $entry->{desc} =~ m/^-.*/) {
+  }
+  elsif (defined $entry->{desc} and $entry->{desc} =~ m/^\@(.+)\|.*/) {
+    my $ref_arg = $1;
+    my $type_info = $type_info_def->{$entry->{type}};
 
-  my $type_info = $type_info_def->{$entry->{type}};
+    return if not defined $type_info;
 
-  return if not defined $type_info;
-
-  if (exists $type_info->{"to-string-init"}) {
-    print $output "        , buf_$entry->{name}\n";
+    if (exists $type_info->{"to-string-init"}) {
+      print $output "        , ($type_info->{type})buf_" . $entry_name . "\n";
+    }
+    else {
+      print $output "        , ($type_info->{type})" . $ref_arg. "\n";
+    }
   }
   else {
-    print $output "        , $entry->{name}\n";
+    my $type_info = $type_info_def->{$entry->{type}};
+
+    return if not defined $type_info;
+
+    if (exists $type_info->{"to-string-init"}) {
+      print $output "        , ($type_info->{type})buf_" . $entry_name . "\n";
+    }
+    else {
+      print $output "        , ($type_info->{type})" . $entry_name. "\n";
+    }
   }
 }
 
 sub generate_c_entry_buf_def {
-  (my $meta_name, my $entry, my $output) = @_;
+  (my $meta_name, my $meta, my $entry_name, my $entry, my $output) = @_;
 
   return if defined $entry->{desc} and $entry->{desc} =~ m/^-.*/;
 
@@ -110,21 +141,26 @@ sub generate_c_entry_buf_def {
   my $fun = $type_info->{"to-string-def"};
   return if not defined $fun;
 
-  $fun->($meta_name, $entry, $output);
+  $fun->($meta_name, $meta, $entry_name, $entry, $output);
 }
 
 sub generate_c_entry_buf_init {
-  (my $meta_name, my $entry, my $output) = @_;
+  (my $meta_name, my $meta, my $entry_name, my $entry, my $output) = @_;
 
-  return if defined $entry->{desc} and $entry->{desc} =~ m/^-.*/;
+  if (defined $entry->{desc} and $entry->{desc} =~ m/^-.*/) {
+  }
+  elsif (defined $entry->{desc} and $entry->{desc} =~ m/^\@(.+)\|.*/) {
+    my $ref_arg = $1;
+  }
+  else {
+    my $type_info = $type_info_def->{$entry->{type}};
+    return if not defined $type_info;
 
-  my $type_info = $type_info_def->{$entry->{type}};
-  return if not defined $type_info;
+    my $fun = $type_info->{"to-string-init"};
+    return if not defined $fun;
 
-  my $fun = $type_info->{"to-string-init"};
-  return if not defined $fun;
-
-  $fun->($meta_name, $entry, $output);
+    $fun->($meta_name, $meta, $entry_name, $entry, $output);
+  }
 }
 
 sub foreach_entry {
@@ -134,10 +170,12 @@ sub foreach_entry {
 
   if (ref($meta->{entry}) eq "ARRAY") {
     foreach my $entry (@{$meta->{entry}}) {
-      $fun->($meta_name, $entry, $output);
+      $fun->($meta_name, $meta, $entry->{name}, $entry, $output);
     }
-  } elsif (ref($meta->{entry}) eq "HASH") {
-      $fun->($meta_name, $meta->{entry}, $output);
+  }
+  elsif (ref($meta->{entry}) eq "HASH") {
+    my $entry = $meta->{entry};
+    $fun->($meta_name, $meta, $entry->{name}, $entry, $output);
   }
 }
 
@@ -175,7 +213,7 @@ sub generate_h {
 }
 
 sub generate_c {
-  my $output = shift;
+  (my $output, my $categories) = @_;
 
   print $output "#include \"cpe/pal/pal_stdio.h\"\n";
   print $output "#include \"cpe/pal/pal_time.h\"\n";
@@ -191,18 +229,22 @@ sub generate_c {
       foreach_entry($meta_name, $output, \&generate_c_entry_buf_def);
       foreach_entry($meta_name, $output, \&generate_c_entry_buf_init);
 
-      print $output "    CPE_ERROR(\n";
-      print $output "        gd_app_named_em(app, \"$category\"),\n";
-      print $output "        \"$meta_name";
+      foreach my $category (@{ $categories }) {
+        print $output "    CPE_INFO(\n";
+        print $output "        gd_app_named_em(app, \"$category\"),\n";
+        print $output "        \"$meta_name";
 
 
-      foreach_entry($meta_name, $output, \&generate_c_entry_formator);
-      print $output "\"";
+        foreach_entry($meta_name, $output, \&generate_c_entry_formator);
+        print $output "\"\n";
 
 
-      foreach_entry($meta_name, $output, \&generate_c_entry_arg);
+        foreach_entry($meta_name, $output, \&generate_c_entry_arg);
 
-      print $output "    );\n";
+        print $output "    );\n";
+        print $output "\n";
+      }
+
       print $output "}\n";
     }
   }
@@ -214,6 +256,6 @@ generate_h($output_h);
 close($output_h);
 
 open(my $output_c, '>::encoding(utf8)', $outputC) or die "open output file $outputH fail $!";
-generate_c($output_c);
+generate_c($output_c, \@categories);
 close($output_c);
 

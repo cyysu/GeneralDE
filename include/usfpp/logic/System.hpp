@@ -9,6 +9,7 @@
 
 namespace Usf { namespace Logic {
 
+class LogicOp;
 class LogicOpData;
 class LogicOpContext;
 class LogicOpManager;

@@ -294,6 +294,32 @@ DataElement & DataElement::operator=(uint64_t d) {
     return *this;
 }
 
+DataElement & DataElement::operator=(float d) {
+    Utils::ErrorCollector em;
+
+    if (dr_entry_set_from_float(const_cast<void *>(m_data), d, m_entry, em) != 0) {
+        ::std::ostringstream os;
+        os << "set float(" << d << ") to " << dr_entry_name(m_entry) << ": ";
+        em.genErrorMsg(os);
+        throw ::std::runtime_error(os.str());
+    }
+
+    return *this;
+}
+
+DataElement & DataElement::operator=(double d) {
+    Utils::ErrorCollector em;
+
+    if (dr_entry_set_from_double(const_cast<void *>(m_data), d, m_entry, em) != 0) {
+        ::std::ostringstream os;
+        os << "set double(" << d << ") to " << dr_entry_name(m_entry) << ": ";
+        em.genErrorMsg(os);
+        throw ::std::runtime_error(os.str());
+    }
+
+    return *this;
+}
+
 DataElement & DataElement::operator=(const char * d) {
     Utils::ErrorCollector em;
 
@@ -354,7 +380,7 @@ Data DataElement::operator[] (size_t pos) {
 //class ConstData
 ConstData::ConstData(const void * data, LPDRMETA meta, size_t capacity)
     : m_data(data)
-    , m_capacity(capacity > 0 ? capacity : dr_meta_size(meta))
+    , m_capacity(capacity > 0 ? capacity : (meta ? dr_meta_size(meta) : 0))
     , m_meta(meta)
 {
 }
@@ -362,7 +388,14 @@ ConstData::ConstData(const void * data, LPDRMETA meta, size_t capacity)
 ConstData::ConstData(ConstDataElement const & element)
     : m_data(element.data())
     , m_capacity(element.capacity())
-    , m_meta(element.meta())
+    , m_meta(dr_entry_ref_meta(element.entry()))
+{
+}
+
+ConstData::ConstData(DataElement const & element)
+    : m_data(element.data())
+    , m_capacity(element.capacity())
+    , m_meta(dr_entry_ref_meta(element.entry()))
 {
 }
 
@@ -380,6 +413,25 @@ ConstDataElement ConstData::operator[](const char * name) const {
     if ((size_t)off >= m_capacity) {
         ::std::ostringstream os;
         os << "meta " << dr_meta_name(m_meta) << " entry " << name
+           << " off " << off << " overflow, capacity is " << m_capacity << "!";
+        throw ::std::runtime_error(os.str());
+    }
+
+    if (entry == dr_meta_entry_at(m_meta, dr_meta_entry_num(m_meta) - 1)) {
+        return ConstDataElement(((char *)const_cast<void*>(m_data)) + off, entry, m_capacity - (size_t)off);
+    }
+    else {
+        return ConstDataElement(((char *)const_cast<void*>(m_data)) + off, entry);
+    }
+}
+
+ConstDataElement ConstData::operator[](LPDRMETAENTRY entry) const {
+    if (m_meta == NULL) throw ::std::runtime_error("Data::operator[]: meta not exist!");
+
+    size_t off = dr_entry_data_start_pos(entry, 0);
+    if (off >= m_capacity) {
+        ::std::ostringstream os;
+        os << "meta " << dr_meta_name(m_meta) << " entry " << dr_entry_name(entry)
            << " off " << off << " overflow, capacity is " << m_capacity << "!";
         throw ::std::runtime_error(os.str());
     }
@@ -452,6 +504,25 @@ DataElement Data::operator[](const char * name) {
     if ((size_t)off >= m_capacity) {
         ::std::ostringstream os;
         os << "meta " << dr_meta_name(m_meta) << " entry " << name
+           << " off " << off << " overflow, capacity is " << m_capacity << "!";
+        throw ::std::runtime_error(os.str());
+    }
+
+    if (entry == dr_meta_entry_at(m_meta, dr_meta_entry_num(m_meta) - 1)) {
+        return DataElement(((char *)const_cast<void*>(m_data)) + off, entry, m_capacity - (size_t)off);
+    }
+    else {
+        return DataElement(((char *)const_cast<void*>(m_data)) + off, entry);
+    }
+}
+
+DataElement Data::operator[](LPDRMETAENTRY entry) {
+    if (m_meta == NULL) throw ::std::runtime_error("Data::operator[]: meta not exist!");
+
+    size_t off = dr_entry_data_start_pos(entry, 0);
+    if (off >= m_capacity) {
+        ::std::ostringstream os;
+        os << "meta " << dr_meta_name(m_meta) << " entry " << dr_entry_name(entry)
            << " off " << off << " overflow, capacity is " << m_capacity << "!";
         throw ::std::runtime_error(os.str());
     }

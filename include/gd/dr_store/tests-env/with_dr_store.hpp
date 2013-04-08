@@ -12,8 +12,10 @@ public:
     void SetUp();
     void TearDown();
 
-    void t_dr_store_install(const char * libname, const char * def);
-    void t_dr_store_reset(const char * libname, const char * def);
+    void t_dr_store_install(const char * libname, const char * def, uint8_t dft_align = 0);
+    void t_dr_store_install(const char * libname, LPDRMETALIB metalib);
+    void t_dr_store_reset(const char * libname, const char * def, uint8_t dft_align = 0);
+    void t_dr_store_reset(const char * libname, LPDRMETALIB metalib);
 
     LPDRMETALIB t_metalib(const char * libname);
     LPDRMETA t_meta(const char * libname, const char * metaname);

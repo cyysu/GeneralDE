@@ -111,6 +111,8 @@ static void bpg_net_client_clear(nm_node_t node) {
     bpg_net_client_t mgr;
     mgr = (bpg_net_client_t)nm_node_data(node);
 
+    net_connector_free(mgr->m_connector);
+
     if (mgr->m_req_buf) {
         bpg_pkg_free(mgr->m_req_buf);
         mgr->m_req_buf = NULL;
@@ -133,8 +135,6 @@ static void bpg_net_client_clear(nm_node_t node) {
 
     mem_buffer_clear(&mgr->m_dump_buffer);
     mem_buffer_clear(&mgr->m_send_encode_buf);
-
-    net_connector_free(mgr->m_connector);
 }
 
 void bpg_net_client_free(bpg_net_client_t mgr) {
@@ -203,6 +203,10 @@ net_connector_t bpg_net_client_connector(bpg_net_client_t mgr) {
 
 bpg_pkg_manage_t bpg_net_client_pkg_manage(bpg_net_client_t req) {
     return req->m_pkg_manage;
+}
+
+void bpg_net_client_set_reconnect_span_ms(bpg_net_client_t client, uint32_t span_ms) {
+    net_connector_set_reconnect_span_ms(client->m_connector, span_ms);
 }
 
 static void bpg_net_client_clear(nm_node_t node);

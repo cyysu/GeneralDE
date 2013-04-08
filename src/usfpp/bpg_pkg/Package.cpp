@@ -56,67 +56,66 @@ Package::mainDataMeta(void) const {
     return Cpe::Dr::Meta::_cast(meta);
 }
 
-void Package::setCmdAndData(Cpe::Dr::ConstData const & data, size_t * write_size) {
+void Package::setCmdAndData(Cpe::Dr::ConstData const & data) {
     setCmd(mgr().cmdFromMetaName(data.meta().name()));
-    setMainData(data.data(), data.capacity(), write_size);
+    setMainData(data.data(), data.capacity());
 }
 
-void Package::setCmdAndData(Cpe::Dr::ConstData const & data, size_t size, size_t * write_size) {
+void Package::setCmdAndData(Cpe::Dr::Data const & data) {
     setCmd(mgr().cmdFromMetaName(data.meta().name()));
-    setMainData(data.data(), size, write_size);
+    setMainData(data.data(), data.capacity());
 }
 
-void Package::setCmdAndData(int cmd, const void * data, size_t data_size, size_t * write_size) {
+void Package::setCmdAndData(Cpe::Dr::ConstData const & data, size_t size) {
+    setCmd(mgr().cmdFromMetaName(data.meta().name()));
+    setMainData(data.data(), size);
+}
+
+void Package::setCmdAndData(int cmd, const void * data, size_t data_size) {
     setCmd(cmd);
-    setMainData(data, data_size, write_size);
+    setMainData(data, data_size);
 }
 
-void Package::setCmdAndData(const char * meta_name, const void * data, size_t data_size, size_t * write_size) {
+void Package::setCmdAndData(const char * meta_name, const void * data, size_t data_size) {
     setCmd(mgr().cmdFromMetaName(meta_name));
-    setMainData(data, data_size, write_size);
+    setMainData(data, data_size);
 }
         
-void Package::setCmdAndData(LPDRMETA meta, const void * data, size_t data_size, size_t * write_size) {
+void Package::setCmdAndData(LPDRMETA meta, const void * data, size_t data_size) {
     setCmd(mgr().cmdFromMetaName(dr_meta_name(meta)));
-    setMainData(data, data_size, write_size);
+    setMainData(data, data_size);
 }
 
-void Package::setMainData(void const * data, size_t size, size_t * write_size) {
+void Package::setMainData(void const * data, size_t size) {
     Cpe::Utils::ErrorCollector em;
-    if (bpg_pkg_set_main_data(*this, mainDataMeta(), data, size, write_size, em) != 0) {
+    if (bpg_pkg_set_main_data(*this, data, size, em) != 0) {
         em.checkThrowWithMsg< ::std::runtime_error>();
     }
-}
-
-void Package::mainData(void * buf, size_t capacity, size_t * size) const {
-    Cpe::Utils::ErrorCollector em;
-
-    if (bpg_pkg_get_main_data(*this, mainDataMeta(), buf, &capacity, em) != 0) {
-        em.checkThrowWithMsg< ::std::runtime_error>();
-    }
-
-    if (size) *size = capacity;
 }
 
 void Package::mainData(Cpe::Dr::Data & data) {
-    size_t real_capacity;
-    mainData(data.data(), data.capacity(), &real_capacity);
-    data.setCapacity(real_capacity);
+    size_t size = mainDataSize();
+    if (data.capacity() < size) {
+        throw ::std::runtime_error("Usf::Bpg::Package::mainData: not enough buf!");
+    }
+
+    memcpy(data.data(), mainData(), mainDataSize());
+    data.setCapacity(mainDataSize());
     data.setMeta(mainDataMeta());
 }
 
-void Package::addAppendData(const char * metaName, void const * data, size_t size, size_t * write_size) {
-    addAppendData(dataMetaLib().meta(metaName), data, size, write_size);
+void Package::addAppendData(const char * metaName, void const * data, size_t size) {
+    addAppendData(dataMetaLib().meta(metaName), data, size);
 }
 
-void Package::addAppendData(int metaid, void const * data, size_t size, size_t * write_size) {
-    addAppendData(dataMetaLib().meta(metaid), data, size, write_size);
+void Package::addAppendData(int metaid, void const * data, size_t size) {
+    addAppendData(dataMetaLib().meta(metaid), data, size);
 }
 
-void Package::addAppendData(LPDRMETA meta, void const * data, size_t size, size_t * write_size) {
+void Package::addAppendData(LPDRMETA meta, void const * data, size_t size) {
     Cpe::Utils::ErrorCollector em;
 
-    if (bpg_pkg_add_append_data(*this, meta, data, size, write_size, em)) {
+    if (bpg_pkg_add_append_data(*this, meta, data, size, em)) {
         em.checkThrowWithMsg< ::std::runtime_error>();
     }
 }
@@ -129,17 +128,25 @@ void Package::appendData(const char * metaName, void * buf, size_t capacity, siz
     appendData(dataMetaLib().meta(metaName), buf, capacity, size);
 }
 
-void Package::appendData(LPDRMETA meta, void * buf, size_t capacity, size_t * size) const {
+void Package::appendData(LPDRMETA meta, void * buf, size_t capacity, size_t * r_size) const {
     bpg_pkg_append_info_t appendInfo = 0;
     for(int32_t i = 0; i < bpg_pkg_append_info_count(*this); ++i) {
         appendInfo = bpg_pkg_append_info_at(*this, i);
         if ((int)bpg_pkg_append_info_id(appendInfo) == (int)dr_meta_id(meta)) {
-            Cpe::Utils::ErrorCollector em;
-            if (bpg_pkg_get_append_data(*this, appendInfo, meta, buf, &capacity, em) != 0) {
-                em.checkThrowWithMsg< ::std::runtime_error>();
+            size_t size = bpg_pkg_append_info_size(appendInfo);
+            if (size > capacity) {
+                APP_CTX_THROW_EXCEPTION(
+                    app(),
+                    ::std::runtime_error,
+                    "%s: Usf::Bpg::Package::appendData: no enough buf to get data meta %s(%d), capacity=%d, size=%d!",
+                    mgr().name().c_str(), dr_meta_name(meta), dr_meta_id(meta), (int)capacity, (int)size);
+                return;
             }
 
-            if (size) *size = capacity;
+            memcpy(buf, bpg_pkg_append_data(*this, appendInfo), size);
+
+            if (r_size) *r_size = size;
+
             return;
         }
     }
@@ -171,18 +178,19 @@ bool Package::tryGetAppendData(const char * metaName, void * buf, size_t capacit
     return tryGetAppendData(meta, buf, capacity, size);
 }
 
-bool Package::tryGetAppendData(LPDRMETA meta, void * buf, size_t capacity, size_t * size) const {
+bool Package::tryGetAppendData(LPDRMETA meta, void * buf, size_t capacity, size_t * r_size) const {
     bpg_pkg_append_info_t appendInfo = 0;
     for(int32_t i = 0; i < bpg_pkg_append_info_count(*this); ++i) {
         appendInfo = bpg_pkg_append_info_at(*this, i);
         if ((int)bpg_pkg_append_info_id(appendInfo) == (int)dr_meta_id(meta)) {
-            if (bpg_pkg_get_append_data(*this, appendInfo, meta, buf, &capacity, NULL) != 0) {
-                return false;
-            }
-            else {
-                if (size) *size = capacity;
-                return true;
-            }
+            size_t size = bpg_pkg_append_info_size(appendInfo);
+            if (size > capacity) return false;
+
+            memcpy(buf, bpg_pkg_append_data(*this, appendInfo), size);
+
+            if (r_size) *r_size = size;
+
+            return true;
         }
     }
 

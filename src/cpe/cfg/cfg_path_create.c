@@ -48,7 +48,7 @@ static cfg_t cfg_check_or_create_sub(cfg_t cfg, int type, const char * next_cfg_
     }
 }
 
-static cfg_t cfg_check_or_create(cfg_t cfg, const char * path, error_monitor_t em, char * buf, size_t buf_capacity) {
+cfg_t cfg_check_or_create(cfg_t cfg, const char * path, error_monitor_t em, char * buf, size_t buf_capacity) {
     const char * root = path;
     const char * end = path + strlen(path);
     const char * nextSeqTag = strchr(path, '[');

@@ -1,3 +1,6 @@
+#include <algorithm>
+#include <set>
+#include "cpe/utils/random.h"
 #include "RangeMgrTest.hpp"
 
 
@@ -481,4 +484,27 @@ TEST_F(RangeMgrTest, size_end_negative) {
 TEST_F(RangeMgrTest, size_lenght_error) {
     struct cpe_range r = {2, 1};
     EXPECT_EQ(-1, cpe_range_size(r));
+}
+
+TEST_F(RangeMgrTest, random_get_put) {
+    EXPECT_EQ(0, cpe_range_put_range(&m_ra, 0, 20480));
+
+    ::std::set<ptr_int_t> geted;
+
+    size_t repeat_count = 50000;
+    while(repeat_count > 0) {
+        if (geted.empty() || cpe_rand_dft(100) < 60) {
+            ptr_int_t v = cpe_range_get_one(&m_ra);
+            EXPECT_TRUE(geted.insert(v).second);
+        }
+        else {
+            ::std::set<ptr_int_t>::iterator pos = geted.begin();
+            ::std::advance(pos, cpe_rand_dft(geted.size()));
+
+            EXPECT_EQ(0, cpe_range_put_one(&m_ra, *pos));
+
+            geted.erase(pos);
+        }
+        --repeat_count;
+    }
 }

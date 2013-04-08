@@ -8,7 +8,7 @@
  * daniel@veillard.com
  */
 
-#ifdef HAVE_CONFIG_H
+#ifdef LIBXML2_HAVE_CONFIG_H
 #include "libxml.h"
 #else
 #include <stdio.h>

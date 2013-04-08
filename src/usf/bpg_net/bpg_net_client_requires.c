@@ -124,9 +124,9 @@ int bpg_net_client_remove_require_id(bpg_net_client_t client, logic_require_id_t
     }
 
     found_pos = found - client->m_runing_requires;
-    assert(found_pos >= 0 && found_pos < client->m_runing_require_count);
+    assert(found_pos >= 0 && (uint32_t)found_pos < client->m_runing_require_count);
 
-    if (found_pos + 1 < client->m_runing_require_count) {
+    if ((uint32_t)(found_pos + 1) < client->m_runing_require_count) {
         memmove(found, found + 1, sizeof(logic_require_id_t) * (client->m_runing_require_count - found_pos - 1));
     }
 

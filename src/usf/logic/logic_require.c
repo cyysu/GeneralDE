@@ -226,7 +226,6 @@ void logic_require_set_error(logic_require_t require) {
 }
 
 void logic_require_set_error_ex(logic_require_t require, int32_t err) {
-    logic_manage_t mgr;
     logic_context_t ctx;
     logic_context_state_t old_state;
 
@@ -236,7 +235,6 @@ void logic_require_set_error_ex(logic_require_t require, int32_t err) {
     }
 
     ctx = require->m_context;
-    mgr = ctx->m_mgr;
     old_state = logic_context_state_i(ctx);
 
     assert(require->m_stack);

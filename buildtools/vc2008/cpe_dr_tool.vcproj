@@ -17,8 +17,8 @@
 	<Configurations>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory="$(SolutionDir)../../build/tools/bin/$(ConfigurationName)"
-			IntermediateDirectory="$(SolutionDir)../../build/$(ConfigurationName).Intermediate.win32/$(ProjectName)"
+			OutputDirectory="$(SolutionDir)..\..\build\vc\tools"
+			IntermediateDirectory="$(SolutionDir)..\..\build\vc\$(ConfigurationName)\$(ProjectName)\building"
 			ConfigurationType="1"
 			CharacterSet="2"
 			>
@@ -41,10 +41,10 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="../../include;../../3rdTools/argtable2/include"
-				PreprocessorDefinitions="WIN32;_WINDOWS;STRICT;NDEBUG;_CRT_SECURE_NO_WARNINGS"
+				PreprocessorDefinitions="WIN32;_WINDOWS;STRICT;_CRT_SECURE_NO_WARNINGS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
-				RuntimeLibrary="3"
+				RuntimeLibrary="2"
 				WarningLevel="3"
 				DebugInformationFormat="4"
 				CompileAs="1"
@@ -62,7 +62,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="iconv.lib Ws2_32.lib zlib.lib"
-				OutputFile="$(OutDir)\..\$(ProjectName).exe"
+				OutputFile="$(OutDir)\$(ProjectName).exe"
 				AdditionalLibraryDirectories="../../3rdTools/zlib/vc/lib;../../3rdTools/iconv/vc/lib"
 				GenerateDebugInformation="true"
 				TargetMachine="1"
@@ -91,8 +91,8 @@
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="$(SolutionDir)../../build/tools/bin/$(ConfigurationName)"
-			IntermediateDirectory="$(SolutionDir)../../build/$(ConfigurationName).Intermediate.win32/$(ProjectName)"
+			OutputDirectory="$(SolutionDir)..\..\build\vc\tools"
+			IntermediateDirectory="$(SolutionDir)..\..\build\vc\$(ConfigurationName)\$(ProjectName)\building"
 			ConfigurationType="1"
 			CharacterSet="2"
 			WholeProgramOptimization="1"
@@ -180,6 +180,10 @@
 		</File>
 		<File
 			RelativePath="..\..\src\cpe\dr\tools\generate_ops.h"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\cpe\dr\tools\generate_traits_cpp.c"
 			>
 		</File>
 		<File

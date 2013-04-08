@@ -1,4 +1,5 @@
 #include <assert.h>
+#include "cpe/pal/pal_platform.h"
 #include "cpe/pal/pal_string.h"
 #include "cpe/pal/pal_strings.h"
 #include "cpe/dr/dr_metalib_manage.h"
@@ -120,7 +121,7 @@ static void dr_lib_add_meta_index_for_name(
 
     if (curPos < metaLib->m_meta_count) {
         if (strcmp(base + newMeta->m_name_pos, base + putAt->m_name_pos) == 0) {
-            DR_NOTIFY_ERROR(em, CPE_DR_ERROR_META_NAME_CONFLICT);
+            CPE_ERROR_EX(em, CPE_DR_ERROR_META_NAME_CONFLICT, "meta %s name duplicate", (base + newMeta->m_name_pos));
         }
 
         memmove(
@@ -230,23 +231,37 @@ void dr_meta_add_entry_calc_align(
     int align = entryAlign < meta->m_align ? entryAlign : meta->m_align;
 
     if (meta->m_type == CPE_DR_TYPE_STRUCT) {
-        int panding = meta->m_data_size % align;
+        int panding = meta->m_real_data_size % align;
         if (panding) {
             panding = align - panding;
         }
 
-        newEntry->m_data_start_pos = meta->m_data_size + panding;
-        meta->m_data_size += panding + newEntry->m_unitsize;
+        newEntry->m_data_start_pos = meta->m_real_data_size + panding;
+
+        meta->m_real_data_size += panding + newEntry->m_unitsize;
     }
     else if (meta->m_type == CPE_DR_TYPE_UNION) {
         newEntry->m_data_start_pos = 0;
-        if (meta->m_data_size < newEntry->m_unitsize) {
-            meta->m_data_size = newEntry->m_unitsize;
+        if (meta->m_real_data_size < newEntry->m_unitsize) {
+            meta->m_real_data_size = newEntry->m_unitsize;
         }
     }
     else {
         CPE_ERROR_EX(em, CPE_DR_ERROR_ENTRY_INVALID_TYPE_VALUE, "unknown meta type %d!", (int)meta->m_type);
     }
+}
+
+size_t dr_meta_calc_require_align(LPDRMETA meta) {
+    size_t requilre_align = 1;
+    int i;
+
+    for(i = 0; i < dr_meta_entry_num(meta); ++i) {
+        LPDRMETAENTRY entry = dr_meta_entry_at(meta, i);
+        size_t entry_require_align = dr_entry_require_align(entry);
+        if (entry_require_align > requilre_align) requilre_align = entry_require_align;
+    }
+
+    return requilre_align > meta->m_align ? meta->m_align : requilre_align;
 }
 
 int dr_add_meta_entry_set_type_calc_align(LPDRMETA meta, LPDRMETAENTRY entry, error_monitor_t em) {
@@ -269,8 +284,10 @@ int dr_add_meta_entry_set_type_calc_align(LPDRMETA meta, LPDRMETAENTRY entry, er
             return -1;
         }
 
-        entry->m_unitsize = usedType->m_data_size * (entry->m_array_count < 1 ? 1 : entry->m_array_count);
-        entryAlign = usedType->m_align;
+        entryAlign = dr_meta_calc_require_align(usedType);
+        if (entryAlign > meta->m_align) entryAlign = meta->m_align;
+
+        entry->m_unitsize = usedType->m_real_data_size * (entry->m_array_count == 0 ? 1 : entry->m_array_count);
     }
     else { /* is basic type */
         const struct tagDRCTypeInfo * typeInfo = dr_find_ctype_info_by_type(entry->m_type);
@@ -423,19 +440,15 @@ void dr_index_add_entry(struct dr_index_info * index, const char * entry_name, e
 }
 
 void dr_meta_do_complete(LPDRMETA meta, error_monitor_t em) {
-    int panding;
+    assert(meta->m_align != 0);
 
-    if (meta->m_align == 0) meta->m_align = 1;
-
-    panding = meta->m_data_size % meta->m_align;
-    if (panding) {
-        panding = meta->m_align - panding;
-    }
-    meta->m_data_size += panding;
+    meta->m_require_align = dr_meta_calc_require_align(meta);
 
     if (meta->m_entry_count == 0) {
         CPE_ERROR_EX(em, CPE_DR_ERROR_META_NO_ENTRY, "meta %s have no entry", dr_meta_name(meta));
     }
+
+    CPE_PAL_CALC_ALIGN(meta->m_real_data_size, meta->m_require_align);
 }
 
 int dr_lib_addr_to_pos(LPDRMETALIB metaLib, const void * addr) {

@@ -21,7 +21,7 @@ public:
     LPDRMETALIB m_metaLib;
     struct mem_buffer m_buffer;
 
-    int parseMeta(const char * def);
+    int parseMeta(const char * def, uint8_t dft_align = 0);
 
     LPDRMETA meta(const char * name);
     LPDRMETAENTRY entry(const char * metaName, const char * entryName);

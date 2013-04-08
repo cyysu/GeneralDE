@@ -14,11 +14,19 @@
         return -1;                                                      \
     }
 
+#ifdef _MSC_VER
+#define DR_SAVE_LIB_TO_XML_WRITE_ATTRIBUTE_FMT(__attrname, __fmt, ...)      \
+    if (xmlTextWriterWriteFormatAttribute(writer, BAD_CAST __attrname, __fmt, __VA_ARGS__) < 0) { \
+        CPE_ERROR(em, "dr_save_lib_to_xml_file: Error write attribute %s, "__fmt, (__attrname), __VA_ARGS__); \
+        return -1;                                                      \
+    }
+#else
 #define DR_SAVE_LIB_TO_XML_WRITE_ATTRIBUTE_FMT(__attrname, __fmt, __args...)      \
     if (xmlTextWriterWriteFormatAttribute(writer, BAD_CAST __attrname, __fmt, ##__args) < 0) { \
         CPE_ERROR(em, "dr_save_lib_to_xml_file: Error write attribute %s, "__fmt, (__attrname), ##__args); \
         return -1;                                                      \
     }
+#endif
 
 #define DR_SAVE_LIB_TO_XML_WRITE_START_ELEMENT(__element_name)          \
     if (xmlTextWriterStartElement(writer, BAD_CAST __element_name) < 0) {   \
@@ -61,11 +69,11 @@ static int dr_save_lib_to_xml_entries(LPDRMETA meta, xmlTextWriterPtr writer, er
         }
 
         if (array_refer_entry) {
-            DR_SAVE_LIB_TO_XML_WRITE_ATTRIBUTE("refer", dr_meta_off_to_path(meta, dr_entry_data_start_pos(array_refer_entry), buf, sizeof(buf)));
+            DR_SAVE_LIB_TO_XML_WRITE_ATTRIBUTE("refer", dr_meta_off_to_path(meta, dr_entry_data_start_pos(array_refer_entry, 0), buf, sizeof(buf)));
         }
 
         if (selector_entry) {
-            DR_SAVE_LIB_TO_XML_WRITE_ATTRIBUTE("select", dr_meta_off_to_path(meta, dr_entry_data_start_pos(selector_entry), buf, sizeof(buf)));
+            DR_SAVE_LIB_TO_XML_WRITE_ATTRIBUTE("select", dr_meta_off_to_path(meta, dr_entry_data_start_pos(selector_entry, 0), buf, sizeof(buf)));
         }
 
         if (strcmp(dr_entry_cname(entry), "") != 0) DR_SAVE_LIB_TO_XML_WRITE_ATTRIBUTE("cname", dr_entry_cname(entry));
@@ -139,6 +147,8 @@ static int dr_save_lib_to_xml_metas(LPDRMETALIB metaLib, xmlTextWriterPtr writer
 
             DR_SAVE_LIB_TO_XML_WRITE_ATTRIBUTE_FMT("primarykey", "%s", buf);
         }
+
+        DR_SAVE_LIB_TO_XML_WRITE_ATTRIBUTE_FMT("align", "%d", dr_meta_align(meta));
 
         if (dr_save_lib_to_xml_entries(meta, writer, em) != 0) return -1;
         if (dr_save_lib_to_xml_indexies(meta, writer, em) != 0) return -1;
@@ -238,6 +248,7 @@ char* dr_save_lib_to_xml_buf(
     }
 
     rv = dr_save_lib_to_xml_i(metaLib, writer, em);
+    (void)rv;
 
     mem_buffer_append(buffer, buf->content, buf->use);
     mem_buffer_append_char(buffer, 0);

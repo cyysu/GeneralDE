@@ -101,7 +101,27 @@ void Meta::dump_data(write_stream_t stream, const void * data, size_t capacity) 
         data,
         capacity, 
         *this,
-        DR_JSON_PRINT_BEAUTIFY,
+        DR_JSON_PRINT_MINIMIZE,
+        0);
+}
+
+const char * Meta::dump_data_array(mem_buffer_t buffer, const void * data, size_t capacity) const {
+    write_stream_buffer stream = CPE_WRITE_STREAM_BUFFER_INITIALIZER(buffer);
+
+    dump_data_array((write_stream_t)&stream, data, capacity);
+
+    stream_putc((write_stream_t)&stream, 0);
+
+    return (const char *)mem_buffer_make_continuous(buffer, 0);
+}
+
+void Meta::dump_data_array(write_stream_t stream, const void * data, size_t capacity) const {
+    dr_json_print_array(
+        stream,
+        data,
+        capacity, 
+        *this,
+        DR_JSON_PRINT_MINIMIZE,
         0);
 }
 
@@ -114,6 +134,23 @@ void Meta::load_from_cfg(void * data, size_t capacity, cfg_t cfg, int policy) co
 
 bool Meta::try_load_from_cfg(void * data, size_t capacity, cfg_t cfg, error_monitor_t em, int policy) const {
     if (dr_cfg_read(data, capacity, cfg, *this, policy, em) <= 0) {
+        bzero(data, capacity);
+        return false;
+    }
+    else {
+        return true;
+    }
+}
+
+void Meta::load_from_json(void * data, size_t capacity, const char * json) const {
+    Utils::ErrorCollector ec;
+    if (dr_json_read(data, capacity, json, *this, ec) <= 0) {
+        ec.checkThrowWithMsg< ::std::runtime_error>();
+    }
+}
+
+bool Meta::try_load_from_json(void * data, size_t capacity, const char * json, error_monitor_t em) const {
+    if (dr_json_read(data, capacity, json, *this, em) <= 0) {
         bzero(data, capacity);
         return false;
     }

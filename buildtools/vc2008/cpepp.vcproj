@@ -18,8 +18,8 @@
 	<Configurations>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory="$(SolutionDir)../../build/$(ConfigurationName).win32"
-			IntermediateDirectory="$(SolutionDir)../../build/$(ConfigurationName).Intermediate.win32/$(ProjectName)"
+			OutputDirectory="$(SolutionDir)..\..\build\vc\$(ConfigurationName)\lib"
+			IntermediateDirectory="$(SolutionDir)..\..\build\vc\$(ConfigurationName)\$(ProjectName)\building"
 			ConfigurationType="4"
 			CharacterSet="1"
 			>
@@ -42,10 +42,10 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="..\..\include;..\..\3rdTools\yaml\include;..\..\3rdTools\yajl\include;..\..\3rdTools\libxml2\include"
-				PreprocessorDefinitions="WIN32;_DEBUG;_LIB"
+				PreprocessorDefinitions="WIN32;_LIB"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
-				RuntimeLibrary="3"
+				RuntimeLibrary="2"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				DebugInformationFormat="4"
@@ -83,8 +83,8 @@
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="$(SolutionDir)../../build/$(ConfigurationName).win32"
-			IntermediateDirectory="$(SolutionDir)../../build/$(ConfigurationName).Intermediate.win32/$(ProjectName)"
+			OutputDirectory="$(SolutionDir)..\..\build\vc\$(ConfigurationName)\lib"
+			IntermediateDirectory="$(SolutionDir)..\..\build\vc\$(ConfigurationName)\$(ProjectName)\building"
 			ConfigurationType="4"
 			CharacterSet="1"
 			WholeProgramOptimization="1"
@@ -213,7 +213,19 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\include\cpepp\utils\DynListUtils.hpp"
+					>
+				</File>
+				<File
 					RelativePath="..\..\include\cpepp\utils\ErrorCollector.hpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\include\cpepp\utils\FunctionalExt.hpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\include\cpepp\utils\IntTypeSelect.hpp"
 					>
 				</File>
 				<File
@@ -221,7 +233,47 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\include\cpepp\utils\ObjHolder.hpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\include\cpepp\utils\ObjRef.hpp"
+					>
+				</File>
+				<File
 					RelativePath="..\..\include\cpepp\utils\OpGuard.hpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\include\cpepp\utils\ProbabilitySelector.hpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\include\cpepp\utils\Random.hpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\include\cpepp\utils\RangeMgr.hpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\include\cpepp\utils\StreamFile.hpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\include\cpepp\utils\StreamMem.hpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\include\cpepp\utils\System.hpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\include\cpepp\utils\ToRef.hpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\include\cpepp\utils\WeightSelector.hpp"
 					>
 				</File>
 			</Filter>
@@ -297,6 +349,74 @@
 					>
 				</File>
 			</Filter>
+			<Filter
+				Name="pom_grp"
+				>
+				<File
+					RelativePath="..\..\include\cpepp\pom_grp\ObjectRef.hpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\include\cpepp\pom_grp\Store.hpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\include\cpepp\pom_grp\StoreEntry.hpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\include\cpepp\pom_grp\StoreTable.hpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\include\cpepp\pom_grp\System.hpp"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="pom"
+				>
+				<File
+					RelativePath="..\..\include\cpepp\pom\Manager.hpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\include\cpepp\pom\Object.hpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\include\cpepp\pom\System.hpp"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="otm"
+				>
+				<File
+					RelativePath="..\..\include\cpepp\otm\Manager.hpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\include\cpepp\otm\Memo.hpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\include\cpepp\otm\MemoBuf.hpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\include\cpepp\otm\System.hpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\include\cpepp\otm\Timer.hpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\include\cpepp\otm\TimerProcessor.hpp"
+					>
+				</File>
+			</Filter>
 		</Filter>
 		<Filter
 			Name="src"
@@ -349,11 +469,31 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\src\cpepp\utils\ProbabilitySelector.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\..\src\cpepp\utils\Random.cpp"
 					>
 				</File>
 				<File
 					RelativePath="..\..\src\cpepp\utils\RangeMgr.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\cpepp\utils\StreamFile.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\cpepp\utils\StreamMem.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\cpepp\utils\ToRef.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\cpepp\utils\WeightSelector.cpp"
 					>
 				</File>
 			</Filter>
@@ -407,6 +547,46 @@
 				<File
 					RelativePath="..\..\src\cpepp\nm\Object.cpp"
 					>
+				</File>
+			</Filter>
+			<Filter
+				Name="pom"
+				>
+				<File
+					RelativePath="..\..\src\cpepp\pom\Manager.cpp"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="pom_grp"
+				>
+				<File
+					RelativePath="..\..\src\cpepp\pom_grp\Store.cpp"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="otm"
+				>
+				<File
+					RelativePath="..\..\src\cpepp\otm\Manager.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)\OtmManager.obj"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)\OtmManager.obj"
+						/>
+					</FileConfiguration>
 				</File>
 			</Filter>
 		</Filter>

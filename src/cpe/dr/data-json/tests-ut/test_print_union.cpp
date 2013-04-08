@@ -31,11 +31,11 @@ TEST_F(PrintTest, print_union_no_selector) {
 TEST_F(PrintTest, print_union_with_selector) {
     installMeta(
         "<metalib tagsetversion='1' name='net'  version='1'>"
-        "    <union name='S' version='1'>"
+        "    <union name='S' version='1' align='1'>"
         "	     <entry name='a1' type='int16' id='1'/>"
         "	     <entry name='a2' type='int32' id='2'/>"
         "    </union>"
-        "    <struct name='S2' version='1'>"
+        "    <struct name='S2' version='1' align='1'>"
         "	     <entry name='type' type='int16'/>"
         "	     <entry name='m_s' type='S' select='type'/>"
         "	     <entry name='a2' type='int16'/>"
@@ -61,14 +61,14 @@ TEST_F(PrintTest, print_union_with_selector) {
 TEST_F(PrintTest, print_union_with_selector_in_sub) {
     installMeta(
         "<metalib tagsetversion='1' name='net'  version='1'>"
-        "    <struct name='Select' version='1'>"
+        "    <struct name='Select' version='1' align='1'>"
         "	     <entry name='v' type='int16' id='3'/>"
         "    </struct>"
-        "    <union name='S' version='1'>"
+        "    <union name='S' version='1' align='1'>"
         "	     <entry name='a1' type='int16' id='1'/>"
         "	     <entry name='a2' type='int32' id='2'/>"
         "    </union>"
-        "    <struct name='S2' version='1'>"
+        "    <struct name='S2' version='1' align='1'>"
         "	     <entry name='type' type='Select'/>"
         "	     <entry name='m_s' type='S' select='type.v'/>"
         "	     <entry name='a2' type='int16'/>"

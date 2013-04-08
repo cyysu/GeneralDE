@@ -15,12 +15,26 @@ static int pom_grp_meta_build_store_meta_on_entry_normal(
     error_monitor_t em)
 {
     LPDRMETA entry_meta = pom_grp_entry_meta_normal_meta(entry);
-    assert(entry_meta);
 
-    return (dr_inbuild_meta_copy_entrys(meta, entry_meta) != 0
-            || dr_inbuild_meta_copy_indexes(meta, entry_meta) != 0)
-        ? -1
-        : 0;
+    struct DRInBuildMetaEntry * new_entry = dr_inbuild_meta_add_entry(meta);
+    if (new_entry == NULL) {
+        CPE_ERROR(em, "pom_grp_meta_build_store_meta: create new entry %s fail!", entry->m_name);
+        return -1;
+    }
+
+    dr_inbuild_entry_set_name(new_entry, entry->m_name);
+    dr_inbuild_entry_set_id(new_entry, -1);
+    dr_inbuild_entry_set_type(new_entry, dr_meta_name(entry_meta));
+    dr_inbuild_entry_set_array_count(new_entry, 1);
+
+    if (dr_inbuild_metalib_find_meta(builder, dr_meta_name(entry_meta)) == NULL) {
+        if (dr_inbuild_metalib_copy_meta(builder, entry_meta) == NULL) {
+            CPE_ERROR(em, "pom_grp_meta_build_store_meta: create meta for %s fail!", entry->m_name);
+            return -1;
+        }
+    }
+
+    return 0;
 }
 
 static int pom_grp_meta_build_store_meta_on_entry_ba(
@@ -150,6 +164,57 @@ static int pom_grp_meta_build_calc_version(
     return 1;
 }
 
+static int pom_grp_meta_build_store_meta_list(
+    struct DRInBuildMetaLib * builder,
+    pom_grp_meta_t meta,
+    LPDRMETA src_main_meta,
+    error_monitor_t em)
+{
+    struct DRInBuildMeta * list_meta;
+    struct DRInBuildMetaEntry * count_entry;
+    struct DRInBuildMetaEntry * data_entry;
+    char name_buf[128];
+
+    list_meta = dr_inbuild_metalib_add_meta(builder);
+    if (list_meta == NULL) {
+        CPE_ERROR(em, "pom_grp_meta_build_store_meta: create list meta fail!");
+        return -1;
+    }
+
+    dr_inbuild_meta_set_current_version(list_meta, dr_meta_current_version(src_main_meta));
+
+    snprintf(name_buf, sizeof(name_buf), "%sList", pom_grp_meta_name(meta));
+    dr_inbuild_meta_set_name(list_meta, name_buf);
+    dr_inbuild_meta_set_current_version(list_meta, dr_meta_current_version(src_main_meta));
+    dr_inbuild_meta_set_align(list_meta, dr_meta_align(src_main_meta));
+    dr_inbuild_meta_set_type(list_meta, CPE_DR_TYPE_STRUCT);
+
+    count_entry = dr_inbuild_meta_add_entry(list_meta);
+    if (count_entry == NULL) {
+        CPE_ERROR(em, "pom_grp_meta_build_store_meta: create list meta count entry fail!");
+        return -1;
+    }
+    dr_inbuild_entry_set_name(count_entry, "count");
+    dr_inbuild_entry_set_version(count_entry, 1);
+    dr_inbuild_entry_set_type(count_entry, "uint32");
+    dr_inbuild_entry_set_array_count(count_entry, 1);
+
+    data_entry = dr_inbuild_meta_add_entry(list_meta);
+    if (data_entry == NULL) {
+        CPE_ERROR(em, "pom_grp_meta_build_store_meta: create list meta data entry fail!");
+        return -1;
+    }
+    dr_inbuild_entry_set_name(data_entry, "data");
+    dr_inbuild_entry_set_version(data_entry, 1);
+
+    snprintf(name_buf, sizeof(name_buf), "%s", pom_grp_meta_name(meta));
+    dr_inbuild_entry_set_type(data_entry, name_buf);
+    dr_inbuild_entry_set_array_count(data_entry, 0);
+    dr_inbuild_entry_set_array_refer(data_entry, "count");
+
+    return 0;
+}
+
 static int pom_grp_meta_build_store_meta_i(
     struct DRInBuildMetaLib * builder,
     pom_grp_meta_t meta,
@@ -187,11 +252,15 @@ static int pom_grp_meta_build_store_meta_i(
     dr_inbuild_metalib_set_tagsetversion(builder, dr_lib_tag_set_version(src_metalib));
     dr_inbuild_metalib_set_name(builder, pom_grp_meta_name(meta));
 
+    dr_inbuild_meta_set_name(main_meta, pom_grp_meta_name(meta));
+    dr_inbuild_meta_set_current_version(main_meta, dr_meta_current_version(src_main_meta));
+    dr_inbuild_meta_set_align(main_meta, dr_meta_align(src_main_meta));
+    dr_inbuild_meta_set_id(main_meta, dr_meta_id(src_main_meta));
+    dr_inbuild_meta_set_desc(main_meta, dr_meta_desc(src_main_meta));
+    dr_inbuild_meta_set_type(main_meta, dr_meta_type(src_main_meta));
 
-    if (dr_inbuild_meta_init(main_meta, src_main_meta) != 0
-        || dr_inbuild_meta_copy_entrys(main_meta, src_main_meta) != 0
-        || dr_inbuild_meta_copy_keys(main_meta, src_main_meta) != 0
-        || dr_inbuild_meta_copy_indexes(main_meta, src_main_meta) != 0)
+    if (dr_inbuild_meta_copy_key_entrys(main_meta, src_main_meta) != 0
+        || dr_inbuild_meta_copy_keys(main_meta, src_main_meta) != 0)
     {
         return -1;
     }
@@ -199,8 +268,6 @@ static int pom_grp_meta_build_store_meta_i(
     count = pom_grp_meta_entry_count(meta);
     for(i = 0; i < count; ++i) {
         pom_grp_entry_meta_t entry_meta = pom_grp_meta_entry_at(meta, i);
-        if (entry_meta == meta->m_main_entry) continue;
-
         switch(entry_meta->m_type) {
         case pom_grp_entry_type_normal:
             if (pom_grp_meta_build_store_meta_on_entry_normal(builder, main_meta, entry_meta, str_buffer, em) != 0) return -1;
@@ -215,6 +282,10 @@ static int pom_grp_meta_build_store_meta_i(
             if (pom_grp_meta_build_store_meta_on_entry_binary(main_meta, entry_meta, str_buffer, em) != 0) return -1;
             break;
         }
+    }
+
+    if (pom_grp_meta_build_store_meta_list(builder, meta, src_main_meta, em) != 0) {
+        return -1;
     }
 
     dr_inbuild_metalib_set_version(builder, pom_grp_meta_build_calc_version(builder));
@@ -233,24 +304,24 @@ int pom_grp_meta_build_store_meta(mem_buffer_t buffer, pom_grp_meta_t meta, erro
     mem_buffer_init(&str_buffer, NULL);
 
     if (pom_grp_meta_build_store_meta_i(builder, meta, &str_buffer, em) != 0) {
-        goto ERROR;
+        goto BUILD_STORE_META_ERROR;
     }
     
     if (dr_inbuild_tsort(builder, em) != 0) {
         CPE_ERROR(em, "pom_grp_meta_build_store_meta: sort lib fail!");
-        goto ERROR;
+        goto BUILD_STORE_META_ERROR;
     }
 
     if (dr_inbuild_build_lib(buffer, builder, em) != 0) {
         CPE_ERROR(em, "pom_grp_meta_build_store_meta: build lib to buffer fail!");
-        goto ERROR;
+        goto BUILD_STORE_META_ERROR;
     }
 
     dr_inbuild_free_lib(builder);
     mem_buffer_clear(&str_buffer);
     return 0;
 
-ERROR:
+BUILD_STORE_META_ERROR:
     dr_inbuild_free_lib(builder);
     mem_buffer_clear(&str_buffer);
     return -1;
