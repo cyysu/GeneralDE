@@ -17,16 +17,17 @@ void with_evt::SetUp() {
             t_allocrator(),
             NULL);
     EXPECT_TRUE(evt_mgr) << "crate default gd_evt_mgr fail!";
-
-    gd_evt_mgr_set_metalib(evt_mgr, "default-evt-mgr-meta-lib");
 }
 
 void with_evt::TearDown() {
 }
 
 void with_evt::t_evt_mgr_set_metalib(const char * metalib) {
-    envOf<gd::dr_store::testenv::with_dr_store>()
-        .t_dr_store_reset("default-evt-mgr-meta-lib", metalib);
+    envOf<gd::dr_store::testenv::with_dr_store>().t_dr_store_install("test-lib", metalib);
+    LPDRMETALIB m = envOf<gd::dr_store::testenv::with_dr_store>().t_metalib("test-lib");
+    if (m) {
+        EXPECT_EQ(0, gd_evt_mgr_register_evt_in_metalib(t_evt_mgr(), m));
+    }
 }
 
 gd_evt_mgr_t

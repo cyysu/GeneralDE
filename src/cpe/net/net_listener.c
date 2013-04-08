@@ -64,6 +64,8 @@ static void net_listener_cb_accept(EV_P_ ev_io *w, int revents) {
 
     net_ep_set_fd(ep, new_fd);
 
+	net_ep_set_status(ep, NET_CONNECTION);
+
     listener->m_acceptor_fun(listener, ep, listener->m_acceptor_ctx);
 }
 

@@ -25,7 +25,17 @@ typedef struct tagDRData	DRDATA;
 typedef struct tagDRData	*LPDRDATA;
 typedef struct tagDRMacro		*LPDRMACRO;
 typedef struct tagDRMacrosGroup		*LPDRMACROSGROUP;
+typedef struct dr_idx_entry_info * dr_idx_entry_info_t;
+typedef struct dr_index_info * dr_index_info_t;
+typedef struct dr_index_entry_info * dr_index_entry_info_t;
 
+typedef struct dr_meta_dyn_info {
+    LPDRMETAENTRY m_array_entry;
+    uint32_t m_array_start;
+
+    LPDRMETAENTRY m_refer_entry;
+    uint32_t m_refer_start;
+} * dr_meta_dyn_info_t;
 
 struct tagDRLibParam
 {
@@ -90,22 +100,9 @@ typedef struct dr_metalib_source_it {
 } * dr_metalib_source_it_t;
 
 struct DRInBuildMetaLib;
-
-typedef enum dr_cvt_result {
-    dr_cvt_result_success = 0
-    , dr_cvt_result_error
-    , dr_cvt_result_not_enough_input
-    , dr_cvt_result_not_enough_output
-} dr_cvt_result_t;
-
-typedef dr_cvt_result_t (*dr_cvt_fun_t)(
-    LPDRMETA meta,
-    void * output, size_t * output_capacity,
-    const void * input, size_t * input_capacity,
-    void * ctx,
-    error_monitor_t em, int debug);
-
-typedef struct dr_cvt * dr_cvt_t;
+struct DRInBuildMacro;
+struct DRInBuildMeta;
+struct DRInBuildMetaEntry;
 
 #ifdef __cplusplus
 }

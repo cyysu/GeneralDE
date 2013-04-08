@@ -11,7 +11,7 @@ $(eval $(product).c.sources := $(wildcard $(product-base)/*.cpp)\
                                $3 \
                                )
 $(eval $(product).c.flags.ld+=$$(r.$1.c.flags.ld))
-$(eval $(product).c.flags.warning+=-Wno-unused-value)
+$(eval $(product).c.flags.lan.all+=-Wno-unused-value)
 $(eval $(product).run.path:=$(product-base))
 $(eval $1.ut:=$(product))
 

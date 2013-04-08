@@ -19,14 +19,14 @@ struct TimerData {
     DummyManager::Fun m_fun;
 };
 
-void otm_process_adp(otm_timer_t timer, otm_memo_t memo, tl_time_t cur_exec_time, void * obj_ctx) {
+void otm_process_adp(otm_timer_t timer, otm_memo_t memo, uint32_t cur_exec_time_s, void * obj_ctx) {
      TimerData * data = (TimerData*)otm_timer_data(timer);
 
      try {
          (data->m_use_responser->*(data->m_fun))(
              *(Timer*)timer,
              *(Memo*)memo,
-             cur_exec_time,
+             cur_exec_time_s,
              *(DummyTimerContext*)obj_ctx);
      }
      catch(::std::exception const & e) {
@@ -46,7 +46,7 @@ ManagerBase::registerTimer(
         otm_timer_id_t id,
         const char * name,
         void * realResponser, void * fun_addr, size_t fun_size,
-        tl_time_span_t span
+        uint32_t span_s
 #ifdef _MSC_VER
         , void * useResponser
 #endif
@@ -56,7 +56,7 @@ ManagerBase::registerTimer(
 
     otm_timer_t timer =
         otm_timer_create(
-            *this, id, name, span, sizeof(TimerData),
+            *this, id, name, span_s, sizeof(TimerData),
             otm_process_adp);
     if (timer == NULL) {
         if (otm_timer_find(*this, id)) {

@@ -1,9 +1,9 @@
 #include <assert.h>
 #include <string.h>
+#include "cpe/pal/pal_platform.h"
 #include "cpe/nm/nm_manage.h"
 #include "cpe/nm/nm_read.h"
 #include "nm_internal_ops.h"
-//#include "nm_internal_types.h"
 
 nm_node_t
 nm_node_alloc(
@@ -21,6 +21,7 @@ nm_node_alloc(
     assert(name);
 
     nameLen = cpe_hs_len_to_binary_len(strlen(name));
+    CPE_PAL_ALIGN_DFT(nameLen);
 
     buf = mem_alloc(nmm->m_alloc, nameLen + bodyLen + capacity);
     if (buf == NULL) return NULL;

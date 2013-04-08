@@ -132,3 +132,24 @@ int cfg_read_dir(cfg_t cfg, const char * path, cfg_policy_t policy, error_monito
 
     return ret;
 }
+
+int cfg_read_file(cfg_t cfg, const char * path, cfg_policy_t policy, error_monitor_t em) {
+    struct read_stream_file fstream;
+    FILE * fp;
+    int rv;
+
+    fp = file_stream_open(path, "r", em);
+    if (fp == NULL) return -1;
+
+    CPE_ERROR_SET_FILE(em, path);
+
+    read_stream_file_init(&fstream, fp, em);
+
+    rv = cfg_read(cfg, (read_stream_t)&fstream, policy, em);
+    
+    CPE_ERROR_SET_FILE(em, NULL);
+
+    file_stream_close(fp, em);
+
+    return rv;
+}

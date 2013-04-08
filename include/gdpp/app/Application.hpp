@@ -5,6 +5,11 @@
 #include "gd/app/app_tl.h"
 #include "System.hpp"
 
+#ifdef _MSC_VER
+# pragma warning(push)
+# pragma warning(disable:4624)
+
+#endif
 namespace Gd { namespace App {
 
 class Application : public Cpe::Utils::SimulateObject {
@@ -16,6 +21,7 @@ public:
 
     mem_allocrator_t allocrator(void) { return gd_app_alloc(*this); }
     error_monitor_t em(void) const { return gd_app_em(*this); }
+    error_monitor_t em(const char * name) const { return gd_app_named_em(*this, name); }
 
     Cpe::Cfg::Node & cfg(void) { return *(Cpe::Cfg::Node *)gd_app_cfg(*this); }
     Cpe::Cfg::Node const & cfg(void) const { return *(Cpe::Cfg::Node *)gd_app_cfg(*this); }
@@ -40,6 +46,10 @@ public:
 };
 
 }}
+
+#ifdef _MSC_VER
+# pragma warning(pop)
+#endif
 
 #endif
 

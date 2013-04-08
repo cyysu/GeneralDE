@@ -9,9 +9,9 @@ class Memo : public Cpe::Utils::SimulateObject {
 public:
     operator otm_memo_t (void) const { return (otm_memo_t)(this); }
 
-    tl_time_t lastActionTime(void) const { return ((otm_memo_t)this)->m_last_action_time; }
-    tl_time_t nextActionTime(void) const { return ((otm_memo_t)this)->m_next_action_time; }
-    void setNextActionTime(tl_time_t t) { ((otm_memo_t)this)->m_next_action_time = t; }
+    uint32_t lastActionTimeS(void) const { return ((otm_memo_t)this)->m_last_action_time_s; }
+    uint32_t nextActionTimeS(void) const { return ((otm_memo_t)this)->m_next_action_time_s; }
+    void setNextActionTimeS(uint32_t t) { ((otm_memo_t)this)->m_next_action_time_s = t; }
 };
 
 }}

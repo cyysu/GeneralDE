@@ -8,6 +8,11 @@
 #include "gd/evt/evt_read.h"
 #include "System.hpp"
 
+#ifdef _MSC_VER
+# pragma warning(push)
+# pragma warning(disable:4624)
+#endif
+
 namespace Gd { namespace Evt {
 
 class Event : public Cpe::Utils::SimulateObject {
@@ -39,7 +44,14 @@ public:
     Cpe::Dr::ConstDataElement operator[] (const char * name) const { return args()[name]; }
     Cpe::Dr::DataElement operator[] (const char * name) { return args()[name]; }
 
+    const char * dump(mem_buffer_t buffer) const;
     void dump(write_stream_t stream) const { gd_evt_dump(stream, *this); }
+
+    template<typename T>
+    T & as(void) { return *(T*)data(); }
+
+    template<typename T>
+    T const & as(void) const { return *(T const *)data(); }
 
     Event * clone(mem_allocrator_t alloc = NULL) const;
 
@@ -51,5 +63,9 @@ public:
 };
 
 }}
+
+#ifdef _MSC_VER
+# pragma warning(pop)
+#endif
 
 #endif

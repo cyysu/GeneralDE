@@ -1,9 +1,15 @@
 #include "cpe/pal/pal_string.h"
 #include "cpe/pal/pal_stdlib.h"
 #include "cpe/utils/buffer.h"
+#include "cpe/utils/file.h"
+#include "cpe/cfg/cfg_read.h"
 #include "cpe/cfg/cfg_manage.h"
 #include "gd/app/app_context.h"
 #include "app_internal_types.h"
+#ifdef ANDROID
+#include "cpe/zip/zip_file.h"
+#include "cpe/android/android_env.h"
+#endif
 
 void gd_app_set_main(gd_app_context_t context, gd_app_fn_t fn_main, gd_app_fn_t fn_stop, void * fn_ctx) {
     context->m_main = fn_main;
@@ -103,8 +109,57 @@ const char * gd_app_root(gd_app_context_t context) {
 }
 
 int gd_app_cfg_reload(gd_app_context_t context) {
+#ifdef ANDROID
+    int rv;
+    const char * apk_name;
+    cpe_unzip_context_t zip_context;
+    cpe_unzip_dir_t zip_dir;
+
+    apk_name = android_current_apk();
+    if (strcmp(apk_name, "") == 0) {
+        CPE_ERROR(context->m_em, "load config from assets/etc: apk config not exist!");
+        return -1;
+    }
+
+    zip_context = cpe_unzip_context_create(apk_name, context->m_alloc, context->m_em);
+    if (zip_context == NULL) {
+        CPE_ERROR(context->m_em, "load config from %s:assets/etc: open apk fail!", apk_name);
+        return -1;
+    }
+
+    zip_dir = cpe_unzip_dir_find(zip_context, "assets/etc", context->m_em);
+    if (zip_dir == NULL) {
+        if (context->m_debug) {
+            CPE_INFO(context->m_em, "load config from %s:assets/etc: dir not exist, skip!", apk_name);
+        }
+        cpe_unzip_context_free(zip_context);
+        return 0;
+    }
+
+    rv = cfg_read_zip_dir(
+        context->m_cfg,
+        zip_dir,
+        cfg_merge_use_new,
+        context->m_em,
+        context->m_alloc);
+
+    if (rv == 0) {
+        if (context->m_debug) {
+            CPE_INFO(context->m_em, "load config from %s:assets/etc success!", apk_name);
+        }
+    }
+
+    cpe_unzip_context_free(zip_context);
+
+    return rv;
+#else
     int rv;
     struct mem_buffer tbuf;
+
+    if (context->m_root == NULL) {
+        CPE_ERROR(context->m_em, "load config fail, root path not set!");
+        return -1;
+    }
 
     mem_buffer_init(&tbuf, context->m_alloc);
 
@@ -124,9 +179,45 @@ int gd_app_cfg_reload(gd_app_context_t context) {
         }
     }
 
+    if (rv == 0) {
+        mem_buffer_clear_data(&tbuf);
+        mem_buffer_strcat(&tbuf, context->m_root);
+        mem_buffer_strcat(&tbuf, "/alter");
+
+        if (dir_exist((char*)mem_buffer_make_continuous(&tbuf, 0), NULL)
+            || file_exist((char*)mem_buffer_make_continuous(&tbuf, 0), NULL))
+        {
+            cfg_t alter_cfg = cfg_create(context->m_alloc);
+
+            rv = cfg_read_dir(
+                alter_cfg,
+                (char*)mem_buffer_make_continuous(&tbuf, 0),
+                cfg_merge_use_new,
+                context->m_em,
+                context->m_alloc);
+            if (rv == 0) {
+                struct cfg_it childs;
+                cfg_t alter_node;
+
+                cfg_it_init(&childs, alter_cfg);
+                while((alter_node = cfg_it_next(&childs)) && rv == 0) {
+                    rv = cfg_apply_modify_seq(context->m_cfg, alter_node, context->m_em);
+                }
+            }
+
+            cfg_free(alter_cfg);
+
+            if (context->m_debug) {
+                CPE_INFO(context->m_em, "load config alter from %s success!", (char*)mem_buffer_make_continuous(&tbuf, 0));
+            }
+        }
+    }
+
+
     mem_buffer_clear(&tbuf);
 
     return rv;
+#endif
 }
 
 uint32_t gd_app_flags(gd_app_context_t app) {
@@ -164,6 +255,4 @@ void gd_app_set_debug(gd_app_context_t context, int level) {
 gd_app_status_t gd_app_state(gd_app_context_t context) {
     return context->m_state;
 }
-
-gd_app_context_t g_app_context = NULL;
 

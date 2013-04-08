@@ -8,15 +8,16 @@
 extern "C" {
 #endif
 
-extern gd_app_context_t g_app_context;
-
-gd_app_context_t gd_app_context_create(
+gd_app_context_t
+gd_app_context_create_main(
     mem_allocrator_t alloc, size_t capacity,
     int argc, char ** argv);
 
 void gd_app_context_free(gd_app_context_t context);
 
 void gd_app_set_main(gd_app_context_t context, gd_app_fn_t fn_main, gd_app_fn_t fn_stop, void * fn_ctx);
+
+void gd_app_ins_set(gd_app_context_t context);
 
 mem_allocrator_t gd_app_alloc(gd_app_context_t context);
 void gd_app_set_alloc(gd_app_context_t context, mem_allocrator_t alloc);
@@ -55,7 +56,7 @@ gd_app_status_t gd_app_state(gd_app_context_t context);
 /*app tick function*/
 int gd_app_tick_add(gd_app_context_t context, gd_app_tick_fun tick, void * tick_ctx, ptr_int_t tick_arg);
 int gd_app_tick_remove(gd_app_context_t context, gd_app_tick_fun tick, void * tick_ctx);
-void gd_app_tick(gd_app_context_t context);
+int gd_app_tick(gd_app_context_t context);
 
 /*app falgs functions*/
 uint32_t gd_app_flags(gd_app_context_t context);

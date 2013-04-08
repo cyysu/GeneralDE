@@ -11,7 +11,7 @@
 #include "../dr_ctype_ops.h"
 
 int dr_cfg_read_entry(
-    char * all_buf, size_t all_capacity, char * entry_buf, size_t entry_capacity,
+    char * all_buf, size_t all_capacity, char * meta_buf, size_t entry_capacity,
     cfg_t cfg, LPDRMETA meta, LPDRMETAENTRY entry, int policy, error_monitor_t em);
 
 int dr_cfg_read_struct(char * buf, size_t capacity, cfg_t cfg, LPDRMETA meta, int policy, error_monitor_t em);
@@ -81,25 +81,27 @@ int dr_cfg_read_entry_one(
     }
 }
 
-void dr_cfg_read_array_set_dft(size_t count, size_t max_count, size_t element_size, char * write_pos, LPDRMETA meta, LPDRMETAENTRY entry) {
+void dr_cfg_read_array_set_dft(size_t count, size_t max_count, size_t element_size, char * meta_buf, LPDRMETA meta, LPDRMETAENTRY entry) {
     const void * dftValue;
 
     dftValue = dr_entry_dft_value(entry);
     if (dftValue) {
         while(count < max_count) {
-            memcpy(write_pos, dftValue, element_size);
-            write_pos += element_size;
+            memcpy(meta_buf + dr_entry_data_start_pos(entry, count), dftValue, element_size);
             ++count;
         }
     }
     else {
-        bzero(write_pos, (max_count - count) * element_size);
+        while(count < max_count) {
+            bzero(meta_buf + dr_entry_data_start_pos(entry, count), element_size);
+            ++count;
+        }
     }
 }
 
 int dr_cfg_read_entry(
     char * all_buf, size_t all_capacity,
-    char * entry_buf, size_t entry_capacity,
+    char * meta_buf, size_t entry_capacity,
     cfg_t cfg, LPDRMETA meta, LPDRMETAENTRY entry, int policy, error_monitor_t em)
 {
     cfg_it_t itemIt;
@@ -110,14 +112,13 @@ int dr_cfg_read_entry(
     if (entry->m_array_count == 1) {
         return dr_cfg_read_entry_one(
             all_buf, all_capacity,
-            entry_buf, entry_capacity,
+            meta_buf + dr_entry_data_start_pos(entry, 0), entry_capacity,
             cfg, meta, entry, policy, em);
     }
     else {
         LPDRMETAENTRY refer;
         int count;
         int max_count;
-        char * write_pos;
         size_t element_size = dr_entry_element_size(entry);
         if (element_size == 0) {
             CPE_ERROR(
@@ -128,27 +129,28 @@ int dr_cfg_read_entry(
         }
 
         count = 0;
-        write_pos = entry_buf;
         max_count = entry->m_array_count;
 
         if (max_count == 0) {
-            max_count = entry_capacity / element_size;
+            max_count = dr_entry_array_calc_ele_num(entry, entry_capacity);
         }
         else {
-            if (max_count * element_size > entry_capacity) {
+            if (dr_entry_array_calc_buf_capacity(entry, max_count) > entry_capacity) {
                 CPE_ERROR(
                     em,
                     "process %s.%s, array element overflow, require " FMT_SIZE_T ", capacity is " FMT_SIZE_T "!",
                     dr_meta_name(meta), dr_entry_name(entry),
                     max_count * element_size, entry_capacity);
-                max_count = entry_capacity / element_size;
+                max_count = dr_entry_array_calc_ele_num(entry, entry_capacity);
             }
         }
 
         cfg_it_init(&itemIt, cfg);
         while((item = cfg_it_next(&itemIt)) && count < max_count) {
-            dr_cfg_read_entry_one(all_buf, all_capacity, write_pos, element_size, item, meta, entry, policy, em);
-            write_pos += element_size;
+            dr_cfg_read_entry_one(
+                all_buf, all_capacity,
+                meta_buf + dr_entry_data_start_pos(entry, count),
+                element_size, item, meta, entry, policy, em);
             ++count;
         }
 
@@ -164,7 +166,7 @@ int dr_cfg_read_entry(
             }
         }
         else {
-            dr_cfg_read_array_set_dft(count, max_count, element_size, write_pos, meta, entry);
+            dr_cfg_read_array_set_dft(count, max_count, element_size, meta_buf, meta, entry);
             count = max_count;
         }
 
@@ -177,7 +179,7 @@ int dr_cfg_read_union(char * buf, size_t capacity, cfg_t cfg, LPDRMETA meta, LPD
     cfg_t item;
     int size;
 
-    size = 0;
+    size = dr_meta_size(meta);
 
     cfg_it_init(&itemIt, cfg);
 
@@ -200,7 +202,7 @@ int dr_cfg_read_union(char * buf, size_t capacity, cfg_t cfg, LPDRMETA meta, LPD
 
         entry_capacity = capacity - entry->m_data_start_pos;
 
-        entry_size = dr_cfg_read_entry(buf, capacity, buf + entry->m_data_start_pos, entry_capacity, item, meta, entry, policy, em);
+        entry_size = dr_cfg_read_entry(buf, capacity, buf, entry_capacity, item, meta, entry, policy, em);
         if (entry_size < 0) continue;
 
         if (union_entry) *union_entry = entry;
@@ -221,7 +223,7 @@ int dr_cfg_read_struct(char * buf, size_t capacity, cfg_t cfg, LPDRMETA meta, in
     
     assert(cfg);
 
-    size = 0;
+    size = dr_meta_size(meta);
 
     cfg_it_init(&itemIt, cfg);
 
@@ -252,7 +254,7 @@ int dr_cfg_read_struct(char * buf, size_t capacity, cfg_t cfg, LPDRMETA meta, in
             entry_capacity = capacity - entry->m_data_start_pos;
         }
 
-        entry_size = dr_cfg_read_entry(buf, capacity, buf + entry->m_data_start_pos, entry_capacity, item, meta, entry, policy, em);
+        entry_size = dr_cfg_read_entry(buf, capacity, buf, entry_capacity, item, meta, entry, policy, em);
         
         if ((int)(entry->m_data_start_pos + entry_size) > size) {
             size = entry->m_data_start_pos + entry_size;

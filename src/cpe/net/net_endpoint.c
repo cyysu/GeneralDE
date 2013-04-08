@@ -8,6 +8,7 @@
 #include "net_internal_ops.h"
 
 static void net_ep_cb(EV_P_ ev_io *w, int revents);
+static void net_ep_timeout_cb(EV_P_ ev_timer *w, int revents);
 
 net_ep_t
 net_ep_create(net_mgr_t nmgr) {
@@ -25,35 +26,54 @@ net_ep_create(net_mgr_t nmgr) {
     ep->m_chanel_w = NULL;
     ep->m_connector = NULL;
     ep->m_fd = -1;
+	ep->m_status = NET_INVALID;
     ep->m_process_fun = NULL;
     ep->m_process_ctx = NULL;
+    ep->m_processing = 0;
+    ep->m_deleted = 0;
 
     ep->m_watcher.data = ep;
     ev_init(&ep->m_watcher, net_ep_cb);
+
+    ep->m_timer.data = ep;
+    ev_init(&ep->m_timer, NULL);
+    ep->m_timer.repeat = 0;
 
     return ep;
 }
 
 void net_ep_free(net_ep_t ep) {
-    if (ep->m_connector) {
-        net_connector_unbind(ep->m_connector);
+    if (ep->m_processing) {
+        assert(!ep->m_deleted);
+        ep->m_deleted = 1;
     }
+    else {
+        if (ep->m_connector) {
+            net_connector_unbind(ep->m_connector);
+        }
 
-    if (net_ep_is_open(ep)) {
-        net_ep_close_i(ep, net_ep_event_close_by_shutdown);
+        if (ev_cb(&ep->m_timer) == net_ep_timeout_cb) {
+            ev_timer_stop(ep->m_mgr->m_ev_loop, &ep->m_timer);
+            ev_init(&ep->m_timer, NULL);
+            ev_timer_set(&ep->m_timer, 0, 0);
+        }
+
+        if (net_ep_is_open(ep)) {
+            net_ep_close_i(ep, net_ep_event_close_by_shutdown);
+        }
+
+        if (ep->m_chanel_w) {
+            net_chanel_free(ep->m_chanel_w);
+            ep->m_chanel_w = NULL;
+        }
+
+        if (ep->m_chanel_r) {
+            net_chanel_free(ep->m_chanel_r);
+            ep->m_chanel_r = NULL;
+        }
+
+        net_ep_pages_free_ep(ep);
     }
-
-    if (ep->m_chanel_w) {
-        net_chanel_free(ep->m_chanel_w);
-        ep->m_chanel_w = NULL;
-    }
-
-    if (ep->m_chanel_r) {
-        net_chanel_free(ep->m_chanel_r);
-        ep->m_chanel_r = NULL;
-    }
-
-    net_ep_pages_free_ep(ep);
 }
 
 net_ep_id_t net_ep_id(net_ep_t ep) {
@@ -86,10 +106,9 @@ void net_ep_set_processor(net_ep_t ep, net_process_fun_t process_fun, void * pro
     if (ep->m_fd >= 0) {                                            \
         int new_events = net_ep_calc_ev_events(ep);                 \
         if (old_events != new_events) {                             \
-            if (old_events) {                                       \
-                ev_io_stop(ep->m_mgr->m_ev_loop, &ep->m_watcher);   \
-            }                                                       \
+            ev_io_stop(ep->m_mgr->m_ev_loop, &ep->m_watcher);       \
             if (new_events) {                                       \
+                ep->m_watcher.data = ep;                            \
                 ev_io_set(&ep->m_watcher, ep->m_fd, new_events);    \
                 ev_io_start(ep->m_mgr->m_ev_loop, &ep->m_watcher);  \
             }                                                       \
@@ -138,6 +157,47 @@ int net_ep_is_open(net_ep_t ep) {
     return ep->m_fd < 0 ? 0 : 1;
 }
 
+int net_ep_set_timeout(net_ep_t ep, tl_time_span_t span) {
+    if (span == 0) {
+        if (ev_cb(&ep->m_timer) == NULL) {
+            return 0;
+        }
+        else if (ev_cb(&ep->m_timer) == net_ep_timeout_cb) {
+            ev_timer_stop(ep->m_mgr->m_ev_loop, &ep->m_timer);
+            ev_init(&ep->m_timer, NULL);
+            ev_timer_set(&ep->m_timer, 0, 0);
+            return 0;
+        }
+        else {
+            return -1;
+        }
+    }
+    else {
+        ev_tstamp ev_span = (ev_tstamp)span / 1000.0;
+
+        if (ev_cb(&ep->m_timer) == NULL) {
+            ev_timer_init(&ep->m_timer, net_ep_timeout_cb, ev_span, ev_span);
+            ev_timer_start(ep->m_mgr->m_ev_loop, &ep->m_timer);
+            return 0;
+        }
+        else if (ev_cb(&ep->m_timer) == net_ep_timeout_cb) {
+            ev_timer_stop(ep->m_mgr->m_ev_loop, &ep->m_timer);
+            ev_timer_set(&ep->m_timer, ev_span, ev_span);
+            ev_timer_start(ep->m_mgr->m_ev_loop, &ep->m_timer);
+            return 0;
+        }
+        else {
+            return -1;
+        }
+    }
+}
+
+tl_time_span_t net_ep_timeout(net_ep_t ep) {
+    return ev_cb(&ep->m_timer) == net_ep_timeout_cb
+        ? (ep->m_timer.repeat * 1000)
+        : 0;
+}
+
 void net_ep_close_i(net_ep_t ep, net_ep_event_t ev) {
     assert(ep);
     assert(ev == net_ep_event_close_by_user
@@ -147,28 +207,16 @@ void net_ep_close_i(net_ep_t ep, net_ep_event_t ev) {
 
     if (ep->m_fd < 0) return;
 
-#ifdef _MSC_VER
-    //if (ep->m_type = net_ep_socket) {
-        net_socket_close(&ep->m_fd, ep->m_mgr->m_em);
-    //}
-    //else {
-    //    CPE_ERROR(
-    //        ep->m_mgr->m_em, "net_ep_close: close fail, errno=%d (%s)",
-    //        cpe_sock_errno(), cpe_sock_errstr(cpe_sock_errno()));
-    //}
-#else
-    if (close(ep->m_fd) != 0) {
-        CPE_ERROR(
-            ep->m_mgr->m_em, "net_ep_close: close fail, errno=%d (%s)",
-            cpe_sock_errno(), cpe_sock_errstr(cpe_sock_errno()));
-    }
-#endif
+    ev_io_stop(ep->m_mgr->m_ev_loop, &ep->m_watcher);
 
-    if (net_ep_calc_ev_events(ep)) {
-        ev_io_stop(ep->m_mgr->m_ev_loop, &ep->m_watcher);
-    }
-
+    net_socket_close(&ep->m_fd, ep->m_mgr->m_em);
     ep->m_fd = -1;
+
+    net_ep_set_status(ep, NET_INVALID);
+
+    if (ep->m_connector) {
+        net_connector_on_disconnect(ep->m_connector);
+    }
 
     if (ep->m_process_fun) ep->m_process_fun(ep, ep->m_process_ctx, ev);
 }
@@ -200,6 +248,11 @@ int net_ep_set_fd(net_ep_t ep, int fd) {
     net_ep_update_events(ep, 0);
 
     return 0;
+}
+
+void net_ep_set_status(net_ep_t ep, enum net_status status) {
+    assert(ep);
+    ep->m_status = status;
 }
 
 int net_ep_send(net_ep_t ep, const void * buf, size_t size) {
@@ -256,16 +309,34 @@ void net_ep_erase(net_ep_t ep, size_t size) {
     net_ep_update_events(ep, old_events);
 }
 
+void net_ep_timeout_cb(EV_P_ ev_timer *w, int revents) {
+    net_ep_t ep  = (net_ep_t)w->data;
+    assert(ep);
+
+    CPE_ERROR(
+        ep->m_mgr->m_em,
+        "net_mgr: ep %d: connection timeout!",
+        ep->m_id);
+
+    net_ep_close(ep);
+}
+
 void net_ep_cb(EV_P_ ev_io *w, int revents) {
     net_ep_t ep;
     int old_events;
 
     ep = (net_ep_t)w->data;
     assert(ep);
+    assert(ep->m_processing == 0);
+    assert(!ep->m_deleted);
+
+    ep->m_processing = 1;
+
+    printf("net_ep_cb begin: ep=%p\n", ep);
 
     old_events = net_ep_calc_ev_events(ep);
 
-    if (revents & EV_READ) {
+    if (!ep->m_deleted && revents & EV_READ) {
         int recv_size = ep->m_chanel_r->m_type->read_from_net(ep->m_chanel_r, ep->m_fd);
         if (recv_size < 0) {
             CPE_ERROR(
@@ -273,6 +344,7 @@ void net_ep_cb(EV_P_ ev_io *w, int revents) {
                 "net_mgr: ep %d: read data error, errno=%d (%s)",
                 ep->m_id, cpe_sock_errno(), cpe_sock_errstr(cpe_sock_errno()));
             net_ep_close_i(ep, net_ep_event_close_by_error);
+            ep->m_processing = 0;
             return;
         }
         else if (recv_size == 0) {
@@ -280,6 +352,7 @@ void net_ep_cb(EV_P_ ev_io *w, int revents) {
                 CPE_INFO(ep->m_mgr->m_em, "net_mgr: ep %d: socket close by peer!", ep->m_id);
             }
             net_ep_close_i(ep, net_ep_event_close_by_peer);
+            ep->m_processing = 0;
             return;
         }
         else {
@@ -293,7 +366,7 @@ void net_ep_cb(EV_P_ ev_io *w, int revents) {
         }
     }
 
-    if (revents & EV_WRITE) {
+    if (!ep->m_deleted && revents & EV_WRITE) {
         ssize_t send_size = ep->m_chanel_w->m_type->write_to_net(ep->m_chanel_w, ep->m_fd);
         if (send_size < 0) {
             CPE_ERROR(
@@ -301,14 +374,58 @@ void net_ep_cb(EV_P_ ev_io *w, int revents) {
                 "net_mgr: ep %d: write data error, errno=%d (%s)",
                 ep->m_id, cpe_sock_errno(), cpe_sock_errstr(cpe_sock_errno()));
             net_ep_close_i(ep, net_ep_event_close_by_error);
+            ep->m_processing = 0;
             return;
         }
         else {
             if (ep->m_mgr->m_debug) {
                 CPE_INFO(ep->m_mgr->m_em, "net_mgr: ep %d: send %d bytes data!", ep->m_id, (int)send_size);
             }
+
+			if(ep->m_status == NET_REMOVE_AFTER_SEND) {
+                if (ep->m_chanel_w->m_type->data_size(ep->m_chanel_w) == 0) {
+                    if (ep->m_mgr->m_debug) {
+                        CPE_INFO(ep->m_mgr->m_em, "net_mgr: ep %d: write chanel empty, auto close!", ep->m_id);
+                    }
+                    net_ep_close_i(ep, net_ep_event_close_by_user);
+                    ep->m_processing = 0;
+                    return;
+                }
+			}
         }
     }
 
+    if (!ep->m_deleted && ev_cb(&ep->m_timer) == net_ep_timeout_cb) {
+        ev_tstamp span = ep->m_timer.repeat;
+
+        assert(span > 0);
+
+        ev_timer_stop(ep->m_mgr->m_ev_loop, &ep->m_timer);
+        ev_timer_set(&ep->m_timer, span, span);
+        ev_timer_start(ep->m_mgr->m_ev_loop, &ep->m_timer);
+    }
+
+    ep->m_processing = 0;
     net_ep_update_events(ep, old_events);
+
+    if (ep->m_deleted) net_ep_free(ep);
+}
+
+const char * net_ep_event_str(net_ep_event_t evt) {
+    switch(evt) {
+    case net_ep_event_read:
+        return "net_ep_event_read";
+    case net_ep_event_open:
+        return "net_ep_event_open";
+    case net_ep_event_close_by_user:
+        return "net_ep_event_close_by_user";
+    case net_ep_event_close_by_peer:
+        return "net_ep_event_close_by_peer";
+    case net_ep_event_close_by_error:
+        return "net_ep_event_close_by_error";
+    case net_ep_event_close_by_shutdown:
+        return "net_ep_event_close_by_shutdown";
+    default:
+        return "net_ep_event_unknown";
+    }
 }

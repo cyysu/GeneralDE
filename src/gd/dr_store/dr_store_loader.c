@@ -84,6 +84,15 @@ static void dr_store_loader_lib_destory(LPDRMETALIB lib, void * ctx) {
     mem_free((mem_allocrator_t)ctx, lib);
 }
 
+static const char * dr_store_loader_make_full_path(mem_buffer_t  buffer, gd_app_context_t app, cfg_t cfg) {
+    mem_buffer_clear_data(buffer);
+    mem_buffer_strcat(buffer, gd_app_root(app));
+    mem_buffer_strcat(buffer, "/");
+    mem_buffer_strcat(buffer, cfg_as_string(cfg, NULL));
+
+    return (const char *)mem_buffer_make_continuous(buffer, 0);
+}
+
 static int dr_store_loader_load_from_file(
     gd_app_context_t app, gd_app_module_t module, dr_store_manage_t mgr, cfg_t cfg)
 {
@@ -93,6 +102,7 @@ static int dr_store_loader_load_from_file(
     void * buf = NULL;
     int rv;
     struct mem_buffer buffer;
+    struct mem_buffer filename_buffer;
 
     builder = dr_metalib_builder_create(gd_app_alloc(app), gd_app_em(app));
     if (builder == NULL) {
@@ -101,16 +111,20 @@ static int dr_store_loader_load_from_file(
     }
 
     mem_buffer_init(&buffer, 0);
+    mem_buffer_init(&filename_buffer, 0);
 
     rv = 0;
     if (cfg_type(cfg) == CPE_CFG_TYPE_STRING) {
-        rv = dr_store_loader_add_file_to_builder(app, module, mgr, builder, NULL, cfg_as_string(cfg, NULL));
+        rv = dr_store_loader_add_file_to_builder(
+            app, module, mgr, builder, NULL,
+            dr_store_loader_make_full_path(&filename_buffer, app, cfg));
     }
     else if (cfg_type(cfg) == CPE_CFG_TYPE_SEQUENCE) {
         cfg_it_init(&child_it, cfg);
         while((child = cfg_it_next(&child_it))) {
             if (dr_store_loader_add_file_to_builder(
-                    app, module, mgr, builder, NULL, cfg_as_string(child, NULL)) != 0)
+                    app, module, mgr, builder, NULL, 
+                    dr_store_loader_make_full_path(&filename_buffer, app, child)) != 0)
             {
                 rv = -1;
             }
@@ -120,7 +134,8 @@ static int dr_store_loader_load_from_file(
         cfg_it_init(&child_it, cfg);
         while((child = cfg_it_next(&child_it))) {
             if (dr_store_loader_add_file_to_builder(
-                    app, module, mgr, builder, cfg_name(child), cfg_as_string(child, NULL)) != 0)
+                    app, module, mgr, builder, cfg_name(child),
+                    dr_store_loader_make_full_path(&filename_buffer, app, child)) != 0)
             {
                 rv = -1;
             }
@@ -185,6 +200,7 @@ FROM_FILE_COMPLETE:
     if (buf) mem_free(gd_app_alloc(app), buf);
 
     mem_buffer_clear(&buffer);
+    mem_buffer_clear(&filename_buffer);
     dr_metalib_builder_free(builder);
 
     return rv;

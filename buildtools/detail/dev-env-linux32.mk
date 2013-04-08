@@ -1,9 +1,9 @@
 dev-env-list+=linux32
 
-linux32.GCC?=$(shell which gcc)
-linux32.CC=$(linux32.GCC)
-linux32.CXX?=$(shell which g++)
-linux32.AR?=$(shell which ar)
+linux32.GCC?=$(if $(GCC),$(GCC),$(shell which gcc))
+linux32.CC?=$(if $(GCC),$(GCC),$(shell which gcc))
+linux32.CXX?=$(if $(CXX),$(CXX),$(shell which g++))
+linux32.AR?=$(if $(AR),$(AR),$(shell which ar))
 
 linux32.CFLAGS+=-m32 -fPIC
 linux32.CXXFLAGS+=-m32 -fPIC

@@ -17,7 +17,7 @@ tl_time_t tl_time_source_msec(void * context) {
     int r;
     r = gettimeofday(&tp, NULL);
     assert(r == 0);
-    return tp.tv_sec * 1000 + tp.tv_usec / 1000;
+    return (uint64_t)tp.tv_sec * 1000 + tp.tv_usec / 1000;
 }
 
 tl_time_t tl_time_source_next_event(void * context) {

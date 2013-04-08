@@ -112,3 +112,10 @@ TEST_F(BitArryTest, next_pos_big_last) {
 
     EXPECT_EQ(34, cpe_ba_next_pos((cpe_ba_t)buf, 36));
 }
+
+TEST_F(BitArryTest, bytes_from_bits) {
+    EXPECT_EQ((size_t)0, cpe_ba_bytes_from_bits(0));
+    EXPECT_EQ((size_t)1, cpe_ba_bytes_from_bits(1));
+    EXPECT_EQ((size_t)1, cpe_ba_bytes_from_bits(8));
+    EXPECT_EQ((size_t)2, cpe_ba_bytes_from_bits(9));
+}

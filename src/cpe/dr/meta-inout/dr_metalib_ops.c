@@ -1,4 +1,5 @@
 #include <assert.h>
+#include "cpe/pal/pal_platform.h"
 #include "cpe/pal/pal_string.h"
 #include "cpe/pal/pal_strings.h"
 #include "cpe/dr/dr_metalib_manage.h"
@@ -28,9 +29,9 @@ int dr_lib_init(LPDRMETALIB pstLib, const LPDRLIBPARAM pstParam) {
     pstLib->m_version = pstParam->iVersion;
     pstLib->m_startpos_macro = 0; /*guess*/
     pstLib->m_startpos_meta_by_id = pstLib->m_startpos_macro + sizeof(struct tagDRMacro) * pstParam->iMaxMacros;
-    pstLib->m_startpos_meta_by_name = pstLib->m_startpos_meta_by_id + sizeof(struct tagDRMetaIdxById) * pstParam->iMaxMetas;
-    pstLib->m_startpos_meta_by_unknown = pstLib->m_startpos_meta_by_name + sizeof(struct tagDRMetaIdxByName) * pstParam->iMaxMetas;
-    pstLib->m_startpos_meta = pstLib->m_startpos_meta_by_unknown + sizeof(struct tagDRMetaIdxByName /*TODO: change type*/) * pstParam->iMaxMetas;
+    pstLib->m_startpos_meta_by_name = pstLib->m_startpos_meta_by_id + sizeof(struct idx_meta_by_id) * pstParam->iMaxMetas;
+    pstLib->m_startpos_meta_by_orig = pstLib->m_startpos_meta_by_name + sizeof(struct idx_meta_by_name) * pstParam->iMaxMetas;
+    pstLib->m_startpos_meta = pstLib->m_startpos_meta_by_orig + sizeof(struct idx_meta_by_orig /*TODO: change type*/) * pstParam->iMaxMetas;
     pstLib->m_startpos_str = pstLib->m_startpos_meta + pstParam->iMetaSize;
     pstLib->m_buf_size_str = pstParam->iStrBufSize;
     //int8_t reserve7[8];
@@ -78,13 +79,12 @@ static int dr_lib_find_next_meta_pos(LPDRMETALIB metaLib) {
     char * base = (char*)(metaLib + 1);
     int i = 0;
 
-    struct tagDRMetaIdxById * metaIdx = (struct tagDRMetaIdxById *)(base + metaLib->m_startpos_meta_by_id);
+    struct idx_meta_by_id * metaIdx = (struct idx_meta_by_id *)(base + metaLib->m_startpos_meta_by_id);
 
     int newMetaPos = metaLib->m_startpos_meta;
 
     for(i = 0; i < metaLib->m_meta_count; ++i) {
-        int curNextMetaPos = metaIdx[i].m_diff_to_base
-            + dr_calc_meta_use_size(((LPDRMETA)(base + metaIdx[i].m_diff_to_base))->m_entry_count);
+        int curNextMetaPos = metaIdx[i].m_diff_to_base + ((LPDRMETA)(base + metaIdx[i].m_diff_to_base))->m_meta_size;
         if (curNextMetaPos > newMetaPos) {
             newMetaPos = curNextMetaPos;
         }
@@ -98,15 +98,15 @@ static void dr_lib_add_meta_index_for_name(
 {
     char * base = (char*)(metaLib + 1);
     int beginPos, endPos, curPos;
-    struct tagDRMetaIdxByName * putAt = NULL;
-    struct tagDRMetaIdxByName * searchStart =
-        (struct tagDRMetaIdxByName *)(base + metaLib->m_startpos_meta_by_name);
+    struct idx_meta_by_name * putAt = NULL;
+    struct idx_meta_by_name * searchStart =
+        (struct idx_meta_by_name *)(base + metaLib->m_startpos_meta_by_name);
 
     for(beginPos = 0, endPos = metaLib->m_meta_count, curPos = (endPos - beginPos - 1) / 2;
         beginPos < endPos;
         curPos = beginPos + (endPos - beginPos - 1) / 2)
     {
-        struct tagDRMetaIdxByName * curItem = searchStart + curPos;
+        struct idx_meta_by_name * curItem = searchStart + curPos;
 
         int cmp_result = strcmp(base + newMeta->m_name_pos, base + curItem->m_name_pos);
         if (cmp_result <= 0) {
@@ -121,17 +121,30 @@ static void dr_lib_add_meta_index_for_name(
 
     if (curPos < metaLib->m_meta_count) {
         if (strcmp(base + newMeta->m_name_pos, base + putAt->m_name_pos) == 0) {
-            DR_NOTIFY_ERROR(em, CPE_DR_ERROR_META_NAME_CONFLICT);
+            CPE_ERROR_EX(em, CPE_DR_ERROR_META_NAME_CONFLICT, "meta %s name duplicate", (base + newMeta->m_name_pos));
         }
 
         memmove(
             searchStart + curPos + 1,
             searchStart + curPos,
-            sizeof(struct tagDRMetaIdxByName) * (metaLib->m_meta_count - curPos));
+            sizeof(struct idx_meta_by_name) * (metaLib->m_meta_count - curPos));
     }
 
     putAt->m_name_pos = newMeta->m_name_pos;
     putAt->m_diff_to_base = newMeta->m_self_pos;
+}
+
+static void dr_lib_add_meta_index_for_orig(
+    LPDRMETALIB metaLib, LPDRMETA newMeta, error_monitor_t em)
+{
+    char * base = (char*)(metaLib + 1);
+    struct idx_meta_by_orig * putAt = NULL;
+    struct idx_meta_by_orig * begin =
+        (struct idx_meta_by_orig *)(base + metaLib->m_startpos_meta_by_orig);
+
+    putAt = begin + metaLib->m_meta_count;
+    putAt->m_diff_to_base = newMeta->m_self_pos;
+    putAt->m_reserve = 0;
 }
 
 static void dr_lib_add_meta_index_for_id(
@@ -139,15 +152,15 @@ static void dr_lib_add_meta_index_for_id(
 {
     char * base = (char*)(metaLib + 1);
     int beginPos, endPos, curPos;
-    struct tagDRMetaIdxById * putAt = NULL;
-    struct tagDRMetaIdxById * searchStart =
-        (struct tagDRMetaIdxById *)(base + metaLib->m_startpos_meta_by_id);
+    struct idx_meta_by_id * putAt = NULL;
+    struct idx_meta_by_id * searchStart =
+        (struct idx_meta_by_id *)(base + metaLib->m_startpos_meta_by_id);
 
     for(beginPos = 0, endPos = metaLib->m_meta_count, curPos = (endPos - beginPos - 1) / 2;
         beginPos < endPos;
         curPos = beginPos + (endPos - beginPos - 1) / 2)
     {
-        struct tagDRMetaIdxById * curItem = searchStart + curPos;
+        struct idx_meta_by_id * curItem = searchStart + curPos;
         
         if (newMeta->m_id <= curItem->m_id) {
             endPos = curPos;
@@ -167,7 +180,7 @@ static void dr_lib_add_meta_index_for_id(
         memmove(
             searchStart + curPos + 1,
             searchStart + curPos,
-            sizeof(struct tagDRMetaIdxById) * (metaLib->m_meta_count - curPos));
+            sizeof(struct idx_meta_by_id) * (metaLib->m_meta_count - curPos));
     }
 
     putAt->m_id = newMeta->m_id;
@@ -179,7 +192,6 @@ dr_lib_add_meta(LPDRMETALIB metaLib, LPDRMETA meta, error_monitor_t em) {
     char * base = (char*)(metaLib + 1);
     LPDRMETA newMeta = NULL;
     int newMetaPos = 0;
-    int newMetaUsedSize = dr_calc_meta_use_size(meta->m_entry_count);
 
     if (metaLib->m_meta_count >= metaLib->m_meta_max_count) {
         DR_NOTIFY_ERROR(em, CPE_DR_ERROR_NO_SPACE_FOR_MATA);
@@ -188,7 +200,7 @@ dr_lib_add_meta(LPDRMETALIB metaLib, LPDRMETA meta, error_monitor_t em) {
 
     newMetaPos = dr_lib_find_next_meta_pos(metaLib);
 
-    if ( (newMetaPos + newMetaUsedSize)
+    if ( (newMetaPos + meta->m_meta_size)
          > (metaLib->m_startpos_meta + metaLib->m_buf_size_meta) )
     {
         DR_NOTIFY_ERROR(em, CPE_DR_ERROR_NO_SPACE_FOR_MATA);
@@ -203,6 +215,7 @@ dr_lib_add_meta(LPDRMETALIB metaLib, LPDRMETA meta, error_monitor_t em) {
 
     dr_lib_add_meta_index_for_name(metaLib, newMeta, em);
     dr_lib_add_meta_index_for_id(metaLib, newMeta, em);
+    dr_lib_add_meta_index_for_orig(metaLib, newMeta, em);
 
     /*must inc m_meta_count here
       becuse dr_add_metalib_meta_add_index_by_xxx will use this */
@@ -218,23 +231,37 @@ void dr_meta_add_entry_calc_align(
     int align = entryAlign < meta->m_align ? entryAlign : meta->m_align;
 
     if (meta->m_type == CPE_DR_TYPE_STRUCT) {
-        int panding = meta->m_data_size % align;
+        int panding = meta->m_real_data_size % align;
         if (panding) {
             panding = align - panding;
         }
 
-        newEntry->m_data_start_pos = meta->m_data_size + panding;
-        meta->m_data_size += panding + newEntry->m_unitsize;
+        newEntry->m_data_start_pos = meta->m_real_data_size + panding;
+
+        meta->m_real_data_size += panding + newEntry->m_unitsize;
     }
     else if (meta->m_type == CPE_DR_TYPE_UNION) {
         newEntry->m_data_start_pos = 0;
-        if (meta->m_data_size < newEntry->m_unitsize) {
-            meta->m_data_size = newEntry->m_unitsize;
+        if (meta->m_real_data_size < newEntry->m_unitsize) {
+            meta->m_real_data_size = newEntry->m_unitsize;
         }
     }
     else {
         CPE_ERROR_EX(em, CPE_DR_ERROR_ENTRY_INVALID_TYPE_VALUE, "unknown meta type %d!", (int)meta->m_type);
     }
+}
+
+size_t dr_meta_calc_require_align(LPDRMETA meta) {
+    size_t requilre_align = 1;
+    int i;
+
+    for(i = 0; i < dr_meta_entry_num(meta); ++i) {
+        LPDRMETAENTRY entry = dr_meta_entry_at(meta, i);
+        size_t entry_require_align = dr_entry_require_align(entry);
+        if (entry_require_align > requilre_align) requilre_align = entry_require_align;
+    }
+
+    return requilre_align > meta->m_align ? meta->m_align : requilre_align;
 }
 
 int dr_add_meta_entry_set_type_calc_align(LPDRMETA meta, LPDRMETAENTRY entry, error_monitor_t em) {
@@ -257,8 +284,10 @@ int dr_add_meta_entry_set_type_calc_align(LPDRMETA meta, LPDRMETAENTRY entry, er
             return -1;
         }
 
-        entry->m_unitsize = usedType->m_data_size * (entry->m_array_count < 1 ? 1 : entry->m_array_count);
-        entryAlign = usedType->m_align;
+        entryAlign = dr_meta_calc_require_align(usedType);
+        if (entryAlign > meta->m_align) entryAlign = meta->m_align;
+
+        entry->m_unitsize = usedType->m_real_data_size * (entry->m_array_count == 0 ? 1 : entry->m_array_count);
     }
     else { /* is basic type */
         const struct tagDRCTypeInfo * typeInfo = dr_find_ctype_info_by_type(entry->m_type);
@@ -308,20 +337,118 @@ dr_meta_add_entry(LPDRMETA meta, LPDRMETAENTRY entry, error_monitor_t em) {
     return newEntry;
 }
 
-int dr_calc_meta_use_size(int entryCount) {
-    return sizeof(struct tagDRMeta) + sizeof(struct tagDRMetaEntry) * entryCount;
+static LPDRMETAENTRY dr_meta_find_entry_lsearch(LPDRMETA meta, const char * name) {
+    char * base = (char*)(meta) - meta->m_self_pos;
+    uint32_t i;
+
+    for(i = 0; i < meta->m_entry_count; ++i) {
+        LPDRMETAENTRY entry =  (LPDRMETAENTRY)(meta + 1) + i;
+        if (strcmp(base + entry->m_name_pos, name) == 0) {
+            return entry;
+        }
+    }
+    
+    return NULL;
+}
+
+void dr_meta_add_key(LPDRMETA meta, const char * entry_name, error_monitor_t em) {
+    dr_idx_entry_info_t entry_info;
+    char * base = (char*)(meta) - meta->m_self_pos;
+    uint32_t i;
+    LPDRMETAENTRY entry;
+
+    for(i = 0; i < meta->m_key_num; ++i) {
+        LPDRMETAENTRY check_entry;
+
+        entry_info = dr_meta_key_info_at(meta, i);
+        check_entry = (LPDRMETAENTRY)(base + entry_info->m_entry_diff_to_base);
+
+        if (strcmp(base + check_entry->m_name_pos, entry_name) == 0) {
+            CPE_ERROR_EX(em, CPE_DR_ERROR_META_NO_ENTRY, "meta %s have entry %s", dr_meta_name(meta), entry_name);
+            return;
+        }
+    }
+
+    entry = dr_meta_find_entry_lsearch(meta, entry_name);
+    if (entry == NULL) {
+        CPE_ERROR(em, "meta %s have entry %s", dr_meta_name(meta), entry_name);
+        return;
+    }
+ 
+    ++meta->m_key_num;
+    entry_info = dr_meta_key_info_at(meta, i);
+    entry_info->m_entry_diff_to_base = ((char *)entry) - base;
+    entry_info->m_data_start_pos = entry->m_data_start_pos;
+}
+
+struct dr_index_info * dr_meta_add_index(LPDRMETA meta, struct dr_index_info * index_data, error_monitor_t em) {
+    struct dr_index_info * index;
+    int index_pos = meta->m_index_count;
+
+    ++meta->m_index_count;
+    index = dr_meta_index_at(meta, index_pos);
+    memcpy(index, index_data, sizeof(*index));
+
+    index->m_diff_to_meta = (char *)index - (char *)meta;
+    index->m_entry_num = 0;
+
+    if (index_pos == 0) {
+        index->m_entry_start_pos_to_meta = meta->m_index_entry_pos_from_meta;
+    }
+    else {
+        struct dr_index_info * pre_index = dr_meta_index_at(meta, index_pos - 1);
+        index->m_entry_start_pos_to_meta = 
+            pre_index->m_entry_start_pos_to_meta
+            + sizeof(struct dr_index_entry_info) * pre_index->m_entry_num;
+    }
+
+    return index;
+}
+
+void dr_index_add_entry(struct dr_index_info * index, const char * entry_name, error_monitor_t em) {
+    dr_index_entry_info_t entry_info;
+    LPDRMETA meta = (LPDRMETA)( ((char*)index) - index->m_diff_to_meta);
+    char * base = (char*)(meta) - meta->m_self_pos;
+    uint32_t i;
+    LPDRMETAENTRY entry;
+
+    for(i = 0; i < index->m_entry_num; ++i) {
+        LPDRMETAENTRY check_entry;
+        entry_info = dr_index_entry_info_at(index, i);
+        check_entry = (LPDRMETAENTRY)(base + entry_info->m_entry_diff_to_base);
+
+        if (strcmp(base + check_entry->m_name_pos, entry_name) == 0) {
+            CPE_ERROR_EX(
+                em, CPE_DR_ERROR_META_NO_ENTRY, "index %s.%s have entry %s",
+                dr_meta_name(meta), base + index->m_name_pos, entry_name);
+            return;
+        }
+    }
+
+    entry = dr_meta_find_entry_lsearch(meta, entry_name);
+    if (entry == NULL) {
+        CPE_ERROR(
+            em, "index %s.%s entry %s not exist",
+            dr_meta_name(meta), base + index->m_name_pos, entry_name);
+        return;
+    }
+ 
+    ++index->m_entry_num;
+    entry_info = dr_index_entry_info_at(index, i);
+    entry_info->m_entry_diff_to_base = ((char *)entry) - base;
+    entry_info->m_data_start_pos = entry->m_data_start_pos;
 }
 
 void dr_meta_do_complete(LPDRMETA meta, error_monitor_t em) {
-    int panding = meta->m_data_size % meta->m_align;
-    if (panding) {
-        panding = meta->m_align - panding;
-    }
-    meta->m_data_size += panding;
+    assert(meta->m_align != 0);
+
+    meta->m_require_align = dr_meta_calc_require_align(meta);
 
     if (meta->m_entry_count == 0) {
         CPE_ERROR_EX(em, CPE_DR_ERROR_META_NO_ENTRY, "meta %s have no entry", dr_meta_name(meta));
     }
+
+    CPE_PAL_CALC_ALIGN(meta->m_real_data_size, meta->m_require_align);
 }
 
 int dr_lib_addr_to_pos(LPDRMETALIB metaLib, const void * addr) {

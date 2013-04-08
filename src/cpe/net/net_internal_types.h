@@ -51,14 +51,20 @@ struct net_listener {
     struct cpe_hash_entry m_hh;
 };
 
+struct net_connector_monitor {
+    net_connector_state_monitor_fun_t m_monitor_fun;
+    void * m_monitor_ctx;
+    struct net_connector_monitor * m_next;
+};
+
 struct net_connector {
     net_mgr_t m_mgr;
     char const * m_name;
     char m_addr[16]; /*sizeof(sockaddr)*/
     net_ep_t m_ep;
     net_connector_state_t m_state;
-    net_connector_state_monitor_fun_t m_monitor_fun;
-    void * m_monitor_ctx;
+    double m_reconnect_span;
+    struct net_connector_monitor * m_monitors;
     struct ev_timer m_timer;
     struct cpe_hash_entry m_hh;
 };
@@ -105,7 +111,11 @@ struct net_ep {
     net_process_fun_t m_process_fun;
     void * m_process_ctx;
     int m_fd;
+    int8_t m_processing;
+    int8_t m_deleted;
     struct ev_io m_watcher;
+    struct ev_timer m_timer;
+	enum net_status m_status;
 };
 
 struct net_ep_page {

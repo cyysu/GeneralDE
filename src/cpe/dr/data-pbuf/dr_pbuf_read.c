@@ -33,7 +33,7 @@ struct dr_pbuf_read_ctx {
     error_monitor_t m_em;
 };
 
-inline static
+static
 struct dr_pbuf_read_array_info *
 dr_pbuf_read_get_array_info(
     struct dr_pbuf_read_stack * stackInfo,
@@ -58,7 +58,7 @@ dr_pbuf_read_get_array_info(
     return NULL;
 }
 
-inline static char * dr_pbuf_read_get_write_pos(
+static char * dr_pbuf_read_get_write_pos(
     struct dr_pbuf_read_ctx * ctx,
     struct dr_pbuf_read_stack * stackInfo,
     int start_pos,
@@ -66,7 +66,6 @@ inline static char * dr_pbuf_read_get_write_pos(
 {
     size_t start;
     size_t total_size;
-
     if (start_pos < 0) return NULL;
 
     assert(ctx);
@@ -97,33 +96,6 @@ inline static char * dr_pbuf_read_get_write_pos(
     }
 }
 
-inline static char * dr_pbuf_read_get_read_pos(
-    struct dr_pbuf_read_ctx * ctx,
-    struct dr_pbuf_read_stack * stackInfo,
-    int start_pos,
-    size_t capacity)
-{
-    size_t start;
-    size_t total_size;
-
-    if (start_pos < 0) return NULL;
-
-    assert(ctx);
-    assert(stackInfo);
-
-    start = stackInfo->m_output_start_pos + start_pos;
-    total_size = start + capacity;
-
-    if (total_size > ctx->m_used_size) return NULL;
-
-    if (ctx->m_output_buf) {
-        return ctx->m_output_buf + start;
-    }
-    else {
-        return mem_buffer_at(ctx->m_output_alloc, start);
-    }
-}
-
 #define dr_pbuf_read_stack_init(                            \
     __stackInfo, __from_entry, __start_pos,                  \
     __meta, __input, __input_capacity)                      \
@@ -139,7 +111,9 @@ inline static char * dr_pbuf_read_get_read_pos(
 
 #define dr_pbuf_read_check_capacity(__capacity)                         \
     if (curStack->m_input_capacity - curStack->m_input_size < (__capacity)) { \
-        CPE_ERROR(em, "dr_pbuf_read: not enouth buf!");                 \
+        CPE_ERROR(em, "dr_pbuf_read: not enouth buf, capacity=%d, require=%d!"\
+                  , (int)(curStack->m_input_capacity - curStack->m_input_size)\
+                  , (int)(__capacity));                                 \
         return -1;                                                      \
     }
 
@@ -175,8 +149,7 @@ inline static char * dr_pbuf_read_get_read_pos(
     }                                           \
 
 #define dr_pbuf_read_start_pos()                                \
-    (entry->m_data_start_pos                                    \
-     + elementSize * (array_info ? array_info->m_count : 0))
+    dr_entry_data_start_pos(entry, (array_info ? array_info->m_count : 0))
 
 #define dr_pbuf_read_type_error()                                       \
     CPE_ERROR(                                                          \
@@ -300,7 +273,7 @@ static int dr_pbuf_read_i(
     ctx.m_output_capacity = output_capacity;
     ctx.m_output_alloc = result_buf;
     ctx.m_em = em;
-    ctx.m_used_size = 0;
+    ctx.m_used_size = dr_meta_size(meta);
 
     dr_pbuf_read_stack_init(
         &processStack[0], NULL, 0, meta, input, input_capacity);
@@ -377,20 +350,34 @@ static int dr_pbuf_read_i(
                     dr_pbuf_read_decode_varint(len_buf);
 
                     len = len_buf.low;
+
                     dr_pbuf_read_check_capacity(len);
                     curStack->m_input_size += len;
 
                     if (stackPos + 1 < CPE_DR_MAX_LEVEL) {
                         struct dr_pbuf_read_stack * nextStack;
+                        size_t total_size;
                         nextStack = &processStack[stackPos + 1];
 
                         dr_pbuf_read_stack_init(
-                            nextStack, entry, dr_pbuf_read_start_pos(),
+                            nextStack, entry, curStack->m_output_start_pos + dr_pbuf_read_start_pos(),
                             dr_entry_ref_meta(entry),
                             curStack->m_input_data + curStack->m_input_size - len, len);
 
+                        total_size = curStack->m_output_start_pos + dr_pbuf_read_start_pos() + elementSize;
+
                         ++stackPos;
                         if (array_info) ++array_info->m_count;
+
+                        if (total_size > ctx.m_output_capacity) {
+                            CPE_ERROR(
+                                em, "dr_pbuf_read: not enouth buf, capacity=%d, require=%d!"
+                                , (int)ctx.m_output_capacity , (int)total_size);
+                            return -1;
+                        }
+
+                        if (total_size > ctx.m_used_size) ctx.m_used_size = total_size;
+
                         goto DR_PBUF_READ_STACK;
                     }
 

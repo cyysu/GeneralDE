@@ -1,4 +1,26 @@
+#include <algorithm>
+#include <set>
+#include "cpe/utils/random.h"
 #include "RangeMgrTest.hpp"
+
+
+TEST_F(RangeMgrTest, get_one_basic) {
+    EXPECT_EQ(0, cpe_range_put_range(&m_ra, 18, 20));
+
+    EXPECT_EQ((ptr_int_t)18, cpe_range_get_one(&m_ra));
+    EXPECT_EQ((ptr_int_t)19, cpe_range_get_one(&m_ra));
+    EXPECT_EQ((ptr_int_t)-1, cpe_range_get_one(&m_ra));
+}
+
+TEST_F(RangeMgrTest, get_one_basic_with_multi_range) {
+    EXPECT_EQ(0, cpe_range_put_range(&m_ra, 18, 20));
+    EXPECT_EQ(0, cpe_range_put_range(&m_ra, 22, 23));
+
+    EXPECT_EQ((ptr_int_t)18, cpe_range_get_one(&m_ra));
+    EXPECT_EQ((ptr_int_t)19, cpe_range_get_one(&m_ra));
+    EXPECT_EQ((ptr_int_t)22, cpe_range_get_one(&m_ra));
+    EXPECT_EQ((ptr_int_t)-1, cpe_range_get_one(&m_ra));
+}
 
 TEST_F(RangeMgrTest, get_one_from_empty) {
     EXPECT_EQ(-1, cpe_range_get_one(&m_ra));
@@ -464,3 +486,25 @@ TEST_F(RangeMgrTest, size_lenght_error) {
     EXPECT_EQ(-1, cpe_range_size(r));
 }
 
+TEST_F(RangeMgrTest, random_get_put) {
+    EXPECT_EQ(0, cpe_range_put_range(&m_ra, 0, 20480));
+
+    ::std::set<ptr_int_t> geted;
+
+    size_t repeat_count = 50000;
+    while(repeat_count > 0) {
+        if (geted.empty() || cpe_rand_dft(100) < 60) {
+            ptr_int_t v = cpe_range_get_one(&m_ra);
+            EXPECT_TRUE(geted.insert(v).second);
+        }
+        else {
+            ::std::set<ptr_int_t>::iterator pos = geted.begin();
+            ::std::advance(pos, cpe_rand_dft(geted.size()));
+
+            EXPECT_EQ(0, cpe_range_put_one(&m_ra, *pos));
+
+            geted.erase(pos);
+        }
+        --repeat_count;
+    }
+}

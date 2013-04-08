@@ -26,7 +26,7 @@ void WriteTest::installMeta(const char * def) {
 
     EXPECT_EQ(
         0,
-        dr_create_lib_from_xml_ex(&m_metaLib_buffer, def, strlen(def), t_em()))
+        dr_create_lib_from_xml_ex(&m_metaLib_buffer, def, strlen(def), 0, t_em()))
         << "install meta error";
 
     m_metaLib = (LPDRMETALIB)mem_buffer_make_exactly(&m_metaLib_buffer);

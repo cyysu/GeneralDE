@@ -23,6 +23,11 @@ int dr_lib_build_version(LPDRMETALIB a_pstLib) {
     return a_pstLib->m_build_version;
 }
 
+int dr_lib_tag_set_version(LPDRMETALIB a_pstLib) {
+    assert(a_pstLib);
+    return a_pstLib->m_tag_set_version;
+}
+
 LPDRMETALIB dr_lib_attach(void const * p, size_t size) {
     LPDRMETALIB lib = (LPDRMETALIB)p;
     if (p == NULL) return NULL;

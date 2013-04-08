@@ -10,37 +10,22 @@
 #include "gd/evt/evt_manage.h"
 #include "evt_internal_types.h"
 
-gd_evt_t gd_evt_create(gd_evt_mgr_t evm, const char * typeName, ssize_t data_capacity, error_monitor_t em) {
+gd_evt_t gd_evt_create_ex(gd_evt_mgr_t evm, LPDRMETA data_meta, ssize_t data_capacity, error_monitor_t em) {
     tl_event_t tl_evt;
-    LPDRMETALIB metalib;
-    LPDRMETA meta;
     gd_evt_t evt;
 
     assert(evm);
+    assert(data_meta);
 
     if (em == NULL) em = evm->m_em;
 
-    metalib = gd_evt_mgr_metalib(evm);
-    if (metalib == NULL) {
-        CPE_ERROR(em, "%s: create event: metalib not exist", gd_evt_mgr_name(evm));
-        return NULL;
-    }
-
-    meta = dr_lib_find_meta_by_name(metalib, typeName);
-    if (meta == NULL) {
-        CPE_ERROR(
-            em, "%s: create event: meta %s not in metalib %s!", 
-            gd_evt_mgr_name(evm), typeName, dr_lib_name(metalib));
-        return NULL;
-    }
-
     if (data_capacity < 0) {
-        data_capacity = dr_meta_size(meta);
+        data_capacity = dr_meta_size(data_meta);
     }
-    else if (data_capacity < (ssize_t)dr_meta_size(meta)) {
+    else if (data_capacity < (ssize_t)dr_meta_size(data_meta)) {
         CPE_ERROR(
             em, "%s: create event: data_capacity "  FMT_SIZE_T " is to small to contain type %s!",
-            gd_evt_mgr_name(evm), data_capacity, typeName);
+            gd_evt_mgr_name(evm), data_capacity, dr_meta_name(data_meta));
         return NULL;
     }
 
@@ -58,13 +43,72 @@ gd_evt_t gd_evt_create(gd_evt_mgr_t evm, const char * typeName, ssize_t data_cap
     evt->m_oid_max_len = evm->m_oid_max_len;
     evt->m_carry_meta = evm->m_carry_meta;
     evt->m_carry_capacity = evm->m_carry_size;
-    evt->m_meta = meta;
+    evt->m_meta = data_meta;
     evt->m_data_capacity = data_capacity;
 
     bzero(evt + 1, evt->m_oid_max_len);
-    dr_meta_set_defaults(gd_evt_data(evt), data_capacity, meta, 0);
+    dr_meta_set_defaults(gd_evt_data(evt), data_capacity, data_meta, 0);
 
     return evt;
+}
+
+gd_evt_t gd_evt_create(gd_evt_mgr_t evm, const char * typeName, ssize_t data_capacity, error_monitor_t em) {
+    struct gd_evt_def key;
+    struct gd_evt_def * evt_def;
+
+    assert(evm);
+
+    if (em == NULL) em = evm->m_em;
+
+    key.m_evt_name = typeName;
+
+    evt_def = cpe_hash_table_find(&evm->m_evt_defs, &key);
+    if (evt_def == NULL) {
+        CPE_ERROR(
+            em, "%s: create event: event %s not exist!", 
+            gd_evt_mgr_name(evm), typeName);
+        return NULL;
+    }
+
+    return gd_evt_create_ex(evm, evt_def->m_evt_meta, data_capacity, em);
+}
+
+gd_evt_t gd_evt_dyn_create_ex(gd_evt_mgr_t evm, LPDRMETA data_meta, size_t record_capacity, error_monitor_t em) {
+    struct dr_meta_dyn_info dyn_info;
+    LPDRMETA record_meta;
+
+    if (dr_meta_find_dyn_info(data_meta, &dyn_info) != 0) {
+        CPE_ERROR(
+            em, "%s: create dyn event: event %s is not dynamic!", 
+            gd_evt_mgr_name(evm), dr_meta_name(data_meta));
+        return NULL;
+    }
+
+    record_meta = dr_entry_self_meta(dyn_info.m_array_entry);
+    assert(record_meta);
+
+    return gd_evt_create_ex(evm, data_meta, dr_meta_size(data_meta) + record_capacity * dr_meta_size(record_meta), em);
+}
+
+gd_evt_t gd_evt_dyn_create(gd_evt_mgr_t evm, const char * typeName, size_t record_capacity, error_monitor_t em) {
+    struct gd_evt_def key;
+    struct gd_evt_def * evt_def;
+
+    assert(evm);
+
+    if (em == NULL) em = evm->m_em;
+
+    key.m_evt_name = typeName;
+
+    evt_def = cpe_hash_table_find(&evm->m_evt_defs, &key);
+    if (evt_def == NULL) {
+        CPE_ERROR(
+            em, "%s: create event: event %s not exist!", 
+            gd_evt_mgr_name(evm), typeName);
+        return NULL;
+    }
+
+    return gd_evt_dyn_create_ex(evm, evt_def->m_evt_meta, record_capacity, em);
 }
 
 int gd_evt_send(
@@ -135,7 +179,7 @@ const char * gd_evt_type(gd_evt_t evt) {
 }
 
 void gd_evt_dump(write_stream_t stream, gd_evt_t evt) {
-    dr_json_print(stream, gd_evt_data(evt), gd_evt_meta(evt), DR_JSON_PRINT_MINIMIZE, NULL);
+    dr_json_print(stream, gd_evt_data(evt), gd_evt_data_capacity(evt), gd_evt_meta(evt), DR_JSON_PRINT_MINIMIZE, NULL);
 }
 
 int gd_evt_set_from_string(gd_evt_t evt, const char * arg, const char * data, error_monitor_t em) {

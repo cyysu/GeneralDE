@@ -12,6 +12,7 @@ extern "C" {
 #if _MSC_VER >= 1400  // VC 8.0 and later deprecate snprintf and _snprintf.
 # define snprintf(__buf, __size, __fmt, ...) _snprintf_s(__buf, __size, __size, __fmt, __VA_ARGS__)
 # define vsnprintf(__buf, __size, __fmt, __va) _vsnprintf_s(__buf, __size, __size, __fmt, __va)
+# define fileno _fileno
 #else
 # define snprintf _snprintf
 #endif
@@ -27,7 +28,7 @@ extern "C" {
 # define FMT_SIZE_T "%zd"
 
 # if (__WORDSIZE == 64)
-#   if defined __GNUC__
+#   if defined __llvm__ || defined __clang__
 #     define FMT_UINT64_T "%llu"
 #     define FMT_INT64_T "%lld"
 #   else
@@ -36,11 +37,16 @@ extern "C" {
 #   endif
 #   define FMT_UINT32_T "%u"
 #   define FMT_INT32_T "%d"
+#   define FMT_UINT16_T "%u"
+#   define FMT_INT16_T "%d"
 # else
 #   define FMT_UINT64_T "%llu"
+
 #   define FMT_INT64_T "%lld"
 #   define FMT_UINT32_T "%u"
 #   define FMT_INT32_T "%d"
+#   define FMT_UINT16_T "%u"
+#   define FMT_INT16_T "%d"
 # endif
 
 #endif

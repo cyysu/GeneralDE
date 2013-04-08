@@ -7,6 +7,11 @@
 #include "cpe/dr/dr_metalib_manage.h"
 #include "System.hpp"
 
+#ifdef _MSC_VER
+# pragma warning(push)
+# pragma warning(disable:4624)
+#endif
+
 namespace Cpe { namespace Dr {
 
 class MetaLib : public Cpe::Utils::SimulateObject {
@@ -28,10 +33,17 @@ public:
     static MetaLib const & _cast(LPDRMETALIB ml);
 
     static MetaLib const & _load_from_bin_file(const char * file, Utils::MemBuffer & buf);
-    static MetaLib const & _load_from_xml_file(const char * file, Utils::MemBuffer & buf);
-    static MetaLib const & _load_from_xml(const char * xml, Utils::MemBuffer & buf);
+
+#ifndef CPE_DR_NO_XML
+    static MetaLib const & _load_from_xml_file(const char * file, Utils::MemBuffer & buf, uint8_t dft_align = 0);
+    static MetaLib const & _load_from_xml(const char * xml, Utils::MemBuffer & buf, uint8_t dft_align = 0);
+#endif
 };
 
 }}
+
+#ifdef _MSC_VER
+# pragma warning(pop)
+#endif
 
 #endif

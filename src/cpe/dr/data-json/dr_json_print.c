@@ -18,6 +18,7 @@ struct DrJsonPrintProcessStack {
     int m_entry_count;
     int m_array_pos;
     const char * m_src_data;
+    size_t m_src_capacity;
 };
 
 static const char * yajl_errno_to_string(yajl_gen_status s) {
@@ -67,16 +68,23 @@ static void dr_print_print_numeric(yajl_gen g, int typeId, const void * data, er
 }
 
 static void dr_print_print_string(yajl_gen g, int typeId, size_t bufLen, const void * data, error_monitor_t em) {
-    char buf[CPE_STACK_BUF_LEN(bufLen) + 1];
-    struct write_stream_mem bufS = CPE_WRITE_STREAM_MEM_INITIALIZER(buf, CPE_STACK_BUF_LEN(bufLen) + 1);
-    int len = dr_ctype_print_to_stream((write_stream_t)&bufS, data, typeId, em);
-
-    if (len > 0) {
-        buf[len] = 0;
-        JSON_PRINT_CHECK_GEN_RESULT(yajl_gen_string(g, (const unsigned char *)buf, len));
+    if (typeId == CPE_DR_TYPE_STRING || typeId == CPE_DR_TYPE_STRING + 1) {
+        yajl_gen_string(g, data, strlen(data));
     }
     else {
-        yajl_gen_null(g);
+        char buf[CPE_STACK_BUF_LEN(bufLen) + 1];
+        struct write_stream_mem bufS = CPE_WRITE_STREAM_MEM_INITIALIZER(buf, CPE_STACK_BUF_LEN(bufLen) + 1);
+        int len = dr_ctype_print_to_stream((write_stream_t)&bufS, data, typeId, em);
+
+        if (len >= 0) {
+            if (len >= sizeof(buf)) len = sizeof(buf) - 1;
+
+            buf[len] = 0;
+            JSON_PRINT_CHECK_GEN_RESULT(yajl_gen_string(g, (const unsigned char *)buf, len));
+        }
+        else {
+            yajl_gen_null(g);
+        }
     }
 }
 
@@ -90,11 +98,13 @@ static void dr_print_print_basic_data(yajl_gen g, LPDRMETAENTRY entry, const voi
     case CPE_DR_TYPE_UINT32:
     case CPE_DR_TYPE_INT64:
     case CPE_DR_TYPE_UINT64:
+    case CPE_DR_TYPE_FLOAT:
+    case CPE_DR_TYPE_DOUBLE:
         dr_print_print_numeric(g, entry->m_type, data, em);
         break;
     case CPE_DR_TYPE_CHAR:
     case CPE_DR_TYPE_UCHAR:
-        dr_print_print_string(g, entry->m_type, 1, data, em);
+        dr_print_print_numeric(g, entry->m_type, data, em);
         break;
     case CPE_DR_TYPE_STRING:
     case (CPE_DR_TYPE_STRING + 1):
@@ -112,6 +122,7 @@ static void dr_print_print_basic_data(yajl_gen g, LPDRMETAENTRY entry, const voi
 void dr_json_print_i(
     write_stream_t output,
     const void * input,
+    size_t capacity,
     LPDRMETA meta,
     yajl_gen g,
     error_monitor_t em)
@@ -125,6 +136,7 @@ void dr_json_print_i(
     processStack[0].m_entry_count = meta->m_entry_count;
     processStack[0].m_array_pos = 0;
     processStack[0].m_src_data = (const char *)input;
+    processStack[0].m_src_capacity = capacity;
 
     yajl_gen_map_open(g);
 
@@ -179,7 +191,14 @@ void dr_json_print_i(
             }
 
             for(; curStack->m_array_pos < array_count; ++curStack->m_array_pos) {
-                const char * entryData = curStack->m_src_data + curStack->m_entry->m_data_start_pos + (elementSize * curStack->m_array_pos);
+                const char * entryData = curStack->m_src_data + dr_entry_data_start_pos(curStack->m_entry, curStack->m_array_pos);
+                if ((size_t)(entryData + elementSize - curStack->m_src_data) > curStack->m_src_capacity) {
+                    CPE_ERROR(
+                        em, "%s.%s[%d]: read size overflow, capacity=%d",
+                        dr_meta_name(dr_entry_self_meta(curStack->m_entry)), dr_entry_name(curStack->m_entry),
+                        curStack->m_array_pos, (int)curStack->m_src_capacity);
+                    break;
+                }
 
                 if (curStack->m_entry->m_type <= CPE_DR_TYPE_COMPOSITE) {
                     if (stackPos + 1 < CPE_DR_MAX_LEVEL) {
@@ -195,6 +214,13 @@ void dr_json_print_i(
                         }
 
                         nextStack->m_src_data = entryData;
+                        if (curStack->m_entry_pos + 1 == curStack->m_entry_count && curStack->m_array_pos + 1 == array_count) {
+                            nextStack->m_src_capacity = curStack->m_src_capacity - (entryData - curStack->m_src_data);
+                        }
+                        else {
+                            nextStack->m_src_capacity = elementSize;
+                        }
+
                         nextStack->m_entry_pos = 0;
                         nextStack->m_entry_count = nextStack->m_meta->m_entry_count;
 
@@ -208,7 +234,6 @@ void dr_json_print_i(
                                     curStack->m_src_data + curStack->m_entry->m_select_data_start_pos,
                                     select_entry,
                                     em);
-                                
                                 nextStack->m_entry_pos =
                                     dr_meta_find_entry_idx_by_id(nextStack->m_meta, union_entry_id);
                                 if (nextStack->m_entry_pos < 0) {
@@ -234,7 +259,7 @@ void dr_json_print_i(
                     dr_print_print_basic_data(
                         g,
                         curStack->m_entry,
-                        curStack->m_src_data + curStack->m_entry->m_data_start_pos + elementSize * curStack->m_array_pos,
+                        curStack->m_src_data + dr_entry_data_start_pos(curStack->m_entry, curStack->m_array_pos),
                         em);
                 }
             }
@@ -248,12 +273,13 @@ void dr_json_print_i(
         --stackPos;
     }
 
-    yajl_gen_map_close(g);
+    //yajl_gen_map_close(g);
 }
 
 int dr_json_print(
     write_stream_t output,
     const void * input,
+    size_t capacity,
     LPDRMETA meta,
     int flag,
     error_monitor_t em)
@@ -272,19 +298,83 @@ int dr_json_print(
         return -1;
     }
 
-    yajl_gen_config(g, yajl_gen_beautify, flag & DR_JSON_PRINT_MINIMIZE ? 1 : 0);
+    yajl_gen_config(g, yajl_gen_beautify, flag & DR_JSON_PRINT_MINIMIZE ? 0 : 1);
     //yajl_gen_config(g, yajl_gen_validate_utf8, flag & DR_JSON_PRINT_VALIDATE_UTF8 ? 1 : 0);
     yajl_gen_config(g, yajl_gen_print_callback, stream_write, output);
 
 
     if (em) {
         CPE_DEF_ERROR_MONITOR_ADD(logError, em, cpe_error_save_last_errno, &ret);
-        dr_json_print_i(output, input, meta, g, em);
+        dr_json_print_i(output, input, capacity, meta, g, em);
         CPE_DEF_ERROR_MONITOR_REMOVE(logError, em);
     }
     else {
         CPE_DEF_ERROR_MONITOR(logError, cpe_error_save_last_errno, &ret);
-        dr_json_print_i(output, input, meta, g, &logError);
+        dr_json_print_i(output, input, capacity, meta, g, &logError);
+    }
+
+    yajl_gen_free(g);    
+
+    return ret;
+}
+
+void dr_json_print_array_i(
+    write_stream_t output,
+    const void * input,
+    size_t capacity,
+    LPDRMETA meta,
+    yajl_gen g,
+    error_monitor_t em)
+{
+    size_t i;
+    char * buf = (char *)input;
+    size_t element_capacity = dr_meta_size(meta);
+    size_t count = capacity / element_capacity;
+
+    yajl_gen_array_open(g);
+
+    for(i = 0; i < count; ++i, buf += element_capacity) {
+        dr_json_print_i(output, buf, element_capacity, meta, g, em);
+    }
+
+    yajl_gen_array_close(g);
+}
+
+int dr_json_print_array(
+    write_stream_t output,
+    const void * input,
+    size_t capacity,
+    LPDRMETA meta,
+    int flag,
+    error_monitor_t em)
+{
+    int ret = 0;
+    yajl_gen g;
+
+    if (output == NULL || input == NULL || meta == NULL) {
+        CPE_ERROR(em, "dr_json_print_array: bad para!");
+        return -1;
+    }
+
+    g = yajl_gen_alloc(NULL);
+    if (g == NULL) {
+        CPE_ERROR_EX(em, CPE_DR_ERROR_NO_MEMORY, "alloc yajl_gen fail!");
+        return -1;
+    }
+
+    yajl_gen_config(g, yajl_gen_beautify, flag & DR_JSON_PRINT_MINIMIZE ? 0 : 1);
+    //yajl_gen_config(g, yajl_gen_validate_utf8, flag & DR_JSON_PRINT_VALIDATE_UTF8 ? 1 : 0);
+    yajl_gen_config(g, yajl_gen_print_callback, stream_write, output);
+
+
+    if (em) {
+        CPE_DEF_ERROR_MONITOR_ADD(logError, em, cpe_error_save_last_errno, &ret);
+        dr_json_print_array_i(output, input, capacity, meta, g, em);
+        CPE_DEF_ERROR_MONITOR_REMOVE(logError, em);
+    }
+    else {
+        CPE_DEF_ERROR_MONITOR(logError, cpe_error_save_last_errno, &ret);
+        dr_json_print_array_i(output, input, capacity, meta, g, &logError);
     }
 
     yajl_gen_free(g);    

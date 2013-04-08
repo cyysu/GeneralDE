@@ -1,5 +1,6 @@
 #include <assert.h>
 #include "cpe/pal/pal_string.h"
+#include "cpe/pal/pal_stdio.h"
 #include "cpe/utils/stream_buffer.h"
 #include "cpe/dr/dr_ctypes_op.h"
 #include "cpe/cfg/cfg_read.h"
@@ -106,16 +107,141 @@ static cfg_t cfg_do_find_cfg_from_struct(cfg_t cfg, const char * path, const cha
 }
 
 static cfg_t cfg_do_find_cfg_from_seq(cfg_t cfg, const char * path, const char * end) {
-    char buf[20 + 1];
-    uint32_t seqPos;
-    int size = end - path;
-    if (size > 20) return NULL;
+    int seqPos;
+    int n;
 
-    memcpy(buf, path, size);
-    buf[size] = 0;
+    n = sscanf(path, "%d",&seqPos);
+    if (n == end - path) {
+        return cfg_seq_at(cfg, seqPos);
+    }
+    else {
+        cfg_t c;
+        struct cfg_it childs;
+        char buf[256];
+        char * kvs[64];
+        int i, kvpos;
+        char * p;
 
-    if (dr_ctype_set_from_string(&seqPos, CPE_DR_TYPE_UINT32, buf, NULL) != 0) return NULL;
-    return cfg_seq_at(cfg, seqPos);
+        if (end - path >= sizeof(buf)) return NULL;
+        memcpy(buf, path, end - path);
+        buf[end-path] = 0;
+
+        kvpos = 0;
+        p = buf;
+        while(p) {
+            char * v;
+            char * sep = strchr(p, ',');
+            if (sep) {
+                kvs[kvpos * 2] = p;
+
+                p = sep + 1;
+                while(*p == ' ' || *p == '\t') ++p;
+
+                --sep;
+                while(*sep == ' ' || *sep == '\t') --sep;
+                *(sep + 1) = 0;
+            }
+            else {
+                kvs[kvpos * 2] = p;
+                p = NULL;
+            }
+
+            sep = strchr(kvs[kvpos * 2], '=');
+            if (sep == NULL) return NULL;
+
+            v = sep + 1;
+            while(*v == ' ' || *v == '\t') ++v;
+
+            --sep;
+            while(*sep == ' ' || *sep == '\t') --sep;
+
+            kvs[kvpos * 2 + 1] = v;
+            *(sep + 1) = 0;
+
+
+            ++kvpos;
+        }
+
+        cfg_it_init(&childs, cfg);
+
+        while((c = cfg_it_next(&childs))) {
+            int match;
+
+            if (cfg_type(c) != CPE_CFG_TYPE_STRUCT) continue;
+            
+            match = 1;
+            for(i = 0; match && i < kvpos; ++i) {
+                cfg_t v_cfg = cfg_find_cfg(c, kvs[i * 2]);
+                const char * value = kvs[i * 2 + 1];
+
+                if (v_cfg == NULL) break;
+
+                switch(cfg_type(v_cfg)) {
+                case CPE_CFG_TYPE_INT8:
+                case CPE_CFG_TYPE_INT16:
+                case CPE_CFG_TYPE_INT32:
+                case CPE_CFG_TYPE_INT64: {
+                    int64_t cv;
+                    if (value[0] == '-') {
+                        int n = sscanf(value + 1, FMT_INT64_T, &cv);
+                        if (n > 0 && value[n + 1] == 0) {
+                            match = (cv == -cfg_as_int64(v_cfg, 0)) ? 1 : 0;
+                        }
+                        else {
+                            match = 0;
+                        }
+                    }
+                    else {
+                        int n = sscanf(value, FMT_INT64_T, &cv);
+                        if (n > 0 && value[n] == 0) {
+                            match = cv == cfg_as_int64(v_cfg, 0) ? 1 : 0;
+                        }
+                        else {
+                            match = 0;
+                        }
+                    }
+                    break;
+                }
+                case CPE_CFG_TYPE_UINT8:
+                case CPE_CFG_TYPE_UINT16:
+                case CPE_CFG_TYPE_UINT32:
+                case CPE_CFG_TYPE_UINT64: {
+                    uint64_t cv;
+                    int n = sscanf(value, FMT_UINT64_T, &cv);
+                    if (n > 0 && value[n] == 0) {
+                        match = cv == cfg_as_uint64(v_cfg, 0) ? 1 : 0;
+                    }
+                    else {
+                        match = 0;
+                    }
+                    break;
+                }
+                case CPE_CFG_TYPE_STRING:
+                    match = strcmp(cfg_as_string(v_cfg, ""), value) == 0 ? 1 : 0;
+                    break;
+                case CPE_CFG_TYPE_FLOAT:
+                case CPE_CFG_TYPE_DOUBLE: {
+                    double cv;
+                    int n = sscanf(value, "%lf", &cv);
+                    if (n > 0 && value[n] == 0) {
+                        match = cv == cfg_as_double(v_cfg, 0.0) ? 1 : 0;
+                    }
+                    else {
+                        match = 0;
+                    }
+                    break;
+                }
+                default:
+                    match = 0;
+                    break;
+                }
+            }
+
+            if (match) return c;
+        }
+
+        return NULL;
+    }
 }
 
 cfg_t cfg_find_cfg(cfg_t cfg, const char * path) {
@@ -286,6 +412,8 @@ cfg_t cfg_child_only(cfg_t cfg) {
 int cfg_path_print(write_stream_t stream, cfg_t cfg, cfg_t to) {
     int haveParent;
     cfg_t parent;
+
+    if (cfg == NULL) return 0;
 
     if (cfg->m_parent == 0 || cfg == to) {
         return -1;

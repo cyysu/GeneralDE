@@ -4,7 +4,7 @@
 TEST_F(ReadTest, struct_basic) {
     installMeta(
         "<metalib tagsetversion='1' name='net'  version='1'>"
-        "    <struct name='S' version='1'>"
+        "    <struct name='S' version='1' align='1'>"
         "	     <entry name='a1' type='int16'/>"
         "	     <entry name='a2' type='int16'/>"
         "    </struct>"
@@ -24,7 +24,7 @@ TEST_F(ReadTest, struct_basic) {
 TEST_F(ReadTest, struct_capacity_bigger) {
     installMeta(
         "<metalib tagsetversion='1' name='net'  version='1'>"
-        "    <struct name='S' version='1'>"
+        "    <struct name='S' version='1' align='1'>"
         "	     <entry name='a1' type='int16'/>"
         "	     <entry name='a2' type='int16'/>"
         "    </struct>"
@@ -46,7 +46,7 @@ TEST_F(ReadTest, struct_capacity_bigger) {
 TEST_F(ReadTest, seq_count_basic) {
     installMeta(
         "<metalib tagsetversion='1' name='net'  version='1'>"
-        "    <struct name='S' version='1'>"
+        "    <struct name='S' version='1' align='1'>"
         "	     <entry name='a1' type='int16' count='12'/>"
         "	     <entry name='a3' type='int16'/>"
         "    </struct>"
@@ -55,20 +55,21 @@ TEST_F(ReadTest, seq_count_basic) {
     EXPECT_EQ(
         26,
         read(
-            "a1: [12, 14]\n"
+            "a1: [12, 14, 16]\n"
             "a3: 34",
             "S"));
 
     EXPECT_EQ(12, dr_ctype_read_int16(result(), CPE_DR_TYPE_INT16));
     EXPECT_EQ(14, dr_ctype_read_int16(result(2), CPE_DR_TYPE_INT16));
-    EXPECT_EQ(0, dr_ctype_read_int16(result(4), CPE_DR_TYPE_INT16));
+    EXPECT_EQ(16, dr_ctype_read_int16(result(4), CPE_DR_TYPE_INT16));
+    EXPECT_EQ(0, dr_ctype_read_int16(result(6), CPE_DR_TYPE_INT16));
     EXPECT_EQ(34, dr_ctype_read_int16(result(24), CPE_DR_TYPE_INT16));
 }
 
 TEST_F(ReadTest, seq_count_with_refer) {
     installMeta(
         "<metalib tagsetversion='1' name='net'  version='1'>"
-        "    <struct name='S' version='1'>"
+        "    <struct name='S' version='1' align='1'>"
         "	     <entry name='count' type='int16'/>"
         "	     <entry name='a1' type='int16' count='12' refer='count'/>"
         "	     <entry name='a3' type='int16'/>"
@@ -93,7 +94,7 @@ TEST_F(ReadTest, seq_count_with_refer) {
 TEST_F(ReadTest, seq_count_dft_no_refer) {
     installMeta(
         "<metalib tagsetversion='1' name='net'  version='1'>"
-        "    <struct name='S' version='1'>"
+        "    <struct name='S' version='1' align='1'>"
         "	     <entry name='a1' type='int16' count='12' defaultvalue='23'/>"
         "	     <entry name='a3' type='int16'/>"
         "    </struct>"
@@ -120,7 +121,7 @@ TEST_F(ReadTest, seq_count_dft_no_refer) {
 TEST_F(ReadTest, seq_count_dynamic_with_refer) {
     installMeta(
         "<metalib tagsetversion='1' name='net'  version='1'>"
-        "    <struct name='S' version='1'>"
+        "    <struct name='S' version='1' align='1'>"
         "	     <entry name='count' type='int16'/>"
         "	     <entry name='a1' type='int16' count='0' refer='count'/>"
         "    </struct>"
@@ -148,7 +149,7 @@ TEST_F(ReadTest, int8_basic) {
 
     installMeta(
         "<metalib tagsetversion='1' name='net'  version='1'>"
-        "    <struct name='S' version='1'>"
+        "    <struct name='S' version='1' align='1'>"
         "	     <entry name='a1' type='int8'/>"
         "	     <entry name='a2' type='int8'/>"
         "    </struct>"
@@ -170,7 +171,7 @@ TEST_F(ReadTest, uint8_basic) {
 
     installMeta(
         "<metalib tagsetversion='1' name='net'  version='1'>"
-        "    <struct name='S' version='1'>"
+        "    <struct name='S' version='1' align='1'>"
         "	     <entry name='a1' type='uint8'/>"
         "	     <entry name='a2' type='uint8'/>"
         "    </struct>"
@@ -190,14 +191,14 @@ TEST_F(ReadTest, uint8_basic) {
 TEST_F(ReadTest, struct_not_enouth_data) {
     installMeta(
         "<metalib tagsetversion='1' name='net'  version='1'>"
-        "    <struct name='S' version='1'>"
+        "    <struct name='S' version='1' align='1'>"
         "	     <entry name='a1' type='int16'/>"
         "	     <entry name='a2' type='int16'/>"
         "    </struct>"
         "</metalib>");
 
     EXPECT_EQ(
-        2,
+        4,
         read(
             "a1: 12\n"
             "a2: 14\n"
@@ -214,11 +215,11 @@ TEST_F(ReadTest, struct_not_enouth_data) {
 TEST_F(ReadTest, union_basic) {
     installMeta(
         "<metalib tagsetversion='1' name='net'  version='1'>"
-        "    <struct name='A' version='1'>"
+        "    <struct name='A' version='1' align='1'>"
         "	     <entry name='a1' type='int32'/>"
         "	     <entry name='a2' type='int16'/>"
         "    </struct>"
-        "    <struct name='B' version='1'>"
+        "    <struct name='B' version='1' align='1'>"
         "	     <entry name='b1' type='int16'/>"
         "	     <entry name='b2' type='int16'/>"
         "    </struct>"
@@ -241,7 +242,7 @@ TEST_F(ReadTest, union_basic) {
     EXPECT_EQ(90, dr_ctype_read_int16(result(4), CPE_DR_TYPE_INT16));
 
     EXPECT_EQ(
-        4,
+        6,
         read(
             "u2:\n"
             "  b1: 21\n"
@@ -256,11 +257,11 @@ TEST_F(ReadTest, union_basic) {
 TEST_F(ReadTest, union_multi_input_entry) {
     installMeta(
         "<metalib tagsetversion='1' name='net'  version='1'>"
-        "    <struct name='A' version='1'>"
+        "    <struct name='A' version='1' align='1'>"
         "	     <entry name='a1' type='int32'/>"
         "	     <entry name='a2' type='int16'/>"
         "    </struct>"
-        "    <struct name='B' version='1'>"
+        "    <struct name='B' version='1' align='1'>"
         "	     <entry name='b1' type='int16'/>"
         "	     <entry name='b2' type='int16'/>"
         "    </struct>"
@@ -289,11 +290,11 @@ TEST_F(ReadTest, union_multi_input_entry) {
 TEST_F(ReadTest, union_second_element) {
     installMeta(
         "<metalib tagsetversion='1' name='net'  version='1'>"
-        "    <struct name='A' version='1'>"
+        "    <struct name='A' version='1' align='1'>"
         "	     <entry name='a1' type='int32'/>"
         "	     <entry name='a2' type='int16'/>"
         "    </struct>"
-        "    <struct name='B' version='1'>"
+        "    <struct name='B' version='1' align='1'>"
         "	     <entry name='b1' type='int16'/>"
         "	     <entry name='b2' type='int16'/>"
         "    </struct>"
@@ -322,11 +323,11 @@ TEST_F(ReadTest, union_second_element) {
 TEST_F(ReadTest, union_with_select) {
     installMeta(
         "<metalib tagsetversion='1' name='net'  version='1'>"
-        "    <struct name='A' version='1'>"
+        "    <struct name='A' version='1' align='1'>"
         "	     <entry name='a1' type='int32'/>"
         "	     <entry name='a2' type='int16'/>"
         "    </struct>"
-        "    <struct name='B' version='1'>"
+        "    <struct name='B' version='1' align='1'>"
         "	     <entry name='b1' type='int16'/>"
         "	     <entry name='b2' type='int16'/>"
         "    </struct>"
@@ -334,14 +335,14 @@ TEST_F(ReadTest, union_with_select) {
         "	     <entry name='u1' type='A' id='2'/>"
         "	     <entry name='u2' type='B' id='3'/>"
         "    </union>"
-        "    <struct name='S' version='1'>"
+        "    <struct name='S' version='1' align='1'>"
         "	     <entry name='type' type='int16'/>"
         "        <entry name='data' type='U' select='type'/>"
         "    </struct>"
         "</metalib>");
 
     EXPECT_EQ(
-        6,
+        8,
         read(
             "data:\n"
             "  u2:\n"
@@ -354,3 +355,35 @@ TEST_F(ReadTest, union_with_select) {
     EXPECT_EQ(12, dr_ctype_read_int16(result(2), CPE_DR_TYPE_INT16));
     EXPECT_EQ(90, dr_ctype_read_int16(result(4), CPE_DR_TYPE_INT16));
 }
+
+TEST_F(ReadTest, union_with_select_no_data) {
+    installMeta(
+        "<metalib tagsetversion='1' name='net'  version='1'>"
+        "    <struct name='A' version='1' align='1'>"
+        "	     <entry name='a1' type='int32'/>"
+        "	     <entry name='a2' type='int16'/>"
+        "    </struct>"
+        "    <struct name='B' version='1' align='1'>"
+        "	     <entry name='b1' type='int16'/>"
+        "	     <entry name='b2' type='int16'/>"
+        "    </struct>"
+        "    <union name='U' version='1'>"
+        "	     <entry name='u1' type='A' id='2'/>"
+        "	     <entry name='u2' type='B' id='3'/>"
+        "    </union>"
+        "    <struct name='S' version='1' align='1'>"
+        "	     <entry name='type' type='int16'/>"
+        "        <entry name='data' type='U' select='type'/>"
+        "    </struct>"
+        "</metalib>");
+
+    EXPECT_EQ(
+        8,
+        read(
+            "type: 5\n"
+            ,
+            "S"));
+
+    EXPECT_EQ(5, dr_ctype_read_int16(result(0), CPE_DR_TYPE_INT16));
+}
+

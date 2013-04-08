@@ -8,11 +8,11 @@ class BuildFromXmlUnionAlign : public BuildFromXmlTest {
 TEST_F(BuildFromXmlUnionAlign, align1_basic) {
     parseMeta(
         "<metalib tagsetversion='1' name='net'  version='10'>"
-        "    <union name='S1' version='1' id='33'>"
+        "    <union name='S1' version='1' id='33' align='1'>"
         "	     <entry name='b1' type='int8'/>"
         "	     <entry name='b2' type='int16'/>"
         "    </union>"
-        "    <struct name='S2' version='1' id='34'>"
+        "    <struct name='S2' version='1' id='34' align='1'>"
         "	     <entry name='a1' type='int8'/>"
         "	     <entry name='m_u' type='S1'/>"
         "    </struct>"

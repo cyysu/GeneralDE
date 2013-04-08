@@ -1,5 +1,6 @@
-#include <stdarg.h>
-#include <string.h>
+#include <assert.h>
+#include "cpe/pal/pal_stdarg.h"
+#include "cpe/pal/pal_string.h"
 #include "cpe/dp/dp_responser.h"
 #include "dp_internal_ops.h"
 
@@ -83,4 +84,21 @@ int32_t dp_rsp_hash(const dp_rsp_t rsp) {
 int dp_rsp_cmp(const dp_rsp_t l, const dp_rsp_t r) {
     return (l->m_name_len == r->m_name_len)
         && (strcmp(l->m_name, r->m_name) == 0);
+}
+
+static dp_binding_t dp_rsp_binding_do_next(struct dp_binding_it * it) {
+    dp_binding_t r;
+
+    if (it->m_context == NULL) return NULL;
+
+    r = (dp_binding_t)it->m_context;
+    it->m_context = r->m_rep_binding_next;
+
+    return r;
+}
+
+void dp_rsp_bindings(struct dp_binding_it * it, dp_rsp_t rsp) {
+    assert(it);
+    it->m_context = rsp->m_bindings;
+    it->next = dp_rsp_binding_do_next;
 }

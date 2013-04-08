@@ -9,6 +9,7 @@ extern "C" {
 /*connector op*/
 uint32_t net_connector_hash(net_connector_t connector);
 int net_connector_cmp(net_connector_t l, net_connector_t r);
+void net_connector_on_disconnect(net_connector_t l);
 void net_connectors_free(net_mgr_t nmgr);
 
 /*listener op*/

@@ -4,8 +4,13 @@
 #include "cpepp/dr/MetaLib.hpp"
 #include "gdpp/app/Application.hpp"
 #include "gd/evt/evt_manage.h"
-#include "System.hpp"
 #include "EventResponser.hpp"
+#include "Event.hpp"
+
+#ifdef _MSC_VER
+# pragma warning(push)
+# pragma warning(disable:4624)
+#endif
 
 namespace Gd { namespace Evt {
 
@@ -19,17 +24,30 @@ public:
     App::Application & app(void) { return App::Application::_cast(gd_evt_mgr_app(*this)); }
     App::Application const & app(void) const { return App::Application::_cast(gd_evt_mgr_app(*this)); }
 
-    Cpe::Dr::MetaLib const & metaLib(void) const { return *(Cpe::Dr::MetaLib*)gd_evt_mgr_metalib(*this); }
-
     Event & createEvent(const char * typeName, ssize_t capacity = -1);
+    Event & createEvent(LPDRMETA data_meta, ssize_t data_capacity = -1);
+
+    Event & createDynEvent(const char * typeName, size_t record_capacity);
+    Event & createDynEvent(LPDRMETA data_meta, size_t record_capacity);
+
 	void sendEvent(const char * oid, Event & event);
+
+    template<typename T>
+    void sendEvent(const char * oid, T const & data) {
+        Event & evt = createEvent(Cpe::Dr::MetaTraits<T>::META, sizeof(data));
+        memcpy(evt.data(), &data, sizeof(data));
+        sendEvent(oid, evt);
+    }
 
     tl_t tl(void) const { return  gd_evt_mgr_tl(*this); }
 
     template<typename T>
     ProcessorID registerResponser(const char * oid, T & r, void (T::*fun)(const char * oid, Event const & e)) {
 #ifdef _MSC_VER
+		# pragma warning(push)
+		# pragma warning(disable:4407)
         return this->registerResponser(oid, r, static_cast<EventProcessFun>(fun), *((EventResponser*)((void*)&r)));
+		# pragma warning(pop)
 #else
         return this->registerResponser(oid, static_cast<EventResponser&>(r), static_cast<EventProcessFun>(fun));
 #endif
@@ -53,5 +71,9 @@ public:
 };	
 
 }}
+
+#ifdef _MSC_VER
+# pragma warning(pop)
+#endif
 
 #endif
