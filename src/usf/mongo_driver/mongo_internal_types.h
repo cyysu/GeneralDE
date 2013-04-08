@@ -6,12 +6,20 @@
 #include "cpe/dp/dp_types.h"
 #include "cpe/net/net_types.h"
 #include "usf/mongo_driver/mongo_driver_types.h"
-#include "mongo_protocol.h"
+#include "usf/mongo_driver/mongo_protocol.h"
+
+enum mongo_seed_state {
+    mongo_seed_state_init
+    , mongo_seed_state_connecting
+    , mongo_seed_state_working
+};
 
 struct mongo_seed {
     mongo_driver_t m_driver;
     char m_host[255];
     int m_port;
+    enum mongo_seed_state m_state;
+    uint32_t m_next_retry_time_s;
     net_connector_t m_connector;
     TAILQ_ENTRY(mongo_seed) m_next;
 };
@@ -19,7 +27,8 @@ struct mongo_seed {
 typedef TAILQ_HEAD(mongo_seed_list, mongo_seed) mongo_seed_list_t;
 
 enum mongo_server_state {
-    mongo_server_state_init
+    mongo_server_state_disable
+    , mongo_server_state_init
     , mongo_server_state_connecting
     , mongo_server_state_checking_is_master
     , mongo_server_state_connected
@@ -45,9 +54,6 @@ struct mongo_driver {
     error_monitor_t m_em;
     mongo_driver_state_t m_state;
 
-    int m_connecting_seed_count;
-    int m_connecting_server_count;
-
     int m_seed_count;
     mongo_seed_list_t m_seeds;
     int m_server_count;
@@ -59,6 +65,8 @@ struct mongo_driver {
     int m_conn_timeout_ms;
     int m_op_timeout_ms;
     int m_max_bson_size;
+    uint32_t m_seed_update_span_s;
+    uint32_t m_server_retry_span_s;
 
     cpe_hash_string_t m_incoming_send_to;
     dp_rsp_t m_outgoing_recv_at;
@@ -72,18 +80,35 @@ struct mongo_driver {
     int m_debug;
 };
 
+struct mongo_pro_header {
+    int32_t id;
+    int32_t response_to;
+    int32_t op;
+};
+
+union mongo_pro_data {
+    struct mongo_pro_data_update m_update;
+    struct mongo_pro_data_insert m_insert;
+    struct mongo_pro_data_query m_query;
+    struct mongo_pro_data_get_more m_get_more;
+    struct mongo_pro_data_delete m_delete;
+    struct mongo_pro_data_kill_cursors m_kill_cursor;
+    struct mongo_pro_data_reply m_reply;
+};
+
 struct mongo_pkg {
     mongo_driver_t m_driver;
     dp_req_t m_dp_req;
     int32_t m_stack[32];
     int32_t m_stackPos;
     uint32_t m_reserve;
-    char m_ns[32];
+    char m_db[32];
+    char m_collection[32];
     int32_t m_doc_count;
     int32_t m_cur_doc_start;
     int32_t m_cur_doc_pos;
     struct mongo_pro_header m_pro_head;
-    struct mongo_pro_reply_fields m_pro_replay_fields;
+    union mongo_pro_data m_pro_data;
 };
 
 enum mongo_pkg_recv_result {

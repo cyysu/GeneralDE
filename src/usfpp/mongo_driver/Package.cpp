@@ -145,4 +145,16 @@ void Package::appendTimeS(const char *name, time_t secs) {
     }
 }
 
+void Package::appendObjectStart(const char * name) {
+    if (mongo_pkg_append_start_object(*this, name) != 0) {
+        throw ::std::runtime_error("Usf::Mongo::Package: append object start fail!");
+    }
+}
+
+void Package::appendObjectFinish() {
+    if (mongo_pkg_append_finish_object(*this) != 0) {
+        throw ::std::runtime_error("Usf::Mongo::Package: append object finish fail!");
+    }
+}
+
 }}

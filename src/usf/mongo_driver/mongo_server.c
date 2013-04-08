@@ -1,4 +1,5 @@
 #include <assert.h>
+#include "cpe/pal/pal_string.h"
 #include "cpe/utils/buffer.h"
 #include "cpe/net/net_connector.h"
 #include "cpe/net/net_chanel.h"
@@ -54,6 +55,8 @@ int mongo_driver_add_server(mongo_driver_t driver, const char * host, int port) 
         return -1;
     }
 
+    net_connector_set_reconnect_span_ms(server->m_connector, ((uint64_t)driver->m_server_retry_span_s) * 1000);
+
     TAILQ_INSERT_TAIL(&driver->m_servers, server, m_next);
     ++driver->m_server_count;
 
@@ -81,30 +84,26 @@ void mongo_server_free_all(mongo_driver_t driver) {
     }
 }
 
-static void mongo_server_disable_i(struct mongo_server * server, enum mongo_server_state next_state) {
-    if (server->m_state != mongo_server_state_init
-        && server->m_state != mongo_server_state_connected
-        && server->m_state != mongo_server_state_error)
-    {
-        --server->m_driver->m_connecting_server_count;
-        server->m_state = next_state;
-    }
-
-    if (server->m_driver->m_master_server == server) {
-        server->m_driver->m_master_server = NULL;
-    }
-
-    if (server->m_connector) net_connector_disable(server->m_connector);
-
-    mongo_driver_update_state(server->m_driver);
-}
-
 void mongo_server_error(struct mongo_server * server) {
-    mongo_server_disable_i(server, mongo_server_state_error);
+    mongo_driver_t driver = server->m_driver;
+
+    if (driver->m_debug) {
+        CPE_INFO(driver->m_em, "%s: server %s %d: set to error!", mongo_driver_name(driver), server->m_host, server->m_port);
+    }
+    
+    net_ep_close(net_connector_ep(server->m_connector));
+    server->m_state = mongo_server_state_error;
 }
 
 void mongo_server_disable(struct mongo_server * server) {
-    mongo_server_disable_i(server, mongo_server_state_init);
+    mongo_driver_t driver = server->m_driver;
+
+    if (driver->m_debug) {
+        CPE_INFO(driver->m_em, "%s: server %s %d: set to disable!", mongo_driver_name(driver), server->m_host, server->m_port);
+    }
+    
+    net_connector_disable(server->m_connector);
+    server->m_state = mongo_server_state_disable;
 }
 
 static void mongo_server_free_chanel_buf(net_chanel_t chanel, void * ctx) {
@@ -116,16 +115,6 @@ static void mongo_server_free_chanel_buf(net_chanel_t chanel, void * ctx) {
 static void mongo_server_check_is_master(struct mongo_server * server) {
     mongo_driver_t driver = server->m_driver;
     mongo_pkg_t pkg_buf = mongo_driver_pkg_buf(driver);
-    net_ep_t ep;
-
-    ep = net_connector_ep(server->m_connector);
-    if (ep == NULL) {
-        CPE_ERROR(
-            driver->m_em, "%s: server %s %d: check is master: ep is null!",
-            mongo_driver_name(driver), server->m_host, server->m_port);
-        mongo_server_error(server);
-        return;
-    }
 
     if (pkg_buf == NULL) {
         CPE_ERROR(
@@ -137,12 +126,12 @@ static void mongo_server_check_is_master(struct mongo_server * server) {
 
     server->m_state = mongo_server_state_checking_is_master;
 
-    mongo_pkg_set_ns(pkg_buf, "admin.$cmd");
-    mongo_pkg_set_op(pkg_buf, mongo_db_op_query);
+    mongo_pkg_cmd_init(pkg_buf);
+    mongo_pkg_set_db(pkg_buf, "admin");
     if (mongo_pkg_doc_open(pkg_buf) != 0
         || mongo_pkg_append_int32(pkg_buf, "ismaster", 1) != 0
         || mongo_pkg_doc_close(pkg_buf) != 0
-        || mongo_driver_send_internal(driver, ep, pkg_buf))
+        || mongo_driver_send_to_server(driver, server, pkg_buf))
     {
         CPE_ERROR(
             driver->m_em, "%s: server %s %d: check is master: send cmd fail!",
@@ -152,21 +141,9 @@ static void mongo_server_check_is_master(struct mongo_server * server) {
     }
 
     if (driver->m_debug) {
-        if (driver->m_debug >= 2) {
-            struct mem_buffer buffer;
-            mem_buffer_init(&buffer, driver->m_alloc);
-
-            CPE_INFO(
-                driver->m_em, "%s: server %s %d: check is master: send cmd success\n%s",
-                mongo_driver_name(driver), server->m_host, server->m_port, mongo_pkg_dump(pkg_buf, &buffer, 1));
-
-            mem_buffer_clear(&buffer);
-        }
-        else {
-            CPE_INFO(
-                driver->m_em, "%s: server %s %d: check is master: send cmd success!",
-                mongo_driver_name(driver), server->m_host, server->m_port);
-        }
+        CPE_INFO(
+            driver->m_em, "%s: server %s %d: check is master: send cmd success!",
+            mongo_driver_name(driver), server->m_host, server->m_port);
     }
 }
 
@@ -176,14 +153,14 @@ static void mongo_server_on_check_is_master(struct mongo_server * server, mongo_
 
     mongo_pkg_it(&it, pkg, 0);
 
-    if(mongo_pkg_find(&it, pkg, 0, "maxBsonObjectSize")) {
+    if(mongo_pkg_find(&it, pkg, 0, "maxBsonObjectSize") == 0) {
         server->m_max_bson_size = bson_iterator_int(&it);
     }
     else {
         server->m_max_bson_size = MONGO_DEFAULT_MAX_BSON_SIZE;
     }
 
-    if(mongo_pkg_find(&it, pkg, 0, "ismaster")) {
+    if(mongo_pkg_find(&it, pkg, 0, "ismaster") == 0) {
         if (bson_iterator_bool( &it ) ) {
             if (driver->m_master_server) {
                 CPE_INFO(
@@ -198,7 +175,9 @@ static void mongo_server_on_check_is_master(struct mongo_server * server, mongo_
                 }
             }
             server->m_state = mongo_server_state_connected;
-            mongo_driver_update_state(driver);
+            driver->m_master_server = server;
+            driver->m_state = mongo_driver_state_connected;
+            mongo_driver_check_update_state(driver);
         }
         else {
             mongo_server_error(server);
@@ -213,38 +192,27 @@ static void mongo_server_connector_state_monitor(net_connector_t connector, void
     struct mongo_server * server = ctx;
     mongo_driver_t driver = server->m_driver;
 
+    if (driver->m_debug) {
+        CPE_INFO(
+            driver->m_em, "%s: server %s %d: connect state changed to %s!",
+            mongo_driver_name(driver), server->m_host, server->m_port, net_connector_state_str(net_connector_state(connector)));
+    }
+
     switch(net_connector_state(connector)) {
     case net_connector_state_connecting:
+        server->m_state = mongo_server_state_connecting;
         return;
     case net_connector_state_connected:
-        break;
+        mongo_server_check_is_master(server);
+        return;
     case net_connector_state_error:
-        CPE_ERROR(
-            driver->m_em, "%s: server %s %d: connect state changed to error!",
-            mongo_driver_name(driver), server->m_host, server->m_port);
         mongo_server_error(server);
         return;
     case net_connector_state_disable:
-        CPE_ERROR(
-            driver->m_em, "%s: server %s %d: connect state changed to disable!",
-            mongo_driver_name(driver), server->m_host, server->m_port);
-        mongo_server_error(server);
         return;
     case net_connector_state_idle:
-        CPE_ERROR(
-            driver->m_em, "%s: server %s %d: connect state changed to idle!",
-            mongo_driver_name(driver), server->m_host, server->m_port);
-        mongo_server_error(server);
         return;
     }
-
-    if (driver->m_debug) {
-        CPE_INFO(
-            driver->m_em, "%s: server %s %d: connect success!",
-            mongo_driver_name(driver), server->m_host, server->m_port);
-    }
-
-    mongo_server_check_is_master(server);
 }
 
 static void mongo_server_on_read(struct mongo_server * server, net_ep_t ep) {
@@ -289,6 +257,7 @@ static void mongo_server_on_read(struct mongo_server * server, net_ep_t ep) {
         }
 
         switch(server->m_state) {
+        case mongo_server_state_disable:
         case mongo_server_state_init:
         case mongo_server_state_connecting:
         case mongo_server_state_error:
@@ -318,6 +287,8 @@ static void mongo_server_on_open(struct mongo_server * server, net_ep_t ep) {
             driver->m_em, "%s: server %s %d: on open!",
             mongo_driver_name(driver), server->m_host, server->m_port);
     }
+
+    server->m_state = mongo_server_state_connecting;
 }
 
 static void mongo_server_on_close(struct mongo_server * server, net_ep_t ep, net_ep_event_t event) {
@@ -325,13 +296,15 @@ static void mongo_server_on_close(struct mongo_server * server, net_ep_t ep, net
 
     if(driver->m_debug) {
         CPE_INFO(
-            driver->m_em, "%s: server %s %d: ep %d: on close, event=%d!",
-            mongo_driver_name(driver), server->m_host, server->m_port, (int)net_ep_id(ep), event);
+            driver->m_em, "%s: server %s %d: ep %d: on close, event=%s!",
+            mongo_driver_name(driver), server->m_host, server->m_port, (int)net_ep_id(ep), net_ep_event_str(event));
     }
 
     if (server == driver->m_master_server) {
-        mongo_driver_connect_i(driver);
+        driver->m_master_server = NULL;
     }
+
+    mongo_driver_check_update_state(server->m_driver);
 }
 
 static void mongo_server_recv_on_connecting(net_ep_t ep, void * ctx, net_ep_event_t event) {
@@ -363,15 +336,15 @@ static int mongo_server_ep_init(struct mongo_server * server, net_ep_t ep) {
 
     buf_r = mem_alloc(driver->m_alloc, driver->m_server_read_chanel_size);
     buf_w = mem_alloc(driver->m_alloc, driver->m_server_write_chanel_size);
-    if (buf_r == NULL || buf_w == NULL) goto ERROR;
+    if (buf_r == NULL || buf_w == NULL) goto INIT_ERROR;
 
     chanel_r = net_chanel_queue_create(net_ep_mgr(ep), buf_r, driver->m_server_read_chanel_size);
-    if (chanel_r == NULL) goto ERROR;
+    if (chanel_r == NULL) goto INIT_ERROR;
     net_chanel_queue_set_close(chanel_r, mongo_server_free_chanel_buf, driver);
     buf_r = NULL;
 
     chanel_w = net_chanel_queue_create(net_ep_mgr(ep), buf_w, driver->m_server_write_chanel_size);
-    if (chanel_w == NULL) goto ERROR;
+    if (chanel_w == NULL) goto INIT_ERROR;
     net_chanel_queue_set_close(chanel_w, mongo_server_free_chanel_buf, driver);
     buf_w = NULL;
 
@@ -390,7 +363,7 @@ static int mongo_server_ep_init(struct mongo_server * server, net_ep_t ep) {
     }
 
     return 0;
-ERROR:
+INIT_ERROR:
     if (buf_r) mem_free(driver->m_alloc, buf_r);
     if (buf_w) mem_free(driver->m_alloc, buf_w);
     if (chanel_r) net_chanel_free(chanel_r);
@@ -407,24 +380,22 @@ ERROR:
 int mongo_server_connect(struct mongo_server * server) {
     mongo_driver_t driver = server->m_driver;
 
-    if (net_connector_enable(server->m_connector) != 0) {
-        CPE_ERROR(
-            driver->m_em, "%s: server %s %d: enable connector fail!",
-            mongo_driver_name(driver), server->m_host, server->m_port);
-        goto ERROR;
+    if (server->m_state == mongo_server_state_disable) return 0;
+
+    if (net_connector_state(server->m_connector) == net_connector_state_disable) {
+        if (net_connector_enable(server->m_connector) != 0) {
+            CPE_ERROR(
+                driver->m_em, "%s: server %s %d: enable connector fail!",
+                mongo_driver_name(driver), server->m_host, server->m_port);
+            return -1;
+        }
+
+        if (driver->m_debug) {
+            CPE_INFO(
+                driver->m_em, "%s: server %s %d: start connect!",
+                mongo_driver_name(driver), server->m_host, server->m_port);
+        }
     }
 
-    if (driver->m_debug) {
-        CPE_INFO(
-            driver->m_em, "%s: server %s %d: start connect!",
-            mongo_driver_name(driver), server->m_host, server->m_port);
-    }
-
-    server->m_state = mongo_server_state_connecting;
-    ++driver->m_connecting_server_count;
     return 0;
-
-ERROR:
-    net_connector_disable(server->m_connector);
-    return -1;
 }

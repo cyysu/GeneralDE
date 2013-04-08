@@ -1,6 +1,7 @@
 #include "cpe/pal/pal_platform.h"
 #include "cpe/dr/dr_bson.h"
 #include "usf/mongo_driver/mongo_pkg.h"
+#include "usf/mongo_driver/mongo_driver.h"
 #include "mongo_internal_ops.h"
 
 #define MONGO_REQUREST_CHECK_APPEND(__pkg, __len)                       \
@@ -222,23 +223,33 @@ int mongo_pkg_doc_append(mongo_pkg_t pkg, LPDRMETA meta, void const * data, size
     uint32_t pkg_size;
     int write_size;
 
-    if (pkg->m_cur_doc_start != -1) return -1;
+    if (pkg->m_cur_doc_start >= 0) {
+        CPE_ERROR(
+            pkg->m_driver->m_em, "%s: mongo_pkg_doc_append: pkg is already started",
+            mongo_driver_name(pkg->m_driver));
+        return -1;
+    }
 
     pkg_size = mongo_pkg_size(pkg);
     output_capacity = mongo_pkg_capacity(pkg) - pkg_size;
     buf = (char*)(pkg + 1);
 
     write_size = dr_bson_write(buf + pkg_size, output_capacity, data, capacity, meta, pkg->m_driver->m_em);
-    if (write_size < 0) return -1;
-
-    if (write_size < MONGO_EMPTY_DOCUMENT_SIZE) {
+    if (write_size < 0) {
         CPE_ERROR(
-            pkg->m_driver->m_em,
-            "mongo_pkg: append document, write size(%d) too small!", write_size);
+            pkg->m_driver->m_em, "%s: mongo_pkg_doc_append: bson write fail!",
+            mongo_driver_name(pkg->m_driver));
         return -1;
     }
 
-    if (pkg->m_doc_count >= 0) ++pkg->m_doc_count;
+    if (write_size < MONGO_EMPTY_DOCUMENT_SIZE) {
+        CPE_ERROR(
+            pkg->m_driver->m_em, "%s: append document, write size(%d) too small!",
+            mongo_driver_name(pkg->m_driver), write_size);
+        return -1;
+    }
+
+    ++pkg->m_doc_count;
 
     mongo_pkg_set_size(pkg, pkg_size + write_size);
 

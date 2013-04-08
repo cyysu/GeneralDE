@@ -2,9 +2,15 @@
 #define USFPP_MONGO_CLI_PROXY_H
 #include "cpepp/utils/ClassCategory.hpp"
 #include "cpepp/utils/CString.hpp"
+#include "cpepp/dr/System.hpp"
 #include "gdpp/app/Application.hpp"
 #include "usf/mongo_cli/mongo_cli_proxy.h"
 #include "System.hpp"
+
+#ifdef _MSC_VER
+# pragma warning(push)
+# pragma warning(disable:4624)
+#endif
 
 namespace Usf { namespace Mongo {
 
@@ -18,13 +24,22 @@ public:
 
     Package & pkgBuf(void);
 
-    void send(logic_require_t require, mongo_pkg_t pkg);
+    void send(logic_require_t require, mongo_pkg_t pkg, LPDRMETA result_meta = NULL, int result_count_init = 0);
     void send(mongo_pkg_t pkg);
+
+    template<typename T>
+    void query(logic_require_t require, mongo_pkg_t pkg) {
+        send(require, pkg, Cpe::Dr::MetaTraits<T>::META);
+    }
 
     static CliProxy & _cast(mongo_cli_proxy_t agent);
     static CliProxy & instance(gd_app_context_t app, const char * name);
 };
 
 }}
+
+#ifdef _MSC_VER
+# pragma warning(pop)
+#endif
 
 #endif

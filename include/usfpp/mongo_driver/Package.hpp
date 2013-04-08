@@ -5,11 +5,18 @@
 #include "usf/mongo_driver/mongo_pkg.h"
 #include "System.hpp"
 
+#ifdef _MSC_VER
+# pragma warning(push)
+# pragma warning(disable:4624)
+#endif
+
 namespace Usf { namespace Mongo {
 
 class Package : public Cpe::Utils::SimulateObject {
 public:
     operator mongo_pkg_t() const { return (mongo_pkg_t)this; }
+
+    void init(void) { mongo_pkg_init(*this); }
 
     mongo_db_op_t op(void) const { return mongo_pkg_op(*this); }
     void setOp(mongo_db_op_t op) { mongo_pkg_set_op(*this, op); }
@@ -17,8 +24,11 @@ public:
     uint32_t id(void) const { return mongo_pkg_id(*this); }
     void setId(uint32_t id) { mongo_pkg_set_id(*this, id); }
 
-    const char * ns(void) const { return mongo_pkg_ns(*this); }
-    void setNs(const char * ns) { mongo_pkg_set_ns(*this, ns); }
+    const char * db(void) const { return mongo_pkg_db(*this); }
+    void setDb(const char * db) { mongo_pkg_set_db(*this, db); }
+
+    const char * collection(void) const { return mongo_pkg_collection(*this); }
+    void setCollection(const char * collection) { mongo_pkg_set_collection(*this, collection); }
 
     /*doc op*/
     void docAppend(LPDRMETA meta, void const * data, size_t size);
@@ -30,7 +40,7 @@ public:
 
     void docOpen(void);
     void docClose(void);
-    bool docIsClosed(void) const { return mongo_pkg_doc_is_closed(*this); }
+    bool docIsClosed(void) const { return mongo_pkg_doc_is_closed(*this) ? true : false; }
     int docCount(void) const { return mongo_pkg_doc_count(*this); }
 
     /*basic data op*/
@@ -51,6 +61,17 @@ public:
     void appendTimestamp(const char *name, int time, int increment);
     void appendData(const char *name, int64_t millis);
     void appendTimeS(const char *name, time_t secs);
+    void appendObjectStart(const char * name);
+    void appendObjectFinish();
+
+    /*query pkg operations*/
+    int32_t queryFlags(void) const { return mongo_pkg_query_flags(*this); }
+    void querySetFlag(mongo_pro_flags_query_t flag) { mongo_pkg_query_set_flag(*this, flag); }
+    void queryUnSetFlag(mongo_pro_flags_query_t flag) { mongo_pkg_query_unset_flag(*this, flag); }
+    int32_t queryNumberToSkip(void) const { return mongo_pkg_query_number_to_skip(*this); }
+    void querySetNumberToSkip(int32_t number_to_skip) { mongo_pkg_query_set_number_to_skip(*this, number_to_skip); }
+    int32_t queryNumberToReturn(void) const { return mongo_pkg_query_number_to_return(*this); }
+    void querySetNumberToReturn(int32_t number_to_return) { mongo_pkg_query_set_number_to_return(*this, number_to_return); }
 
     /*other op*/
     const char * dump_data(mem_buffer_t buffer) const { return mongo_pkg_dump(*this, buffer, 0); }
@@ -60,5 +81,9 @@ public:
 };
 
 }}
+
+#ifdef _MSC_VER
+# pragma warning(pop)
+#endif
 
 #endif
