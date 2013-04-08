@@ -13,16 +13,23 @@ define assert-not-null
   $(call assert,$($1),The variable "$1" is null)
 endef
 
+# $(call assert-set-one,make-variable-list)
+define assert-set-one
+  $(if $(filter 1,$(words $(foreach m,$1,$($m)))),,$(warning $1 only can set 1 value))
+endef
+
 # $(call join-path,part1,part2)
 join-path=$(if $(1),$(strip $(1))/$(strip $(2)),$(2))
 
-ifneq ($(MAKE_SILENCE),1)
+ifneq ($(V),1)
   define with_message
     @$(if $1,echo ">>> $1" &&, )
   endef
+
+  CPE_SILENCE_TAG:=@
 endif
 
-ifeq ($(MAKEFILE_DEBUG),1)
+ifeq ($(MKD),1)
   debug-warning=$(warning $1)
   debug-variables=$(warning $1)
 endif
