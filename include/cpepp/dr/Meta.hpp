@@ -19,6 +19,8 @@ class Meta : public Cpe::Utils::SimulateObject {
 public:
     operator LPDRMETA (void) const { return (LPDRMETA)this; }
 
+    MetaLib const & ownerLib(void) const { return *(MetaLib const *)dr_meta_owner_lib(*this); }
+
     int type(void) const { return dr_meta_type(*this); }
 
     int baseVersion(void) const { return dr_meta_based_version(*this); }
