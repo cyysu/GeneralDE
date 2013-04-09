@@ -111,8 +111,8 @@ static char * dr_pbuf_read_get_write_pos(
 
 #define dr_pbuf_read_check_capacity(__capacity)                         \
     if (curStack->m_input_capacity - curStack->m_input_size < (__capacity)) { \
-        CPE_ERROR(em, "dr_pbuf_read: not enouth buf, capacity=%d, require=%d!"\
-                  , (int)(curStack->m_input_capacity - curStack->m_input_size)\
+        CPE_ERROR(em, "dr_pbuf_read: %s: not enouth buf, capacity=%d, require=%d!"\
+                  , entry ? dr_entry_name(entry) : "??", (int)(curStack->m_input_capacity - curStack->m_input_size)\
                   , (int)(__capacity));                                 \
         return -1;                                                      \
     }
@@ -295,7 +295,7 @@ static int dr_pbuf_read_i(
             uint32_t entry_id;
             uint32_t value_type;
             int entry_pos;
-            LPDRMETAENTRY entry;
+            LPDRMETAENTRY entry = NULL;
             struct dr_pbuf_read_array_info * array_info;
             size_t elementSize;
 
@@ -371,8 +371,8 @@ static int dr_pbuf_read_i(
 
                         if (total_size > ctx.m_output_capacity) {
                             CPE_ERROR(
-                                em, "dr_pbuf_read: not enouth buf, capacity=%d, require=%d!"
-                                , (int)ctx.m_output_capacity , (int)total_size);
+                                em, "dr_pbuf_read: %s: not enouth buf, capacity=%d, require=%d!"
+                                , dr_entry_name(entry), (int)ctx.m_output_capacity , (int)total_size);
                             return -1;
                         }
 
