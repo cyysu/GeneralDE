@@ -169,8 +169,6 @@ static int do_generate_traits_cpp(cpe_dr_generate_ctx_t ctx) {
 
     rv = 0;
 
-    mem_buffer_init(&buffer, 0);
-
     for(i = 0; i < o_traits_cpp->count; ++i) {
         FILE * fp;
 
@@ -179,12 +177,7 @@ static int do_generate_traits_cpp(cpe_dr_generate_ctx_t ctx) {
             return -1;
         }
 
-        mem_buffer_clear_data(&buffer);
-        mem_buffer_strcat(&buffer, o_h->filename[0]);
-        mem_buffer_strcat(&buffer, "/");
-        mem_buffer_strcat(&buffer, o_traits_cpp->filename[i]);
-
-        fp = file_stream_open((char *)mem_buffer_make_continuous(&buffer, 0), "w", ctx->m_em);
+        fp = file_stream_open(o_traits_cpp->filename[i], "w", ctx->m_em);
         if (fp == NULL) {
             rv = -1;
             continue;
@@ -196,8 +189,6 @@ static int do_generate_traits_cpp(cpe_dr_generate_ctx_t ctx) {
 
         file_stream_close(fp, ctx->m_em);
     }
-
-    mem_buffer_clear(&buffer);
 
     return rv;
 }
