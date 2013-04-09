@@ -308,6 +308,31 @@ cpe_range_find(cpe_range_mgr_t ra, ptr_int_t value) {
     return cpe_range_invalid;
 }
 
+int cpe_range_remove_one(cpe_range_mgr_t ra, ptr_int_t value) {
+    int pos = cpe_range_find_next_pos(ra, value);
+    if (pos < (int)ra->m_range_count && ra->m_ranges[pos].m_start == value) {
+        ++ra->m_ranges[pos].m_start;
+        cpe_range_merge_neighbers(ra, pos);
+        return 1;
+    }
+
+    if (pos > 0 && ra->m_ranges[pos - 1].m_end > value) {
+        struct cpe_range * r = &ra->m_ranges[pos - 1];
+        if (value + 1 == r->m_end) {
+            --r->m_end;
+            cpe_range_merge_neighbers(ra, pos - 1);
+        }
+        else {
+            ptr_int_t end = r->m_end;
+            r->m_end = value;
+            cpe_range_put_range(ra, value + 1, end);
+        }
+        return 1;
+    }
+
+    return 0;
+}
+
 int cpe_range_mgr_reserve_for_put(cpe_range_mgr_t ra, int put_count) {
     size_t newCapacity;
     size_t requireCount;
