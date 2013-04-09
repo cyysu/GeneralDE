@@ -46,6 +46,8 @@ void cpe_range_set_debug(cpe_range_mgr_t ra, int is_debug);
 struct cpe_range cpe_range_get_range(cpe_range_mgr_t ra, size_t require_count);
 int cpe_range_put_range(cpe_range_mgr_t ra, ptr_int_t start, ptr_int_t end);
 
+int cpe_range_remove_one(cpe_range_mgr_t ra, ptr_int_t);
+
 struct cpe_range cpe_range_find(cpe_range_mgr_t ra, ptr_int_t value);
 
 void cpe_range_mgr_ranges(cpe_range_it_t it, cpe_range_mgr_t ra);

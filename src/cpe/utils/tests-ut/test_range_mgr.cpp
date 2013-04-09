@@ -88,6 +88,11 @@ TEST_F(RangeMgrTest, put_one_to_empty) {
     EXPECT_STREQ("[10~11)", dump());
 }
 
+TEST_F(RangeMgrTest, put_one_1) {
+    EXPECT_EQ(0, cpe_range_put_one(&m_ra, 1));
+    EXPECT_STREQ("[1~2)", dump());
+}
+
 TEST_F(RangeMgrTest, put_one_to_begin_not_connect) {
     EXPECT_EQ(0, cpe_range_put_range(&m_ra, 10, 12));
     EXPECT_EQ(0, cpe_range_put_one(&m_ra, 8));
@@ -407,6 +412,56 @@ TEST_F(RangeMgrTest, find_range_last_pass_end) {
 
     struct cpe_range range = cpe_range_find(&m_ra, 21);
     ASSERT_TRUE(!cpe_range_is_valid(range));
+}
+
+TEST_F(RangeMgrTest, remove_one_start) {
+    EXPECT_EQ(0, cpe_range_put_range(&m_ra, 10, 13));
+    EXPECT_EQ(0, cpe_range_put_range(&m_ra, 18, 20));
+
+    EXPECT_EQ(1, cpe_range_remove_one(&m_ra, 10));
+    EXPECT_STREQ("[11~13),[18~20)", dump());
+}
+
+TEST_F(RangeMgrTest, remove_one_before_start) {
+    EXPECT_EQ(0, cpe_range_put_range(&m_ra, 10, 13));
+    EXPECT_EQ(0, cpe_range_put_range(&m_ra, 18, 20));
+
+    EXPECT_EQ(0, cpe_range_remove_one(&m_ra, 9));
+    EXPECT_STREQ("[10~13),[18~20)", dump());
+}
+
+TEST_F(RangeMgrTest, remove_one_middle) {
+    EXPECT_EQ(0, cpe_range_put_range(&m_ra, 10, 13));
+    EXPECT_EQ(0, cpe_range_put_range(&m_ra, 18, 20));
+
+    EXPECT_EQ(1, cpe_range_remove_one(&m_ra, 11));
+    EXPECT_STREQ("[10~11),[12~13),[18~20)", dump());
+}
+
+TEST_F(RangeMgrTest, remove_one_last) {
+    EXPECT_EQ(0, cpe_range_put_range(&m_ra, 10, 13));
+    EXPECT_EQ(0, cpe_range_put_range(&m_ra, 18, 20));
+
+    EXPECT_EQ(1, cpe_range_remove_one(&m_ra, 12));
+    EXPECT_STREQ("[10~12),[18~20)", dump());
+}
+
+TEST_F(RangeMgrTest, remove_one_middle_range) {
+    EXPECT_EQ(0, cpe_range_put_range(&m_ra, 10, 13));
+    EXPECT_EQ(0, cpe_range_put_range(&m_ra, 18, 20));
+
+    EXPECT_EQ(0, cpe_range_remove_one(&m_ra, 13));
+    EXPECT_EQ(0, cpe_range_remove_one(&m_ra, 17));
+    EXPECT_STREQ("[10~13),[18~20)", dump());
+}
+
+TEST_F(RangeMgrTest, remove_one_after_last) {
+    EXPECT_EQ(0, cpe_range_put_range(&m_ra, 10, 13));
+    EXPECT_EQ(0, cpe_range_put_range(&m_ra, 18, 20));
+
+    EXPECT_EQ(0, cpe_range_remove_one(&m_ra, 20));
+    EXPECT_EQ(0, cpe_range_remove_one(&m_ra, 21));
+    EXPECT_STREQ("[10~13),[18~20)", dump());
 }
 
 TEST_F(RangeMgrTest, ranges_empty) {
