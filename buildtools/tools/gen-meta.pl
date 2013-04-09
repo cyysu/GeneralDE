@@ -524,7 +524,7 @@ if ( ! defined $sheet ) { die "sheet $inputSheet not exist in $inputFile!"; }
 my ( $row_min, $row_max ) = $sheet->row_range();
 my ( $col_min, $col_max ) = $sheet->col_range();
 
-if ( $row_max < 0 || $row_min >= $row_max ) { die "sheet $inputSheet row range error!"; }
+if ( $row_max < 0 || $row_min > $row_max ) { die "sheet $inputSheet row range error!"; }
 if ( $col_max < 0 || $col_min >= $col_max ) { die "sheet $inputSheet col range error!"; }
 
 my %tableHead = ();

@@ -520,7 +520,7 @@ dr_inbuild_meta_copy_entry(struct DRInBuildMeta * meta, LPDRMETAENTRY entry) {
     dr_inbuild_entry_set_version(new_entry, dr_entry_version(entry));
     dr_inbuild_entry_set_id(new_entry, dr_entry_id(entry));
     dr_inbuild_entry_set_type(new_entry, dr_entry_type_name(entry));
-    dr_inbuild_entry_set_size(new_entry, dr_entry_size(entry));
+    dr_inbuild_entry_set_size(new_entry, entry->m_size);
     dr_inbuild_entry_set_array_count(new_entry, dr_entry_array_count(entry));
 
     if ((ref_meta = dr_entry_ref_meta(entry))) {
