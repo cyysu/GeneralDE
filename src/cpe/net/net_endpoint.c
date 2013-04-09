@@ -332,8 +332,6 @@ void net_ep_cb(EV_P_ ev_io *w, int revents) {
 
     ep->m_processing = 1;
 
-    printf("net_ep_cb begin: ep=%p\n", ep);
-
     old_events = net_ep_calc_ev_events(ep);
 
     if (!ep->m_deleted && revents & EV_READ) {
