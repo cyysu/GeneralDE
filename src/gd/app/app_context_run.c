@@ -10,42 +10,6 @@
 #include "gd/app/app_tl.h"
 #include "app_internal_ops.h"
 
-static int gd_app_run_i(gd_app_context_t context) {
-    int rv;
-
-    assert(context);
-
-    if (gd_app_load_childs(context) != 0) {
-        CPE_ERROR(context->m_em, "load child apps fail!");
-        return -1;
-    }
-
-    if (!gd_app_flag_is_enable(context, gd_app_flag_no_auto_load)) {
-        if (gd_app_cfg_reload(context) != 0) {
-            return -1;
-        }
-    }
-
-    if (gd_app_modules_load(context) != 0) {
-        return -1;
-    }
-
-    if (context->m_main == NULL) {
-        CPE_ERROR(context->m_em, "no main function to runing!");
-        gd_app_modules_unload(context);
-        return -1;
-    }
-
-    rv = context->m_main(context, context->m_fun_ctx);
-
-    if (!gd_app_flag_is_enable(context, gd_app_flag_delay_module_unload)) {
-        gd_app_modules_unload(context);
-        gd_app_tick_chain_free(context);
-    }
-
-    return rv;
-}
-
 int gd_app_start_inline(gd_app_context_t context) {
     if (context->m_state != gd_app_init) {
         APP_CTX_ERROR(context, "gd_app_start_inline: context state is %d, can`t start!", context->m_state);
@@ -55,9 +19,7 @@ int gd_app_start_inline(gd_app_context_t context) {
     return 0;
 }
 
-int gd_app_run(gd_app_context_t context) {
-    int r;
-
+static int gd_app_begin_1(gd_app_context_t context) {
     if (context->m_state != gd_app_init) {
         APP_CTX_ERROR(context, "gd_app_run: context state is %d, can`t run!", context->m_state);
         return -1;
@@ -69,9 +31,12 @@ int gd_app_run(gd_app_context_t context) {
     }
 
     context->m_state = gd_app_runing;
-
     gd_app_ins_set(context);
-    r = gd_app_run_i(context);
+
+    return 0;
+}
+
+static void gd_app_end_1(gd_app_context_t context) {
     gd_app_ins_set(NULL);
 
     context->m_state = gd_app_shutingdown;
@@ -85,8 +50,60 @@ int gd_app_run(gd_app_context_t context) {
     gd_app_child_context_wait_all(context);
 
     context->m_state = gd_app_done;
+}
+
+int gd_app_begin(gd_app_context_t context) {
+    if (gd_app_begin_1(context) != 0) return -1;
+
+    if (gd_app_load_childs(context) != 0) {
+        CPE_ERROR(context->m_em, "load child apps fail!");
+        gd_app_end_1(context);
+        return -1;
+    }
+
+    if (!gd_app_flag_is_enable(context, gd_app_flag_no_auto_load)) {
+        if (gd_app_cfg_reload(context) != 0) {
+            gd_app_end_1(context);
+            return -1;
+        }
+    }
+
+    if (gd_app_modules_load(context) != 0) {
+        gd_app_end_1(context);
+        return -1;
+    }
 
     return 0;
+}
+
+void gd_app_end(gd_app_context_t context) {
+    if (!gd_app_flag_is_enable(context, gd_app_flag_delay_module_unload)) {
+        gd_app_modules_unload(context);
+        gd_app_tick_chain_free(context);
+    }
+
+    gd_app_end_1(context);
+}
+
+int gd_app_run(gd_app_context_t context) {
+    int rv;
+
+    assert(context);
+    if (gd_app_begin(context) != 0) return -1;
+
+    if (context->m_main == NULL) {
+        CPE_ERROR(context->m_em, "no main function to runing!");
+        gd_app_modules_unload(context);
+        gd_app_tick_chain_free(context);
+        gd_app_end_1(context);
+        return -1;
+    }
+
+    rv = context->m_main(context, context->m_fun_ctx);
+
+    gd_app_end(context);
+
+    return rv;
 }
 
 int gd_app_stop(gd_app_context_t context) {
