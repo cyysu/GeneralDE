@@ -5,7 +5,6 @@
 #include "cpe/dp/dp_manage.h"
 #include "gd/app/app_context.h"
 #include "gd/app/app_module.h"
-#include "usf/bpg_pkg/bpg_pkg_manage.h"
 #include "svr/center/center_agent.h"
 #include "center_agent_internal_types.h"
 
@@ -15,18 +14,11 @@ int center_agent_app_init(gd_app_context_t app, gd_app_module_t module, cfg_t cf
     center_agent_t center_agent;
     const char * ip;
     short port;
-
-    pkg_manage = bpg_pkg_manage_find_nc(app, cfg_get_string(cfg, "pkg-manage", NULL));
-    if (pkg_manage == NULL) {
-        CPE_ERROR(
-            gd_app_em(app), "%s: create: pkg-manage %s not exist!",
-            gd_app_module_name(module),
-            cfg_get_string(cfg, "pkg-manage", "default"));
-        return -1;
-    }
+    const char * cvt_name;
 
     ip = cfg_get_string(cfg, "ip", "");
     port = cfg_get_int16(cfg, "port", 0);
+    cvt_name = cfg_get_string(cfg, "pkg-cvt", "pbuf-len");
 
     center_agent =
         center_agent_create(app, gd_app_module_name(module), pkg_manage, gd_app_alloc(app), gd_app_em(app));
@@ -34,6 +26,16 @@ int center_agent_app_init(gd_app_context_t app, gd_app_module_t module, cfg_t cf
 
     center_agent->m_read_chanel_size = cfg_get_uint32(cfg, "read-chanel-size", center_agent->m_read_chanel_size);
     center_agent->m_write_chanel_size = cfg_get_uint32(cfg, "write-chanel-size", center_agent->m_write_chanel_size);
+    center_agent->m_debug = cfg_get_int8(cfg, "debug", center_agent->m_debug);
+    center_agent_set_reconnect_span_ms(center_agent, cfg_get_uint32(cfg, "reconnect-span-ms", 30000));
+
+    if (center_agent_set_cvt(center_agent, cvt_name) != 0) {
+        CPE_ERROR(
+            gd_app_em(app), "%s: create: set cvt %s fail!",
+            gd_app_module_name(module), cvt_name);
+        center_agent_free(center_agent);
+        return -1;
+    }
 
     if (center_agent_set_svr(center_agent, ip, port) != 0) {
         CPE_ERROR(
@@ -42,11 +44,6 @@ int center_agent_app_init(gd_app_context_t app, gd_app_module_t module, cfg_t cf
         center_agent_free(center_agent);
         return -1;
     }
-
-    center_agent->m_debug = cfg_get_int8(cfg, "debug", center_agent->m_debug);
-
-    center_agent_set_reconnect_span_ms(
-        center_agent, cfg_get_uint32(cfg, "reconnect-span-ms", 30000));
 
     if (center_agent->m_debug) {
         CPE_INFO(gd_app_em(app), "%s: create: done. ip=%s, port=%u", gd_app_module_name(module), ip, port);

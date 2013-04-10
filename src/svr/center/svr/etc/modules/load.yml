@@ -1,11 +1,33 @@
-- include: framework
-- include: client
+- name: app_net_env
 
-- name: CenterSvrLogic
-  data-meta-name: client-meta-lib
-  data-meta-dump: 0
-  rsp-manage: cli-logic
-  data-meta-validate: 0
+- name: app_setup
+  debug-app: 0
+  debug-net: 0
+  tickers:
+    - tl: {process-count: 500}
 
-- name: SvrManager
+- name: app_net_runner
 
+- name: gd_timer_mgr
+
+- name: dr_cvt_manage
+- name: dr_pbuf_len_cvt
+
+- name: center_svr
+  pkg-cvt: pbuf-len
+  #ip:
+  port: 5008
+  #accept-queue-size: 
+  process-count-per-tick: 10
+  #max-pkg-size: 
+  #read-chanel-size:
+  #write-chanel-size:
+  #conn-timeout-ms: 500
+
+  #内存大小，当从共享内存加载时这个配置项无效，共享内存大小是初始化时设定的
+  record-shm: 0
+  record-buf-size-m: 50
+
+  debug: 1
+
+# -*- coding: utf-8 -*-

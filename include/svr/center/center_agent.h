@@ -3,7 +3,6 @@
 #include "cpe/utils/hash_string.h"
 #include "cpe/utils/memory.h"
 #include "cpe/utils/error.h"
-#include "usf/bpg_pkg/bpg_pkg_types.h"
 #include "center_agent_types.h"
 
 #ifdef __cplusplus
@@ -13,7 +12,6 @@ extern "C" {
 center_agent_t center_agent_create(
     gd_app_context_t app,
     const char * name, 
-    bpg_pkg_manage_t pkg_manage,
     mem_allocrator_t alloc, error_monitor_t em);
 
 void center_agent_free(center_agent_t mgr);

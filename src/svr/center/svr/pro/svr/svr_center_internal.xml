@@ -2,7 +2,7 @@
 <metalib tagsetversion="1" name="" version="1">
     <include name="svr_center_data" file="svr_center_data.xml"/>
 
-    <struct name="svr_center_svr" version="1" keys="svr_type,svr_id">
+    <struct name="svr_center_cli_record" version="1" primarykey="svr_type,svr_id">
         <entry name="svr_type" type="uint16" id="1"/>
         <entry name="svr_id" type="uint16" id="2"/>
         <entry name="state" type="uint8" id="2"/>

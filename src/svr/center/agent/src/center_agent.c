@@ -6,7 +6,7 @@
 #include "cpe/net/net_connector.h"
 #include "gd/app/app_module.h"
 #include "gd/app/app_context.h"
-#include "usf/bpg_pkg/bpg_pkg_manage.h"
+#include "gd/dr_cvt/dr_cvt.h"
 #include "svr/center/center_agent.h"
 #include "center_agent_internal_ops.h"
 
@@ -21,7 +21,6 @@ center_agent_t
 center_agent_create(
     gd_app_context_t app,
     const char * name,
-    bpg_pkg_manage_t pkg_manage,
     mem_allocrator_t alloc,
     error_monitor_t em)
 {
@@ -39,6 +38,7 @@ center_agent_create(
     mgr->m_alloc = alloc;
     mgr->m_em = em;
     mgr->m_debug = 0;
+    mgr->m_cvt = NULL;
     mgr->m_connector = NULL;
     mgr->m_read_chanel_size = 4 * 1024;
     mgr->m_write_chanel_size = 1024;
@@ -52,9 +52,10 @@ static void center_agent_clear(nm_node_t node) {
     center_agent_t mgr;
     mgr = (center_agent_t)nm_node_data(node);
 
-    assert(mgr->m_pkg_manager);
-    bpg_pkg_manage_free(mgr->m_pkg_manager);
-    mgr->m_pkg_manager = NULL;
+    if (mgr->m_cvt) {
+        dr_cvt_free(mgr->m_cvt);
+        mgr->m_cvt = NULL;
+    }
 
     if (mgr->m_connector) {
         net_connector_free(mgr->m_connector);
@@ -100,6 +101,18 @@ const char * center_agent_name(center_agent_t mgr) {
 cpe_hash_string_t
 center_agent_name_hs(center_agent_t mgr) {
     return nm_node_name_hs(nm_node_from_data(mgr));
+}
+
+int center_agent_set_cvt(center_agent_t agent, const char * cvt_name) {
+    if (agent->m_cvt) dr_cvt_free(agent->m_cvt);
+
+    agent->m_cvt = dr_cvt_create(agent->m_app, cvt_name);
+    if (agent->m_cvt == NULL) {
+        CPE_ERROR(agent->m_em, "%s: set cvt %s fail!", center_agent_name(agent), cvt_name);
+        return -1;
+    } 
+
+    return 0;
 }
 
 int center_agent_set_svr(center_agent_t agent, const char * ip, short port) {

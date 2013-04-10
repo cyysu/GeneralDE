@@ -1,23 +1,9 @@
 load:
-  - name: center-svr-meta-lib
-    type: dr_store_loader
-    load-from-symbol: g_metalib_svr_center_pro
-
-  - name: center-svr-pkg-manager
-    type: bpg_pkg_manage
-    buff-size: 40960
-    debug: 2
-    base-cvt: pbuf-len
-    data-cvt: pbuf
-    meta:
-      lib-name: center-svr-meta-lib
-      cmd-meta-name: [ svr_center_pkg_data ]
-    validate: 0
-
   - name: center_agent
-    pkg-manage: center-svr-pkg-manager
+    pkg-cvt: pbuf-len
     read-chanel-size: 4096
     write-chanel-size: 4096
     ip: 127.0.0.1
     port: 8005
+    auto-enable: 1
     debug: 1

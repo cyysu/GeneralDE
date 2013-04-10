@@ -3,7 +3,7 @@
 #include "cpe/utils/memory.h"
 #include "cpe/utils/error.h"
 #include "cpe/net/net_types.h"
-#include "usf/bpg_pkg/bpg_pkg_types.h"
+#include "gd/dr_cvt/dr_cvt_types.h"
 #include "svr/center/center_agent_types.h"
 
 struct center_agent {
@@ -11,7 +11,8 @@ struct center_agent {
     mem_allocrator_t m_alloc;
     error_monitor_t m_em;
     int m_debug;
-    bpg_pkg_manage_t m_pkg_manager;
+
+    dr_cvt_t m_cvt;
 
     uint32_t m_read_chanel_size;
     uint32_t m_write_chanel_size;
