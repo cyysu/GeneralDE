@@ -4,7 +4,6 @@
 #include "cpe/dr/dr_json.h"
 #include "cpe/net/net_chanel.h"
 #include "cpe/net/net_endpoint.h"
-#include "cpe/dp/dp_manage.h"
 #include "gd/app/app_context.h"
 #include "gd/dr_cvt/dr_cvt.h"
 #include "center_svr_ops.h"
@@ -102,7 +101,7 @@ static void center_cli_conn_on_read(center_cli_conn_t conn, net_ep_t ep) {
                 center_svr_name(svr), (int)net_ep_id(ep),
                 conn->m_data ? conn->m_data->m_data->svr_type : 0,
                 conn->m_data ? conn->m_data->m_data->svr_id : 0,
-                mem_buffer_make_continuous(&svr->m_dump_buffer, 0));
+                (const char *)mem_buffer_make_continuous(&svr->m_dump_buffer, 0));
         }
 
         pkg = req_buf;

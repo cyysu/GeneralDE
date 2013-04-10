@@ -1,6 +1,7 @@
 #include <assert.h>
 #include "cpe/pal/pal_external.h"
 #include "cpe/pal/pal_stdio.h"
+#include "cpe/dr/dr_metalib_manage.h"
 #include "cpe/nm/nm_manage.h"
 #include "cpe/nm/nm_read.h"
 #include "cpe/net/net_connector.h"
@@ -10,6 +11,7 @@
 #include "svr/center/center_agent.h"
 #include "center_agent_internal_ops.h"
 
+extern char g_metalib_svr_center_pro[];
 static void center_agent_clear(nm_node_t node);
 
 struct nm_node_type s_nm_node_type_center_agent = {
@@ -42,6 +44,24 @@ center_agent_create(
     mgr->m_connector = NULL;
     mgr->m_read_chanel_size = 4 * 1024;
     mgr->m_write_chanel_size = 1024;
+    mgr->m_process_count_per_tick = 10;
+    mgr->m_max_pkg_size = 1024 * 1024 * 5;
+
+    mgr->m_center_pkg_sn = 0;
+    mgr->m_center_pkg_send_time = 0;
+    mgr->m_center_state = center_agent_center_state_init;
+
+    mgr->m_pkg_meta =
+        dr_lib_find_meta_by_name((LPDRMETALIB)g_metalib_svr_center_pro, "svr_center_pkg");
+    if (mgr->m_pkg_meta == NULL) {
+        CPE_ERROR(em, "%s: create find pkg meta fail!", name);
+        nm_node_free(mgr_node);
+        return NULL;
+    }
+
+    mem_buffer_init(&mgr->m_incoming_pkg_buf, mgr->m_alloc);
+    mem_buffer_init(&mgr->m_outgoing_encode_buf, mgr->m_alloc);
+    mem_buffer_init(&mgr->m_dump_buffer, mgr->m_alloc);
 
     nm_node_set_type(mgr_node, &s_nm_node_type_center_agent);
 
@@ -51,6 +71,10 @@ center_agent_create(
 static void center_agent_clear(nm_node_t node) {
     center_agent_t mgr;
     mgr = (center_agent_t)nm_node_data(node);
+
+    mem_buffer_clear(&mgr->m_incoming_pkg_buf);
+    mem_buffer_clear(&mgr->m_outgoing_encode_buf);
+    mem_buffer_clear(&mgr->m_dump_buffer);
 
     if (mgr->m_cvt) {
         dr_cvt_free(mgr->m_cvt);
@@ -130,7 +154,7 @@ int center_agent_set_svr(center_agent_t agent, const char * ip, short port) {
         return -1;
     }
  
-    if (center_agent_ep_init(agent, net_connector_ep(agent->m_connector)) != 0) {
+    if (center_agent_center_ep_init(agent, net_connector_ep(agent->m_connector)) != 0) {
         net_connector_free(agent->m_connector);
         agent->m_connector = NULL;
         CPE_ERROR(

@@ -145,7 +145,7 @@ int center_cli_conn_send(center_cli_conn_t conn, SVR_CENTER_PKG * pkg, size_t pk
                 conn->m_data ? conn->m_data->m_data->svr_type : 0,
                 conn->m_data ? conn->m_data->m_data->svr_id : 0,
                 (int)buf_size,
-                mem_buffer_make_continuous(&svr->m_dump_buffer, 0));
+                (const char *)mem_buffer_make_continuous(&svr->m_dump_buffer, 0));
         }
 
         break;

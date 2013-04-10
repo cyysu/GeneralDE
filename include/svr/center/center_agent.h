@@ -17,6 +17,7 @@ center_agent_t center_agent_create(
 void center_agent_free(center_agent_t mgr);
 
 int center_agent_set_svr(center_agent_t agent, const char * ip, short port);
+int center_agent_set_cvt(center_agent_t agent, const char * cvt_name);
 int center_agent_set_reconnect_span_ms(center_agent_t agent, uint32_t span);
 
 center_agent_t center_agent_find(gd_app_context_t app, cpe_hash_string_t name);

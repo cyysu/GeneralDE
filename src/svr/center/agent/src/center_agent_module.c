@@ -10,7 +10,6 @@
 
 EXPORT_DIRECTIVE
 int center_agent_app_init(gd_app_context_t app, gd_app_module_t module, cfg_t cfg) {
-    bpg_pkg_manage_t pkg_manage;
     center_agent_t center_agent;
     const char * ip;
     short port;
@@ -21,13 +20,15 @@ int center_agent_app_init(gd_app_context_t app, gd_app_module_t module, cfg_t cf
     cvt_name = cfg_get_string(cfg, "pkg-cvt", "pbuf-len");
 
     center_agent =
-        center_agent_create(app, gd_app_module_name(module), pkg_manage, gd_app_alloc(app), gd_app_em(app));
+        center_agent_create(app, gd_app_module_name(module), gd_app_alloc(app), gd_app_em(app));
     if (center_agent == NULL) return -1;
 
+    center_agent->m_process_count_per_tick = cfg_get_uint32(cfg, "process-count-per-tick", center_agent->m_process_count_per_tick);
     center_agent->m_read_chanel_size = cfg_get_uint32(cfg, "read-chanel-size", center_agent->m_read_chanel_size);
     center_agent->m_write_chanel_size = cfg_get_uint32(cfg, "write-chanel-size", center_agent->m_write_chanel_size);
     center_agent->m_debug = cfg_get_int8(cfg, "debug", center_agent->m_debug);
     center_agent_set_reconnect_span_ms(center_agent, cfg_get_uint32(cfg, "reconnect-span-ms", 30000));
+    center_agent->m_max_pkg_size = cfg_get_uint32(cfg, "max-pkg-size", center_agent->m_max_pkg_size);
 
     if (center_agent_set_cvt(center_agent, cvt_name) != 0) {
         CPE_ERROR(
