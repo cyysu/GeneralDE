@@ -216,7 +216,12 @@ ssize_t file_stream_size(FILE * fp, error_monitor_t em) {
 }
 
 const char * dir_name(const char * input, mem_buffer_t tbuf) {
+    return dir_name_ex(input, 1, tbuf);
+}
+
+const char * dir_name_ex(const char * input, int level, mem_buffer_t tbuf) {
     int len;
+    assert(level > 0);
 
     if (input == NULL) return NULL;
 
@@ -225,10 +230,13 @@ const char * dir_name(const char * input, mem_buffer_t tbuf) {
     while(len > 0) {
         char c = input[--len];
         if (c == '/' || c == '\\') {
-            char * r = (char *)mem_buffer_alloc(tbuf, len + 1);
-            if (len > 1) { memcpy(r, input, len); }
-            r[len] = 0; 
-            return r;
+            --level;
+            if (level == 0) {
+                char * r = (char *)mem_buffer_alloc(tbuf, len + 1);
+                if (len > 1) { memcpy(r, input, len); }
+                r[len] = 0; 
+                return r;
+            }
         }
     }
 
