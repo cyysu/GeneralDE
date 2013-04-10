@@ -1,6 +1,5 @@
 t/svr/chat
 t/support/mongo
-t/support/app-net
 t/svr/friend
 t/svr/account
 t/3rdTools/zmq
