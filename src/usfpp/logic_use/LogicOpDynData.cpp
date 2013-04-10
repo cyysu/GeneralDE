@@ -1,3 +1,4 @@
+#include <cassert>
 #include "gdpp/app/Log.hpp"
 #include "usf/logic/logic_manage.h"
 #include "usfpp/logic_use/LogicOpDynData.hpp"
@@ -52,6 +53,11 @@ void LogicOpDynData::recordRemove(void const * p) {
             ::std::runtime_error,
             "Usf::Logic::LogicOpDynData::remove: remove %p fail", p);
     }
+}
+
+void LogicOpDynData::recordPop(void) {
+    assert(recordCount() > 0);
+    recordRemove(recordCount() - 1);
 }
 
 void * LogicOpDynData::recordAppend(void) {
