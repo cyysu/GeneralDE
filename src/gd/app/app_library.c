@@ -138,7 +138,12 @@ void * gd_app_lib_sym(struct gd_app_lib * lib, const char * symName, error_monit
         else {
             CPE_ERROR(em, "locate default lib handler success: %s at 0x%p", dl_info.dli_fname, dl_info.dli_fbase);
             gd_app_default_lib_handler = dlopen(dl_info.dli_fname, RTLD_NOW);
-            dlclose(gd_app_default_lib_handler);
+            if (gd_app_default_lib_handler) {
+                dlclose(gd_app_default_lib_handler);
+            }
+            else {
+                gd_app_default_lib_handler = dlopen(NULL, RTLD_NOW);
+            }
         }
     }
 
