@@ -76,6 +76,7 @@ int gd_app_debug(gd_app_context_t context);
 void gd_app_set_debug(gd_app_context_t context, int level);
 
 void gd_set_default_library(void * handler);
+void gd_stop_on_signal(int sig);
 
 #ifdef __cplusplus
 }
