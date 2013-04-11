@@ -136,11 +136,13 @@ static void center_agent_center_on_read(center_agent_t agent, net_ep_t ep) {
 static void center_agent_center_on_open(center_agent_t agent, net_ep_t ep) {
     SVR_CENTER_PKG pkg;
 
+    printf("open 1\n");
     if(agent->m_debug) {
         CPE_INFO(
             agent->m_em, "%s: center ep %d: on open",
             center_agent_name(agent), (int)net_ep_id(ep));
     }
+    printf("open 2\n");
 
     pkg.cmd = SVR_CENTER_CMD_REQ_JOIN;
     pkg.data.svr_center_req_join.id.svr_type = 0;
