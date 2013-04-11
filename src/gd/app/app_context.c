@@ -1,3 +1,4 @@
+#include "cpe/pal/pal_signal.h"
 #include "cpe/pal/pal_string.h"
 #include "cpe/pal/pal_stdlib.h"
 #include "cpe/utils/buffer.h"
@@ -255,4 +256,3 @@ void gd_app_set_debug(gd_app_context_t context, int level) {
 gd_app_status_t gd_app_state(gd_app_context_t context) {
     return context->m_state;
 }
-
