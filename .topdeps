@@ -3,3 +3,4 @@ t/support/mongo
 t/svr/friend
 t/svr/account
 t/3rdTools/zmq
+t/svr/center
