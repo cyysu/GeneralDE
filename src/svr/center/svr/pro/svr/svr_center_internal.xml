@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="GBK" standalone="yes"?>
+<metalib tagsetversion="1" name="" version="1">
+    <include name="svr_center_data" file="svr_center_data.xml"/>
+
+    <struct name="svr_center_cli_record" version="1" primarykey="svr_type,svr_id">
+        <entry name="svr_type" type="uint16" id="1"/>
+        <entry name="svr_id" type="uint16" id="2"/>
+        <entry name="state" type="uint8" id="2"/>
+        <entry name="uint32" type="uint32" id="3"/>
+        <entry name="online_time" type="uint32" id="4"/>
+        <entry name="shk_time" type="uint32" id="5"/>
+    </struct>
+
+</metalib>
