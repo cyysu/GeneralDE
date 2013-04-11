@@ -38,7 +38,7 @@ $(product).c.sources:= $(addprefix $(product-base)/, \
                          domnode-xml-scanner.c )
 
 $(product).c.flags.ld:=
-$(product).c.includes:=3rdTools/log4c/src
+$(product).c.includes:=3rdTools/log4c/src 3rdTools/log4c/include/log4c
 $(product).c.env-includes:=3rdTools/log4c/src
 $(product).c.flags.cpp:=-DHAVE_CONFIG_H -DLOG4C_RCPATH=\"\" -Wno-unused
 
