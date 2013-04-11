@@ -1,7 +1,7 @@
 product:=center_svr_lib
 $(product).type:=cpe-dr lib 
 $(product).depends:=cpe_cfg cpe_dr cpe_dr_data_cfg cpe_dr_data_pbuf cpe_aom cpe_dp cpe_nm \
-                    gd_net gd_app  gd_dr_cvt
+                    gd_net gd_app  gd_dr_cvt gd_log
 
 $(product).c.sources:=$(filter-out %/main.c,$(wildcard $(product-base)/*.c))
 
