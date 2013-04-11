@@ -1,3 +1,8 @@
+- name: log_context
+  categories:
+    - default: { appender: rollingfile }
+  debug: 1
+
 - name: app_net_env
 
 - name: app_setup
