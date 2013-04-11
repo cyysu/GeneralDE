@@ -21,7 +21,7 @@
 - name: center_svr
   pkg-cvt: pbuf-len
   #ip:
-  port: 5008
+  port: 8099
   #accept-queue-size: 
   process-count-per-tick: 10
   #max-pkg-size: 

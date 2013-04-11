@@ -5,6 +5,6 @@ load:
     write-chanel-size: 4096
     #max-pkg-size: 5 * 1024 * 1024
     ip: 127.0.0.1
-    port: 8005
+    port: 8099
     auto-enable: 1
     debug: 1
