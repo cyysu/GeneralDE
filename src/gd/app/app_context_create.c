@@ -1,4 +1,5 @@
 #include <assert.h>
+#include "cpe/pal/pal_signal.h"
 #include "cpe/pal/pal_stdlib.h"
 #include "cpe/pal/pal_string.h"
 #include "cpe/pal/pal_strings.h"
@@ -207,3 +208,12 @@ gd_app_context_create_main(mem_allocrator_t alloc, size_t capacity, int argc, ch
     return g_main_app_context;
 }
 
+static void gd_global_stop_sig_handler(int sig) {
+    if (g_main_app_context == NULL) return;
+
+    gd_app_notify_stop(g_main_app_context);
+}
+
+void gd_stop_on_signal(int sig) {
+    signal(sig, gd_global_stop_sig_handler);
+}
