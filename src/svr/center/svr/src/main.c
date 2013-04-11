@@ -6,6 +6,7 @@
 #include "cpe/pal/pal_shm.h"
 #include "cpe/utils/stream_file.h"
 #include "cpe/utils/file.h"
+#include "cpe/utils/buffer.h"
 #include "cpe/utils/service.h"
 #include "cpe/dr/dr_metalib_manage.h"
 #include "cpe/cfg/cfg_read.h"
@@ -200,19 +201,32 @@ int main(int argc, char * argv[]) {
         }
     }
     else if (run->count) {
-        int shmkey = generate_shm_key(argv[0], em);
-        if (shmkey == -1) return -1;
-        rv = svr_main(argc, argv, shmkey);
-    }
-    else if (start->count) {
-        cpe_daemonize(em);
-
         if (cpe_check_and_write_pid(generate_pkd_file(argv[0]), em) != 0) {
+            printf("%s is already runing!\n", file_name_no_dir(argv[0]));
             rv = -1;
         }
         else {
             int shmkey = generate_shm_key(argv[0], em);
             if (shmkey == -1) return -1;
+
+            gd_stop_on_signal(SIGHUP);
+
+            rv = svr_main(argc, argv, shmkey);
+        }
+    }
+    else if (start->count) {
+        cpe_daemonize(em);
+
+        if (cpe_check_and_write_pid(generate_pkd_file(argv[0]), em) != 0) {
+            printf("%s is already runing!\n", file_name_no_dir(argv[0]));
+            rv = -1;
+        }
+        else {
+            int shmkey = generate_shm_key(argv[0], em);
+            if (shmkey == -1) return -1;
+
+            gd_stop_on_signal(SIGHUP);
+
             rv = svr_main(argc, argv, shmkey);
         }
     }
