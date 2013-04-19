@@ -58,6 +58,17 @@ float cfg_get_float(cfg_t cfg, const char * path, float dft);
 double cfg_get_double(cfg_t cfg, const char * path, double dft);
 const char * cfg_get_string(cfg_t cfg, const char * path, const char * dft);
 
+int cfg_try_get_int8(cfg_t cfg, const char * path, int8_t * data);
+int cfg_try_get_uint8(cfg_t cfg, const char * path, uint8_t * data);
+int cfg_try_get_int16(cfg_t cfg, const char * path, int16_t * data);
+int cfg_try_get_uint16(cfg_t cfg, const char * path, uint16_t * data);
+int cfg_try_get_int32(cfg_t cfg, const char * path, int32_t * data);
+int cfg_try_get_uint32(cfg_t cfg, const char * path, uint32_t * data);
+int cfg_try_get_int64(cfg_t cfg, const char * path, int64_t * data);
+int cfg_try_get_uint64(cfg_t cfg, const char * path, uint64_t * data);
+int cfg_try_get_float(cfg_t cfg, const char * path, float * data);
+int cfg_try_get_double(cfg_t cfg, const char * path, double * data);
+
 /*struct operations*/
 int cfg_struct_count(cfg_t cfg);
 cfg_t cfg_struct_find_cfg(cfg_t cfg, const char * name);

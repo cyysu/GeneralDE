@@ -230,6 +230,49 @@ size_t net_ep_size(net_ep_t ep) {
     return ep->m_chanel_r ? ep->m_chanel_r->m_type->data_size(ep->m_chanel_r) : 0;
 }
 
+int net_ep_localname(net_ep_t ep, uint32_t * ip, uint16_t * port) {
+    struct sockaddr_in addr;
+    socklen_t len;
+
+    if (ep->m_fd < 0) return -1;
+
+    len = sizeof(addr);
+    if (cpe_getsockname(ep->m_fd, (struct sockaddr *)&addr, &len) != 0) {
+        CPE_ERROR(
+            ep->m_mgr->m_em,
+            "getsockname fail, errno=%d (%s)!",
+            cpe_sock_errno(), cpe_sock_errstr(cpe_sock_errno()));
+        return -1;
+    }
+
+    if (port) *port = ntohs(addr.sin_port);
+    if (ip) *ip = addr.sin_addr.s_addr;
+
+    return 0;
+}
+
+int net_ep_peername(net_ep_t ep, uint32_t * ip, uint16_t * port) {
+    struct sockaddr_in addr;
+    socklen_t len;
+
+    if (ep->m_fd < 0) return -1;
+
+    len = sizeof(addr);
+    if (cpe_getpeername(ep->m_fd, (struct sockaddr *)&addr, &len) != 0) {
+        CPE_ERROR(
+            ep->m_mgr->m_em,
+            "getsockname fail, errno=%d (%s)!",
+            cpe_sock_errno(), cpe_sock_errstr(cpe_sock_errno()));
+        return -1;
+    }
+
+    if (port) *port = ntohs(addr.sin_port);
+    if (ip) *ip = addr.sin_addr.s_addr;
+
+    return 0;
+}
+
+
 int net_ep_set_fd(net_ep_t ep, int fd) {
     assert(ep);
 
