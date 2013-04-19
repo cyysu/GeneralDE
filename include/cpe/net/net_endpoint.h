@@ -33,6 +33,9 @@ void net_ep_set_processor(net_ep_t ep, net_process_fun_t process_fun, void * pro
 
 void net_ep_set_status(net_ep_t ep, enum net_status status);
 
+int net_ep_localname(net_ep_t ep, uint32_t * ip, uint16_t * port);
+int net_ep_peername(net_ep_t ep, uint32_t * ip, uint16_t * port);
+
 /*服务读写接口*/
 int net_ep_send(net_ep_t ep, const void * buf, size_t size);
 ssize_t net_ep_rece(net_ep_t ep, void * buf, size_t capacity);
