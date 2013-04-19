@@ -139,8 +139,8 @@ int center_cli_conn_send(center_cli_conn_t conn, SVR_CENTER_PKG * pkg, size_t pk
             dr_json_print((write_stream_t)&stream, pkg, pkg_size, svr->m_pkg_meta, 0, NULL);
             stream_putc((write_stream_t)&stream, 0);
 
-            CPE_ERROR(
-                svr->m_em, "%s: ep %d: svr %d.%d: ==> send on request, send-size=%d\n%s",
+            CPE_INFO(
+                svr->m_em, "%s: ep %d: svr %d.%d: ==> send one response, send-size=%d\n%s",
                 center_svr_name(svr), (int)net_ep_id(conn->m_ep),
                 conn->m_data ? conn->m_data->m_data->svr_type : 0,
                 conn->m_data ? conn->m_data->m_data->svr_id : 0,

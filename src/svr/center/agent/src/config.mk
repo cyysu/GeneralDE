@@ -1,6 +1,6 @@
 product:=center_agent
 $(product).type:=cpe-dr lib
-$(product).depends:=cpepp_cfg
+$(product).depends:=ev cpe_cfg cpe_fsm
 $(product).c.sources:=$(wildcard $(product-base)/*.c)
 $(product).product.c.flags.ld:=-rdynamic
 $(product).product.c.output-includes:=share

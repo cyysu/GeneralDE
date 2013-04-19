@@ -46,7 +46,7 @@ center_svr_create(
     svr->m_listener = NULL;
     svr->m_read_chanel_size = 4 * 1024;
     svr->m_write_chanel_size = 1024;
-    svr->m_conn_timeout_ms = 500;
+    svr->m_conn_timeout_ms = 500 * 1000;
     svr->m_listener = NULL;
     svr->m_client_data_mgr = NULL;
     svr->m_process_count_per_tick = 10;
