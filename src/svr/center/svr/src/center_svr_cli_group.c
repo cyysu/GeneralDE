@@ -20,6 +20,7 @@ center_cli_group_get_or_create(center_svr_t svr, uint16_t svr_type) {
 
         group->m_svr = svr;
         group->m_svr_type = svr_type;
+        group->m_svr_count = 0;
         TAILQ_INIT(&group->m_datas);
 
         cpe_hash_entry_init(&group->m_hh);
@@ -29,10 +30,17 @@ center_cli_group_get_or_create(center_svr_t svr, uint16_t svr_type) {
     return group;
 }
 
+center_cli_group_t center_cli_group_find(center_svr_t svr, uint16_t svr_type) {
+    struct center_cli_group key;
+    key.m_svr_type = svr_type;
+    return cpe_hash_table_find(&svr->m_groups, &key);
+}
+
 void center_cli_group_free(center_cli_group_t group) {
     center_svr_t svr = group->m_svr;
 
     assert(svr);
+    assert(group->m_svr_count == 0);
     assert(TAILQ_EMPTY(&group->m_datas));
 
     cpe_hash_table_remove_by_ins(&svr->m_groups, group);

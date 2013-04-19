@@ -20,8 +20,6 @@ static void center_cli_conn_on_read(center_cli_conn_t conn, net_ep_t ep) {
     size_t curent_pkg_size = 1024;
     uint32_t i;
 
-    printf("on read\n");
-
     for(i = 0; i < svr->m_process_count_per_tick; ++i) {
         char * buf;
         size_t buf_size;
@@ -97,9 +95,9 @@ static void center_cli_conn_on_read(center_cli_conn_t conn, net_ep_t ep) {
             dr_json_print((write_stream_t)&stream, req_buf, req_size, svr->m_pkg_meta, 0, NULL);
             stream_putc((write_stream_t)&stream, 0);
 
-            CPE_ERROR(
+            CPE_INFO(
                 svr->m_em,
-                "%s: ep %d: d: svr %d.%d: <== recv on request\n%s",
+                "%s: ep %d: d: svr %d.%d: <== recv one request\n%s",
                 center_svr_name(svr), (int)net_ep_id(ep),
                 conn->m_data ? conn->m_data->m_data->svr_type : 0,
                 conn->m_data ? conn->m_data->m_data->svr_id : 0,
