@@ -47,6 +47,7 @@ int center_cli_data_eq(center_cli_data_t l, center_cli_data_t r);
 
 /*operations of center_cli_group */
 center_cli_group_t center_cli_group_get_or_create(center_svr_t svr, uint16_t svr_type);
+center_cli_group_t center_cli_group_find(center_svr_t svr, uint16_t svr_type);
 void center_cli_group_free(center_cli_group_t group);
 
 uint32_t center_cli_group_hash(center_cli_group_t group);

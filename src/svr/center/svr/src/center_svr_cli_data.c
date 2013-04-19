@@ -34,6 +34,7 @@ center_cli_data_create(center_svr_t svr, SVR_CENTER_CLI_RECORD * record) {
     }
 
     TAILQ_INSERT_TAIL(&data->m_group->m_datas, data, m_next);
+    ++data->m_group->m_svr_count;
 
     return data;
 }
@@ -55,6 +56,7 @@ void center_cli_data_free(center_cli_data_t cli) {
 
     /*remove from group*/
     assert(cli->m_group);
+    --cli->m_group->m_svr_count;
     TAILQ_REMOVE(&cli->m_group->m_datas, cli, m_next);
     if (TAILQ_EMPTY(&cli->m_group->m_datas)) {
         center_cli_group_free(cli->m_group);

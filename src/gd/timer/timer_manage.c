@@ -207,6 +207,9 @@ int gd_timer_mgr_regist_timer(
 
     if (gd_timer_processor_alloc(mgr, &newProcessorId) != 0) {
         if (arg && arg_fini) arg_fini(arg);
+        CPE_ERROR(
+            mgr->m_em, "%s: regist processor: alloc processor fail!",
+            gd_timer_mgr_name(mgr));
         return -1;
     }
 

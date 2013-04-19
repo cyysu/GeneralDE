@@ -8,6 +8,7 @@ extern "C" {
 #endif
 
 typedef struct center_agent * center_agent_t;
+typedef struct center_agent_pkg * center_agent_pkg_t;
 
 #ifdef __cplusplus
 }

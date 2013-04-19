@@ -54,6 +54,7 @@ struct center_svr {
 struct center_cli_group {
     center_svr_t m_svr;
     uint16_t m_svr_type;
+    uint16_t m_svr_count;
     center_cli_data_list_t m_datas;
 
     struct cpe_hash_entry m_hh;

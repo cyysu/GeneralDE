@@ -2,16 +2,19 @@
 #include "cpe/pal/pal_external.h"
 #include "cpe/pal/pal_stdio.h"
 #include "cpe/dr/dr_metalib_manage.h"
+#include "cpe/utils/stream.h"
 #include "cpe/nm/nm_manage.h"
 #include "cpe/nm/nm_read.h"
 #include "cpe/net/net_connector.h"
+#include "cpe/net/net_endpoint.h"
+#include "cpe/fsm/fsm_def.h"
+#include "cpe/fsm/fsm_ins.h"
 #include "gd/app/app_module.h"
 #include "gd/app/app_context.h"
 #include "gd/dr_cvt/dr_cvt.h"
 #include "svr/center/center_agent.h"
 #include "center_agent_internal_ops.h"
 
-extern char g_metalib_svr_center_pro[];
 static void center_agent_clear(nm_node_t node);
 
 struct nm_node_type s_nm_node_type_center_agent = {
@@ -23,6 +26,9 @@ center_agent_t
 center_agent_create(
     gd_app_context_t app,
     const char * name,
+    uint16_t svr_type,
+    uint16_t svr_id,
+    uint16_t port,
     mem_allocrator_t alloc,
     error_monitor_t em)
 {
@@ -40,27 +46,49 @@ center_agent_create(
     mgr->m_alloc = alloc;
     mgr->m_em = em;
     mgr->m_debug = 0;
-    mgr->m_cvt = NULL;
-    mgr->m_connector = NULL;
-    mgr->m_read_chanel_size = 4 * 1024;
-    mgr->m_write_chanel_size = 1024;
-    mgr->m_process_count_per_tick = 10;
-    mgr->m_max_pkg_size = 1024 * 1024 * 5;
+    mgr->m_svr_type = svr_type;
+    mgr->m_svr_id = svr_id;
 
-    mgr->m_center_pkg_sn = 0;
-    mgr->m_center_pkg_send_time = 0;
-    mgr->m_center_state = center_agent_center_state_init;
-
-    mgr->m_pkg_meta =
-        dr_lib_find_meta_by_name((LPDRMETALIB)g_metalib_svr_center_pro, "svr_center_pkg");
-    if (mgr->m_pkg_meta == NULL) {
-        CPE_ERROR(em, "%s: create find pkg meta fail!", name);
+    if (cpe_hash_table_init(
+            &mgr->m_groups,
+            alloc,
+            (cpe_hash_fun_t) center_agent_data_group_hash,
+            (cpe_hash_cmp_t) center_agent_data_group_eq,
+            CPE_HASH_OBJ2ENTRY(center_agent_data_group, m_hh),
+            -1) != 0)
+    {
         nm_node_free(mgr_node);
         return NULL;
     }
 
-    mem_buffer_init(&mgr->m_incoming_pkg_buf, mgr->m_alloc);
-    mem_buffer_init(&mgr->m_outgoing_encode_buf, mgr->m_alloc);
+    if (cpe_hash_table_init(
+            &mgr->m_svrs,
+            alloc,
+            (cpe_hash_fun_t) center_agent_data_svr_hash,
+            (cpe_hash_cmp_t) center_agent_data_svr_eq,
+            CPE_HASH_OBJ2ENTRY(center_agent_data_svr, m_hh),
+            -1) != 0)
+    {
+        cpe_hash_table_fini(&mgr->m_groups);
+        nm_node_free(mgr_node);
+        return NULL;
+    }
+
+    if (center_agent_svr_init(mgr, &mgr->m_svr, port) != 0) {
+        cpe_hash_table_fini(&mgr->m_groups);
+        cpe_hash_table_fini(&mgr->m_svrs);
+        nm_node_free(mgr_node);
+        return NULL;
+    }
+
+    if (center_agent_center_init(mgr, &mgr->m_center) != 0) {
+        center_agent_svr_clear(&mgr->m_svr);
+        cpe_hash_table_fini(&mgr->m_groups);
+        cpe_hash_table_fini(&mgr->m_svrs);
+        nm_node_free(mgr_node);
+        return NULL;
+    }
+
     mem_buffer_init(&mgr->m_dump_buffer, mgr->m_alloc);
 
     nm_node_set_type(mgr_node, &s_nm_node_type_center_agent);
@@ -72,19 +100,18 @@ static void center_agent_clear(nm_node_t node) {
     center_agent_t mgr;
     mgr = (center_agent_t)nm_node_data(node);
 
-    mem_buffer_clear(&mgr->m_incoming_pkg_buf);
-    mem_buffer_clear(&mgr->m_outgoing_encode_buf);
+    center_agent_center_clear(&mgr->m_center);
+    center_agent_svr_clear(&mgr->m_svr);
+
+    center_agent_data_svr_free_all(mgr);
+    center_agent_data_group_free_all(mgr);
+
+    assert(cpe_hash_table_count(&mgr->m_groups) == 0);
+    assert(cpe_hash_table_count(&mgr->m_svrs) == 0);
+    cpe_hash_table_fini(&mgr->m_groups);
+    cpe_hash_table_fini(&mgr->m_svrs);
+
     mem_buffer_clear(&mgr->m_dump_buffer);
-
-    if (mgr->m_cvt) {
-        dr_cvt_free(mgr->m_cvt);
-        mgr->m_cvt = NULL;
-    }
-
-    if (mgr->m_connector) {
-        net_connector_free(mgr->m_connector);
-        mgr->m_connector = NULL;
-    }
 }
 
 gd_app_context_t center_agent_app(center_agent_t mgr) {
@@ -125,49 +152,4 @@ const char * center_agent_name(center_agent_t mgr) {
 cpe_hash_string_t
 center_agent_name_hs(center_agent_t mgr) {
     return nm_node_name_hs(nm_node_from_data(mgr));
-}
-
-int center_agent_set_cvt(center_agent_t agent, const char * cvt_name) {
-    if (agent->m_cvt) dr_cvt_free(agent->m_cvt);
-
-    agent->m_cvt = dr_cvt_create(agent->m_app, cvt_name);
-    if (agent->m_cvt == NULL) {
-        CPE_ERROR(agent->m_em, "%s: set cvt %s fail!", center_agent_name(agent), cvt_name);
-        return -1;
-    } 
-
-    return 0;
-}
-
-int center_agent_set_svr(center_agent_t agent, const char * ip, short port) {
-    if (agent->m_connector) {
-        net_connector_free(agent->m_connector);
-        agent->m_connector = NULL;
-    }
-    
-    agent->m_connector = 
-        net_connector_create_with_ep(gd_app_net_mgr(agent->m_app), center_agent_name(agent), ip, port);
-    if (agent->m_connector == NULL) {
-        CPE_ERROR(
-            agent->m_em, "%s: set svr to %s:%d: create connector fail!",
-            center_agent_name(agent), ip, (int)port);
-        return -1;
-    }
- 
-    if (center_agent_center_ep_init(agent, net_connector_ep(agent->m_connector)) != 0) {
-        net_connector_free(agent->m_connector);
-        agent->m_connector = NULL;
-        CPE_ERROR(
-            agent->m_em, "%s: set svr to %s:%d: init ep fail!",
-            center_agent_name(agent), ip, (int)port);
-        return -1;
-    }
-
-    return 0;
-}
-
-int center_agent_set_reconnect_span_ms(center_agent_t agent, uint32_t span_ms) {
-    if (agent->m_connector == NULL) return -1;
-    net_connector_set_reconnect_span_ms(agent->m_connector, span_ms);
-    return 0;
 }
