@@ -20,6 +20,7 @@ extern "C" {
 #define cpe_connect(_fd, _name, _namelen) (connect(_get_osfhandle(_fd), (_name), (_namelen)))
 #define cpe_getsockopt(_fd, _level, _optname, _optval, _optlen) (getsockopt(_get_osfhandle(_fd), _level, _optname, _optval, _optlen))
 #define cpe_getsockname(_fd, _name, _namelen) (getsockname (_get_osfhandle(_fd), _name, _namelen))
+#define cpe_getpeername(_fd, _name, _namelen) (getpeername (_get_osfhandle(_fd), _name, _namelen))
 #define cpe_bind(_fd, _addr, _namelen) (bind(_get_osfhandle(_fd), _addr,_namelen))
 #define cpe_listen(_fd, _backlog) (listen(_get_osfhandle(_fd), _backlog))
 #define cpe_accept(_fd, _addr, _addrlen) (_open_osfhandle(accept(_get_osfhandle(_fd), _addr,_addrlen), 0))
@@ -41,6 +42,7 @@ extern const char *cpe_sock_errstr(int n);
 
 #include <netinet/in.h>
 #include <sys/socket.h>
+#include <unistd.h>
 #include <arpa/inet.h>
 #include <errno.h>
 
@@ -48,6 +50,7 @@ extern const char *cpe_sock_errstr(int n);
 #define cpe_connect connect
 #define cpe_getsockopt getsockopt
 #define cpe_getsockname getsockname
+#define cpe_getpeername getpeername
 #define cpe_bind bind
 #define cpe_listen listen
 #define cpe_accept accept
