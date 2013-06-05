@@ -3,6 +3,7 @@
 #include "cpepp/utils/ClassCategory.hpp"
 #include "cpe/dr/dr_data.h"
 #include "cpepp/dr/Meta.hpp"
+#include "cpepp/dr/Data.hpp"
 #include "usf/logic/logic_data.h"
 #include "System.hpp"
 
@@ -21,6 +22,9 @@ public:
     void * data(void) { return logic_data_data(*this); }
     const void * data(void) const { return logic_data_data(*this); }
     size_t capacity(void) const { return logic_data_capacity(*this); }
+
+    Cpe::Dr::Data asDrData(void) { return Cpe::Dr::Data(data(), meta(), capacity()); }
+    Cpe::Dr::ConstData asDrData(void) const { return Cpe::Dr::ConstData(data(), meta(), capacity()); }
 
     void copy_same_entries_from(const void * src, LPDRMETA src_meta, size_t srcCapacity = 0, int policy = 0) {
         dr_meta_copy_same_entry(

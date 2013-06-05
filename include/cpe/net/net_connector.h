@@ -55,6 +55,9 @@ void net_connector_set_reconnect_span_ms(
 
 net_ep_t net_connector_ep(net_connector_t connector);
 
+const char * net_connector_ip(net_connector_t connector);
+short net_connector_port(net_connector_t connector);
+
 #ifdef __cplusplus
 }
 #endif

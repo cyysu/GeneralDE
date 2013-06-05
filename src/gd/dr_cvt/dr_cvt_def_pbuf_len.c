@@ -30,7 +30,7 @@ dr_cvt_result_t dr_cvt_fun_pbuf_len_encode(
         return dr_cvt_result_error;
     }
 
-    size_size = cpe_dr_pbuf_encode32((uint32_t)r, size_buffer);
+    size_size = dr_pbuf_encode32((uint32_t)r, size_buffer);
     if (size_size + r > *output_capacity) {
         CPE_ERROR(
             em, "encode %s: pbuf-len: fail(too small with len), input buf "FMT_SIZE_T", output buf "FMT_SIZE_T,
@@ -67,7 +67,7 @@ dr_cvt_fun_pbuf_len_decode(
     int size_size;
     size_t data_size;
 
-    size_size = cpe_dr_pbuf_decode_uint64((uint8_t *)input, &size_buf);
+    size_size = dr_pbuf_decode_uint64((uint8_t *)input, &size_buf);
     if (size_size < 0) {
         CPE_ERROR(em, "decode %s: pbuf-len: fail, read size fail!", dr_meta_name(meta));
         return dr_cvt_result_error;
@@ -84,7 +84,12 @@ dr_cvt_fun_pbuf_len_decode(
         CPE_ERROR(
             em, "decode %s: pbuf-len: fail, data size %d, output buf "FMT_SIZE_T,
             dr_meta_name(meta), size_size, *output_capacity);
-        return dr_cvt_result_error;
+        if (r == dr_code_error_not_enough_output) {
+            return dr_cvt_result_not_enough_output;
+        }
+        else {
+            return dr_cvt_result_error;
+        }
     }
 
     *output_capacity = r;

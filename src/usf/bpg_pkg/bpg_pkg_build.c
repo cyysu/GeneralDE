@@ -5,20 +5,26 @@
 #include "cpe/cfg/cfg_read.h"
 #include "cpe/dr/dr_cfg.h"
 #include "cpe/dr/dr_metalib_manage.h"
+#include "cpe/dp/dp_request.h"
 #include "usf/bpg_pkg/bpg_pkg.h"
+#include "usf/bpg_pkg/bpg_pkg_data.h"
 #include "usf/bpg_pkg/bpg_pkg_manage.h"
 #include "bpg_pkg_internal_types.h"
 
-int bpg_pkg_build_from_cfg(bpg_pkg_t pkg, cfg_t cfg, error_monitor_t em) {
+int bpg_pkg_build_from_cfg(dp_req_t body, cfg_t cfg, error_monitor_t em) {
     LPDRMETALIB metalib;
     LPDRMETA meta;
     LPDRMETA main_data_meta;
     struct cfg_it cfg_it;
     cfg_t child_cfg;
+    bpg_pkg_t pkg = bpg_pkg_find(body);
 
-    char * output_buf = (char *)bpg_pkg_pkg_data(pkg);
-    size_t output_buf_capacity = bpg_pkg_pkg_data_capacity(pkg);
+    char * output_buf = (char *)dp_req_data(body);
+    size_t output_buf_capacity = dp_req_capacity(body);
     BASEPKG * output_pkg = (BASEPKG *)output_buf;
+
+    assert(pkg);
+    assert(pkg->m_mgr);
 
     metalib = bpg_pkg_manage_data_metalib(pkg->m_mgr);
     if (metalib == NULL) {
@@ -50,7 +56,7 @@ int bpg_pkg_build_from_cfg(bpg_pkg_t pkg, cfg_t cfg, error_monitor_t em) {
     output_pkg->head.bodytotallen = 0;
     output_pkg->head.appendInfoCount = 0;
 
-    main_data_meta = bpg_pkg_main_data_meta(pkg, em);
+    main_data_meta = bpg_pkg_main_data_meta(body, em);
     if (main_data_meta) {
         int use_size;
 
@@ -107,6 +113,8 @@ int bpg_pkg_build_from_cfg(bpg_pkg_t pkg, cfg_t cfg, error_monitor_t em) {
         o_append_info->size = use_size;
         output_pkg->head.bodytotallen += use_size;
     }
+
+    dp_req_set_size(body, output_pkg->head.bodytotallen);
 
     return 0;
 }

@@ -204,6 +204,7 @@ int gd_timer_mgr_regist_timer(
 {
     gd_timer_id_t newProcessorId;
     struct gd_timer_processor * newProcessorData;
+    int send_rv;
 
     if (gd_timer_processor_alloc(mgr, &newProcessorId) != 0) {
         if (arg && arg_fini) arg_fini(arg);
@@ -242,11 +243,12 @@ int gd_timer_mgr_regist_timer(
     }
     newProcessorData->m_state = timer_processor_state_InResponserHash;
 
-    if (tl_event_send_ex(newProcessorData->m_tl_event, delay, span, repeatCount) != 0) {
+    send_rv = tl_event_send_ex(newProcessorData->m_tl_event, delay, span, repeatCount);
+    if (send_rv != 0) {
         gd_timer_processor_free(mgr, newProcessorData);
         CPE_ERROR(
-            mgr->m_em, "%s: regist processor: send event to tl fail!",
-            gd_timer_mgr_name(mgr));
+            mgr->m_em, "%s: regist processor: send event to tl fail, rv=%d!",
+            gd_timer_mgr_name(mgr), send_rv);
         return -1;
     }
 
