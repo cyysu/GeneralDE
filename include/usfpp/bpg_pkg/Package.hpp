@@ -2,7 +2,7 @@
 #define USFPP_BPG_PKG_PACKAGE_H
 #include "cpepp/utils/ClassCategory.hpp"
 #include "cpepp/dr/System.hpp"
-#include "usf/bpg_pkg/bpg_pkg.h"
+#include "usf/bpg_pkg/bpg_pkg_data.h"
 #include "System.hpp"
 
 #ifdef _MSC_VER
@@ -17,22 +17,23 @@ public:
     operator bpg_pkg_append_info_t() const { return (bpg_pkg_append_info_t)this; }
 
     uint32_t id(void) const { return bpg_pkg_append_info_id(*this); }
-    void * data(bpg_pkg_t pkg) const { return bpg_pkg_append_data(pkg, *this); }
+    void * data(dp_req_t pkg) const { return bpg_pkg_append_data(pkg, *this); }
     uint32_t size(void) const { return bpg_pkg_append_info_size(*this); }
 };
 
 class Package : public Cpe::Utils::SimulateObject {
 public:
-    operator bpg_pkg_t() const { return (bpg_pkg_t)this; }
+    operator dp_req_t() const { return (dp_req_t)this; }
+    operator bpg_pkg_t() const;
 
-    PackageManager & mgr(void) { return *(PackageManager*)bpg_pkg_mgr(*this); }
-    PackageManager const & mgr(void) const { return *(PackageManager*)bpg_pkg_mgr(*this); }
+    PackageManager & mgr(void);
+    PackageManager const & mgr(void) const;
 
     Gd::App::Application & app(void);
     Gd::App::Application const & app(void) const;
 
     void init(void) { bpg_pkg_init(*this); }
-    void clearData(void) { bpg_pkg_clear_data(*this); }
+    void clearData(void) { bpg_pkg_clear(*this); }
 
     uint32_t cmd(void) const { return bpg_pkg_cmd(*this); }
     void setCmd(uint32_t cmd) { bpg_pkg_set_cmd(*this, cmd); }
@@ -53,7 +54,6 @@ public:
     void setCmdAndData(Cpe::Dr::Data const & data);
     void setCmdAndData(Cpe::Dr::ConstData const & data, size_t size);
     void setCmdAndData(int cmd, const void * data, size_t data_size);
-    void setCmdAndData(const char * meta_name, const void * data, size_t data_size);
     void setCmdAndData(LPDRMETA meta, const void * data, size_t data_size);
 
     template<typename T>
@@ -66,7 +66,7 @@ public:
     Cpe::Dr::Meta const & mainDataMeta(void) const;
     Cpe::Dr::Meta const * tryGetMainDataMeta(void) const { return (Cpe::Dr::Meta const *)bpg_pkg_main_data_meta(*this, NULL); }
 
-    size_t mainDataSize(void) const { return bpg_pkg_body_len(*this); }
+    size_t mainDataSize(void) const { return bpg_pkg_main_data_len(*this); }
     void const * mainData(void) const { return bpg_pkg_main_data(*this); }
 
     template<typename T>
@@ -126,7 +126,6 @@ public:
     /*other op*/
     const char * dump_data(mem_buffer_t buffer) const { return bpg_pkg_dump(*this, buffer); }
 
-    static Package & _cast(bpg_pkg_t pkg);
     static Package & _cast(dp_req_t req);
 };
 

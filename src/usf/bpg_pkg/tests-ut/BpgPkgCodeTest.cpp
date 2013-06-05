@@ -15,7 +15,7 @@ void BpgPkgCodeTest::SetUp() {
 
 void BpgPkgCodeTest::TearDown() {
     if (m_pkg) {
-        bpg_pkg_free(m_pkg);
+        dp_req_free(m_pkg);
         m_pkg = NULL;
     }
 
@@ -32,25 +32,25 @@ void BpgPkgCodeTest::add_cmd(uint32_t cmd, const char * meta, const char * mgr_n
 }
 
 dr_cvt_result_t BpgPkgCodeTest::encode(const char * data, const char * mgr_name) {
-    bpg_pkg_t pkg = t_bpg_pkg_build(data, mgr_name);
-    EXPECT_TRUE(pkg) << "build pkg fail!";
-    if (pkg == NULL) return dr_cvt_result_error;
+    dp_req_t body = t_bpg_pkg_build(data, mgr_name);
+    EXPECT_TRUE(body) << "build pkg fail!";
+    if (body == NULL) return dr_cvt_result_error;
 
-    dr_cvt_result_t r = encode(pkg);
+    dr_cvt_result_t r = encode(body);
 
-    bpg_pkg_free(pkg);
+    dp_req_free(body);
 
     return r;
 }
 
-dr_cvt_result_t BpgPkgCodeTest::encode(bpg_pkg_t pkg) {
-    m_encode_pkg = t_bpg_pkg_dump(pkg);
+dr_cvt_result_t BpgPkgCodeTest::encode(dp_req_t body) {
+    m_encode_pkg = t_bpg_pkg_dump(body);
     m_buf_size = sizeof(m_buf);
-    return bpg_pkg_encode(pkg, m_buf, &m_buf_size, t_em(), 1);
+    return bpg_pkg_encode(body, m_buf, &m_buf_size, t_em(), 1);
 }
 
 const char * BpgPkgCodeTest::decode(const char * mgr_name) {
-    bpg_pkg_t pkg = t_bpg_pkg_create(1024, mgr_name);
+    dp_req_t pkg = t_bpg_pkg_create(1024, mgr_name);
     EXPECT_TRUE(pkg) << "build pkg fail!";
     if (pkg == NULL) return NULL;
 
@@ -76,7 +76,7 @@ const char * BpgPkgCodeTest::decode(const char * mgr_name) {
         r = "unknown";
     }
 
-    bpg_pkg_free(pkg);
+    dp_req_free(pkg);
 
     return r;
 }

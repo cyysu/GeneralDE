@@ -5,12 +5,14 @@
 #include "cpe/net/net_endpoint.h"
 #include "cpe/dp/dp_manage.h"
 #include "gd/app/app_context.h"
-#include "usf/bpg_pkg/bpg_pkg.h"
+#include "gd/vnet/vnet_conn_info.h"
+#include "usf/bpg_pkg/bpg_pkg_data.h"
 #include "usf/bpg_net/bpg_net_agent.h"
 #include "bpg_net_internal_ops.h"
 
 static void bpg_net_agent_on_read(bpg_net_agent_t agent, net_ep_t ep) {
-    bpg_pkg_t req_buf;
+    dp_req_t req_buf;
+    dp_req_t conn_info;
 
     if(agent->m_debug >= 2) {
         CPE_INFO(
@@ -84,25 +86,34 @@ static void bpg_net_agent_on_read(bpg_net_agent_t agent, net_ep_t ep) {
                 bpg_pkg_dump(req_buf, &agent->m_dump_buffer));
         }
 
-        bpg_pkg_set_connection_id(req_buf, net_ep_id(ep));
-        if (agent->m_dispatch_to) {
-            if (dp_dispatch_by_string(agent->m_dispatch_to, bpg_pkg_to_dp_req(req_buf), agent->m_em) != 0) {
-                CPE_ERROR(
-                    agent->m_em, "%s: ep %d: dispatch to %s error!",
-                    bpg_net_agent_name(agent), (int)net_ep_id(ep), cpe_hs_data(agent->m_dispatch_to));
-
-                bpg_pkg_set_errno(req_buf, -1);
-                bpg_net_agent_reply(bpg_pkg_to_dp_req(req_buf), agent, agent->m_em);
-            }
+        if ((conn_info = vnet_conn_info_check_or_create(req_buf)) == NULL) {
+            CPE_ERROR(
+                agent->m_em, "%s: ep %d: set connection info error!",
+                bpg_net_agent_name(agent), (int)net_ep_id(ep));
+            bpg_pkg_set_errno(req_buf, -1);
+            bpg_net_agent_reply(req_buf, agent, agent->m_em);
         }
         else {
-            if (dp_dispatch_by_numeric(bpg_pkg_cmd(req_buf), bpg_pkg_to_dp_req(req_buf), agent->m_em) != 0) {
-                CPE_ERROR(
-                    agent->m_em, "%s: ep %d: dispatch cmd %d error!",
-                    bpg_net_agent_name(agent), (int)net_ep_id(ep), bpg_pkg_cmd(req_buf));
+            vnet_conn_info_set_conn_id(conn_info, net_ep_id(ep));
+            if (agent->m_dispatch_to) {
+                if (dp_dispatch_by_string(agent->m_dispatch_to, req_buf, agent->m_em) != 0) {
+                    CPE_ERROR(
+                        agent->m_em, "%s: ep %d: dispatch to %s error!",
+                        bpg_net_agent_name(agent), (int)net_ep_id(ep), cpe_hs_data(agent->m_dispatch_to));
 
-                bpg_pkg_set_errno(req_buf, -1);
-                bpg_net_agent_reply(bpg_pkg_to_dp_req(req_buf), agent, agent->m_em);
+                    bpg_pkg_set_errno(req_buf, -1);
+                    bpg_net_agent_reply(req_buf, agent, agent->m_em);
+                }
+            }
+            else {
+                if (dp_dispatch_by_numeric(bpg_pkg_cmd(req_buf), req_buf, agent->m_em) != 0) {
+                    CPE_ERROR(
+                        agent->m_em, "%s: ep %d: dispatch cmd %d error!",
+                        bpg_net_agent_name(agent), (int)net_ep_id(ep), bpg_pkg_cmd(req_buf));
+
+                    bpg_pkg_set_errno(req_buf, -1);
+                    bpg_net_agent_reply(req_buf, agent, agent->m_em);
+                }
             }
         }
     }
