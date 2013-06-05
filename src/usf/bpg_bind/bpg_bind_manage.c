@@ -2,6 +2,7 @@
 #include "cpe/pal/pal_external.h"
 #include "cpe/pal/pal_stdio.h"
 #include "cpe/dp/dp_responser.h"
+#include "cpe/dp/dp_request.h"
 #include "cpe/dp/dp_manage.h"
 #include "cpe/nm/nm_manage.h"
 #include "cpe/nm/nm_read.h"
@@ -10,6 +11,7 @@
 #include "gd/app/app_context.h"
 #include "gd/vnet/vnet_control_pkg.h"
 #include "usf/bpg_pkg/bpg_pkg.h"
+#include "usf/bpg_pkg/bpg_pkg_data.h"
 #include "usf/bpg_pkg/bpg_pkg_dsp.h"
 #include "usf/bpg_pkg/bpg_pkg_manage.h"
 #include "usf/bpg_bind/bpg_bind_manage.h"
@@ -93,7 +95,7 @@ static void bpg_bind_manage_clear(nm_node_t node) {
     cpe_hash_table_fini(&mgr->m_connections);
 
     if (mgr->m_data_pkg) {
-        bpg_pkg_free(mgr->m_data_pkg);
+        dp_req_free(mgr->m_data_pkg);
         mgr->m_data_pkg = NULL;
     }
 
@@ -255,9 +257,9 @@ bpg_pkg_manage_t bpg_bind_manage_pkg_manage(bpg_bind_manage_t mgr) {
     return mgr->m_pkg_manage;
 }
 
-bpg_pkg_t bpg_bind_manage_data_pkg(bpg_bind_manage_t mgr) {
+dp_req_t bpg_bind_manage_data_pkg(bpg_bind_manage_t mgr) {
     if (mgr->m_data_pkg == NULL) {
-        mgr->m_data_pkg = bpg_pkg_create(mgr->m_pkg_manage, 1024, NULL, 0);
+        mgr->m_data_pkg = bpg_pkg_create_with_body(mgr->m_pkg_manage, 1024);
     }
 
     return mgr->m_data_pkg;

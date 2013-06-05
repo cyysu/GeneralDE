@@ -10,10 +10,20 @@ void cpe_error_do_notify(error_monitor_t monitor, const char * fmt, ...) {
     struct error_monitor_node * node = &monitor->m_node;
     va_list args;
 
-    while(node) {
+    if (node) {
         va_start(args, fmt);
+
+        while(node->m_next) {
+            va_list tmp;
+            va_copy(tmp, args);
+            node->on_error(&monitor->m_curent_location, node->m_context, fmt, tmp);
+            va_end(tmp);
+
+            node = node->m_next;
+        }
+
         node->on_error(&monitor->m_curent_location, node->m_context, fmt, args);
-        node = node->m_next;
+
         va_end(args);
     }
 }
@@ -79,9 +89,8 @@ void cpe_error_log_to_file(struct error_info * info, void * context, const char 
 }
 
 void cpe_error_log_to_consol(struct error_info * info, void * context, const char * fmt, va_list args) {
-/*
 #if defined(_MSC_VER)
-    char buf[10240];
+	char buf[1024];
     size_t s;
     s = 0;
 
@@ -91,15 +100,13 @@ void cpe_error_log_to_consol(struct error_info * info, void * context, const cha
     vsnprintf(buf + s, sizeof(buf) - s, fmt, args);
     OutputDebugStringA(buf);
     OutputDebugStringA("\n");
-#endif
-//*/
-//*
+#else
     if (info->m_file) printf("%s:%d: ", info->m_file, info->m_line > 0 ? info->m_line : 0);
     else if (info->m_line >= 0) printf("%d: ", info->m_line);
 
     vprintf(fmt, args);
     printf("\n");
-//*/
+#endif
 }
 
 void cpe_error_log_to_consol_and_flush(struct error_info * info, void * context, const char * fmt, va_list args) {

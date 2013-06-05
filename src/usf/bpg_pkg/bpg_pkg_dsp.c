@@ -3,6 +3,7 @@
 #include "cpe/cfg/cfg_read.h"
 #include "cpe/dp/dp_manage.h"
 #include "usf/bpg_pkg/bpg_pkg.h"
+#include "usf/bpg_pkg/bpg_pkg_data.h"
 #include "usf/bpg_pkg/bpg_pkg_dsp.h"
 #include "bpg_pkg_internal_types.h"
 
@@ -58,16 +59,16 @@ static void bpg_pkg_dsp_node_free(mem_allocrator_t alloc, struct bpg_pkg_dsp_nod
     mem_free(alloc, node);
 }
 
-static int bpg_pkg_dsp_node_dispatch(struct bpg_pkg_dsp_node * node, bpg_pkg_t pkg, error_monitor_t em) {
+static int bpg_pkg_dsp_node_dispatch(struct bpg_pkg_dsp_node * node, dp_req_t body, error_monitor_t em) {
     switch(node->m_type) {
     case bpg_pkg_dsp_to_cmd:
         return dp_dispatch_by_numeric(
-            node->m_target.m_to_cmd, bpg_pkg_to_dp_req(pkg), em) == 0
+            node->m_target.m_to_cmd, body, em) == 0
             ? 0
             : -1;
     case bpg_pkg_dsp_to_str:
         return dp_dispatch_by_string(
-            node->m_target.m_to_str, bpg_pkg_to_dp_req(pkg), em) == 0
+            node->m_target.m_to_str, body, em) == 0
             ? 0
             : -1;
     }
@@ -123,21 +124,21 @@ void bpg_pkg_dsp_free(bpg_pkg_dsp_t dsp) {
     mem_free(dsp->m_alloc, dsp);
 }
 
-int bpg_pkg_dsp_dispatch(bpg_pkg_dsp_t dsp, bpg_pkg_t pkg, error_monitor_t em) {
+int bpg_pkg_dsp_dispatch(bpg_pkg_dsp_t dsp, dp_req_t body, error_monitor_t em) {
     if (cpe_hash_table_count(&dsp->m_cmd_dsp) > 0) {
         struct bpg_pkg_dsp_node key;
         struct bpg_pkg_dsp_node * node;
 
-        key.m_cmd = bpg_pkg_cmd(pkg);
+        key.m_cmd = bpg_pkg_cmd(body);
         if ((node = (struct bpg_pkg_dsp_node *)cpe_hash_table_find(&dsp->m_cmd_dsp, &key)))
-            return bpg_pkg_dsp_node_dispatch(node, pkg, em);
+            return bpg_pkg_dsp_node_dispatch(node, body, em);
     }
 
     if (dsp->m_dft_dsp) 
-        return bpg_pkg_dsp_node_dispatch(dsp->m_dft_dsp, pkg, em);
+        return bpg_pkg_dsp_node_dispatch(dsp->m_dft_dsp, body, em);
 
     return dp_dispatch_by_numeric(
-        bpg_pkg_cmd(pkg), bpg_pkg_to_dp_req(pkg), em) == 0
+        bpg_pkg_cmd(body), body, em) == 0
         ? 0
         : -1;
 }

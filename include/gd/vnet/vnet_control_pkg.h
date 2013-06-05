@@ -10,7 +10,7 @@
 extern "C" {
 #endif
 
-extern cpe_hash_string_t vnet_control_pkg_type_name;
+extern const char * req_type_vnet_control_pkg;
 
 vnet_control_pkg_t
 vnet_control_pkg_create(gd_app_context_t app, size_t capacity);

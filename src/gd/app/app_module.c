@@ -84,21 +84,14 @@ gd_app_module_create_i(
 }
 
 static int gd_app_module_create(gd_app_context_t context, const char * module_name, cfg_t cfg) {
-    cfg_t moduleInitCfg;
     assert(context);
-
-    moduleInitCfg = 
-        cfg_find_cfg(
-            cfg_find_cfg(gd_app_cfg(context), "modules"),
-            module_name);
-    if (moduleInitCfg == NULL) moduleInitCfg = cfg;
 
     return gd_app_module_create_i(
         context,
         module_name,
         cfg_get_string(cfg, "type", NULL),
         cfg_get_string(cfg, "library", NULL),
-        moduleInitCfg) == NULL
+        cfg) == NULL
         ? -1
         : 0;
 }

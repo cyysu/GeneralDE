@@ -61,7 +61,12 @@ struct net_connector {
     net_mgr_t m_mgr;
     char const * m_name;
     char m_addr[16]; /*sizeof(sockaddr)*/
+    char m_ip[16];
+    short m_port;
     net_ep_t m_ep;
+    int8_t m_processing;
+    int8_t m_deleted;
+    int8_t m_unregisted;
     net_connector_state_t m_state;
     double m_reconnect_span;
     struct net_connector_monitor * m_monitors;
