@@ -16,6 +16,7 @@ void conn_cli_link_node_r(conn_cli_t cli, ringbuffer_block_t blk);
 void conn_cli_link_node_w(conn_cli_t conn, ringbuffer_block_t blk);
 
 void conn_cli_rw_cb(EV_P_ ev_io *w, int revents);
+void conn_cli_start_watch(conn_cli_t cli);
 
 conn_cli_pkg_t conn_cli_incoming_pkg(conn_cli_t cli);
 

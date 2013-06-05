@@ -1,6 +1,6 @@
 product:=conn_svr_lib
 $(product).type:=cpe-dr lib 
-$(product).depends:=libev cpe_cfg cpe_dr cpe_dr_data_cfg cpe_dr_data_pbuf cpe_tl cpe_dp cpe_nm \
+$(product).depends:=ev cpe_cfg cpe_dr cpe_dr_data_cfg cpe_dr_data_pbuf cpe_tl cpe_dp cpe_nm \
                     gd_net gd_app  gd_dr_cvt gd_log \
                     center_agent set_svr_stub
 
