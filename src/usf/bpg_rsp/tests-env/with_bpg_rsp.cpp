@@ -7,6 +7,7 @@
 #include "gd/app/tests-env/with_app.hpp"
 #include "usf/logic/tests-env/with_logic.hpp"
 #include "usf/bpg_rsp/tests-env/with_bpg_rsp.hpp"
+#include "usf/bpg_pkg/tests-env/with_bpg_pkg.hpp"
 
 namespace usf { namespace bpg { namespace testenv {
 
@@ -53,6 +54,7 @@ with_bpg_rsp::t_bpg_rsp_manage(
             bpg_rsp_manage_dp_scope_global,
             envOf<usf::logic::testenv::with_logic>().t_logic_manage(logic_name),
             executor_mgr,
+            envOf<usf::bpg::testenv::with_bpg_pkg >().t_bpg_pkg_manage(),
             em);
     }
 

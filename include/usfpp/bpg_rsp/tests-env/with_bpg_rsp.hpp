@@ -17,7 +17,7 @@ public:
         return RspManager::_cast(t_bpg_rsp_manage(name, logic_name));
     }
 
-    RspOpContext & t_bpg_context_create_ex(bpg_pkg_t pkg = NULL, const char * rsp_manage_name = NULL) {
+    RspOpContext & t_bpg_context_create_ex(dp_req_t pkg = NULL, const char * rsp_manage_name = NULL) {
         return *(RspOpContext*)t_bpg_context_create(pkg, rsp_manage_name);
     }
 };
