@@ -27,6 +27,12 @@
         <entry name="account" type="string" size="SVR_ACCOUNT_MAX_LEN" id="3"/>
     </struct>
 
+    <struct name="svr_account_req_unbind" version="1">
+        <entry name="gid" type="uint64" id="1"/>
+        <entry name="account_type" type="uint16" id="2"/>
+        <entry name="account" type="string" size="SVR_ACCOUNT_MAX_LEN" id="3"/>
+    </struct>
+
     <!-- 根据逻辑帐号获取列表用户信息列表 -->
     <struct name="svr_account_req_find_by_logic_id" version="1">
         <entry name="count" type="uint16" id="2"/>
@@ -42,6 +48,9 @@
         <macro name="SVR_ACCOUNT_CMD_REQ_BIND" value="1"/>
         <macro name="SVR_ACCOUNT_CMD_RES_BIND" value="2"/>
 
+        <macro name="SVR_ACCOUNT_CMD_REQ_UNBIND" value="7"/>
+        <macro name="SVR_ACCOUNT_CMD_RES_UNBIND" value="8"/>
+
         <macro name="SVR_ACCOUNT_CMD_REQ_FIND_BY_LOGIC_ID" value="3"/>
         <macro name="SVR_ACCOUNT_CMD_RES_FIND_BY_LOGIC_ID" value="4"/>
 
@@ -51,6 +60,7 @@
 
     <union name="svr_account_pkg_data" version="1" desc="">
         <entry name="svr_account_req_bind" type="svr_account_req_bind" id="SVR_ACCOUNT_CMD_REQ_BIND"/>
+        <entry name="svr_account_req_unbind" type="svr_account_req_unbind" id="SVR_ACCOUNT_CMD_REQ_UNBIND"/>
 
         <entry name="svr_account_req_find_by_logic_id" type="svr_account_req_find_by_logic_id" id="SVR_ACCOUNT_CMD_REQ_FIND_BY_LOGIC_ID"/>
 
