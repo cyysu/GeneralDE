@@ -5,6 +5,7 @@
 #include "cpe/dr/dr_cfg.h"
 #include "cpe/dr/dr_data.h"
 #include "cpe/dr/dr_json.h"
+#include "cpe/dr/dr_pbuf.h"
 #include "cpepp/dr/Meta.hpp"
 #include "cpepp/dr/MetaLib.hpp"
 #include "cpepp/utils/ErrorCollector.hpp"
@@ -159,6 +160,32 @@ bool Meta::try_load_from_json(void * data, size_t capacity, const char * json, e
     }
 }
 
+void Meta::load_from_pbuf(void * data, size_t capacity, const void * pbuf, size_t pbuf_size) const {
+    Utils::ErrorCollector ec;
+    if (dr_pbuf_read(data, capacity, pbuf, pbuf_size, *this, ec) <= 0) {
+        ec.checkThrowWithMsg< ::std::runtime_error>();
+    }
+}
+
+bool Meta::try_load_from_pbuf(void * data, size_t capacity, const void * pbuf, size_t pbuf_size, error_monitor_t em) const {
+    if (dr_pbuf_read(data, capacity, pbuf, pbuf_size, *this, em) <= 0) {
+        bzero(data, capacity);
+        return false;
+    }
+    else {
+        return true;
+    }
+}
+
+size_t Meta::write_to_pbuf(void * pbuf, size_t capacity, const void * data, size_t data_size) const {
+    Utils::ErrorCollector ec;
+    int rv = dr_pbuf_write(pbuf, capacity, data, data_size, *this, ec);
+    if (rv < 0) {
+        ec.checkThrowWithMsg< ::std::runtime_error>();
+    }
+    return rv;
+}
+
 void Meta::write_to_cfg(cfg_t cfg, const void * data) const {
     Utils::ErrorCollector ec;
     if (dr_cfg_write(cfg, data, *this, ec) != 0) {
@@ -216,6 +243,16 @@ void Meta::copy_same_entries_part(
         data, capacity,
         srcData, MetaLib::_cast(dr_meta_owner_lib(*this)).meta(srcMeta), columns, srcCapacity,
         policy, em);
+}
+
+size_t Meta::calc_dyn_size(size_t record_count) {
+    ssize_t r = dr_meta_calc_dyn_size(*this, record_count);
+    if (r < 0) {
+        ::std::ostringstream os;
+        os << "meta " << name() << ": calc dyn size fail, record_count=" << record_count;
+        throw ::std::runtime_error(os.str());
+    }
+    return r;
 }
 
 }}

@@ -84,7 +84,7 @@ gd_evt_t gd_evt_dyn_create_ex(gd_evt_mgr_t evm, LPDRMETA data_meta, size_t recor
         return NULL;
     }
 
-    record_meta = dr_entry_self_meta(dyn_info.m_array_entry);
+    record_meta = dr_entry_self_meta(dyn_info.m_data.m_array.m_array_entry);
     assert(record_meta);
 
     return gd_evt_create_ex(evm, data_meta, dr_meta_size(data_meta) + record_capacity * dr_meta_size(record_meta), em);
