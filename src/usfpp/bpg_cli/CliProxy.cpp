@@ -62,7 +62,7 @@ Cpe::Dr::Meta const & CliProxy::meta(const char * metaName) const {
 }
 
 Usf::Bpg::Package & CliProxy::pkgBuf(void) {
-    bpg_pkg_t pkg_buf = bpg_cli_proxy_pkg_buf(*this);
+    dp_req_t pkg_buf = bpg_cli_proxy_pkg_buf(*this);
     if (pkg_buf == NULL) {
         APP_CTX_THROW_EXCEPTION(
             app(), ::std::runtime_error,
@@ -72,7 +72,7 @@ Usf::Bpg::Package & CliProxy::pkgBuf(void) {
     return Usf::Bpg::Package::_cast(pkg_buf);
 }
 
-Cpe::Dr::Data CliProxy::dataBuf(const char * metaName, size_t capacity) {
+Cpe::Dr::Data CliProxy::dataBuf(LPDRMETA meta, size_t capacity) {
     void * buf = bpg_cli_proxy_data_buf(*this);
     if (buf == NULL) {
         APP_CTX_THROW_EXCEPTION(
@@ -82,9 +82,7 @@ Cpe::Dr::Data CliProxy::dataBuf(const char * metaName, size_t capacity) {
 
     size_t buf_capacity = bpg_cli_proxy_buf_capacity(*this);
 
-    Cpe::Dr::Meta const & m = meta(metaName);
-
-    if (capacity == 0) capacity = m.size();
+    if (capacity == 0) capacity = dr_meta_size(meta);
 
     if (capacity > buf_capacity) {
         APP_CTX_THROW_EXCEPTION(
@@ -93,7 +91,7 @@ Cpe::Dr::Data CliProxy::dataBuf(const char * metaName, size_t capacity) {
             name().c_str(), (int)capacity, (int)buf_capacity);
     }
 
-    return Cpe::Dr::Data(buf, meta(metaName), capacity);
+    return Cpe::Dr::Data(buf, meta, capacity);
 }
 
 Cpe::Dr::Data CliProxy::dataBuf(void) {
@@ -123,19 +121,11 @@ void CliProxy::send(logic_require_t require, Cpe::Dr::Data const & data) {
     send(require, pkg);
 }
 
-void CliProxy::send(logic_require_t require, const char * metaName, void const * data, size_t size) {
-    Usf::Bpg::Package & pkg = pkgBuf() ;
-    pkg.clearData();
-    pkg.setErrCode(0);
-    pkg.setCmdAndData(metaName, data, size);
-    send(require, pkg);
-}
-
 void CliProxy::send(logic_require_t require, LPDRMETA meta, void const * data, size_t size) {
     Usf::Bpg::Package & pkg = pkgBuf() ;
     pkg.clearData();
     pkg.setErrCode(0);
-    pkg.setCmdAndData(dr_meta_name(meta), data, size);
+    pkg.setCmdAndData(meta, data, size);
     send(require, pkg);
 }
 
@@ -163,19 +153,11 @@ void CliProxy::send(Cpe::Dr::Data const & data) {
     send(pkg);
 }
 
-void CliProxy::send(const char * metaName, void const * data, size_t size) {
-    Usf::Bpg::Package & pkg = pkgBuf() ;
-    pkg.clearData();
-    pkg.setErrCode(0);
-    pkg.setCmdAndData(metaName, data, size);
-    send(pkg);
-}
-
 void CliProxy::send(LPDRMETA meta, void const * data, size_t size) {
     Usf::Bpg::Package & pkg = pkgBuf() ;
     pkg.clearData();
     pkg.setErrCode(0);
-    pkg.setCmdAndData(dr_meta_name(meta), data, size);
+    pkg.setCmdAndData(meta, data, size);
     send(pkg);
 }
 

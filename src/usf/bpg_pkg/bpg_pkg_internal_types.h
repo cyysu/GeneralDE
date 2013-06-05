@@ -53,13 +53,6 @@ struct bpg_pkg_debug_info {
 
 struct bpg_pkg {
     bpg_pkg_manage_t m_mgr;
-
-    uint32_t m_connection_id;
-
-    LPDRMETA m_carry_data_meta;
-    size_t m_carry_data_size;
-    size_t m_carry_data_capacity;
-
     dp_req_t m_dp_req;
 };
 

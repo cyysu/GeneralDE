@@ -181,7 +181,7 @@ char * dr_meta_off_to_path(LPDRMETA meta, int a_iOff, char * a_pBuf, size_t a_iB
                              pstCurMeta == meta ? "%s" : ".%s",
                              dr_entry_name(curEntry));
 
-        if (curEntry->m_type <= CPE_DR_TYPE_COMPOSITE) {
+        if (curEntry->m_type == CPE_DR_TYPE_STRUCT) {
             pstCurMeta = (LPDRMETA)(base + curEntry->m_ref_type_pos);
             a_iOff -= curEntry->m_data_start_pos;
         }
@@ -810,33 +810,94 @@ LPDRMACRO dr_macrosgroup_macro_at(LPDRMETALIB metaLib, LPDRMACROSGROUP a_pstGrou
 int dr_meta_find_dyn_info(LPDRMETA meta, dr_meta_dyn_info_t dyn_info) {
     LPDRMETAENTRY last_entry;
 
-    if (dr_meta_entry_num(meta) == 0) return -1;
+    if (dr_meta_type(meta) == CPE_DR_TYPE_UNION) {
+        int i;
+        for(i = 0; i < dr_meta_entry_num(meta); ++i) {
+            LPDRMETA ref_meta = dr_entry_ref_meta(dr_meta_entry_at(meta, i));
+            if (ref_meta == NULL) continue;
 
-    last_entry = dr_meta_entry_at(meta, dr_meta_entry_num(meta) - 1);
-    assert(last_entry);
-
-    if (dr_entry_array_count(last_entry) == 0) {
-        dyn_info->m_array_entry = last_entry;
-        dyn_info->m_array_start = dr_entry_data_start_pos(last_entry, 0);
-
-        dyn_info->m_refer_entry = dr_entry_array_refer_entry(last_entry);
-        if (dyn_info->m_refer_entry) {
-            dyn_info->m_refer_start = dr_entry_data_start_pos(dyn_info->m_refer_entry, 0);
+            if (dr_meta_find_dyn_info(ref_meta, dyn_info) == 0) {
+                dyn_info->m_type = dr_meta_dyn_info_type_union;
+                dyn_info->m_data.m_union.m_union_entry = NULL;
+                dyn_info->m_data.m_union.m_union_start = 0;
+                dyn_info->m_data.m_union.m_union_select_entry = NULL;
+                dyn_info->m_data.m_union.m_union_select_start = 0;
+                return 0;
+            }
         }
 
-        return 0;
+        return -1;
     }
-    else if (dr_entry_type(last_entry) <= CPE_DR_TYPE_COMPOSITE) {
-        if (dr_meta_find_dyn_info(dr_entry_ref_meta(last_entry), dyn_info) == 0) {
-            dyn_info->m_array_start += dr_entry_data_start_pos(last_entry, 0);
-            if (dyn_info->m_refer_entry) dyn_info->m_refer_start += dr_entry_data_start_pos(last_entry, 0);
+    else {
+        if (dr_meta_entry_num(meta) == 0) return -1;
+
+        last_entry = dr_meta_entry_at(meta, dr_meta_entry_num(meta) - 1);
+        assert(last_entry);
+
+        if (dr_entry_array_count(last_entry) == 0) {
+            dyn_info->m_type = dr_meta_dyn_info_type_array;
+
+            dyn_info->m_data.m_array.m_array_entry = last_entry;
+            dyn_info->m_data.m_array.m_array_start = dr_entry_data_start_pos(last_entry, 0);
+
+            dyn_info->m_data.m_array.m_refer_entry = dr_entry_array_refer_entry(last_entry);
+            if (dyn_info->m_data.m_array.m_refer_entry) {
+                dyn_info->m_data.m_array.m_refer_start = dr_entry_data_start_pos(dyn_info->m_data.m_array.m_refer_entry, 0);
+            }
+
             return 0;
+        }
+        else if (dr_entry_type(last_entry) <= CPE_DR_TYPE_COMPOSITE) {
+            if (dr_meta_find_dyn_info(dr_entry_ref_meta(last_entry), dyn_info) == 0) {
+                switch(dyn_info->m_type) {
+                case dr_meta_dyn_info_type_union:
+                    if (dyn_info->m_data.m_union.m_union_entry == NULL) {
+                        dyn_info->m_data.m_union.m_union_entry = last_entry;
+                        dyn_info->m_data.m_union.m_union_start = dr_entry_data_start_pos(last_entry, 0);
+
+                        dyn_info->m_data.m_union.m_union_select_entry = dr_entry_select_entry(last_entry);
+                        if (dyn_info->m_data.m_union.m_union_select_entry) {
+                            dyn_info->m_data.m_union.m_union_select_start = dr_entry_data_start_pos(dyn_info->m_data.m_union.m_union_select_entry, 0);
+                        }
+                    }
+                    else {
+                        dyn_info->m_data.m_union.m_union_start += dr_entry_data_start_pos(last_entry, 0);
+                        if (dyn_info->m_data.m_union.m_union_select_entry) {
+                            dyn_info->m_data.m_union.m_union_select_start += dr_entry_data_start_pos(last_entry, 0);
+                        }
+                    }
+
+                    break;
+                case dr_meta_dyn_info_type_array:
+                    dyn_info->m_data.m_array.m_array_start += dr_entry_data_start_pos(last_entry, 0);
+                    if (dyn_info->m_data.m_array.m_refer_entry) dyn_info->m_data.m_array.m_refer_start += dr_entry_data_start_pos(last_entry, 0);
+                }
+
+                return 0;
+            }
+            else {
+                return -1;
+            }
         }
         else {
             return -1;
         }
     }
+}
+
+ssize_t dr_meta_calc_dyn_size(LPDRMETA meta, size_t record_count) {
+    struct dr_meta_dyn_info dyn_info;
+
+    if (dr_meta_find_dyn_info(meta, &dyn_info) != 0) return -1;
+
+    if (record_count > 1) {
+        size_t element_size;
+        element_size = dr_entry_element_size(dyn_info.m_data.m_array.m_array_entry);
+        assert(element_size <= dr_meta_size(meta));
+        return dr_meta_size(meta) + (record_count - 1) * element_size;
+    }
     else {
-        return -1;
+        return dr_meta_size(meta);
     }
 }
+

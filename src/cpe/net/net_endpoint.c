@@ -43,25 +43,26 @@ net_ep_create(net_mgr_t nmgr) {
 }
 
 void net_ep_free(net_ep_t ep) {
+    if (ep->m_connector) {
+        net_connector_unbind(ep->m_connector);
+        assert(ep->m_connector == NULL);
+    }
+
+    if (ev_cb(&ep->m_timer) == net_ep_timeout_cb) {
+        ev_timer_stop(ep->m_mgr->m_ev_loop, &ep->m_timer);
+        ev_init(&ep->m_timer, NULL);
+        ev_timer_set(&ep->m_timer, 0, 0);
+    }
+
+    if (net_ep_is_open(ep)) {
+        net_ep_close_i(ep, net_ep_event_close_by_shutdown);
+    }
+
     if (ep->m_processing) {
         assert(!ep->m_deleted);
         ep->m_deleted = 1;
     }
     else {
-        if (ep->m_connector) {
-            net_connector_unbind(ep->m_connector);
-        }
-
-        if (ev_cb(&ep->m_timer) == net_ep_timeout_cb) {
-            ev_timer_stop(ep->m_mgr->m_ev_loop, &ep->m_timer);
-            ev_init(&ep->m_timer, NULL);
-            ev_timer_set(&ep->m_timer, 0, 0);
-        }
-
-        if (net_ep_is_open(ep)) {
-            net_ep_close_i(ep, net_ep_event_close_by_shutdown);
-        }
-
         if (ep->m_chanel_w) {
             net_chanel_free(ep->m_chanel_w);
             ep->m_chanel_w = NULL;
@@ -194,11 +195,13 @@ int net_ep_set_timeout(net_ep_t ep, tl_time_span_t span) {
 
 tl_time_span_t net_ep_timeout(net_ep_t ep) {
     return ev_cb(&ep->m_timer) == net_ep_timeout_cb
-        ? (ep->m_timer.repeat * 1000)
+        ? (tl_time_span_t)(ep->m_timer.repeat * 1000)
         : 0;
 }
 
 void net_ep_close_i(net_ep_t ep, net_ep_event_t ev) {
+    int fd;
+
     assert(ep);
     assert(ev == net_ep_event_close_by_user
            || ev == net_ep_event_close_by_peer
@@ -207,11 +210,12 @@ void net_ep_close_i(net_ep_t ep, net_ep_event_t ev) {
 
     if (ep->m_fd < 0) return;
 
-    ev_io_stop(ep->m_mgr->m_ev_loop, &ep->m_watcher);
-
-    net_socket_close(&ep->m_fd, ep->m_mgr->m_em);
+    fd = ep->m_fd;
     ep->m_fd = -1;
 
+    ev_io_stop(ep->m_mgr->m_ev_loop, &ep->m_watcher);
+
+    net_socket_close(&fd, ep->m_mgr->m_em);
     net_ep_set_status(ep, NET_INVALID);
 
     if (ep->m_connector) {

@@ -1,3 +1,4 @@
+#include <stdexcept>
 #include "cpepp/utils/MemBuffer.hpp"
 
 namespace Cpe { namespace Utils {
@@ -8,6 +9,12 @@ MemBuffer::MemBuffer(mem_allocrator_t allocrator) {
 
 MemBuffer::~MemBuffer() {
     mem_buffer_clear(&m_buf);
+}
+
+void MemBuffer::setSize(size_t size) {
+    if (mem_buffer_set_size(&m_buf, size) != 0) {
+        throw ::std::runtime_error("MemBuffer::setSize fail!");
+    }
 }
 
 MemBuffer::Trunk *

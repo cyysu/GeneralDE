@@ -5,6 +5,23 @@
 #include "cpe/fsm/fsm_def.h"
 #include "fsm_internal_ops.h"
 
+int fsm_machine_init_ex(fsm_machine_t fsm, fsm_def_machine_t fsm_def, fsm_def_state_t init_state, void * ctx, int debug) {
+    fsm->m_def = fsm_def;
+    fsm->m_curent_state = fsm_def_state_id(init_state);
+    fsm->m_ctx = ctx;
+    fsm->m_curent_state_ctx = NULL;
+    fsm->m_debug = debug ? 1 : 0;
+
+    if (fsm->m_debug) {
+        CPE_INFO(fsm_def->m_em, "%s(%p): init", fsm_def_machine_name(fsm_def), fsm);
+        CPE_INFO(fsm_def->m_em, "%s(%p): state %s: enter", fsm_def_machine_name(fsm_def), fsm, fsm_def_state_name(init_state));
+    }
+
+    if (init_state->m_enter) init_state->m_enter(fsm, init_state, NULL);
+
+    return 0;
+}
+
 int fsm_machine_init(fsm_machine_t fsm, fsm_def_machine_t fsm_def, const char * init_state_name, void * ctx, int debug) {
     fsm_def_state_t init_state;
     if (init_state_name) {
@@ -27,20 +44,7 @@ int fsm_machine_init(fsm_machine_t fsm, fsm_def_machine_t fsm_def, const char * 
         }
     }
 
-    fsm->m_def = fsm_def;
-    fsm->m_curent_state = fsm_def_state_id(init_state);
-    fsm->m_ctx = ctx;
-    fsm->m_curent_state_ctx = NULL;
-    fsm->m_debug = debug ? 1 : 0;
-
-    if (fsm->m_debug) {
-        CPE_INFO(fsm_def->m_em, "%s(%p): init", fsm_def_machine_name(fsm_def), fsm);
-        CPE_INFO(fsm_def->m_em, "%s(%p): state %s: enter", fsm_def_machine_name(fsm_def), fsm, fsm_def_state_name(init_state));
-    }
-
-    if (init_state->m_enter) init_state->m_enter(fsm, init_state, NULL);
-
-    return 0;
+    return fsm_machine_init_ex(fsm, fsm_def, init_state, ctx, debug);
 }
 
 void fsm_machine_fini(fsm_machine_t fsm) {
@@ -72,6 +76,10 @@ void fsm_machine_fini(fsm_machine_t fsm) {
     fsm->m_ctx = NULL;
     fsm->m_curent_state_ctx = NULL;
     fsm->m_debug = 0;
+}
+
+int fsm_machine_curent_state(fsm_machine_t fsm) {
+    return fsm->m_curent_state;
 }
 
 void * fsm_machine_context(fsm_machine_t fsm) {
@@ -137,19 +145,42 @@ int fsm_machine_apply_event(fsm_machine_t fsm, void * evt) {
         }
     }
 
-    if (next_state_id == FSM_INVALID_STATE) {
-        if (fsm_def->m_dumper) {
-            struct mem_buffer buff;
-            CPE_ERROR(
-                fsm_def->m_em, "%s(%p): state %s: no trans process event %s, trans count = %d!",
-                fsm_def_machine_name(fsm_def), fsm, fsm_def_state_name(cur_state),
-                fsm_machine_dump_event(fsm_def, evt, &buff), cur_state->m_trans_count);
-            mem_buffer_clear(&buff);
+    if (next_state_id == FSM_DESTORIED_STATE) return 0;
+
+    if (next_state_id == FSM_KEEP_STATE) {
+        if (fsm->m_debug) {
+            if (fsm_def->m_dumper) {
+                struct mem_buffer buff;
+                CPE_INFO(
+                    fsm_def->m_em, "%s(%p): state %s: process event %s ok, no state change!",
+                    fsm_def_machine_name(fsm_def), fsm, fsm_def_state_name(cur_state),
+                    fsm_machine_dump_event(fsm_def, evt, &buff));
+                mem_buffer_clear(&buff);
+            }
+            else {
+                CPE_INFO(
+                    fsm_def->m_em, "%s(%p): state %s: process event ok, no state change!",
+                    fsm_def_machine_name(fsm_def), fsm, fsm_def_state_name(cur_state));
+            }
         }
-        else {
-            CPE_ERROR(
-                fsm_def->m_em, "%s(%p): state %s: no trans process event, trans count = %d!",
-                fsm_def_machine_name(fsm_def), fsm, fsm_def_state_name(cur_state), cur_state->m_trans_count);
+        return 0;
+    }
+
+    if (next_state_id == FSM_INVALID_STATE) {
+        if (fsm->m_debug) {
+            if (fsm_def->m_dumper) {
+                struct mem_buffer buff;
+                CPE_INFO(
+                    fsm_def->m_em, "%s(%p): state %s: no trans process event %s, trans count = %d!",
+                    fsm_def_machine_name(fsm_def), fsm, fsm_def_state_name(cur_state),
+                    fsm_machine_dump_event(fsm_def, evt, &buff), cur_state->m_trans_count);
+                mem_buffer_clear(&buff);
+            }
+            else {
+                CPE_INFO(
+                    fsm_def->m_em, "%s(%p): state %s: no trans process event, trans count = %d!",
+                    fsm_def_machine_name(fsm_def), fsm, fsm_def_state_name(cur_state), cur_state->m_trans_count);
+            }
         }
         return -1;
     }

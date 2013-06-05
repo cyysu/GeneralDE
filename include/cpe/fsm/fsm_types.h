@@ -23,6 +23,8 @@ typedef uint32_t (*fsm_def_transition_t)(fsm_machine_t fsm_ins, fsm_def_state_t 
 typedef void (*fsm_evt_dumper_t)(write_stream_t s, fsm_def_machine_t m, void * event);
 
 #define FSM_INVALID_STATE ((uint32_t)-1)
+#define FSM_KEEP_STATE ((uint32_t)-2)
+#define FSM_DESTORIED_STATE ((uint32_t)-3)
 
 #ifdef __cplusplus
 }

@@ -213,12 +213,27 @@ static int dr_store_loader_load_from_bin(
     char * buf = NULL;
     FILE * fp = NULL;
     int rv = 0;
+    struct mem_buffer buffer;
+    const char * file_path;
 
-    fp = file_stream_open(arg, "rb", gd_app_em(app));
+    mem_buffer_init(&buffer, gd_app_alloc(app));
+
+    if (gd_app_root(app)) {
+        mem_buffer_strcat(&buffer, gd_app_root(app));
+        mem_buffer_strcat(&buffer, "/");
+        mem_buffer_strcat(&buffer, arg);
+        file_path = mem_buffer_make_continuous(&buffer, 0);
+    }
+    else {
+        file_path = arg;
+    }
+        
+
+    fp = file_stream_open(file_path, "rb", gd_app_em(app));
     if (fp == NULL) {
         APP_CTX_ERROR(
             app, "%s: read load-from-bin %s: open file error!",
-            gd_app_module_name(module), arg);
+            gd_app_module_name(module), file_path);
         rv = -1;
         goto FROM_BIN_COMPLETE;
     }
@@ -227,7 +242,7 @@ static int dr_store_loader_load_from_bin(
     if (buf_size <= 0) {
         APP_CTX_ERROR(
             app, "%s: read load-from-bin %s: read size error!",
-            gd_app_module_name(module), arg);
+            gd_app_module_name(module), file_path);
         rv = -1;
         goto FROM_BIN_COMPLETE;
     }
@@ -236,7 +251,7 @@ static int dr_store_loader_load_from_bin(
     if (buf == NULL) {
         APP_CTX_ERROR(
             app, "%s: load from bin %s: alloc buf to store metalib fail, size is %d!",
-            gd_app_module_name(module), arg, (int)buf_size);
+            gd_app_module_name(module), file_path, (int)buf_size);
         rv = -1;
         goto FROM_BIN_COMPLETE;
     }
@@ -245,7 +260,7 @@ static int dr_store_loader_load_from_bin(
     if (load_size != buf_size) {
         APP_CTX_ERROR(
             app, "%s: load from bin %s: load data to buf fail, reque %d, but load %d!",
-            gd_app_module_name(module), arg, (int)buf_size, (int)load_size);
+            gd_app_module_name(module), file_path, (int)buf_size, (int)load_size);
         rv = -1;
         goto FROM_BIN_COMPLETE;
     }
@@ -266,9 +281,11 @@ FROM_BIN_COMPLETE:
 
     if (rv == 0) {
         if (mgr->m_debug) {
-            APP_CTX_INFO(app, "%s: metalib load from bin %s success!", gd_app_module_name(module), arg);
+            APP_CTX_INFO(app, "%s: metalib load from bin %s success!", gd_app_module_name(module), file_path);
         }
     }
+
+    mem_buffer_clear(&buffer);
 
     return rv;
 }
