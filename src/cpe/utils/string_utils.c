@@ -2,6 +2,7 @@
 #include <ctype.h>
 #include "cpe/pal/pal_stdio.h"
 #include "cpe/pal/pal_string.h"
+#include "cpe/pal/pal_stdlib.h"
 #include "cpe/utils/string_utils.h"
 
 char *
@@ -43,14 +44,10 @@ int cpe_str_buf_is_overflow(cpe_str_buf_t buf) {
     return buf->m_overflow;
 }
 
-int cpe_str_buf_cat(cpe_str_buf_t buf, const char * data) {
-    size_t data_len;
-
+int cpe_str_buf_append(cpe_str_buf_t buf, const char * data, size_t data_len) {
     assert(buf);
     assert(data);
     assert(buf->m_buf);
-
-    data_len = strlen(data);
 
     if (data_len + buf->m_size + 1 > buf->m_capacity) {
         data_len = buf->m_capacity - buf->m_size - 1;
@@ -62,7 +59,13 @@ int cpe_str_buf_cat(cpe_str_buf_t buf, const char * data) {
         buf->m_size += data_len;
     }
 
+    buf->m_buf[buf->m_size] = 0;
+
     return buf->m_overflow;
+}
+
+int cpe_str_buf_cat(cpe_str_buf_t buf, const char * data) {
+    return cpe_str_buf_append(buf, data, strlen(data));
 }
 
 int cpe_str_buf_cpy(cpe_str_buf_t buf, const char * data) {
@@ -158,4 +161,55 @@ int cpe_str_cmp_part(const char * part_str, size_t part_str_len, const char * fu
     int r = strncmp(part_str, full_str, part_str_len);
     if (r == 0) return full_str[part_str_len] == 0 ? 0 : - (int)part_str_len;
     return r;
+}
+
+uint64_t cpe_str_parse_byte_size_with_dft(const char * astring, uint64_t dft) {
+    uint64_t r;
+    if (cpe_str_parse_byte_size(&r, astring) != 0) return dft;
+    return r;
+}
+
+int cpe_str_parse_byte_size(uint64_t * result, const char * astring) {
+    size_t sz;
+    char * last = NULL;
+    long res;
+    size_t numsize;
+
+    if (astring == NULL) return -1;
+
+    sz = strlen (astring);
+    res = strtol(astring, &last, 10);
+    if (res <= 0) return -1;
+
+    assert(last);
+    numsize  = last - astring;
+
+    if (numsize == sz) {
+        if (result) *result = res;
+        return 0;
+    }
+
+    if (numsize + 2 != sz) return -1;
+
+    if (astring[sz - 1] == 'B' || astring[sz - 1] == 'b') {
+        switch (astring[ sz - 2 ]) {
+	    case 'K':
+	    case 'k':
+            res *= 1024;
+            break;
+	    case 'M':
+	    case 'm':
+            res *= 1024 * 1024;
+            break;
+	    case 'G':
+	    case 'g':
+            res *= 1024 * 1024 * 1024;
+            break;
+	    default:
+            return -1;
+        }
+    }
+
+    if (result) *result = res;
+    return 0;
 }

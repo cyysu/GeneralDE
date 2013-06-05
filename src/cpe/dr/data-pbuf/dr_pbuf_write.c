@@ -42,25 +42,25 @@ struct dr_pbuf_write_stack {
 #define dr_pbuf_write_encode_uint32(v)                              \
     dr_pbuf_write_check_capacity(10);                               \
     curStack->m_output_size +=                                      \
-        cpe_dr_pbuf_encode32(                                       \
+        dr_pbuf_encode32(                                       \
             v, curStack->m_output_data + curStack->m_output_size)
 
 #define dr_pbuf_write_encode_int32(v)                   \
     dr_pbuf_write_check_capacity(10);                               \
     curStack->m_output_size +=                                      \
-        cpe_dr_pbuf_zigzag32(                                       \
+        dr_pbuf_zigzag32(                                       \
             v, curStack->m_output_data + curStack->m_output_size)
 
 #define dr_pbuf_write_encode_uint64(v)                              \
     dr_pbuf_write_check_capacity(10);                               \
     curStack->m_output_size +=                                      \
-        cpe_dr_pbuf_encode64(                                       \
+        dr_pbuf_encode64(                                       \
             v, curStack->m_output_data + curStack->m_output_size)
 
 #define dr_pbuf_write_encode_int64(v)                   \
     dr_pbuf_write_check_capacity(10);                               \
     curStack->m_output_size +=                                      \
-        cpe_dr_pbuf_zigzag64(                                       \
+        dr_pbuf_zigzag64(                                       \
             v, curStack->m_output_data + curStack->m_output_size)
 
 #define dr_pbuf_write_encode_id_and_type(t) dr_pbuf_write_encode_uint32((((uint32_t)curStack->m_entry->m_id) << 3) | (t));
@@ -346,7 +346,7 @@ int dr_pbuf_write(
                         int size_size;
 
                         len = curStack->m_output_size - curStack->m_array_begin_pos - dr_pbuf_write_size_reserve;
-                        size_size = cpe_dr_pbuf_encode32(len, size_buf);
+                        size_size = dr_pbuf_encode32(len, size_buf);
                         total = curStack->m_array_begin_pos + size_size + len;
 
                         memmove(
@@ -373,7 +373,7 @@ int dr_pbuf_write(
 
             preStack = &processStack[stackPos];
 
-            size_size = cpe_dr_pbuf_encode32(curStack->m_output_size, size_buf);
+            size_size = dr_pbuf_encode32(curStack->m_output_size, size_buf);
 
             memmove(
                 preStack->m_output_data + preStack->m_output_size + size_size,

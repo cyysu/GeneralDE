@@ -1,7 +1,7 @@
 product-support-types+=cpe-aom
 product-def-all-items+=cpe-aom.modules
 
-cpe-aom-tool=$(CPDE_OUTPUT_ROOT)/$(tools.output)/bin/cpe_aom_tool
+cpe-aom-tool=$$(CPDE_OUTPUT_ROOT)/$$(r.cpe_aom_tool.tools.product)
 
 define product-def-rule-cpe-aom-c-module-hpp
   $(call assert-not-null,$1.cpe-aom.$2.hpp.output)

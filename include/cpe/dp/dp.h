@@ -5,6 +5,5 @@
 #include "dp_manage.h"
 #include "dp_request.h"
 #include "dp_responser.h"
-#include "dp_node.h"
 
 #endif
