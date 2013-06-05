@@ -4,7 +4,7 @@
 #include "gdpp/app/Application.hpp"
 #include "gdpp/app/ModuleDef.hpp"
 #include "gdpp/app/Log.hpp"
-#include "usf/bpg_pkg/bpg_pkg.h"
+#include "usf/bpg_pkg/bpg_pkg_data.h"
 #include "usf/bpg_rsp/bpg_rsp_manage.h"
 #include "usf/bpg_rsp/bpg_rsp_addition.h"
 #include "usfpp/bpg_rsp/RspManager.hpp"
@@ -54,7 +54,7 @@ private:
             NULL);
     }
 
-    static int FriendSvr_pkg_init(logic_context_t context, bpg_pkg_t pkg, void * ctx) {
+    static int FriendSvr_pkg_init(logic_context_t context, dp_req_t pkg, void * ctx) {
         bpg_pkg_set_cmd(pkg, bpg_pkg_cmd(pkg) + 1);
         bpg_rsp_addition_data_add_all(context);
         return 0;

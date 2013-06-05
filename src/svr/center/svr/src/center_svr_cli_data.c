@@ -2,8 +2,9 @@
 #include "center_svr_ops.h"
 
 center_cli_data_t
-center_cli_data_create(center_svr_t svr, SVR_CENTER_CLI_RECORD * record) {
+center_cli_data_create(center_svr_t svr, center_cli_group_t group, SVR_CENTER_CLI_RECORD * record) {
     center_cli_data_t data;
+
     data = mem_alloc(svr->m_alloc, sizeof(struct center_cli_data));
     if (data == NULL) {
         CPE_ERROR(svr->m_em, "%s: create data: malloc fail!", center_svr_name(svr));
@@ -13,6 +14,7 @@ center_cli_data_create(center_svr_t svr, SVR_CENTER_CLI_RECORD * record) {
     data->m_svr = svr;
     data->m_conn = NULL;
     data->m_data = record;
+    data->m_group = group;
 
     cpe_hash_entry_init(&data->m_hh);
     if (cpe_hash_table_insert_unique(&svr->m_datas, data) != 0) {
@@ -23,16 +25,6 @@ center_cli_data_create(center_svr_t svr, SVR_CENTER_CLI_RECORD * record) {
         return NULL;
     }
     
-    data->m_group = center_cli_group_get_or_create(svr, record->svr_type);
-    if (data->m_group == NULL) {
-        CPE_ERROR(
-            svr->m_em, "%s: create data: get_or_create group of %d fail!",
-            center_svr_name(svr), record->svr_type);
-        cpe_hash_table_remove_by_ins(&svr->m_datas, data);
-        mem_free(svr->m_alloc, data);
-        return NULL;
-    }
-
     TAILQ_INSERT_TAIL(&data->m_group->m_datas, data, m_next);
     ++data->m_group->m_svr_count;
 
@@ -58,9 +50,6 @@ void center_cli_data_free(center_cli_data_t cli) {
     assert(cli->m_group);
     --cli->m_group->m_svr_count;
     TAILQ_REMOVE(&cli->m_group->m_datas, cli, m_next);
-    if (TAILQ_EMPTY(&cli->m_group->m_datas)) {
-        center_cli_group_free(cli->m_group);
-    }
     cli->m_group = NULL;
 
     /*remove from svr*/

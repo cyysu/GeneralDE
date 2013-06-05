@@ -10,9 +10,5 @@ log_context_app_init
 log_context_app_fini
 gd_timer_mgr_app_init
 gd_timer_mgr_app_fini
-dr_cvt_manage_app_init
-dr_cvt_manage_app_fini
-dr_pbuf_len_cvt_app_init
-dr_pbuf_len_cvt_app_fini
 center_svr_app_init
 center_svr_app_fini

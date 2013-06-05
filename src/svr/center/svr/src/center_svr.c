@@ -1,18 +1,19 @@
 #include <assert.h>
 #include "cpe/pal/pal_external.h"
+#include "cpe/pal/pal_socket.h"
 #include "cpe/pal/pal_stdio.h"
 #include "cpe/pal/pal_shm.h"
 #include "cpe/nm/nm_manage.h"
 #include "cpe/nm/nm_read.h"
-#include "cpe/net/net_listener.h"
+#include "cpe/net/net_manage.h"
 #include "cpe/aom/aom_obj_mgr.h"
 #include "cpe/dr/dr_metalib_manage.h"
 #include "cpe/dr/dr_metalib_cmp.h"
 #include "gd/app/app_module.h"
 #include "gd/app/app_context.h"
-#include "gd/dr_cvt/dr_cvt.h"
 #include "center_svr_ops.h"
 
+extern void center_svr_listener_cb(EV_P_ ev_io *w, int revents);
 extern char g_metalib_svr_center_pro[];
 static void center_svr_clear(nm_node_t node);
 
@@ -42,16 +43,16 @@ center_svr_create(
     svr->m_alloc = alloc;
     svr->m_em = em;
     svr->m_debug = 0;
-    svr->m_cvt = NULL;
-    svr->m_listener = NULL;
-    svr->m_read_chanel_size = 4 * 1024;
-    svr->m_write_chanel_size = 1024;
+    svr->m_ev_loop = net_mgr_ev_loop(gd_app_net_mgr(app));
     svr->m_conn_timeout_ms = 500 * 1000;
-    svr->m_listener = NULL;
+    svr->m_read_block_size = 2048;
     svr->m_client_data_mgr = NULL;
     svr->m_process_count_per_tick = 10;
     svr->m_max_pkg_size = 1024 * 1024 * 5;
-    TAILQ_INIT(&svr->m_conns);
+
+    svr->m_ringbuf = NULL;
+    svr->m_fd = -1;
+    svr->m_watcher.data = svr;
 
     svr->m_record_meta =
         dr_lib_find_meta_by_name((LPDRMETALIB)g_metalib_svr_center_pro, "svr_center_cli_record");
@@ -94,9 +95,20 @@ center_svr_create(
         return NULL;
     }
 
+    if (cpe_hash_table_init(
+            &svr->m_conns,
+            alloc,
+            (cpe_hash_fun_t) center_svr_conn_hash,
+            (cpe_hash_cmp_t) center_svr_conn_eq,
+            CPE_HASH_OBJ2ENTRY(center_svr_conn, m_hh),
+            -1) != 0)
+    {
+        cpe_hash_table_fini(&svr->m_groups);
+        nm_node_free(svr_node);
+        return NULL;
+    }
+
     mem_buffer_init(&svr->m_mem_data_buf, svr->m_alloc);
-    mem_buffer_init(&svr->m_outgoing_encode_buf, svr->m_alloc);
-    mem_buffer_init(&svr->m_incoming_pkg_buf, svr->m_alloc);
     mem_buffer_init(&svr->m_outgoing_pkg_buf, svr->m_alloc);
     mem_buffer_init(&svr->m_dump_buffer, svr->m_alloc);
 
@@ -109,69 +121,91 @@ static void center_svr_clear(nm_node_t node) {
     center_svr_t svr;
     svr = (center_svr_t)nm_node_data(node);
 
-    if (svr->m_cvt) {
-        dr_cvt_free(svr->m_cvt);
-        svr->m_cvt = NULL;
-    }
-
-    mem_buffer_clear(&svr->m_outgoing_encode_buf);
-    mem_buffer_clear(&svr->m_incoming_pkg_buf);
-    mem_buffer_clear(&svr->m_outgoing_pkg_buf);
-    mem_buffer_clear(&svr->m_dump_buffer);
-
-    /*清理服务监听接口 */
-    if (svr->m_listener) {
-        net_listener_free(svr->m_listener);
-        svr->m_listener = NULL;
-    }
+    center_svr_stop(svr);
 
     /*清理连接 */
-    center_cli_conn_free_all(svr);
+    center_svr_conn_free_all(svr);
+    assert(cpe_hash_table_count(&svr->m_conns) == 0);
 
     /*清理客户端数据缓存 */
+    center_cli_group_free_all(svr);
     center_cli_data_free_all(svr);
+
     assert(cpe_hash_table_count(&svr->m_groups) == 0);
     assert(cpe_hash_table_count(&svr->m_datas) == 0);
-    cpe_hash_table_fini(&svr->m_groups);
+
+    cpe_hash_table_fini(&svr->m_conns);
     cpe_hash_table_fini(&svr->m_datas);
+    cpe_hash_table_fini(&svr->m_groups);
+
     if (svr->m_client_data_mgr) {
         aom_obj_mgr_free(svr->m_client_data_mgr);
         svr->m_client_data_mgr = NULL;
     }
+
     mem_buffer_clear(&svr->m_mem_data_buf);
+    mem_buffer_clear(&svr->m_outgoing_pkg_buf);
+    mem_buffer_clear(&svr->m_dump_buffer);
+
+    if (svr->m_ringbuf) {
+        ringbuffer_delete(svr->m_ringbuf);
+        svr->m_ringbuf = NULL;
+    }
 }
 
-int center_svr_set_cvt(center_svr_t svr, const char * cvt_name) {
-    if (svr->m_cvt) dr_cvt_free(svr->m_cvt);
+int center_svr_start(center_svr_t svr, const char * ip, uint16_t port) {
+    struct sockaddr_in addr;
 
-    svr->m_cvt = dr_cvt_create(svr->m_app, cvt_name);
-    if (svr->m_cvt == NULL) {
-        CPE_ERROR(svr->m_em, "%s: set cvt %s fail!", center_svr_name(svr), cvt_name);
+    svr->m_fd = cpe_sock_open(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+    if (svr->m_fd == -1) {
+        CPE_ERROR(svr->m_em, "%s: socket call fail, errno=%d (%s)!", center_svr_name(svr), cpe_sock_errno(), cpe_sock_errstr(cpe_sock_errno()));
         return -1;
-    } 
+    }
+
+    if (cpe_sock_set_reuseaddr(svr->m_fd, 1) != 0) {
+        CPE_ERROR(svr->m_em, "%s: set sock reuseaddr fail, errno=%d (%s)!", center_svr_name(svr), cpe_sock_errno(), cpe_sock_errstr(cpe_sock_errno()));
+        return -1;
+    }
+
+
+    addr.sin_family = AF_INET;
+    addr.sin_port = htons(port);
+    addr.sin_addr.s_addr = strcmp(ip, "") == 0 ? INADDR_ANY : inet_addr(ip);
+    if(cpe_bind(svr->m_fd, (struct sockaddr *)&addr, sizeof(addr)) != 0) {
+        CPE_ERROR(svr->m_em, "%s: bind error, errno=%d (%s)", center_svr_name(svr), cpe_sock_errno(), cpe_sock_errstr(cpe_sock_errno()));
+        cpe_sock_close(svr->m_fd);
+        svr->m_fd = -1;
+        return -1;
+    }
+
+    if (cpe_listen(svr->m_fd, 512) != 0) {
+        CPE_ERROR(svr->m_em, "%s: listen error, errno=%d (%s)", center_svr_name(svr), cpe_sock_errno(), cpe_sock_errstr(cpe_sock_errno()));
+        cpe_sock_close(svr->m_fd);
+        svr->m_fd = -1;
+        return -1;
+    }
+
+    svr->m_watcher.data = svr;
+    ev_io_init(&svr->m_watcher, center_svr_listener_cb, svr->m_fd, EV_READ);
+    ev_io_start(svr->m_ev_loop, &svr->m_watcher);
+
+    if (svr->m_debug) {
+        CPE_INFO(svr->m_em, "%s: listen start", center_svr_name(svr));
+    }
 
     return 0;
 }
 
-int center_svr_set_listener(center_svr_t svr, const char * ip, short port, int acceptQueueSize) {
-    if (svr->m_listener) {
-        net_listener_free(svr->m_listener);
-    }
+void center_svr_stop(center_svr_t svr) {
+    if (svr->m_fd < 0) return;
 
-    svr->m_listener =
-        net_listener_create(
-            gd_app_net_mgr(svr->m_app),
-            center_svr_name(svr),
-            ip,
-            port,
-            acceptQueueSize,
-            center_svr_accept,
-            svr);
-    if (svr->m_listener == NULL) {
-        return -1;
-    }
+    ev_io_stop(svr->m_ev_loop, &svr->m_watcher);
+    cpe_sock_close(svr->m_fd);
+    svr->m_fd = -1;
 
-    return 0;
+    if (svr->m_debug) {
+        CPE_INFO(svr->m_em, "%s: listen stop", center_svr_name(svr));
+    }
 }
 
 static void center_svr_build_datas_from_aom(center_svr_t svr) {
@@ -180,8 +214,31 @@ static void center_svr_build_datas_from_aom(center_svr_t svr) {
 
     aom_objs(svr->m_client_data_mgr, &it);
 
-    while((record = aom_obj_it_next(&it))) {
-        center_cli_data_create(svr, record);
+    record = aom_obj_it_next(&it);
+    while(record) {
+        SVR_CENTER_CLI_RECORD * next = aom_obj_it_next(&it);
+        center_cli_group_t group;
+
+        group = center_cli_group_find(svr, record->svr_type);
+        if (group == NULL) {
+            CPE_INFO(
+                svr->m_em, "%s: build datas from aom: group %d not exist, release record!",
+                center_svr_name(svr), record->svr_type);
+            aom_obj_free(svr->m_client_data_mgr, record);
+            record = next;
+            continue;
+        }
+
+        if (center_cli_data_create(svr, group, record) == NULL) {
+            CPE_INFO(
+                svr->m_em, "%s: build datas from aom: create data fail, release record!",
+                center_svr_name(svr));
+            aom_obj_free(svr->m_client_data_mgr, record);
+            record = next;
+            continue;
+        }
+
+        record = next;
     }
 }
 
@@ -306,17 +363,11 @@ center_svr_name_hs(center_svr_t svr) {
     return nm_node_name_hs(nm_node_from_data(svr));
 }
 
-void * center_svr_get_incoming_pkg_buff(center_svr_t svr, size_t capacity) {
-    if (mem_buffer_size(&svr->m_incoming_pkg_buf) < capacity) {
-        if (mem_buffer_set_size(&svr->m_incoming_pkg_buf, capacity) != 0) {
-            CPE_ERROR(
-                svr->m_em, "%s: create pkg buf for data size %d fail",
-                center_svr_name(svr), (int)capacity);
-            return NULL;
-        }
-    }
-
-    return mem_buffer_make_continuous(&svr->m_incoming_pkg_buf, 0);
+int center_svr_set_ringbuf_size(center_svr_t svr, size_t capacity) {
+    assert(svr->m_ringbuf == NULL);
+    svr->m_ringbuf = ringbuffer_new(capacity);
+    if (svr->m_ringbuf == NULL) return -1;
+    return 0;
 }
 
 SVR_CENTER_PKG *
@@ -337,9 +388,7 @@ center_svr_get_res_pkg_buff(center_svr_t svr, SVR_CENTER_PKG * req, size_t capac
 
     if (req) {
         res->cmd = req->cmd + 1;
-        res->sn = req->sn;
     }
 
     return res;
 }
-

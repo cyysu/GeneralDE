@@ -12,17 +12,6 @@ load:
   - name: friend-executor-mgr
     type: logic_executor_mgr
 
-  - name: friend-svr-rsp-manage
-    type: bpg_rsp_manage
-    scope: local
-    rsps-load-from: /rsps-friend
-    rsps-load-meta: friend-svr-meta-lib
-    commit-to: recv-from-friend-svr
-    recv-at: send-to-friend-svr
-    executor-manage: friend-executor-mgr
-    rsp-max-size: 409600
-    debug: 3
-
   - name: friend-svr-pkg-manager
     type: bpg_pkg_manage
     buff-size: 409600
@@ -33,6 +22,18 @@ load:
       lib-name: friend-svr-meta-lib
       cmd-meta-name: [ svr_friend_pkg_data ]
     validate: 0
+
+  - name: friend-svr-rsp-manage
+    type: bpg_rsp_manage
+    scope: local
+    rsps-load-from: /rsps-friend
+    rsps-load-meta: friend-svr-meta-lib
+    commit-to: recv-from-friend-svr
+    recv-at: send-to-friend-svr
+    executor-manage: friend-executor-mgr
+    pkg-manage: friend-svr-pkg-manager
+    rsp-max-size: 409600
+    debug: 3
 
   - name: FriendSvrLogic
     rsp-manage: friend-svr-rsp-manage
