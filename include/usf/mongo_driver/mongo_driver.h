@@ -35,6 +35,7 @@ int mongo_driver_add_server(mongo_driver_t driver, const char * host, int port);
 
 int mongo_driver_set_incoming_send_to(mongo_driver_t driver, const char * incoming_send_to);
 int mongo_driver_set_outgoing_recv_at(mongo_driver_t driver, const char * outgoing_recv_at);
+int mongo_driver_set_ringbuf_size(mongo_driver_t driver, size_t capacity);
 
 int mongo_driver_enable(mongo_driver_t driver);
 
