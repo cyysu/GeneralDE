@@ -10,9 +10,7 @@
 
 namespace Svr { namespace Center {
 
-class Package;
 class Agent;
-class SvrStub;
 
 }}
 
