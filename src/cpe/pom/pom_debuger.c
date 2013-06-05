@@ -1,5 +1,5 @@
 #include <assert.h>
-#if ! defined _MSC_VER
+#if defined CPE_HAVE_EXECINFO_H
 #include <execinfo.h>
 #endif
 #include "cpe/pal/pal_stdlib.h"
@@ -70,7 +70,7 @@ void pom_debuger_free(struct pom_debuger * debuger) {
 
 static void pom_debuger_dump_stack(write_stream_t stream, struct pom_alloc_info * alloc_info, int ident) {
     char ** symbols;
-#if ! defined _MSC_VER
+#if defined CPE_HAVE_EXECINFO_H
     symbols = backtrace_symbols((void **)(alloc_info + 1), alloc_info->m_stack_size);
 #else
     symbols = NULL;
@@ -104,7 +104,7 @@ void pom_debuger_on_alloc(struct pom_debuger * debuger, pom_oid_t oid) {
 
     alloc_info->m_oid = oid;
     alloc_info->m_free = 0;
-#if ! defined _MSC_VER
+#if defined CPE_HAVE_EXECINFO_H
     alloc_info->m_stack_size = backtrace((void**)(alloc_info + 1), debuger->m_stack_size);
 #else
     alloc_info->m_stack_size = 0;
@@ -175,7 +175,7 @@ void pom_debuger_on_free(struct pom_debuger * debuger, pom_oid_t oid) {
     }
     else {
         alloc_info->m_free = 1;
-#if ! defined _MSC_VER
+#if defined CPE_HAVE_EXECINFO_H
         alloc_info->m_stack_size = backtrace((void**)(alloc_info + 1), debuger->m_stack_size);
 #else
         alloc_info->m_stack_size = 0;

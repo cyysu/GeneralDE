@@ -1,11 +1,13 @@
 #ifndef CPE_DP_TEST_REQTEST_H
 #define CPE_DP_TEST_REQTEST_H
 #include "cpe/dp/dp_request.h"
-#include "NodeTest.hpp"
+#include "cpe/utils/tests-env/test-fixture.hpp"
+#include "cpe/nm/tests-env/with_nm.hpp"
+#include "DpTest.hpp"
 
 typedef Loki::NullType ReqTestBase;
 
-class ReqTest : public testenv::fixture<ReqTestBase, NodeTest> {
+class ReqTest : public testenv::fixture<ReqTestBase, DpTest> {
 public:
     ReqTest();
 

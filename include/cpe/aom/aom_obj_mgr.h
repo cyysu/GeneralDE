@@ -30,6 +30,8 @@ void * aom_obj_alloc(aom_obj_mgr_t mgr);
 void aom_obj_free(aom_obj_mgr_t mgr, void * obj);
 void aom_objs(aom_obj_mgr_t mgr, aom_obj_it_t it);
 
+int32_t aom_obj_index(aom_obj_mgr_t mgr, void * obj);
+
 int aom_obj_mgr_buf_init(
     LPDRMETA meta,
     void * data, size_t data_capacity,

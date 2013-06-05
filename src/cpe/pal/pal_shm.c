@@ -28,4 +28,14 @@ int cpe_shm_key_gen(const char * name, char app_id) {
     return ftok(name, app_id);
 }
 
+int cpe_shm_key_get(const char * name, char app_id) {
+    struct stat state_buf;
+    int f_status;
+
+    f_status = stat(name, &state_buf);
+    if (f_status == -1) return -1;
+
+    return ftok(name, app_id);
+}
+
 #endif

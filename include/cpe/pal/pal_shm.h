@@ -25,6 +25,7 @@ typedef int cpe_shm_id_t;
 typedef struct shmid_ds cpe_shmid_ds;
 
 int cpe_shm_key_gen(const char * name, char app_id);
+int cpe_shm_key_get(const char * name, char app_id);
 
 #define cpe_shm_create(__key, __size, __flags) shmget(__key, __size, IPC_CREAT | IPC_EXCL | __flags)
 #define cpe_shm_get(__key) shmget(__key, 0, 066)

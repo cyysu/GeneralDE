@@ -19,6 +19,7 @@ void tl_manage_free(tl_manage_t tm);
 ptr_int_t tl_manage_tick(tl_manage_t tm, ptr_int_t count);
 int tl_manage_set_opt(tl_manage_t tm, tl_manage_option_t opt,...);
 tl_time_t tl_manage_time(tl_manage_t tm);
+uint32_t tl_manage_time_sec(tl_manage_t tm);
 
 tl_manage_state_t tl_manage_state(tl_manage_t tm);
 void tl_manage_pause(tl_manage_t tm);
