@@ -6,6 +6,7 @@
 #include "cpe/utils/hash.h"
 #include "cpe/dp/dp_types.h"
 #include "cpe/nm/nm_types.h"
+#include "cpe/dr/dr_types.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -68,22 +69,18 @@ typedef TAILQ_HEAD(dp_req_list, dp_req) dp_req_list_t;
 
 struct dp_req {
     dp_mgr_t m_mgr;
-    mem_allocrator_t m_talloc;
-    cpe_hash_string_t m_type;
+    const char * m_type;
+    dp_req_dump_fun_t m_dumper;
+    size_t m_capacity;
     dp_req_t m_parent;
-    dp_node_t m_from;
-    dp_node_t m_to;
+    uint8_t m_manage_by_parent;
+    LPDRMETA m_data_meta;
     void * m_data;
     size_t m_data_capacity;
     size_t m_data_size;
 
     dp_req_list_t m_childs;
     TAILQ_ENTRY(dp_req) m_brother;
-};
-
-struct dp_node {
-    nm_node_t m_nm_node;
-    dp_node_type_t m_type;
 };
 
 #define PROCESSING_BUF_RSP_COUNT (128)

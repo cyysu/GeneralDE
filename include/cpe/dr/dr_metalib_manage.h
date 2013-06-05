@@ -37,6 +37,7 @@ LPDRMETAENTRY dr_meta_find_entry_by_path_ex(LPDRMETA meta, const char* entryPath
 LPDRMETALIB dr_meta_owner_lib(LPDRMETA meta);
 
 int dr_meta_find_dyn_info(LPDRMETA meta, dr_meta_dyn_info_t array_info);
+ssize_t dr_meta_calc_dyn_size(LPDRMETA meta, size_t record_count);
 
 /*meta.key operations*/	
 int dr_meta_key_entry_num(LPDRMETA meta);

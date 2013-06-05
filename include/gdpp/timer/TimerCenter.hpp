@@ -9,6 +9,7 @@
 #ifdef _MSC_VER
 # pragma warning(push)
 # pragma warning(disable:4624)
+# pragma warning(disable:4407)
 #endif
 
 namespace Gd { namespace Timer {
