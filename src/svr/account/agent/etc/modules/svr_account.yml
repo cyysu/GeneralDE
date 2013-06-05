@@ -11,17 +11,6 @@ load:
   - name: account-executor-mgr
     type: logic_executor_mgr
 
-  - name: account-svr-rsp-manage
-    type: bpg_rsp_manage
-    scope: local
-    rsps-load-from: /rsps-account
-    rsps-load-meta: account-svr-meta-lib
-    commit-to: recv-from-account-svr
-    recv-at: send-to-account-svr
-    executor-manage: account-executor-mgr
-    rsp-max-size: 409600
-    debug: 3
-
   - name: account-svr-pkg-manager
     type: bpg_pkg_manage
     buff-size: 409600
@@ -32,6 +21,18 @@ load:
       lib-name: account-svr-meta-lib
       cmd-meta-name: [ svr_account_pkg_data ]
     validate: 0
+
+  - name: account-svr-rsp-manage
+    type: bpg_rsp_manage
+    scope: local
+    rsps-load-from: /rsps-account
+    rsps-load-meta: account-svr-meta-lib
+    commit-to: recv-from-account-svr
+    recv-at: send-to-account-svr
+    executor-manage: account-executor-mgr
+    pkg-manage: account-svr-pkg-manager
+    rsp-max-size: 409600
+    debug: 3
 
   - name: AccountSvrLogic
     rsp-manage: account-svr-rsp-manage
