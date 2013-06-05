@@ -11,7 +11,7 @@
 extern "C" {
 #endif
 
-extern cpe_hash_string_t mongo_pkg_type_name;
+extern const char * req_type_mongo_pkg;
 
 mongo_pkg_t
 mongo_pkg_create(mongo_driver_t agent, size_t capacity);
