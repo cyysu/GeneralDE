@@ -58,7 +58,7 @@ gd_evt_mgr_create(
         return NULL;
     }
 
-    mgr->m_req = dp_req_create(gd_app_dp_mgr(app), gd_evt_req_type_name, 0);
+    mgr->m_req = dp_req_create(gd_app_dp_mgr(app), 0);
     if (mgr->m_req == NULL) {
         CPE_ERROR(em, "gd_evt_mgr_create: create req fail!");
         cpe_range_mgr_fini(&mgr->m_ids);
@@ -384,8 +384,6 @@ int gd_evt_def_eq(const struct gd_evt_def * l, const struct gd_evt_def * r) {
 }
 
 CPE_HS_DEF_VAR(s_gd_evt_mgr_default_name, "gd_evt_mgr");
-
-CPE_HS_DEF_VAR(gd_evt_req_type_name, "app.event.req");
 
 struct nm_node_type s_nm_node_type_gd_evt_mgr = {
     "gd_evt_mgr",

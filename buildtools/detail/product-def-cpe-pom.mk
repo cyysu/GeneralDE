@@ -1,7 +1,7 @@
 product-support-types+=cpe-pom
 product-def-all-items+=cpe-pom.modules
 
-cpe-pom-tool=$(CPDE_OUTPUT_ROOT)/$(tools.output)/bin/cpe_pom_tool
+cpe-pom-tool=$$(CPDE_OUTPUT_ROOT)/$$(r.cpe_pom_tool.tools.product)
 
 define product-def-rule-cpe-pom-c-module-metalib-xml
   $(call assert-not-null,$1.cpe-pom.$2.metalib-xml.output)

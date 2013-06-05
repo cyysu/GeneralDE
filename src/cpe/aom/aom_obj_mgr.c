@@ -162,6 +162,20 @@ void aom_obj_free(aom_obj_mgr_t mgr, void * obj) {
     --mgr->m_allocked_obj_count;
 }
 
+int32_t aom_obj_index(aom_obj_mgr_t mgr, void * obj) {
+    int32_t idx;
+    size_t obj_size = dr_meta_size(mgr->m_meta);
+
+    assert((char*)obj >= mgr->m_obj_base);
+    assert((char*)obj + obj_size <= mgr->m_obj_base + mgr->m_obj_capacity);
+
+    idx = (((char*)obj) - mgr->m_obj_base) / obj_size;
+
+    assert(obj == (mgr->m_obj_base + idx * obj_size));
+
+    return idx;
+}
+
 struct aom_objs_it_data {
     aom_obj_mgr_t m_mgr;
     struct cpe_range_it m_range_it;

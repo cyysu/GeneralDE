@@ -129,6 +129,9 @@ void * gd_app_lib_sym(struct gd_app_lib * lib, const char * symName, error_monit
     dlerror();
 
     if (gd_app_default_lib_handler_loaded == 0 && lib == NULL && gd_app_default_lib_handler == NULL) {
+#ifdef __CYGWIN32__
+        gd_app_default_lib_handler = dlopen(NULL, RTLD_NOW);
+#else
         Dl_info dl_info;
         bzero(&dl_info, sizeof (dl_info));
         gd_app_default_lib_handler_loaded = 1;
@@ -145,6 +148,7 @@ void * gd_app_lib_sym(struct gd_app_lib * lib, const char * symName, error_monit
                 gd_app_default_lib_handler = dlopen(NULL, RTLD_NOW);
             }
         }
+#endif
     }
 
     sym = lib
