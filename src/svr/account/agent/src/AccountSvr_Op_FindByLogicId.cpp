@@ -57,7 +57,7 @@ public:
     {
         int index = -1;
         int r = sscanf(require.name(), "queryAccount%d", &index);
-        if (r == strlen(require.name())) {
+        if (r == (int)strlen(require.name())) {
             return onQueryAccount(context, stackNode, require, args, index);
 		}
         else {
@@ -113,7 +113,7 @@ private:
 
         Usf::Logic::LogicOpDynDataT<SVR_ACCOUNT_BINDING_LIST> result(context);
 
-        if (index < 0 || index >= result.recordCount()) {
+        if (index < 0 || ((size_t)index) >= result.recordCount()) {
             APP_CTX_ERROR(
                 context.app(), "%s: requilre %s: index %d error, count=%d",
                 name(), require.name().c_str(), index, (int)result.recordCount());
