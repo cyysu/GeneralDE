@@ -5,12 +5,13 @@
 #include "cpe/dr/dr_metalib_manage.h"
 #include "gd/app/app_context.h"
 #include "usf/bpg_pkg/bpg_pkg.h"
+#include "usf/bpg_pkg/bpg_pkg_data.h"
 #include "usf/bpg_pkg/bpg_pkg_dsp.h"
 #include "usf/bpg_net/bpg_net_client.h"
 #include "bpg_net_internal_ops.h"
 
 static void bpg_net_client_on_read(bpg_net_client_t client, net_ep_t ep) {
-    bpg_pkg_t req_buf;
+    dp_req_t req_buf;
 
     if(client->m_debug >= 2) {
         CPE_INFO(

@@ -1,52 +1,68 @@
 #ifndef USFPP_BPG_USE_SENDPOINT_H
-#define USFPP_BPG_USE_NETCLIENT_H
+#define USFPP_BPG_USE_SENDPOING_H
 #include "cpepp/utils/ClassCategory.hpp"
-#include "cpepp/utils/CString.hpp"
 #include "cpepp/dr/Data.hpp"
 #include "gdpp/app/Application.hpp"
 #include "usf/bpg_use/bpg_use_sp.h"
 #include "System.hpp"
 
+#ifdef _MSC_VER
+# pragma warning(push)
+# pragma warning(disable:4624)
+#endif
+
 namespace Usf { namespace Bpg {
 
-class SendPoint : public Cpe::Utils::Noncopyable {
+class SendPoint : public Cpe::Utils::SimulateObject {
 public:
-    SendPoint(gd_app_context_t app, cfg_t cfg);
-    ~SendPoint();
+    operator bpg_use_sp_t() const { return (bpg_use_sp_t)this; }
 
-    Cpe::Utils::CString const & name(void) const { return Cpe::Utils::CString::_cast(bpg_use_sp_name(m_sp)); }
-    Gd::App::Application & app(void) { return Gd::App::Application::_cast(bpg_use_sp_app(m_sp)); }
-    Gd::App::Application const & app(void) const { return Gd::App::Application::_cast(bpg_use_sp_app(m_sp)); }
+    const char * name(void) const { return bpg_use_sp_name(*this); }
+    Gd::App::Application & app(void) { return Gd::App::Application::_cast(bpg_use_sp_app(*this)); }
+    Gd::App::Application const & app(void) const { return Gd::App::Application::_cast(bpg_use_sp_app(*this)); }
 
     PackageManager const & pkgManager(void) const;
+
+    uint64_t clientId(void) const { return bpg_use_sp_client_id(*this); }
+    void setClientId(uint64_t client_id) { bpg_use_sp_set_client_id(*this, client_id); }
 
     Cpe::Dr::MetaLib const & metaLib(void) const;
     Cpe::Dr::Meta const & meta(const char * metaName) const;
 
-    size_t dataBufCapacity(void) const { return bpg_use_sp_buf_capacity(m_sp); }
-    Cpe::Dr::Data dataBuf(const char * metaName, size_t capacity = 0);
-    Cpe::Dr::Data dataBuf(void);
-    Usf::Bpg::Package & pkgBuf(void);
+    Cpe::Dr::Data dataBuf(LPDRMETA meta, size_t capacity = 0);
+    Cpe::Dr::Data dataBuf(size_t capacity);
+    Cpe::Dr::Data dataDynBuf(LPDRMETA meta, size_t record_count);
+
+    template<typename T>
+    Cpe::Dr::Data dataBuf(size_t capacity = 0) { return dataBuf(Cpe::Dr::MetaTraits<T>::META, capacity); }
+
+    template<typename T>
+    Cpe::Dr::Data dataDynBuf(size_t record_count) { return dataDynBuf(Cpe::Dr::MetaTraits<T>::META, record_count); }
+
+    template<typename T>
+    T & dataBufT(size_t capacity = 0) { Cpe::Dr::Data d = dataBuf(Cpe::Dr::MetaTraits<T>::META, capacity); return d.as<T>(); }
+
+    template<typename T>
+    T & dataDynBufT(size_t record_count) { Cpe::Dr::Data d = dataBuf(Cpe::Dr::MetaTraits<T>::META, record_count); return d.as<T>(); }
+
+    Usf::Bpg::Package & pkgBuf(size_t capacity);
 
     void send(Usf::Bpg::Package & pkg);
     void send(Cpe::Dr::Data const & data);
-    void send(const char * metaName, void const * data, size_t size);
-    void send(LPDRMETA meta, void const * data, size_t size);
+    void send(LPDRMETA meta, void const * data, size_t size = 0);
 
     template<typename T>
-    void send(const char * metaName, T const & data) {
-        send(metaName, &data, sizeof(data));
+    void send(T const & data) {
+        send(Cpe::Dr::MetaTraits<T>::META, &data, Cpe::Dr::MetaTraits<T>::data_size(data));
     }
 
-    template<typename T>
-    void send(LPDRMETA meta, T const & data) {
-        send(meta, &data, sizeof(data));
-    }
-
-private:
-    bpg_use_sp_t m_sp;
+    static SendPoint & instance(gd_app_context_t app, const char * name);
 };
 
 }}
+
+#ifdef _MSC_VER
+# pragma warning(pop)
+#endif
 
 #endif

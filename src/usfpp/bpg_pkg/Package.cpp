@@ -5,10 +5,31 @@
 #include "cpepp/dr/Meta.hpp"
 #include "cpepp/dr/MetaLib.hpp"
 #include "gdpp/app/Log.hpp"
+#include "usf/bpg_pkg/bpg_pkg.h"
 #include "usfpp/bpg_pkg/Package.hpp"
 #include "usfpp/bpg_pkg/PackageManager.hpp"
 
 namespace Usf { namespace Bpg {
+
+Package::operator bpg_pkg_t() const {
+    bpg_pkg_t r = bpg_pkg_find(*this);
+    if (r == NULL) {
+        throw ::std::runtime_error("no bpg_pkg bind");
+    }
+    return r;
+}
+
+PackageManager & Package::mgr(void) {
+    bpg_pkg_t pkg = bpg_pkg_find(*this);
+    assert(pkg);
+    return *(PackageManager*)bpg_pkg_mgr(pkg);
+}
+
+PackageManager const & Package::mgr(void) const {
+    bpg_pkg_t pkg = bpg_pkg_find(*this);
+    assert(pkg);
+    return *(PackageManager*)bpg_pkg_mgr(pkg);
+}
 
 Gd::App::Application & Package::app(void) {
     return mgr().app();
@@ -20,16 +41,7 @@ Gd::App::Application const & Package::app(void) const {
 
 Cpe::Dr::MetaLib const &
 Package::dataMetaLib(void) const {
-    LPDRMETALIB metalib = bpg_pkg_data_meta_lib(*this);
-    if (metalib == NULL) {
-        APP_CTX_THROW_EXCEPTION(
-            app(),
-            ::std::runtime_error,
-            "%s: Usf::Bpg::Package::dataMetaLib: not data meta lib!",
-            mgr().name().c_str());
-    }
-
-    return *(Cpe::Dr::MetaLib const *)metalib;
+    return mgr().dataMetaLib();
 }
 
 PackageAppendInfo const & Package::appendInfoAt(int32_t pos) const {
@@ -76,11 +88,6 @@ void Package::setCmdAndData(int cmd, const void * data, size_t data_size) {
     setMainData(data, data_size);
 }
 
-void Package::setCmdAndData(const char * meta_name, const void * data, size_t data_size) {
-    setCmd(mgr().cmdFromMetaName(meta_name));
-    setMainData(data, data_size);
-}
-        
 void Package::setCmdAndData(LPDRMETA meta, const void * data, size_t data_size) {
     setCmd(mgr().cmdFromMetaName(dr_meta_name(meta)));
     setMainData(data, data_size);
@@ -197,25 +204,16 @@ bool Package::tryGetAppendData(LPDRMETA meta, void * buf, size_t capacity, size_
     return false;
 }
 
-Package & Package::_cast(bpg_pkg_t pkg) {
-    if (pkg == NULL) {
-        throw ::std::runtime_error("Usf::Bpg::Package::_cast: input pkg is NULL!");
-    }
-
-    return *(Package*)pkg;
-}
-
 Package & Package::_cast(dp_req_t req) {
     if (req == NULL) {
         throw ::std::runtime_error("Usf::Bpg::Package::_cast: input req is NULL!");
     }
 
-    bpg_pkg_t pkg = bpg_pkg_from_dp_req(req);
-    if (pkg == NULL) {
-        throw ::std::runtime_error("Usf::Bpg::Package::_cast: cast dp_req to pkg fail!");
+    if (bpg_pkg_find(req) == NULL) {
+        throw ::std::runtime_error("Usf::Bpg::Package::_cast: no bpg_pkg bind!");
     }
 
-    return *(Package*)pkg;
+    return *(Package*)req;
 }
 
 }}

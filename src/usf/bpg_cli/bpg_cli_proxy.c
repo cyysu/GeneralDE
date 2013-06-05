@@ -3,6 +3,7 @@
 #include "cpe/pal/pal_stdio.h"
 #include "cpe/cfg/cfg_read.h"
 #include "cpe/dp/dp_responser.h"
+#include "cpe/dp/dp_request.h"
 #include "cpe/dp/dp_manage.h"
 #include "cpe/nm/nm_manage.h"
 #include "cpe/nm/nm_read.h"
@@ -10,6 +11,7 @@
 #include "gd/app/app_module.h"
 #include "gd/app/app_context.h"
 #include "usf/bpg_pkg/bpg_pkg.h"
+#include "usf/bpg_pkg/bpg_pkg_data.h"
 #include "usf/bpg_pkg/bpg_pkg_manage.h"
 #include "usf/logic/logic_manage.h"
 #include "usf/logic/logic_require.h"
@@ -72,7 +74,7 @@ static void bpg_cli_proxy_clear(nm_node_t node) {
     proxy = (bpg_cli_proxy_t)nm_node_data(node);
 
     if (proxy->m_send_pkg_buf) {
-        bpg_pkg_free(proxy->m_send_pkg_buf);
+        dp_req_free(proxy->m_send_pkg_buf);
         proxy->m_send_pkg_buf = NULL;
     }
 
@@ -232,17 +234,17 @@ void bpg_cli_proxy_set_client_id(bpg_cli_proxy_t proxy, uint64_t client_id) {
     proxy->m_client_id = client_id;
 }
 
-bpg_pkg_t
+dp_req_t
 bpg_cli_proxy_pkg_buf(bpg_cli_proxy_t proxy) {
     if (proxy->m_send_pkg_buf) {
-        if (bpg_pkg_pkg_data_capacity(proxy->m_send_pkg_buf) < proxy->m_send_pkg_max_size) {
-            bpg_pkg_free(proxy->m_send_pkg_buf);
+        if (dp_req_capacity(proxy->m_send_pkg_buf) < proxy->m_send_pkg_max_size) {
+            dp_req_free(proxy->m_send_pkg_buf);
             proxy->m_send_pkg_buf = NULL;
         }
     }
 
     if (proxy->m_send_pkg_buf == NULL) {
-        proxy->m_send_pkg_buf = bpg_pkg_create(proxy->m_pkg_manage, proxy->m_send_pkg_max_size, NULL, 0);
+        proxy->m_send_pkg_buf = bpg_pkg_create_with_body(proxy->m_pkg_manage, proxy->m_send_pkg_max_size);
     }
 
     return proxy->m_send_pkg_buf;
@@ -251,7 +253,7 @@ bpg_cli_proxy_pkg_buf(bpg_cli_proxy_t proxy) {
 int bpg_cli_proxy_send(
     bpg_cli_proxy_t proxy,
     logic_require_t require,
-    bpg_pkg_t pkg)
+    dp_req_t pkg)
 {
     int rv;
 

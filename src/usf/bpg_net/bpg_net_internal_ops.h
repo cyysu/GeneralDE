@@ -10,12 +10,12 @@ extern "C" {
 /*agent process*/
 void bpg_net_agent_accept(net_listener_t listener, net_ep_t ep, void * ctx);
 int bpg_net_agent_reply(dp_req_t req, void * ctx, error_monitor_t em);
-bpg_pkg_t bpg_net_agent_req_buf(bpg_net_agent_t mgr);
+dp_req_t bpg_net_agent_req_buf(bpg_net_agent_t mgr);
 int bpg_net_agent_notify_client(dp_req_t req, void * ctx, error_monitor_t em);
 
 /*client process*/
 int bpg_net_client_ep_init(bpg_net_client_t client, net_ep_t ep, size_t read_chanel_size, size_t write_chanel_size);
-bpg_pkg_t bpg_net_client_req_buf(bpg_net_client_t mgr);
+dp_req_t bpg_net_client_req_buf(bpg_net_client_t mgr);
 int bpg_net_client_send(dp_req_t req, void * ctx, error_monitor_t em);
 
 int bpg_net_client_save_require_id(bpg_net_client_t client, logic_require_id_t id);

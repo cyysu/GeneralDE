@@ -29,12 +29,31 @@ typedef struct dr_idx_entry_info * dr_idx_entry_info_t;
 typedef struct dr_index_info * dr_index_info_t;
 typedef struct dr_index_entry_info * dr_index_entry_info_t;
 
-typedef struct dr_meta_dyn_info {
-    LPDRMETAENTRY m_array_entry;
-    uint32_t m_array_start;
+enum dr_code_error {
+    dr_code_error_format_error = -1
+    , dr_code_error_not_enough_input = -2
+    , dr_code_error_not_enough_output = -3
+};
 
-    LPDRMETAENTRY m_refer_entry;
-    uint32_t m_refer_start;
+typedef struct dr_meta_dyn_info {
+    enum {
+        dr_meta_dyn_info_type_union
+        , dr_meta_dyn_info_type_array
+    } m_type;
+    union {
+        struct {
+            LPDRMETAENTRY m_union_entry;
+            uint32_t m_union_start;
+            LPDRMETAENTRY m_union_select_entry;
+            uint32_t m_union_select_start;
+        } m_union;
+        struct {
+            LPDRMETAENTRY m_array_entry;
+            uint32_t m_array_start;
+            LPDRMETAENTRY m_refer_entry;
+            uint32_t m_refer_start;
+        } m_array;
+    } m_data;
 } * dr_meta_dyn_info_t;
 
 struct tagDRLibParam

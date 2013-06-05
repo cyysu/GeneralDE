@@ -5,8 +5,6 @@ TEST_F(ReqTest, req_create_basic) {
     ASSERT_TRUE(req);
 
     EXPECT_TRUE(NULL == dp_req_parent(req));
-    EXPECT_TRUE(NULL == dp_req_from(req));
-    EXPECT_TRUE(NULL == dp_req_to(req));
 }
 
 TEST_F(ReqTest, req_create_child_basic) {
@@ -19,7 +17,5 @@ TEST_F(ReqTest, req_create_child_basic) {
     ASSERT_TRUE(child);
 
     EXPECT_TRUE(parent == dp_req_parent(child));
-    EXPECT_TRUE(NULL == dp_req_from(child));
-    EXPECT_TRUE(NULL == dp_req_to(child));
 }
 
