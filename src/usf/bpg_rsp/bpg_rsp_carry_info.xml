@@ -2,12 +2,18 @@
 <metalib tagsetversion="1" name="BASEPKG" version="1" >
     <struct name="bpg_carry_info" version="1">
         <entry name="clientId" type="uint64"/>
-        <entry name="connectionId" type="uint32"/>
         <entry name="sn" type="uint32"/>
         <entry name="cmd" type="uint16"/>
-        <entry name="carry_data_size" type="uint16"/>
-        <entry name="carry_meta_name" type="string" size='64'/>
-        <entry name="pkg_mgr_name" type="string" size='32'/>
         <entry name="no_response" type="uint16"/>
     </struct>
+
+    <struct name="bpg_carry_meta" version="1">
+        <entry name="name" type="string" size="64"/>
+    </struct>
+
+    <struct name="bpg_carry_metas" version="1">
+        <entry name="count" type="uint32"/>
+        <entry name="data" type="bpg_carry_meta" count="0" refer="count"/>
+    </struct>
+
 </metalib>

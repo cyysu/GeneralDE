@@ -60,7 +60,7 @@ with_bpg_rsp::t_bpg_rsp_manage(
 }
 
 logic_context_t
-with_bpg_rsp::t_bpg_context_create(bpg_pkg_t pkg, const char * rsp_manage_name) {
+with_bpg_rsp::t_bpg_context_create(dp_req_t pkg, const char * rsp_manage_name) {
     error_monitor_t em = 0;
     if (utils::testenv::with_em * with_em = tryEnvOf<utils::testenv::with_em>()) {
         em = with_em->t_em();

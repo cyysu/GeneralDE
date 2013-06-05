@@ -19,15 +19,14 @@ Cpe::Dr::MetaLib const & PackageManager::dataMetaLib(void) const {
     return Cpe::Dr::MetaLib::_cast(metalib);
 }
 
-bpg_pkg_t PackageManager::createPackage(size_t capacity, LPDRMETA carry_data_meta, size_t carry_data_capacity) {
-    bpg_pkg_t pkg = bpg_pkg_create(*this, capacity, carry_data_meta, carry_data_capacity);
+dp_req_t PackageManager::createPackage(size_t capacity) {
+    dp_req_t pkg = bpg_pkg_create_with_body(*this, capacity);
     if (pkg == NULL) {
         APP_CTX_THROW_EXCEPTION(
             app(),
             ::std::runtime_error,
-            "bpg_pkg_manage %s: crate pkg fail, data-capacity="  FMT_SIZE_T ", caary-capacity="  FMT_SIZE_T "!",
-            name().c_str(),
-            capacity, carry_data_capacity);
+            "bpg_pkg_manage %s: crate pkg fail, data-capacity="FMT_SIZE_T"!",
+            name().c_str(), capacity);
     }
     return pkg;
 }

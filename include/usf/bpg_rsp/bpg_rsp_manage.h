@@ -13,6 +13,7 @@ bpg_rsp_manage_create(
     bpg_rsp_manage_dp_scope_t scope,
     logic_manage_t logic_mgr,
     logic_executor_mgr_t executor_mgr,
+    bpg_pkg_manage_t pkg_manage,
     error_monitor_t em);
 
 void bpg_rsp_manage_free(bpg_rsp_manage_t mgr);
@@ -53,7 +54,7 @@ void bpg_rsp_manage_flag_enable(bpg_rsp_manage_t mgr, bpg_rsp_manage_flag_t flag
 void bpg_rsp_manage_flag_disable(bpg_rsp_manage_t mgr, bpg_rsp_manage_flag_t flag);
 int bpg_rsp_manage_flag_is_enable(bpg_rsp_manage_t mgr, bpg_rsp_manage_flag_t flag);
 
-logic_context_t bpg_rsp_manage_create_context(bpg_rsp_manage_t mgr, bpg_pkg_t pkg, error_monitor_t em);
+logic_context_t bpg_rsp_manage_create_context(bpg_rsp_manage_t mgr, dp_req_t pkg, error_monitor_t em);
 
 logic_context_t
 bpg_rsp_manage_create_follow_op_by_name(

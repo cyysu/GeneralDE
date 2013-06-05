@@ -13,14 +13,14 @@ public:
 
     virtual void TearDown() {
         if (m_pkg) {
-            bpg_pkg_free(m_pkg);
+            dp_req_free(m_pkg);
             m_pkg = NULL;
         }
 
         BpgPkgTest::TearDown();
     }
 
-    bpg_pkg_t m_pkg;
+    dp_req_t m_pkg;
 };
 
 TEST_F(BpgPkgDataTest, cmd_no_meta) {

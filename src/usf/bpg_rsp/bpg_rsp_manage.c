@@ -13,6 +13,7 @@
 #include "gd/dr_store/dr_ref.h"
 #include "gd/dr_store/dr_store_manage.h"
 #include "usf/bpg_pkg/bpg_pkg.h"
+#include "usf/bpg_pkg/bpg_pkg_data.h"
 #include "usf/bpg_pkg/bpg_pkg_dsp.h"
 #include "usf/bpg_pkg/bpg_pkg_manage.h"
 #include "usf/bpg_rsp/bpg_rsp.h"
@@ -36,6 +37,7 @@ bpg_rsp_manage_create(
     bpg_rsp_manage_dp_scope_t scope,
     logic_manage_t logic_mgr,
     logic_executor_mgr_t executor_mgr,
+    bpg_pkg_manage_t pkg_manage,
     error_monitor_t em)
 {
     bpg_rsp_manage_t mgr;
@@ -61,6 +63,7 @@ bpg_rsp_manage_create(
     mgr->m_app = app;
     mgr->m_alloc = gd_app_alloc(app);
     mgr->m_logic_mgr = logic_mgr;
+    mgr->m_pkg_manage = pkg_manage;
     mgr->m_executor_mgr = executor_mgr;
     mgr->m_em = em;
     mgr->m_flags = 0;
@@ -150,7 +153,7 @@ static void bpg_rsp_manage_clear(nm_node_t node) {
     }
 
     if (mgr->m_rsp_buf) {
-        bpg_pkg_free(mgr->m_rsp_buf);
+        dp_req_free(mgr->m_rsp_buf);
         mgr->m_rsp_buf = NULL;
     }
 
@@ -259,20 +262,16 @@ void bpg_rsp_manage_set_forward_dsp(bpg_rsp_manage_t mgr, bpg_pkg_dsp_t dsp) {
 }
 
 static int bpg_rsp_manage_dispatch(dp_req_t dp_req, void * ctx, error_monitor_t em) {
-    bpg_pkg_t pkg = bpg_pkg_from_dp_req(dp_req);
     bpg_rsp_manage_t mgr = (bpg_rsp_manage_t)ctx;
 
     if (mgr->m_dp != dp_req_mgr(dp_req)) {
-        if (mgr->m_dp_req_buf
-            && (dp_req_capacity(mgr->m_dp_req_buf) < dp_req_size(dp_req)
-                || strcmp(dp_req_type(mgr->m_dp_req_buf), dp_req_type(dp_req)) != 0))
-        {
+        if (mgr->m_dp_req_buf && (dp_req_capacity(mgr->m_dp_req_buf) < dp_req_size(dp_req))) {
             dp_req_free(mgr->m_dp_req_buf);
             mgr->m_dp_req_buf = NULL;
         }
 
         if (mgr->m_dp_req_buf == NULL) {
-            mgr->m_dp_req_buf = dp_req_create(mgr->m_dp, dp_req_type_hs(dp_req), dp_req_size(dp_req));
+            mgr->m_dp_req_buf = bpg_pkg_create_with_body(mgr->m_pkg_manage, dp_req_size(dp_req));
             if (mgr->m_dp_req_buf == NULL) {
                 CPE_ERROR(mgr->m_em, "%s: create dp_rsp buf fail", bpg_rsp_manage_name(mgr));
                 return -1;
@@ -280,11 +279,14 @@ static int bpg_rsp_manage_dispatch(dp_req_t dp_req, void * ctx, error_monitor_t 
         }
 
         memcpy(dp_req_data(mgr->m_dp_req_buf), dp_req_data(dp_req), dp_req_size(dp_req));
+        dp_req_set_type(mgr->m_dp_req_buf, dp_req_type(dp_req));
         dp_req_set_size(mgr->m_dp_req_buf, dp_req_size(dp_req));
-        return dp_dispatch_by_numeric(bpg_pkg_cmd(pkg), mgr->m_dp_req_buf, em);
+        dp_req_set_meta(mgr->m_dp_req_buf, dp_req_meta(dp_req));
+
+        return dp_dispatch_by_numeric(bpg_pkg_cmd(dp_req), mgr->m_dp_req_buf, em);
     }
     else {
-        return dp_dispatch_by_numeric(bpg_pkg_cmd(pkg), dp_req, em);
+        return dp_dispatch_by_numeric(bpg_pkg_cmd(dp_req), dp_req, em);
     }
 }
 
@@ -329,27 +331,17 @@ int bpg_rsp_manage_set_dispatch_at(bpg_rsp_manage_t mgr, const char * recv_at) {
     return 0;
 }
 
-bpg_pkg_t
-bpg_rsp_manage_rsp_buf(bpg_rsp_manage_t mgr, const char * pkg_mgr_name, LPDRMETA carry_meta, size_t carry_capacity) {
+dp_req_t
+bpg_rsp_manage_rsp_buf(bpg_rsp_manage_t mgr) {
     if (mgr->m_rsp_buf) {
-        if (strcmp(bpg_pkg_manage_name(bpg_pkg_mgr(mgr->m_rsp_buf)), pkg_mgr_name) != 0
-            || bpg_pkg_carry_data_meta(mgr->m_rsp_buf) != carry_meta
-            || bpg_pkg_carry_data_capacity(mgr->m_rsp_buf) < carry_capacity
-            || bpg_pkg_pkg_data_capacity(mgr->m_rsp_buf) < mgr->m_rsp_max_size)
-        {
-            bpg_pkg_free(mgr->m_rsp_buf);
+        if (dp_req_capacity(mgr->m_rsp_buf) < mgr->m_rsp_max_size) {
+            dp_req_free(mgr->m_rsp_buf);
             mgr->m_rsp_buf = NULL;
         }
     }
 
     if (mgr->m_rsp_buf == NULL) {
-        bpg_pkg_manage_t pkg_manage = bpg_pkg_manage_find_nc(mgr->m_app, pkg_mgr_name);
-        if (pkg_manage == NULL) {
-            CPE_ERROR(mgr->m_em, "bpg_rsp_manage_rsp_buf: bpg_pkg_manage %s not exist!", pkg_mgr_name);
-            return NULL;
-        }
-
-        mgr->m_rsp_buf = bpg_pkg_create(pkg_manage, mgr->m_rsp_max_size, carry_meta, carry_capacity);
+        mgr->m_rsp_buf = bpg_pkg_create_with_body(mgr->m_pkg_manage, mgr->m_rsp_max_size);
     }
 
     return mgr->m_rsp_buf;
