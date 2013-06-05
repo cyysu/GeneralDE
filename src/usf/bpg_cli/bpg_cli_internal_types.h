@@ -19,7 +19,7 @@ struct bpg_cli_proxy {
     dp_rsp_t m_outgoing_recv_at;
     bpg_pkg_dsp_t m_outgoing_send_to;
     size_t m_send_pkg_max_size;
-    bpg_pkg_t m_send_pkg_buf;
+    dp_req_t m_send_pkg_buf;
     struct mem_buffer m_send_data_buf;
 
     bpg_pkg_dsp_t m_incoming_no_sn_send_to;

@@ -28,7 +28,7 @@ public:
     uint32_t cmdFromMetaName(const char * metaName) const;
     bool isSupportCmd(const char * metaName) const;
 
-    bpg_pkg_t createPackage(size_t capacity, LPDRMETA carry_data_meta = NULL, size_t carry_data_capacity = 0);
+    dp_req_t createPackage(size_t capacity);
 
     static PackageManager & _cast(bpg_pkg_manage_t pkg_mgr);
     static PackageManager & instance(gd_app_context_t app, const char * name);

@@ -1,6 +1,6 @@
 #include "dr_pbuf_internal_ops.h"
 
-int cpe_dr_pbuf_encode32(uint32_t number, uint8_t buffer[10]) {
+int dr_pbuf_encode32(uint32_t number, uint8_t buffer[10]) {
 	if (number < 0x80) {
 		buffer[0] = (uint8_t) number ; 
 		return 1;
@@ -25,10 +25,10 @@ int cpe_dr_pbuf_encode32(uint32_t number, uint8_t buffer[10]) {
 	return 5;
 }
 
-int cpe_dr_pbuf_encode64(uint64_t number, uint8_t buffer[10]) {
+int dr_pbuf_encode64(uint64_t number, uint8_t buffer[10]) {
     int i;
 	if ((number & 0xffffffff) == number) {
-		return cpe_dr_pbuf_encode32((uint32_t)number , buffer);
+		return dr_pbuf_encode32((uint32_t)number , buffer);
 	}
 	i = 0;
 	do {
@@ -41,7 +41,7 @@ int cpe_dr_pbuf_encode64(uint64_t number, uint8_t buffer[10]) {
 }
 
 int
-cpe_dr_pbuf_decode(uint8_t const buffer[10], struct cpe_dr_pbuf_longlong *result) {
+dr_pbuf_decode(uint8_t const buffer[10], struct dr_pbuf_longlong *result) {
     uint32_t r;
 	int i;
     uint64_t lr;
@@ -75,36 +75,36 @@ cpe_dr_pbuf_decode(uint8_t const buffer[10], struct cpe_dr_pbuf_longlong *result
 	return 0;
 }
 
-int cpe_dr_pbuf_zigzag32(int32_t n, uint8_t buffer[10]) {
+int dr_pbuf_zigzag32(int32_t n, uint8_t buffer[10]) {
 	n = (n << 1) ^ (n >> 31);
-	return cpe_dr_pbuf_encode32(n,buffer);
+	return dr_pbuf_encode32(n,buffer);
 }
 
-int cpe_dr_pbuf_zigzag64(int64_t n, uint8_t buffer[10]) {
+int dr_pbuf_zigzag64(int64_t n, uint8_t buffer[10]) {
 	n = (n << 1) ^ (n >> 63);
-	return cpe_dr_pbuf_encode64(n,buffer);
+	return dr_pbuf_encode64(n,buffer);
 }
 
-void cpe_dr_pbuf_dezigzag64(struct cpe_dr_pbuf_longlong *r) {
+void dr_pbuf_dezigzag64(struct dr_pbuf_longlong *r) {
 	uint32_t low = r->low;
 	r->low = ((low >> 1) | ((r->hi & 1) << 31)) ^ - (low & 1);
 	r->hi = (r->hi >> 1) ^ - (low & 1);
 }
 
-void cpe_dr_pbuf_dezigzag32(struct cpe_dr_pbuf_longlong *r) {
+void dr_pbuf_dezigzag32(struct dr_pbuf_longlong *r) {
 	uint32_t low = r->low;
 	r->low = (low >> 1) ^ - (low & 1);
 	r->hi = -(low >> 31);
 }
 
-int cpe_dr_pbuf_decode_uint32(uint8_t buffer[10], uint32_t * number) {
+int dr_pbuf_decode_uint32(uint8_t buffer[10], uint32_t * number) {
     union {
-        struct cpe_dr_pbuf_longlong sep;
+        struct dr_pbuf_longlong sep;
         uint64_t u64;
     } buf;
     int use_size;
 
-    use_size = cpe_dr_pbuf_decode(buffer, &buf.sep);
+    use_size = dr_pbuf_decode(buffer, &buf.sep);
     if (use_size < 0) return use_size;
 
     if (number) *number = (uint32_t)buf.u64;
@@ -112,14 +112,14 @@ int cpe_dr_pbuf_decode_uint32(uint8_t buffer[10], uint32_t * number) {
     return use_size;
 }
 
-int cpe_dr_pbuf_decode_uint64(uint8_t buffer[10], uint64_t * number) {
+int dr_pbuf_decode_uint64(uint8_t buffer[10], uint64_t * number) {
     union {
-        struct cpe_dr_pbuf_longlong sep;
+        struct dr_pbuf_longlong sep;
         uint64_t u64;
     } buf;
     int use_size;
 
-    use_size = cpe_dr_pbuf_decode(buffer, &buf.sep);
+    use_size = dr_pbuf_decode(buffer, &buf.sep);
     if (use_size < 0) return use_size;
 
     if (number) *number = buf.u64;
@@ -127,34 +127,34 @@ int cpe_dr_pbuf_decode_uint64(uint8_t buffer[10], uint64_t * number) {
     return use_size;
 }
 
-int cpe_dr_pbuf_decode_int32(uint8_t buffer[10], int32_t * number) {
+int dr_pbuf_decode_int32(uint8_t buffer[10], int32_t * number) {
     union {
-        struct cpe_dr_pbuf_longlong sep;
+        struct dr_pbuf_longlong sep;
         int64_t i64;
     } buf;
     int use_size;
 
-    use_size = cpe_dr_pbuf_decode(buffer, &buf.sep);
+    use_size = dr_pbuf_decode(buffer, &buf.sep);
     if (use_size < 0) return use_size;
 
-    cpe_dr_pbuf_dezigzag64(&buf.sep);
+    dr_pbuf_dezigzag64(&buf.sep);
 
     if (number) *number = (int32_t)buf.i64;
 
     return use_size;
 }
 
-int cpe_dr_pbuf_decode_int64(uint8_t buffer[10], int64_t * number) {
+int dr_pbuf_decode_int64(uint8_t buffer[10], int64_t * number) {
     union {
-        struct cpe_dr_pbuf_longlong sep;
+        struct dr_pbuf_longlong sep;
         int64_t i64;
     } buf;
     int use_size;
 
-    use_size = cpe_dr_pbuf_decode(buffer, &buf.sep);
+    use_size = dr_pbuf_decode(buffer, &buf.sep);
     if (use_size < 0) return use_size;
 
-    cpe_dr_pbuf_dezigzag64(&buf.sep);
+    dr_pbuf_dezigzag64(&buf.sep);
 
     if (number) *number = buf.i64;
 

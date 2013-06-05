@@ -7,7 +7,7 @@
 extern "C" {
 #endif
 
-bpg_pkg_t bpg_bind_manage_data_pkg(bpg_bind_manage_t mgr);
+dp_req_t bpg_bind_manage_data_pkg(bpg_bind_manage_t mgr);
 vnet_control_pkg_t bpg_bind_manage_control_pkg(bpg_bind_manage_t mgr);
 
 /*binding operations*/
