@@ -1,7 +1,9 @@
 #include "cpe/utils/error.h"
 #include "cpe/dp/dp_request.h"
 #include "gd/vnet/vnet_control_pkg.h"
+#include "gd/vnet/vnet_conn_info.h"
 #include "usf/bpg_pkg/bpg_pkg.h"
+#include "usf/bpg_pkg/bpg_pkg_data.h"
 #include "usf/bpg_pkg/bpg_pkg_dsp.h"
 #include "usf/bpg_bind/bpg_bind_manage.h"
 #include "bpg_bind_internal_ops.h"
@@ -10,7 +12,7 @@ int bpg_bind_manage_outgoing_rsp(dp_req_t req, void * ctx, error_monitor_t em) {
     bpg_bind_manage_t mgr = (bpg_bind_manage_t)ctx;
     bpg_pkg_t pkg;
 
-    pkg = bpg_pkg_from_dp_req(req);
+    pkg = bpg_pkg_find(req);
     if (pkg == NULL) {
         if (bpg_pkg_dsp_pass(mgr->m_outgoing_send_to, req, em) != 0) {
             CPE_ERROR(
@@ -29,7 +31,7 @@ int bpg_bind_manage_outgoing_rsp(dp_req_t req, void * ctx, error_monitor_t em) {
         }
     }
 
-    return bpg_pkg_dsp_dispatch(mgr->m_outgoing_send_to, pkg, em);
+    return bpg_pkg_dsp_dispatch(mgr->m_outgoing_send_to, req, em);
 }
 
 static void bpg_bind_manage_kickoff_old(
@@ -39,7 +41,7 @@ static void bpg_bind_manage_kickoff_old(
     uint32_t old_client_id,
     error_monitor_t em)
 {
-    bpg_pkg_t kickoff_pkg;
+    dp_req_t kickoff_pkg;
     vnet_control_pkg_t control_pkg;
 
     kickoff_pkg = bpg_bind_manage_data_pkg(mgr);
@@ -50,21 +52,30 @@ static void bpg_bind_manage_kickoff_old(
     }
     else {
         if (mgr->m_cmd_kickoff > 0){
+            dp_req_t vnet_conn_info;
+
             bpg_pkg_init(kickoff_pkg);
-            bpg_pkg_set_connection_id(kickoff_pkg, old_connection_id);
             bpg_pkg_set_cmd(kickoff_pkg, mgr->m_cmd_kickoff);
             bpg_pkg_set_client_id(kickoff_pkg, old_client_id);
 
-            if (bpg_pkg_dsp_dispatch(mgr->m_outgoing_send_to, kickoff_pkg, em) != 0) {
-                CPE_ERROR(
-                    mgr->m_em, "%s: kickoff_old: send kickof pkg fail, client-id=%d, connection-id=%d!",
-                    bpg_bind_manage_name(mgr), new_client_id, old_connection_id);
+            vnet_conn_info = vnet_conn_info_check_or_create(kickoff_pkg);
+            if (vnet_conn_info == NULL) {
+                CPE_ERROR(mgr->m_em, "%s: kickoff_old: check_create_connection_info fail!", bpg_bind_manage_name(mgr));
             }
             else {
-                if (mgr->m_debug) {
-                    CPE_INFO(
-                        mgr->m_em, "%s: kickoff_old: send kickof pkg success, client-id=%d, connection-id=%d!",
+                vnet_conn_info_set_conn_id(vnet_conn_info, old_connection_id);
+
+                if (bpg_pkg_dsp_dispatch(mgr->m_outgoing_send_to, kickoff_pkg, em) != 0) {
+                    CPE_ERROR(
+                        mgr->m_em, "%s: kickoff_old: send kickof pkg fail, client-id=%d, connection-id=%d!",
                         bpg_bind_manage_name(mgr), new_client_id, old_connection_id);
+                }
+                else {
+                    if (mgr->m_debug) {
+                        CPE_INFO(
+                            mgr->m_em, "%s: kickoff_old: send kickof pkg success, client-id=%d, connection-id=%d!",
+                            bpg_bind_manage_name(mgr), new_client_id, old_connection_id);
+                    }
                 }
             }
         }
@@ -95,13 +106,12 @@ static void bpg_bind_manage_kickoff_old(
 
 int bpg_bind_manage_incoming_rsp(dp_req_t req, void * ctx, error_monitor_t em) {
     bpg_bind_manage_t mgr = (bpg_bind_manage_t)ctx;
-    bpg_pkg_t pkg;
     struct bpg_bind_binding * found_binding;
     uint32_t connection_id;
     uint32_t client_id;
+    dp_req_t vnet_conn_info;
 
-    pkg = bpg_pkg_from_dp_req(req);
-    if (pkg == NULL) {
+    if (bpg_pkg_find(req) == NULL) {
         if (bpg_pkg_dsp_pass(mgr->m_incoming_send_to, req, em) != 0) {
             CPE_ERROR(
                 em, "%s: incoming: forward %s pkg fail!",
@@ -118,13 +128,28 @@ int bpg_bind_manage_incoming_rsp(dp_req_t req, void * ctx, error_monitor_t em) {
         }
     }
 
-    connection_id = bpg_pkg_connection_id(pkg);
-    client_id = bpg_pkg_client_id(pkg);
+    if ((vnet_conn_info = vnet_conn_info_find(req)) == NULL) {
+        if (mgr->m_debug) {
+            CPE_INFO(em, "%s: incoming: incoming pkg no conn_info!", bpg_bind_manage_name(mgr));
+        }
+
+        if (bpg_pkg_dsp_dispatch(mgr->m_incoming_send_to, req, em) != 0) {
+            CPE_ERROR(
+                mgr->m_em, "%s: dispatch cmd %d error!",
+                bpg_bind_manage_name(mgr), bpg_pkg_cmd(req));
+            return -1;
+        }
+
+        return 0;
+    }
+
+    connection_id = vnet_conn_info_conn_id(vnet_conn_info);
+    client_id = bpg_pkg_client_id(req);
 
     if (connection_id == BPG_INVALID_CONNECTION_ID) { 
         CPE_ERROR(
             mgr->m_em, "%s: dispatch cmd %d: connection id invalid!",
-            bpg_bind_manage_name(mgr), bpg_pkg_cmd(pkg));
+            bpg_bind_manage_name(mgr), bpg_pkg_cmd(req));
         return -1;
     }
 
@@ -155,17 +180,17 @@ int bpg_bind_manage_incoming_rsp(dp_req_t req, void * ctx, error_monitor_t em) {
         } 
     }
 
-    if (bpg_pkg_dsp_dispatch(mgr->m_incoming_send_to, pkg, em) != 0) {
+    if (bpg_pkg_dsp_dispatch(mgr->m_incoming_send_to, req, em) != 0) {
         CPE_ERROR(
             mgr->m_em, "%s: dispatch cmd %d error!",
-            bpg_bind_manage_name(mgr), bpg_pkg_cmd(pkg));
+            bpg_bind_manage_name(mgr), bpg_pkg_cmd(req));
         return -1;
     }
 
     if (mgr->m_debug) {
         CPE_INFO(
             mgr->m_em, "%s: dispatch cmd %d success, connection-id=%d, client-id=%d!",
-            bpg_bind_manage_name(mgr), bpg_pkg_cmd(pkg), connection_id, client_id);
+            bpg_bind_manage_name(mgr), bpg_pkg_cmd(req), connection_id, client_id);
     }
 
     return 0;

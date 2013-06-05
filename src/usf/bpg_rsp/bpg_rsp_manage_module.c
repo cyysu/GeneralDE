@@ -9,6 +9,7 @@
 #include "gd/dr_store/dr_store.h"
 #include "gd/dr_store/dr_store_manage.h"
 #include "usf/bpg_pkg/bpg_pkg_dsp.h"
+#include "usf/bpg_pkg/bpg_pkg_manage.h"
 #include "usf/bpg_rsp/bpg_rsp_manage.h"
 #include "usf/bpg_rsp/bpg_rsp.h"
 #include "bpg_rsp_internal_ops.h"
@@ -157,8 +158,10 @@ int bpg_rsp_manage_app_init(gd_app_context_t app, gd_app_module_t module, cfg_t 
     const char * str_scope;
     logic_manage_t logic_mgr;
     logic_executor_mgr_t executor_mgr;
+    bpg_pkg_manage_t pkg_manage;
     cfg_t child_cfg;
     const char * executor_mgr_name;
+    const char * pkg_manage_name;
     const char * load_from;
     const char * dsp_recv_at;
 
@@ -204,6 +207,24 @@ int bpg_rsp_manage_app_init(gd_app_context_t app, gd_app_module_t module, cfg_t 
         return -1;
     }
 
+    pkg_manage_name = cfg_get_string(cfg, "pkg-manage", NULL);
+    if (pkg_manage_name == NULL) {
+        CPE_ERROR(
+            gd_app_em(app),
+            "%s: create: pkg-manage not configured",
+            gd_app_module_name(module));
+        return -1;
+    }
+
+    pkg_manage = bpg_pkg_manage_find_nc(app, pkg_manage_name);
+    if (pkg_manage == NULL) {
+        CPE_ERROR(
+            gd_app_em(app),
+            "%s: create: pkg-manage %s not exist",
+            gd_app_module_name(module), pkg_manage_name);
+        return -1;
+    }
+
     bpg_rsp_manage = 
         bpg_rsp_manage_create(
             app,
@@ -211,6 +232,7 @@ int bpg_rsp_manage_app_init(gd_app_context_t app, gd_app_module_t module, cfg_t 
             scope,
             logic_mgr,
             executor_mgr,
+            pkg_manage,
             NULL);
     if (bpg_rsp_manage == NULL) {
         return -1;

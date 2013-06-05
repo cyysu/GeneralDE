@@ -19,6 +19,7 @@ struct bpg_rsp_manage {
     mem_allocrator_t m_alloc;
     logic_manage_t m_logic_mgr;
     logic_executor_mgr_t m_executor_mgr;
+    bpg_pkg_manage_t m_pkg_manage;
     error_monitor_t m_em;
     uint32_t m_flags;
     dp_mgr_t m_dp;
@@ -33,7 +34,7 @@ struct bpg_rsp_manage {
     void * m_ctx_ctx;
 
     size_t m_rsp_max_size;
-    bpg_pkg_t m_rsp_buf;
+    dp_req_t m_rsp_buf;
 
     struct bpg_rsp_pkg_builder_list m_pkg_builders;
 

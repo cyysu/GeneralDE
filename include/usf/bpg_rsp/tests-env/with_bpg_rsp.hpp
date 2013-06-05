@@ -18,7 +18,7 @@ public:
         const char * logic_name = NULL,
         const char * executor_mgr_name = NULL);
 
-    logic_context_t t_bpg_context_create(bpg_pkg_t pkg = NULL, const char * rsp_manage_name = NULL);
+    logic_context_t t_bpg_context_create(dp_req_t pkg = NULL, const char * rsp_manage_name = NULL);
 };
 
 }}}
