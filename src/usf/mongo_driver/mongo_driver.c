@@ -7,7 +7,7 @@
 #include "cpe/tl/tl_manage.h"
 #include "cpe/nm/nm_manage.h"
 #include "cpe/nm/nm_read.h"
-#include "cpe/net/net_connector.h"
+#include "cpe/net/net_manage.h"
 #include "gd/app/app_log.h"
 #include "gd/app/app_context.h"
 #include "usf/mongo_driver/mongo_pkg.h"
@@ -42,6 +42,10 @@ mongo_driver_create(
     driver->m_em = em;
     driver->m_debug = 0;
     driver->m_state = mongo_driver_state_disable;
+    driver->m_ringbuf = NULL;
+    driver->m_ev_loop = net_mgr_ev_loop(gd_app_net_mgr(app));
+
+    driver->m_fsm_def = NULL;
 
     driver->m_pkg_buf_max_size = 4 * 1024;
     driver->m_pkg_buf = NULL;
@@ -49,18 +53,23 @@ mongo_driver_create(
     driver->m_incoming_send_to = NULL;
     driver->m_outgoing_recv_at = NULL;
  
-    driver->m_dump_buffer_capacity = 4 * 1024;
-
     driver->m_seed_count = 0;
     TAILQ_INIT(&driver->m_seeds);
 
     driver->m_server_count = 0;
     TAILQ_INIT(&driver->m_servers);
     driver->m_master_server = NULL;
-    driver->m_server_read_chanel_size = 4 * 1024 * 10;
-    driver->m_server_write_chanel_size = 4 * 1024;
-    driver->m_seed_update_span_s = 5 * 60;
-    driver->m_server_retry_span_s = 1;
+
+    driver->m_read_block_size = 2 * 1024;
+    driver->m_reconnect_span_s = 1;
+    driver->m_op_timeout_ms = 30 * 1000;
+
+    driver->m_fsm_def = mongo_server_create_fsm_def(name, alloc, em);
+    if (driver->m_fsm_def == NULL) {
+        CPE_ERROR(em, "%s: create: create server fsm fail!", name);
+        nm_node_free(driver_node);
+        return NULL;
+    }
 
     mem_buffer_init(&driver->m_dump_buffer, driver->m_alloc);
 
@@ -92,7 +101,17 @@ static void mongo_driver_clear(nm_node_t node) {
     mem_buffer_clear(&driver->m_dump_buffer);
 
     mongo_server_free_all(driver);
-    mongo_seed_free_all(driver);
+    mongo_server_free_all(driver);
+
+    if (driver->m_ringbuf) {
+        ringbuffer_delete(driver->m_ringbuf);
+        driver->m_ringbuf = NULL;
+    }
+
+    if (driver->m_fsm_def) {
+        fsm_def_machine_free(driver->m_fsm_def);
+        driver->m_fsm_def = NULL;
+    }
 }
 
 void mongo_driver_free(mongo_driver_t driver) {
@@ -205,7 +224,7 @@ int mongo_driver_check_update_state(mongo_driver_t driver) {
         if (driver->m_state != mongo_driver_state_connected) {
             CPE_INFO(
                 driver->m_em, "%s: check connect: connect success, master server: %s:%d!",
-                mongo_driver_name(driver), driver->m_master_server->m_host, driver->m_master_server->m_port);
+                mongo_driver_name(driver), driver->m_master_server->m_ip, driver->m_master_server->m_port);
             driver->m_state = mongo_driver_state_connected;
         }
     }
@@ -220,7 +239,7 @@ int mongo_driver_check_update_state(mongo_driver_t driver) {
 }
 
 int mongo_driver_enable(mongo_driver_t driver) {
-    struct mongo_seed * seed;
+    struct mongo_server * seed;
     struct mongo_server * server;
 
     switch(driver->m_state) {
@@ -248,11 +267,11 @@ int mongo_driver_enable(mongo_driver_t driver) {
     driver->m_state = mongo_driver_state_connecting;
 
     TAILQ_FOREACH(seed, &driver->m_seeds, m_next) {
-        mongo_seed_connect(seed);
+        mongo_server_fsm_apply_evt(seed, mongo_server_fsm_evt_start);
     }
 
     TAILQ_FOREACH(server, &driver->m_servers, m_next) {
-        mongo_server_connect(server);
+        mongo_server_fsm_apply_evt(server, mongo_server_fsm_evt_start);
     }
 
     return mongo_driver_check_update_state(driver);
@@ -261,3 +280,25 @@ int mongo_driver_enable(mongo_driver_t driver) {
 uint32_t mongo_driver_cur_time_s(mongo_driver_t driver) {
     return (uint32_t) tl_manage_time(gd_app_tl_mgr(driver->m_app)) / 1000;
 }
+
+int mongo_driver_add_server(mongo_driver_t driver, const char * host, int port) {
+    return mongo_server_create(driver, host, port, mongo_server_runing_mode_server) == NULL ? -1 : 0;
+}
+
+int mongo_driver_add_seed(mongo_driver_t driver, const char * host, int port) {
+    return mongo_server_create(driver, host, port, mongo_server_runing_mode_seed) == NULL ? -1 : 0;
+}
+
+int mongo_driver_set_ringbuf_size(mongo_driver_t driver, size_t capacity) {
+    //TODO: disconnect all :)
+
+    if (driver->m_ringbuf) {
+        ringbuffer_delete(driver->m_ringbuf);
+    }
+    driver->m_ringbuf = ringbuffer_new(capacity);
+
+    if (driver->m_ringbuf == NULL) return -1;
+
+    return 0;
+}
+

@@ -2,8 +2,6 @@
 #include "cpe/pal/pal_platform.h"
 #include "cpe/pal/pal_string.h"
 #include "cpe/pal/pal_stdio.h"
-#include "cpe/net/net_connector.h"
-#include "cpe/net/net_endpoint.h"
 #include "cpe/dp/dp_request.h"
 #include "gd/app/app_log.h"
 #include "gd/app/app_context.h"
@@ -14,19 +12,19 @@
 #define MONGO_BUF_APPEND_STR(__data)                    \
     do {                                                \
         uint32_t __len = strlen(__data) + 1;            \
-        assert((sizeof(buf) - writepos) >= (__len));    \
-        memcpy(buf + writepos, (__data), (__len));      \
-        writepos += (__len);                            \
+        assert((buf_len - writepos) >= (__len));        \
+        memcpy(((char*)buf) + writepos, (__data), (__len)); \
+        writepos += (__len);                                \
     } while(0)
 
 #define MONGO_BUF_APPEND_32(__data)                         \
-    assert((sizeof(buf) - writepos) >= 4);                  \
-    CPE_COPY_HTON32(buf + writepos, &(__data));             \
+    assert((buf_len - writepos) >= 4);                      \
+    CPE_COPY_HTON32(((char *)buf) + writepos, &(__data));   \
     writepos += 4;
 
 #define MONGO_BUF_APPEND_64(__data)                         \
-    assert((sizeof(buf) - writepos) >= 8);                  \
-    CPE_COPY_HTON64(buf + writepos, &(__data));             \
+    assert((buf_len - writepos) >= 8);                      \
+    CPE_COPY_HTON64(((char *)buf) + writepos, &(__data));   \
     writepos += 8;
 
 static uint32_t mongo_driver_calc_len(mongo_pkg_t pkg) {
@@ -77,20 +75,20 @@ static uint32_t mongo_driver_calc_len(mongo_pkg_t pkg) {
 }
 
 int mongo_driver_send_to_server(mongo_driver_t driver, struct mongo_server * server, mongo_pkg_t pkg) {
-    char buf[128];
+    ringbuffer_block_t blk;
+    void * buf;
     char ns_buf[65];
     size_t writepos = 0;
     uint32_t reserve = 0;
-    uint32_t len = mongo_driver_calc_len(pkg);
-    net_ep_t ep;
+    uint32_t buf_len = mongo_driver_calc_len(pkg);
 
-    ep = net_connector_ep(server->m_connector);
-    if (ep == NULL) {
-        CPE_ERROR(driver->m_em, "%s: server %s %d: ep is NULL!", mongo_driver_name(driver), server->m_host, server->m_port);
-        return -1;
-    }
+    if (mongo_server_alloc(&blk, driver, server, buf_len) != 0) return -1;
+    assert(blk);
 
-    MONGO_BUF_APPEND_32(len); /*messageLength*/
+    ringbuffer_data(driver->m_ringbuf, blk, buf_len, 0, &buf);
+    assert(buf);
+    
+    MONGO_BUF_APPEND_32(buf_len); /*messageLength*/
     MONGO_BUF_APPEND_32(pkg->m_pro_head.id); /*requestID*/
     MONGO_BUF_APPEND_32(pkg->m_pro_head.response_to); /*responseTo*/
     MONGO_BUF_APPEND_32(pkg->m_pro_head.op); /*opCode*/
@@ -152,22 +150,17 @@ int mongo_driver_send_to_server(mongo_driver_t driver, struct mongo_server * ser
         return -1;
     }
 
-    if (net_ep_send(ep, buf, writepos) != 0
-        || net_ep_send(ep, mongo_pkg_data(pkg), mongo_pkg_size(pkg)) != 0)
-    {
-        CPE_ERROR(driver->m_em, "%s: send: write head to net fail!", mongo_driver_name(driver));
-        return -1;
-    }
+    memcpy(((char *)buf) + writepos, mongo_pkg_data(pkg), mongo_pkg_size(pkg));
+
+    mongo_server_link_node_w(server, blk);
+
+    mongo_server_fsm_apply_evt(server, mongo_server_fsm_evt_wb_update);
 
     if (driver->m_debug >= 2) {
-        struct mem_buffer buffer;
-        mem_buffer_init(&buffer, driver->m_alloc);
-
         CPE_INFO(
-            driver->m_em, "%s: server %s %d: send one pkg:\n%s",
-            mongo_driver_name(driver), server->m_host, server->m_port, mongo_pkg_dump(pkg, &buffer, 1));
-
-        mem_buffer_clear(&buffer);
+            driver->m_em, "%s: server %s.%d: send one pkg:\n%s",
+            mongo_driver_name(driver), server->m_ip, server->m_port,
+            mongo_pkg_dump(pkg, &driver->m_dump_buffer, 1));
     }
 
     return 0;
