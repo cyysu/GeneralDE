@@ -12,7 +12,7 @@ struct fsm_def_machine {
     fsm_evt_dumper_t m_dumper;
 
     uint32_t m_state_capacity;
-    uint32_t m_state_count;
+    uint32_t m_state_max;
     fsm_def_state_t * m_states;
     struct cpe_hash_table m_states_by_name;
 };

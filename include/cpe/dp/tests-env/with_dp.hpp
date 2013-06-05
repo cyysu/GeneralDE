@@ -3,7 +3,7 @@
 #include "cpe/utils/tests-env/test-env.hpp"
 #include "../dp.h"
 
-namespace gd { namespace dp { namespace testenv {
+namespace cpe { namespace dp { namespace testenv {
 
 class with_dp : public ::testenv::env<> {
 public:
