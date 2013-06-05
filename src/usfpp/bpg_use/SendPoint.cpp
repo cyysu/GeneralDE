@@ -7,44 +7,41 @@
 
 namespace Usf { namespace Bpg {
 
-
-SendPoint::SendPoint(gd_app_context_t app, cfg_t cfg) 
-    : m_sp(0)
-{
-    m_sp = bpg_use_sp_create(app, cfg, gd_app_em(app));
-    if (m_sp == NULL) {
+SendPoint &
+SendPoint::instance(gd_app_context_t app, const char * name) {
+    bpg_use_sp_t sp = bpg_use_sp_find_nc(app, name);
+    if (sp == NULL) {
         APP_CTX_THROW_EXCEPTION(
-            app, ::std::runtime_error,
-            "construct Usf::Bpg::SendPoint: crate sp fail");
+            app,
+            ::std::runtime_error,
+            "bpg_use_sp %s not exist!", name);
     }
-}
 
-SendPoint::~SendPoint() {
-    bpg_use_sp_free(m_sp);
+    return *(SendPoint*)sp;
 }
 
 PackageManager const &
 SendPoint::pkgManager(void) const {
-    bpg_pkg_manage_t pkg_manage = bpg_use_sp_pkg_manage(m_sp);
+    bpg_pkg_manage_t pkg_manage = bpg_use_sp_pkg_manage(*this);
     if (pkg_manage == NULL) {
         APP_CTX_THROW_EXCEPTION(
             app(), ::std::runtime_error,
-            "%s: have no pkg_manage!", name().c_str());
+            "%s: have no pkg_manage!", name());
     }
 
     return *(PackageManager*)pkg_manage;
 }
 
 void SendPoint::send(Usf::Bpg::Package & pkg) {
-    if (bpg_use_sp_send(m_sp, pkg) != 0) {
+    if (bpg_use_sp_send(*this, pkg) != 0) {
         APP_CTX_THROW_EXCEPTION(
             app(), ::std::runtime_error,
-            "%s: send pkg fail!", name().c_str());
+            "%s: send pkg fail!", name());
     }
 }
 
 void SendPoint::send(Cpe::Dr::Data const & data) {
-    Usf::Bpg::Package & pkg = pkgBuf() ;
+    Usf::Bpg::Package & pkg = pkgBuf(data.capacity()) ;
     pkg.clearData();
     pkg.setErrCode(0);
     pkg.setCmdAndData(data);
@@ -52,87 +49,69 @@ void SendPoint::send(Cpe::Dr::Data const & data) {
 }
 
 void SendPoint::send(LPDRMETA meta, void const * data, size_t size) {
-    Usf::Bpg::Package & pkg = pkgBuf() ;
+    if (size == 0) size = dr_meta_size(meta);
+
+    Usf::Bpg::Package & pkg = pkgBuf(size) ;
     pkg.clearData();
     pkg.setErrCode(0);
     pkg.setCmdAndData(meta, data, size);
     send(pkg);
 }
 
-void SendPoint::send(const char * metaName, void const * data, size_t size) {
-    Usf::Bpg::Package & pkg = pkgBuf() ;
-    pkg.clearData();
-    pkg.setErrCode(0);
-    pkg.setCmdAndData(metaName, data, size);
-    send(pkg);
-}
-
 Cpe::Dr::MetaLib const & SendPoint::metaLib(void) const {
-    LPDRMETALIB metalib = bpg_use_sp_metalib(m_sp);
+    LPDRMETALIB metalib = bpg_use_sp_metalib(*this);
     if (metalib == NULL) {
-        APP_CTX_THROW_EXCEPTION(
-            app(), ::std::runtime_error,
-            "%s: meta lib not exist!", name().c_str());
+        APP_CTX_THROW_EXCEPTION(app(), ::std::runtime_error, "%s: meta lib not exist!", name());
     }
 
     return Cpe::Dr::MetaLib::_cast(metalib);
 }
 
 Cpe::Dr::Meta const & SendPoint::meta(const char * metaName) const {
-    LPDRMETA meta = bpg_use_sp_meta(m_sp, metaName);
+    LPDRMETA meta = bpg_use_sp_meta(*this, metaName);
     if (meta == NULL) {
-        APP_CTX_THROW_EXCEPTION(
-            app(), ::std::runtime_error,
-            "%s: meta %s not exist!", name().c_str(), metaName);
+        APP_CTX_THROW_EXCEPTION(app(), ::std::runtime_error, "%s: meta %s not exist!", name(), metaName);
     }
 
     return Cpe::Dr::Meta::_cast(meta);
 }
 
-Usf::Bpg::Package & SendPoint::pkgBuf(void) {
-    bpg_pkg_t pkg_buf = bpg_use_sp_pkg_buf(m_sp);
+Usf::Bpg::Package & SendPoint::pkgBuf(size_t capacity) {
+    dp_req_t pkg_buf = bpg_use_sp_pkg_buf(*this, capacity);
     if (pkg_buf == NULL) {
-        APP_CTX_THROW_EXCEPTION(
-            app(), ::std::runtime_error,
-            "%s: pkg-buf is NULL!", name().c_str());
+        APP_CTX_THROW_EXCEPTION(app(), ::std::runtime_error, "%s: pkg-buf is NULL!", name());
     }
 
     return Usf::Bpg::Package::_cast(pkg_buf);
 }
 
-Cpe::Dr::Data SendPoint::dataBuf(const char * metaName, size_t capacity) {
-    void * buf = bpg_use_sp_data_buf(m_sp);
+Cpe::Dr::Data SendPoint::dataBuf(LPDRMETA meta, size_t capacity) {
+    if (capacity == 0) capacity = dr_meta_size(meta);
+
+    void * buf = bpg_use_sp_data_buf(*this, capacity);
     if (buf == NULL) {
-        APP_CTX_THROW_EXCEPTION(
-            app(), ::std::runtime_error,
-            "%s: data-buf is NULL!", name().c_str());
+        APP_CTX_THROW_EXCEPTION(app(), ::std::runtime_error, "%s: data-buf is NULL!", name());
     }
 
-    size_t buf_capacity = bpg_use_sp_buf_capacity(m_sp);
-
-    Cpe::Dr::Meta const & m = meta(metaName);
-
-    if (capacity == 0) capacity = m.size();
-
-    if (capacity > buf_capacity) {
-        APP_CTX_THROW_EXCEPTION(
-            app(), ::std::runtime_error,
-            "%s: require size overflow! require %d, but only %d",
-            name().c_str(), (int)capacity, (int)buf_capacity);
-    }
-
-    return Cpe::Dr::Data(buf, meta(metaName), capacity);
+    return Cpe::Dr::Data(buf, meta, capacity);
 }
 
-Cpe::Dr::Data SendPoint::dataBuf(void) {
-    void * buf = bpg_use_sp_data_buf(m_sp);
+Cpe::Dr::Data SendPoint::dataBuf(size_t capacity) {
+    void * buf = bpg_use_sp_data_buf(*this, capacity);
     if (buf == NULL) {
-        APP_CTX_THROW_EXCEPTION(
-            app(), ::std::runtime_error,
-            "%s: data-buf is NULL!", name().c_str());
+        APP_CTX_THROW_EXCEPTION(app(), ::std::runtime_error, "%s: data-buf is NULL!", name());
     }
 
-    return Cpe::Dr::Data(buf, bpg_use_sp_buf_capacity(m_sp));
+    return Cpe::Dr::Data(buf, capacity);
+}
+
+Cpe::Dr::Data SendPoint::dataDynBuf(LPDRMETA meta, size_t record_count) {
+    ssize_t capacity = dr_meta_calc_dyn_size(meta, record_count);
+    if (capacity < 0) {
+        APP_CTX_THROW_EXCEPTION(app(), ::std::runtime_error, "%s: calc dyn size of %s fail!", name(), dr_meta_name(meta));
+    }
+
+    return dataBuf(meta, capacity);
 }
 
 }}

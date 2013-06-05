@@ -4,61 +4,61 @@
 
 namespace Cpe { namespace Dp {
 
-Request & Request::parent(cpe_hash_string_t type) {
+Request & Request::parent(const char * type) {
     Request * r = findParent(type);
     if (r == NULL) {
         ::std::ostringstream os;
-        os << "can`t find parent request of type " << cpe_hs_data(type) << "!";
+        os << "can`t find parent request of type " << type << "!";
         throw ::std::runtime_error(os.str().c_str());
     }
     return *r;
 }
 
-Request const & Request::parent(cpe_hash_string_t type) const {
+Request const & Request::parent(const char * type) const {
     Request const * r = findParent(type);
     if (r == NULL) {
         ::std::ostringstream os;
-        os << "can`t find parent request of type " << cpe_hs_data(type) << "!";
+        os << "can`t find parent request of type " << type << "!";
         throw ::std::runtime_error(os.str().c_str());
     }
     return *r;
 }
 
-Request & Request::brother(cpe_hash_string_t type) {
+Request & Request::brother(const char * type) {
     Request * r = findBrother(type);
     if (r == NULL) {
         ::std::ostringstream os;
-        os << "can`t find brother request of type " << cpe_hs_data(type) << "!";
+        os << "can`t find brother request of type " << type << "!";
         throw ::std::runtime_error(os.str().c_str());
     }
     return *r;
 }
 
-Request const & Request::brother(cpe_hash_string_t type) const {
+Request const & Request::brother(const char * type) const {
     Request const * r = findBrother(type);
     if (r == NULL) {
         ::std::ostringstream os;
-        os << "can`t find brother request of type " << cpe_hs_data(type) << "!";
+        os << "can`t find brother request of type " << type << "!";
         throw ::std::runtime_error(os.str().c_str());
     }
     return *r;
 }
 
-Request & Request::child(cpe_hash_string_t type) {
+Request & Request::child(const char * type) {
     Request * r = findChild(type);
     if (r == NULL) {
         ::std::ostringstream os;
-        os << "can`t find child request of type " << cpe_hs_data(type) << "!";
+        os << "can`t find child request of type " << type << "!";
         throw ::std::runtime_error(os.str().c_str());
     }
     return *r;
 }
 
-Request const & Request::child(cpe_hash_string_t type) const {
+Request const & Request::child(const char * type) const {
     Request const * r = findChild(type);
     if (r == NULL) {
         ::std::ostringstream os;
-        os << "can`t find child request of type " << cpe_hs_data(type) << "!";
+        os << "can`t find child request of type " << type << "!";
         throw ::std::runtime_error(os.str().c_str());
     }
     return *r;

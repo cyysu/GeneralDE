@@ -58,7 +58,5 @@ struct gd_evt {
     size_t m_data_capacity;
 };
 
-extern cpe_hash_string_t gd_evt_req_type_name;
-
 #endif
 

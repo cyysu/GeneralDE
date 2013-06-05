@@ -163,7 +163,6 @@ static int do_generate_lib_c(cpe_dr_generate_ctx_t ctx) {
 
 static int do_generate_traits_cpp(cpe_dr_generate_ctx_t ctx) {
     struct write_stream_file stream;
-    struct mem_buffer buffer;
     int i;
     int rv;
 

@@ -32,14 +32,9 @@ int debug_level(void) { return a_app_debug->count > 0 ? a_app_debug->ival[0] : 0
 
 int recv_rsp(dp_req_t req, void * ctx, error_monitor_t em) {
     gd_app_context_t app;
-    bpg_pkg_t pkg;
 
     app = (gd_app_context_t)ctx;
-    gd_app_stop(app);
-
-    pkg = bpg_pkg_from_dp_req(req);
-
-    (void)pkg;
+    gd_app_notify_stop(app);
 
     return 0;
 }

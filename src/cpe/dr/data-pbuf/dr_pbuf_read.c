@@ -75,7 +75,10 @@ static char * dr_pbuf_read_get_write_pos(
     total_size = start + capacity;
 
     if (ctx->m_output_buf) {
-        if (total_size > ctx->m_output_capacity) return NULL;
+        if (total_size > ctx->m_output_capacity) {
+            CPE_ERROR_EX(ctx->m_em, dr_code_error_not_enough_output, "dr_pbuf_read: not enouth output!");
+            return NULL;
+        }
 
         if (total_size > ctx->m_used_size) ctx->m_used_size = total_size;
 
@@ -110,15 +113,20 @@ static char * dr_pbuf_read_get_write_pos(
     } while(0)
 
 #define dr_pbuf_read_check_capacity(__capacity)                         \
-    if (curStack->m_input_capacity - curStack->m_input_size < (__capacity)) { \
-        CPE_ERROR(em, "dr_pbuf_read: %s: not enouth buf, capacity=%d, require=%d!"\
-                  , entry ? dr_entry_name(entry) : "??", (int)(curStack->m_input_capacity - curStack->m_input_size)\
-                  , (int)(__capacity));                                 \
+    if (curStack->m_input_capacity - curStack->m_input_size             \
+        < (__capacity))                                                 \
+    {                                                                   \
+        CPE_ERROR_EX(                                                   \
+            em, dr_code_error_not_enough_input                          \
+            , "dr_pbuf_read: %s: not enouth input, require=%d, only=%d!" \
+            , entry ? dr_entry_name(entry) : "??"                       \
+            , (int)(__capacity)                                         \
+            , (int)(curStack->m_input_capacity - curStack->m_input_size)); \
         return -1;                                                      \
     }
 
 #define dr_pbuf_read_decode_varint(v) do {                         \
-        int r = cpe_dr_pbuf_decode(                                 \
+        int r = dr_pbuf_decode(                                 \
             curStack->m_input_data + curStack->m_input_size, &v);   \
         dr_pbuf_read_check_capacity(r);                             \
         curStack->m_input_size += r;                                \
@@ -127,7 +135,7 @@ static char * dr_pbuf_read_get_write_pos(
 #define dr_pbuf_read_ignore_value(t)            \
     switch(t) {                                 \
     case CPE_PBUF_TYPE_VARINT: {                \
-        struct cpe_dr_pbuf_longlong rb;         \
+        struct dr_pbuf_longlong rb;         \
         dr_pbuf_read_decode_varint(rb);         \
         break;                                  \
     }                                           \
@@ -136,7 +144,7 @@ static char * dr_pbuf_read_get_write_pos(
         curStack->m_input_size += 8;            \
         break;                                  \
     case CPE_PBUF_TYPE_LENGTH: {                \
-        struct cpe_dr_pbuf_longlong rb;         \
+        struct dr_pbuf_longlong rb;         \
         dr_pbuf_read_decode_varint(rb);         \
         dr_pbuf_read_check_capacity(rb.low);    \
         curStack->m_input_size += rb.low;       \
@@ -166,6 +174,7 @@ static char * dr_pbuf_read_get_write_pos(
         uint8_t const * i = curStack->m_input_data + curStack->m_input_size; \
         writeBuf = dr_pbuf_read_get_write_pos(                          \
             &ctx, curStack, dr_pbuf_read_start_pos(), elementSize); \
+        if (writeBuf == NULL) return -1;                 \
                                                                         \
         dr_pbuf_read_check_capacity(4);                                 \
                                                                         \
@@ -188,6 +197,7 @@ static char * dr_pbuf_read_get_write_pos(
         uint8_t const * i = curStack->m_input_data + curStack->m_input_size; \
         writeBuf = dr_pbuf_read_get_write_pos(                          \
             &ctx, curStack, dr_pbuf_read_start_pos(), elementSize);                \
+        if (writeBuf == NULL) return -1;                 \
                                                                         \
         dr_pbuf_read_check_capacity(8);                                 \
                                                                         \
@@ -208,33 +218,33 @@ static char * dr_pbuf_read_get_write_pos(
 #define dr_pbuf_read_by_int64() do {                                    \
         char * writeBuf;                                                \
         union {                                                         \
-            struct cpe_dr_pbuf_longlong sep;                            \
+            struct dr_pbuf_longlong sep;                            \
             int64_t i64;                                                \
         } u;                                                            \
         writeBuf = dr_pbuf_read_get_write_pos(                          \
             &ctx, curStack, dr_pbuf_read_start_pos(), elementSize);                \
-        if (writeBuf == NULL) goto DR_PBUF_READ_IGNORE;                 \
+        if (writeBuf == NULL) return -1;                 \
         dr_pbuf_read_decode_varint(u.sep);                              \
-        cpe_dr_pbuf_dezigzag64(&u.sep);                                 \
+        dr_pbuf_dezigzag64(&u.sep);                                 \
         dr_entry_set_from_int64(writeBuf, u.i64, entry, em);            \
     } while(0)
 
 #define dr_pbuf_read_by_uint64() do {                                   \
         char * writeBuf;                                                \
         union {                                                         \
-            struct cpe_dr_pbuf_longlong sep;                            \
+            struct dr_pbuf_longlong sep;                            \
             uint64_t u64;                                               \
         } u;                                                            \
         writeBuf = dr_pbuf_read_get_write_pos(                          \
             &ctx, curStack, dr_pbuf_read_start_pos(), elementSize);                \
-        if (writeBuf == NULL) goto DR_PBUF_READ_IGNORE;                 \
+        if (writeBuf == NULL) return -1;                 \
         dr_pbuf_read_decode_varint(u.sep);                              \
         dr_entry_set_from_uint64(writeBuf, u.u64, entry, em);           \
     } while(0)
 
 #define dr_pbuf_read_packed_array(__by_op)          \
     do {                                            \
-        struct cpe_dr_pbuf_longlong len_buf;        \
+        struct dr_pbuf_longlong len_buf;        \
         size_t end;                                 \
                                                     \
         dr_pbuf_read_decode_varint(len_buf);        \
@@ -259,7 +269,7 @@ static int dr_pbuf_read_i(
     struct dr_pbuf_read_ctx ctx;
     struct dr_pbuf_read_stack processStack[CPE_DR_MAX_LEVEL];
     union {
-        struct cpe_dr_pbuf_longlong sep;
+        struct dr_pbuf_longlong sep;
         uint64_t u64;
         int64_t i64;
     } buf;
@@ -325,6 +335,8 @@ static int dr_pbuf_read_i(
 
                     writeBuf = dr_pbuf_read_get_write_pos(
                         &ctx, preStack, selectEntry->m_data_start_pos, selectElementSize);
+                    if (writeBuf == NULL) return -1;
+
                     dr_entry_set_from_uint32(writeBuf, entry->m_id, selectEntry, em);
                 }
             }
@@ -344,7 +356,7 @@ static int dr_pbuf_read_i(
             case CPE_DR_TYPE_STRUCT: {
                 switch(value_type) {
                 case CPE_PBUF_TYPE_LENGTH: {
-                    struct cpe_dr_pbuf_longlong len_buf;
+                    struct dr_pbuf_longlong len_buf;
                     size_t len;
 
                     dr_pbuf_read_decode_varint(len_buf);
@@ -370,8 +382,9 @@ static int dr_pbuf_read_i(
                         if (array_info) ++array_info->m_count;
 
                         if (total_size > ctx.m_output_capacity) {
-                            CPE_ERROR(
-                                em, "dr_pbuf_read: %s: not enouth buf, capacity=%d, require=%d!"
+                            CPE_ERROR_EX(
+                                em, dr_code_error_not_enough_output
+                                , "dr_pbuf_read: %s: not enouth buf, capacity=%d, require=%d!"
                                 , dr_entry_name(entry), (int)ctx.m_output_capacity , (int)total_size);
                             return -1;
                         }
@@ -472,11 +485,12 @@ static int dr_pbuf_read_i(
                 switch(value_type) {
                 case CPE_PBUF_TYPE_LENGTH: {
                     char * writeBuf;
-                    struct cpe_dr_pbuf_longlong len_buf;
+                    struct dr_pbuf_longlong len_buf;
                     size_t len;
 
                     writeBuf = dr_pbuf_read_get_write_pos(
                         &ctx, curStack, dr_pbuf_read_start_pos(), elementSize);
+                    if (writeBuf == NULL) return -1;
 
                     dr_pbuf_read_decode_varint(len_buf);
                     dr_pbuf_read_check_capacity(len_buf.low);
@@ -520,7 +534,7 @@ static int dr_pbuf_read_i(
             if (refer) {
                 char * writeBuf =
                     dr_pbuf_read_get_write_pos(&ctx, curStack, refer->m_data_start_pos, dr_entry_element_size(refer));
-                if (writeBuf == NULL) continue;
+                if (writeBuf == NULL) return -1;
 
                 dr_entry_set_from_uint32(writeBuf, info->m_count, refer, em);
             }
