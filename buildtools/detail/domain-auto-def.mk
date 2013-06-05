@@ -32,8 +32,6 @@ domain-target-product-dep-def=\
 $(if $(r.$1.depends),$(if $(r.$1.$2.product),\
 $(addprefix $(CPDE_OUTPUT_ROOT)/,$(r.$1.$2.product)): $(foreach p,$(r.$1.depends),$(addprefix $(CPDE_OUTPUT_ROOT)/,$(r.$p.$2.product)))))
 
-using-domain-list?=$(sort $(domain-list) tools)
-
 $(foreach domain,$(using-domain-list),\
     $(eval $(call domain-auto-def-product,$(domain))) \
 	$(eval $(call domain-target-def,$(domain)))\
