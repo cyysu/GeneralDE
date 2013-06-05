@@ -161,6 +161,10 @@ tl_time_t tl_manage_time(tl_manage_t tm) {
     return tm->m_time_current;
 }
 
+uint32_t tl_manage_time_sec(tl_manage_t tm) {
+    return (uint32_t)(tm->m_time_current / 1000);
+}
+
 tl_manage_state_t tl_manage_state(tl_manage_t tm) {
     return tm->m_state;
 }

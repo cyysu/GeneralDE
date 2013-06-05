@@ -15,8 +15,12 @@ extern "C" {
 #define EINPROGRESS WSAEINPROGRESS
 #endif
 
+#ifndef EWOULDBLOCK
+#define EWOULDBLOCK WSAEWOULDBLOCK
+#endif EWOULDBLOCK
+
 //extern int cpe_socket_open(int af, int type, int protocol);
-#define cpe_socket_open(_af, _type, _protocol) (_open_osfhandle(socket((_af), (_type), (_protocol)), 0))
+#define cpe_sock_open(_af, _type, _protocol) (_open_osfhandle(socket((_af), (_type), (_protocol)), 0))
 #define cpe_connect(_fd, _name, _namelen) (connect(_get_osfhandle(_fd), (_name), (_namelen)))
 #define cpe_getsockopt(_fd, _level, _optname, _optval, _optlen) (getsockopt(_get_osfhandle(_fd), _level, _optname, _optval, _optlen))
 #define cpe_getsockname(_fd, _name, _namelen) (getsockname (_get_osfhandle(_fd), _name, _namelen))
@@ -46,7 +50,7 @@ extern const char *cpe_sock_errstr(int n);
 #include <arpa/inet.h>
 #include <errno.h>
 
-#define cpe_socket_open socket
+#define cpe_sock_open socket
 #define cpe_connect connect
 #define cpe_getsockopt getsockopt
 #define cpe_getsockname getsockname

@@ -3,6 +3,7 @@
 #include "cpe/utils/tests-env/test-fixture.hpp"
 #include "cpe/utils/tests-env/with_em.hpp"
 #include "cpe/cfg/tests-env/with_cfg.hpp"
+#include "cpe/dp/dp_request.h"
 #include "gd/app/tests-env/with_app.hpp"
 #include "gd/dr_cvt/tests-env/with_dr_cvt.hpp"
 #include "gd/dr_store/tests-env/with_dr_store.hpp"

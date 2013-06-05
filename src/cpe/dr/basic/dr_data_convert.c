@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <limits.h>
 #include "cpe/dr/dr_ctypes_op.h"
 #include "cpe/dr/dr_metalib_manage.h"
@@ -568,33 +569,78 @@ const char * dr_meta_read_with_dft_string(const void * input, LPDRMETA meta, con
     }
 }
 
+static size_t dr_meta_calc_data_len_by_dyn(LPDRMETA meta, void const * data, struct dr_meta_dyn_info * dyn_info) {
+    size_t element_size;
+    uint32_t element_count;
+    if (dyn_info->m_type == dr_meta_dyn_info_type_array) {
+        assert(dr_entry_array_count(dyn_info->m_data.m_array.m_array_entry) == 0);
+        element_size = dr_entry_element_size(dyn_info->m_data.m_array.m_array_entry);
+        element_count = 0;
+
+        if (dyn_info->m_data.m_array.m_refer_entry) {
+            if (dr_entry_try_read_uint32(
+                    &element_count,
+                    (const char *)data + dyn_info->m_data.m_array.m_refer_start,
+                    dyn_info->m_data.m_array.m_refer_entry, NULL) != 0)
+            {
+                element_count = 0;
+            }
+        }
+        else {
+            element_count = dr_entry_array_count(dyn_info->m_data.m_array.m_array_entry);
+        }
+
+        return dr_meta_size(meta) + (element_count > 1 ? element_count - 1 : 0) * element_size;
+    }
+    else {
+        LPDRMETA union_meta = dr_entry_ref_meta(dyn_info->m_data.m_union.m_union_entry);
+        if (dyn_info->m_data.m_union.m_union_select_entry == NULL) {
+            return dr_meta_size(meta);
+        }
+        else {
+            int32_t id;
+            LPDRMETAENTRY union_entry;
+            LPDRMETA union_entry_meta;
+            struct dr_meta_dyn_info sub_dyn_info;
+
+            if (dr_entry_try_read_int32(
+                    &id,
+                    ((char const *)data) + dyn_info->m_data.m_union.m_union_select_start,
+                    dyn_info->m_data.m_union.m_union_select_entry, NULL) != 0)
+            {
+                assert(0);
+                return 0;
+            }
+
+            union_entry = dr_meta_find_entry_by_id(union_meta, id);
+            if (union_entry == NULL) {
+                return dr_meta_size(meta);
+            }
+
+            union_entry_meta = dr_entry_ref_meta(union_entry);
+            if (dr_meta_find_dyn_info(union_entry_meta, &sub_dyn_info) == 0) {
+                return dyn_info->m_data.m_union.m_union_start
+                    + dr_meta_calc_data_len_by_dyn(
+                        union_entry_meta,
+                        ((char const *)data) + dyn_info->m_data.m_union.m_union_start,
+                        &sub_dyn_info);
+            }
+            else {
+                return dr_meta_size(meta);
+            }
+        }
+    }
+}
+
 size_t dr_meta_calc_data_len(LPDRMETA meta, void const * data, size_t capacity) {
     struct dr_meta_dyn_info dyn_info;
-    size_t meta_data_size = dr_meta_size(meta);
     size_t r;
 
     if (dr_meta_find_dyn_info(meta, &dyn_info) == 0) {
-        if (dr_entry_array_count(dyn_info.m_array_entry) == 0) {
-            size_t element_size = dr_entry_element_size(dyn_info.m_array_entry);
-            uint32_t element_count = 0;
-
-            if (dyn_info.m_refer_entry) {
-                if (dr_entry_try_read_uint32(&element_count, (const char *)data + dyn_info.m_refer_start, dyn_info.m_refer_entry, NULL) != 0) {
-                    element_count = 0;
-                }
-            }
-            else {
-                element_count = dr_entry_array_count(dyn_info.m_array_entry);
-            }
-
-            r = meta_data_size + (element_count > 1 ? element_count - 1 : 0) * element_size;
-        }
-        else {
-            r = meta_data_size;
-        }
+        r = dr_meta_calc_data_len_by_dyn(meta, data, &dyn_info);
     }
     else {
-        r = meta_data_size;
+        r = dr_meta_size(meta);
     }
 
     return r > capacity ? capacity : r;

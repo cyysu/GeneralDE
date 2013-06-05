@@ -23,10 +23,8 @@ public:
 
     size_t capacity(void) const { return dp_req_capacity(*this); }
 
+    void setType(const char * type) { dp_req_set_type(*this, type); }
     const char * type(void) const { return dp_req_type(*this); }
-    cpe_hash_string_t type_hs(void) const { return dp_req_type_hs(*this); }
-
-    mem_allocrator_t talloc(void) { return dp_req_talloc(*this); }
 
     dp_mgr_t mgr(void) {
         return dp_req_mgr( *this );
@@ -36,14 +34,6 @@ public:
         dp_req_set_parent(*this, parent);
     }
 
-    int reply(void * buf, size_t size, error_monitor_t em) { 
-        return dp_req_reply(*this, buf, size, em);
-    }
-
-    int reply(void * buf, size_t size) { 
-        return dp_req_reply(*this, buf, size, NULL);
-    }
-
     Request * parent(void) {
         return (Request*)(dp_req_parent(*this));
     }
@@ -51,42 +41,38 @@ public:
         return (Request*)(dp_req_parent(*this));
     }
 
-    Request & parent(cpe_hash_string_t type);
-    Request const & parent(cpe_hash_string_t type) const;
+    Request & parent(const char * type);
+    Request const & parent(const char * type) const;
 
-    Request * findParent(cpe_hash_string_t type) { 
+    Request * findParent(const char * type) { 
         return (Request*)dp_req_parent_find(*this, type);
     }
-    Request const * findParent(cpe_hash_string_t type) const { 
+    Request const * findParent(const char * type) const { 
         return (Request*)dp_req_parent_find(*this, type);
     }
 
-    Request & brother(cpe_hash_string_t type);
-    Request const & brother(cpe_hash_string_t type) const;
+    Request & brother(const char * type);
+    Request const & brother(const char * type) const;
 
-    Request * findBrother(cpe_hash_string_t type) { 
+    Request * findBrother(const char * type) { 
         return (Request*)dp_req_brother_find(*this, type);
     }
-    Request const * findBrother(cpe_hash_string_t type) const { 
+    Request const * findBrother(const char * type) const { 
         return (Request*)dp_req_brother_find(*this, type);
     }
 
-    Request & child(cpe_hash_string_t type);
-    Request const & child(cpe_hash_string_t type) const;
+    Request & child(const char * type);
+    Request const & child(const char * type) const;
 
-    Request * findChild(cpe_hash_string_t type) { 
+    Request * findChild(const char * type) { 
         return (Request*)dp_req_child_find(*this, type);
     }
-    Request const * findChild(cpe_hash_string_t type) const { 
+    Request const * findChild(const char * type) const { 
         return (Request*)dp_req_child_find(*this, type);
     }
 
-    static Request * _create(dp_mgr_t mgr, cpe_hash_string_t type, size_t capacity) {
-        return (Request*)dp_req_create(mgr, type, capacity);
-    }
-
-    static Request * _create(dp_mgr_t mgr, cpe_hash_string_t type, char * buf, size_t capacity) {
-        return (Request*)dp_req_create_with_buf(mgr, type, buf, capacity);
+    static Request * _create(dp_mgr_t mgr, size_t capacity) {
+        return (Request*)dp_req_create(mgr, capacity);
     }
 
     static Request & _cast(dp_req_t req);

@@ -32,45 +32,33 @@ public:
     Cpe::Dr::Meta const & meta(const char * metaName) const;
 
     size_t bufCapacity(void) const { return bpg_cli_proxy_buf_capacity(*this); }
-    Cpe::Dr::Data dataBuf(const char * metaName, size_t capacity = 0);
+    Cpe::Dr::Data dataBuf(LPDRMETA meta, size_t capacity = 0);
     Cpe::Dr::Data dataBuf(void);
     Usf::Bpg::Package & pkgBuf(void);
 
     void send(logic_require_t requrest, Usf::Bpg::Package & pkg);
     void send(logic_require_t requrest, Cpe::Dr::Data const & data);
-    void send(logic_require_t requrest, const char * metaName, void const * data, size_t size);
     void send(logic_require_t requrest, LPDRMETA meta, void const * data, size_t size);
     void send(logic_require_t requrest, uint32_t cmd);
 
     template<typename T>
-    void send(logic_require_t requrest, T const & data, const char * metaName = Cpe::Dr::MetaTraits<T>::NAME) {
-        send(requrest, metaName, &data, Cpe::Dr::MetaTraits<T>::data_size(data));
-    }
-
-    template<typename T>
-    void send(logic_require_t requrest, LPDRMETA meta, T const & data) {
-        send(requrest, meta, &data, Cpe::Dr::MetaTraits<T>::data_size(data));
+    void send(logic_require_t requrest, T const & data) {
+        send(requrest, Cpe::Dr::MetaTraits<T>::META, &data, Cpe::Dr::MetaTraits<T>::data_size(data));
     }
 
     void send(Usf::Bpg::Package & pkg);
     void send(Cpe::Dr::Data const & data);
-    void send(const char * metaName, void const * data, size_t size);
     void send(LPDRMETA meta, void const * data, size_t size);
     void send(uint32_t cmd);
 
     template<typename T>
-    void send(T const & data, const char * metaName = Cpe::Dr::MetaTraits<T>::NAME) {
-        send( metaName, &data, Cpe::Dr::MetaTraits<T>::data_size(data));
+    void send(T const & data) {
+        send(Cpe::Dr::MetaTraits<T>::META, &data, Cpe::Dr::MetaTraits<T>::data_size(data));
     }
 
     template<typename T>
-    void send(LPDRMETA meta, T const & data) {
-        send(meta, &data, Cpe::Dr::MetaTraits<T>::data_size(data));
-    }
-
-    template<typename T>
-    Cpe::Dr::Data dataBuf(size_t capacity = 0, const char * metaName = Cpe::Dr::MetaTraits<T>::NAME) {
-        return dataBuf(metaName, capacity);
+    Cpe::Dr::Data dataBuf(size_t capacity = 0) {
+        return dataBuf(Cpe::Dr::MetaTraits<T>::META, capacity);
     }
 
     static CliProxy & _cast(bpg_cli_proxy_t cli_proxy);

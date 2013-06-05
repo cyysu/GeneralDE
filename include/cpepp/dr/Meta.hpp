@@ -77,11 +77,20 @@ public:
         void * data, size_t capacity, const void * src, const char * srcMeta, const char * columns,
         size_t srcCapacity = 0, int policy = 0, error_monitor_t em = 0) const;
 
-    void load_from_cfg(void * data, size_t capacity, cfg_t cfg, int policy = DR_CFG_READ_CHECK_NOT_EXIST_ATTR) const;
-    bool try_load_from_cfg(void * data, size_t capacity, cfg_t cfg, error_monitor_t em = 0, int policy = 0) const;
-
+    /*operations of data format json*/
     void load_from_json(void * data, size_t capacity, const char * json) const;
     bool try_load_from_json(void * data, size_t capacity, const char * json, error_monitor_t em = 0) const;
+
+    /*operations of data format pbuf*/
+    size_t write_to_pbuf(void * pbuf, size_t capacity, const void * data, size_t data_size) const;
+    void load_from_pbuf(void * data, size_t capacity, const void * pbuf, size_t pbuf_size) const;
+    bool try_load_from_pbuf(void * data, size_t capacity, const void * pbuf, size_t pbuf_size, error_monitor_t em = 0) const;
+
+    size_t calc_dyn_size(size_t record_count);
+
+    /*operations of data format cfg*/
+    void load_from_cfg(void * data, size_t capacity, cfg_t cfg, int policy = DR_CFG_READ_CHECK_NOT_EXIST_ATTR) const;
+    bool try_load_from_cfg(void * data, size_t capacity, cfg_t cfg, error_monitor_t em = 0, int policy = 0) const;
 
     template<typename T>
     void load_from_cfg(T & data, cfg_t cfg, int policy = DR_CFG_READ_CHECK_NOT_EXIST_ATTR) const {

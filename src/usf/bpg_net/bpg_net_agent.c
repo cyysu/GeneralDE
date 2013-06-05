@@ -4,6 +4,7 @@
 #include "cpe/nm/nm_manage.h"
 #include "cpe/nm/nm_read.h"
 #include "cpe/dp/dp_responser.h"
+#include "cpe/dp/dp_request.h"
 #include "gd/app/app_context.h"
 #include "gd/dr_cvt/dr_cvt.h"
 #include "usf/bpg_pkg/bpg_pkg.h"
@@ -96,7 +97,7 @@ static void bpg_net_agent_clear(nm_node_t node) {
     mgr->m_reply_rsp = NULL;
 
     if (mgr->m_req_buf) {
-        bpg_pkg_free(mgr->m_req_buf);
+        dp_req_free(mgr->m_req_buf);
         mgr->m_req_buf = NULL;
     }
 
@@ -183,17 +184,17 @@ tl_time_span_t bpg_net_agent_conn_timeout(bpg_net_agent_t agent) {
     return agent->m_conn_timeout;
 }
 
-bpg_pkg_t
+dp_req_t
 bpg_net_agent_req_buf(bpg_net_agent_t mgr) {
     if (mgr->m_req_buf) {
-        if (bpg_pkg_pkg_data_capacity(mgr->m_req_buf) < mgr->m_req_max_size) {
-            bpg_pkg_free(mgr->m_req_buf);
+        if (dp_req_capacity(mgr->m_req_buf) < mgr->m_req_max_size) {
+            dp_req_free(mgr->m_req_buf);
             mgr->m_req_buf = NULL;
         }
     }
 
     if (mgr->m_req_buf == NULL) {
-        mgr->m_req_buf = bpg_pkg_create(mgr->m_pkg_manage, mgr->m_req_max_size, NULL, 0);
+        mgr->m_req_buf = bpg_pkg_create_with_body(mgr->m_pkg_manage, mgr->m_req_max_size);
     }
 
     return mgr->m_req_buf;

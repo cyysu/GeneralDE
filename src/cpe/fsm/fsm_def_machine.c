@@ -18,7 +18,7 @@ fsm_def_machine_create(const char * name, mem_allocrator_t alloc, error_monitor_
     m->m_dumper = NULL;
 
     m->m_state_capacity = 0;
-    m->m_state_count = 0;
+    m->m_state_max = 0;
     m->m_states = NULL;
 
     memcpy(m + 1, name, name_len);
@@ -41,7 +41,7 @@ fsm_def_machine_create(const char * name, mem_allocrator_t alloc, error_monitor_
 void fsm_def_machine_free(fsm_def_machine_t m) {
     uint32_t i;
 
-    for(i = 0; i < m->m_state_count; ++i) {
+    for(i = 0; i < m->m_state_max; ++i) {
         if (m->m_states[i] == NULL) continue;
 
         fsm_def_state_free(m->m_states[i]);

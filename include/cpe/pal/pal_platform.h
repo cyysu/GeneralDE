@@ -69,20 +69,32 @@
         out[3] = in[0];                         \
     } while(0)
 
+#define CPE_SWAP_ENDIAN16(outp, inp) do {       \
+        const char * in = (const char *)(inp);  \
+        char *out = (char *)(outp);             \
+                                                \
+        out[0] = in[1];                         \
+        out[1] = in[0];                         \
+    } while(0)
+
 #ifdef CPE_BIG_ENDIAN
 #define CPE_COPY_HTON64(outp, inp) CPE_SWAP_ENDIAN64(outp, inp)
 #define CPE_COPY_NTOH64(outp, inp) CPE_SWAP_ENDIAN64(outp, inp)
 #define CPE_COPY_HTON32(outp, inp) CPE_SWAP_ENDIAN32(outp, inp)
 #define CPE_COPY_NTOH32(outp, inp) CPE_SWAP_ENDIAN32(outp, inp)
+#define CPE_COPY_HTON16(outp, inp) CPE_SWAP_ENDIAN16(outp, inp)
+#define CPE_COPY_NTOH16(outp, inp) CPE_SWAP_ENDIAN16(outp, inp)
 #else
 #define CPE_COPY_HTON64(outp, inp) do { memcpy(outp, inp, 8); } while(0)
 #define CPE_COPY_NTOH64(outp, inp) do { memcpy(outp, inp, 8); } while(0)
 #define CPE_COPY_HTON32(outp, inp) do { memcpy(outp, inp, 4); } while(0)
 #define CPE_COPY_NTOH32(outp, inp) do { memcpy(outp, inp, 4); } while(0)
+#define CPE_COPY_HTON16(outp, inp) do { memcpy(outp, inp, 2); } while(0)
+#define CPE_COPY_NTOH16(outp, inp) do { memcpy(outp, inp, 2); } while(0)
 #endif
 
 #ifdef __GNUC__
-#define INLINE inline
+#define INLINE static inline
 #else
 #define INLINE static
 #endif
