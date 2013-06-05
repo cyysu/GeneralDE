@@ -9,6 +9,8 @@
 #include "usf/logic/logic_context.h"
 #include "usf/logic/logic_data.h"
 #include "usf/bpg_pkg/bpg_pkg.h"
+#include "usf/bpg_pkg/bpg_pkg_data.h"
+#include "usf/bpg_pkg/bpg_pkg_manage.h"
 #include "usf/bpg_pkg/bpg_pkg_dsp.h"
 #include "usf/bpg_rsp/bpg_rsp_manage.h"
 #include "usf/bpg_rsp/bpg_rsp_addition.h"
@@ -16,16 +18,16 @@
 #include "protocol/bpg_rsp/bpg_rsp_carry_info.h"
 #include "bpg_rsp_internal_ops.h"
 
-static int bpg_rsp_commit_build_pkg(bpg_rsp_t rsp, logic_context_t op_context, bpg_pkg_t pkg, error_monitor_t em);
+static int bpg_rsp_commit_build_pkg(bpg_rsp_t rsp, logic_context_t op_context, dp_req_t pkg, error_monitor_t em);
+static int bpg_rsp_commit_build_carry_data(bpg_rsp_t rsp, logic_context_t op_context, dp_req_t pkg, error_monitor_t em);
 
 void bpg_rsp_commit(logic_context_t op_context, void * user_data) {
     bpg_rsp_t bpg_rsp;
     bpg_rsp_manage_t bpg_mgr;
-    bpg_pkg_t response_buf;
+    dp_req_t response_buf;
     error_monitor_t em;
     logic_data_t bpg_private_data;
     BPG_CARRY_INFO * bpg_private;
-    logic_data_t bpg_carry_data;
 
     bpg_rsp = (bpg_rsp_t)user_data;
     assert(bpg_rsp);
@@ -63,24 +65,7 @@ void bpg_rsp_commit(logic_context_t op_context, void * user_data) {
         return;
     }
 
-    bpg_carry_data = NULL;
-    if (bpg_private->carry_meta_name[0] != 0) {
-        bpg_carry_data = logic_context_data_find(op_context, bpg_private->carry_meta_name);
-        if (bpg_carry_data == NULL) {
-            CPE_ERROR(
-                em, "%s.%s: bpg_rsp_commit: no carry data %s in context!",
-                bpg_rsp_manage_name(bpg_mgr), bpg_rsp_name(bpg_rsp), bpg_private->carry_meta_name);
-            bpg_rsp_manage_free_context(bpg_mgr, op_context);
-            return;
-        }
-    }
-
-    response_buf =
-        bpg_rsp_manage_rsp_buf(
-            bpg_mgr,
-            bpg_private->pkg_mgr_name,
-            bpg_carry_data ? logic_data_meta(bpg_carry_data) : NULL,
-            bpg_carry_data ? logic_data_capacity(bpg_carry_data): 0);
+    response_buf = bpg_rsp_manage_rsp_buf(bpg_mgr);
     if (response_buf == NULL) {
         CPE_ERROR(em, "%s: bpg_rsp_commit: response buf is NULL!", bpg_rsp_manage_name(bpg_mgr));
         bpg_rsp_manage_free_context(bpg_mgr, op_context);
@@ -92,7 +77,11 @@ void bpg_rsp_commit(logic_context_t op_context, void * user_data) {
     bpg_pkg_set_client_id(response_buf, bpg_private->clientId);
     bpg_pkg_set_errno(response_buf, logic_context_errno(op_context));
     bpg_pkg_set_cmd(response_buf, bpg_private->cmd);
-    bpg_pkg_set_connection_id(response_buf, bpg_private->connectionId);
+
+    if (bpg_rsp_commit_build_carry_data(bpg_rsp, op_context, response_buf, em) != 0) {
+        bpg_rsp_manage_free_context(bpg_mgr, op_context);
+        return;
+    }
 
     if (bpg_mgr->m_pkg_init) {
         if (bpg_mgr->m_pkg_init(op_context, response_buf, bpg_mgr->m_ctx_ctx) != 0) {
@@ -122,7 +111,7 @@ SEND_ERROR_RESPONSE:
     bpg_pkg_set_client_id(response_buf, bpg_private->clientId);
     bpg_pkg_set_errno(response_buf, -1);
     bpg_pkg_set_cmd(response_buf, bpg_private->cmd);
-    bpg_pkg_set_connection_id(response_buf, bpg_private->connectionId);
+    //TODO: bpg_pkg_set_connection_id(response_buf, bpg_private->connectionId);
 
     if (bpg_pkg_dsp_dispatch(bpg_mgr->m_commit_dsp, response_buf, em) != 0) {
         CPE_ERROR(em, "%s.%s: bpg_rsp_commit: send error response fail!", bpg_rsp_manage_name(bpg_mgr), bpg_rsp_name(bpg_rsp));
@@ -135,7 +124,7 @@ SEND_ERROR_RESPONSE:
 }
 
 static int bpg_rsp_commit_build_pkg_append_info_from_ctx(
-    bpg_rsp_t rsp, logic_context_t op_context, bpg_pkg_t pkg, LPDRMETA data_meta, error_monitor_t em)
+    bpg_rsp_t rsp, logic_context_t op_context, dp_req_t pkg, LPDRMETA data_meta, error_monitor_t em)
 {
     logic_data_t data;
     size_t size;
@@ -164,7 +153,7 @@ static int bpg_rsp_commit_build_pkg_append_info_from_ctx(
 }
 
 static int bpg_rsp_commit_build_pkg_append_info_from_builder(
-    bpg_rsp_t rsp, logic_context_t op_context, bpg_pkg_t pkg,
+    bpg_rsp_t rsp, logic_context_t op_context, dp_req_t pkg,
     const char * data_name, error_monitor_t em)
 {
     bpg_rsp_pkg_builder_t pkg_builder;
@@ -192,7 +181,7 @@ static int bpg_rsp_commit_build_pkg_append_info_from_builder(
 }
 
 static void bpg_rsp_commit_build_pkg_append_info_for_addition(
-    bpg_rsp_t rsp, logic_context_t op_context, bpg_pkg_t pkg, LPDRMETALIB metalib, error_monitor_t em)
+    bpg_rsp_t rsp, logic_context_t op_context, dp_req_t pkg, LPDRMETALIB metalib, error_monitor_t em)
 {
     int i, addition_count;
 
@@ -225,7 +214,7 @@ static void bpg_rsp_commit_build_pkg_append_info_for_addition(
 }
 
 static void bpg_rsp_commit_build_pkg_append_info_for_copy_info(
-    bpg_rsp_t rsp, logic_context_t op_context, bpg_pkg_t pkg, LPDRMETALIB metalib, error_monitor_t em)
+    bpg_rsp_t rsp, logic_context_t op_context, dp_req_t pkg, LPDRMETALIB metalib, error_monitor_t em)
 {
     struct bpg_rsp_copy_info * copy_info;
 
@@ -260,8 +249,8 @@ static void bpg_rsp_commit_build_pkg_append_info_for_copy_info(
     }
 }
 
-static int bpg_rsp_commit_build_pkg_append_info(bpg_rsp_t rsp, logic_context_t op_context, bpg_pkg_t pkg, error_monitor_t em) {
-    LPDRMETALIB metalib = bpg_pkg_data_meta_lib(pkg);
+static int bpg_rsp_commit_build_pkg_append_info(bpg_rsp_t rsp, logic_context_t op_context, dp_req_t pkg, error_monitor_t em) {
+    LPDRMETALIB metalib = bpg_pkg_manage_data_metalib(rsp->m_mgr->m_pkg_manage);
     if (metalib == NULL) {
         CPE_ERROR(
             em, "%s.%s: copy_ctx_to_pdu: no metalib!",
@@ -278,7 +267,7 @@ static int bpg_rsp_commit_build_pkg_append_info(bpg_rsp_t rsp, logic_context_t o
     return 0;
 }
 
-static int bpg_rsp_commit_build_pkg_main_info(bpg_rsp_t rsp, logic_context_t op_context, bpg_pkg_t pkg, error_monitor_t em) {
+static int bpg_rsp_commit_build_pkg_main_info(bpg_rsp_t rsp, logic_context_t op_context, dp_req_t pkg, error_monitor_t em) {
     logic_data_t data;
     LPDRMETA meta;
     size_t size;
@@ -311,7 +300,7 @@ static int bpg_rsp_commit_build_pkg_main_info(bpg_rsp_t rsp, logic_context_t op_
     return 0;
 }
 
-int bpg_rsp_commit_build_pkg(bpg_rsp_t rsp, logic_context_t op_context, bpg_pkg_t pkg, error_monitor_t em) {
+int bpg_rsp_commit_build_pkg(bpg_rsp_t rsp, logic_context_t op_context, dp_req_t pkg, error_monitor_t em) {
     if (bpg_rsp_commit_build_pkg_main_info(rsp, op_context, pkg, em) != 0) return -1;
     if (bpg_rsp_commit_build_pkg_append_info(rsp, op_context, pkg, em) != 0) return -1;
     return 0;
@@ -322,4 +311,67 @@ void bpg_rsp_manage_free_context(bpg_rsp_manage_t mgr, logic_context_t op_contex
         mgr->m_ctx_fini(op_context, mgr->m_ctx_ctx);
     }
     logic_context_free(op_context);
+}
+
+static int bpg_rsp_commit_build_carry_data(bpg_rsp_t rsp, logic_context_t op_context, dp_req_t pkg, error_monitor_t em) {
+    logic_data_t carry_info_list_data;
+    BPG_CARRY_METAS * carry_info_list;
+    uint32_t i;
+    struct dp_req_it child_it;
+    dp_req_t child_data;
+
+    carry_info_list_data = logic_context_data_find(op_context, "bpg_carry_metas");
+    if (carry_info_list_data == NULL) return 0;
+
+    carry_info_list = logic_data_data(carry_info_list_data);
+    dp_req_childs(pkg, &child_it);
+
+    for(i = 0, child_data = dp_req_next(&child_it); i < carry_info_list->count; ++i, child_data = dp_req_next(&child_it)) {
+        logic_data_t carry_data = logic_context_data_find(op_context, carry_info_list->data[i].name);
+
+        if (carry_data == NULL) {
+            CPE_ERROR(
+                em, "%s.%s: copy_carry data %s: data not exist!",
+                bpg_rsp_manage_name(rsp->m_mgr), bpg_rsp_name(rsp), carry_info_list->data[i].name);
+            return -1;
+        }
+
+        if (child_data && dp_req_is_type(child_data, req_type_bpg_pkg)) {
+            child_data = dp_req_next(&child_it);
+        }
+
+        if (child_data == NULL) {
+            child_data = dp_req_create(dp_req_mgr(pkg), 0);
+            if (child_data == NULL) {
+                CPE_ERROR(
+                    em, "%s.%s: copy_carry data %s: create child_data fial!",
+                    bpg_rsp_manage_name(rsp->m_mgr), bpg_rsp_name(rsp), carry_info_list->data[i].name);
+                return -1;
+            }
+            else {
+                dp_req_add_to_parent(child_data, pkg);
+            }
+        }
+
+        dp_req_set_buf(child_data, logic_data_data(carry_data), logic_data_capacity(carry_data));
+        dp_req_set_size(child_data, logic_data_capacity(carry_data));
+        dp_req_set_meta(child_data, logic_data_meta(carry_data));
+    }
+
+    while(child_data) {
+        dp_req_t next = dp_req_next(&child_it);
+
+        if (!dp_req_is_type(child_data, req_type_bpg_pkg)) {
+            if (dp_req_manage_by_parent(child_data)) {
+                dp_req_free(child_data);
+            }
+            else {
+                dp_req_set_parent(child_data, NULL);
+            }
+        }
+
+        child_data = next;
+    }
+
+    return 0;
 }

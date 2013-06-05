@@ -39,6 +39,7 @@ const char * bpg_pkg_manage_base_cvt_name(bpg_pkg_manage_t pkg);
 dr_cvt_t bpg_pkg_manage_base_cvt(bpg_pkg_manage_t pkg);
 
 LPDRMETALIB bpg_pkg_manage_basepkg_metalib(bpg_pkg_manage_t mgr);
+LPDRMETA bpg_pkg_manage_basepkg_meta(bpg_pkg_manage_t mgr);
 LPDRMETA bpg_pkg_manage_basepkg_head_meta(bpg_pkg_manage_t mgr);
 
 int bpg_pkg_manage_set_op_buff_capacity(bpg_pkg_manage_t mgr, size_t buf_size);

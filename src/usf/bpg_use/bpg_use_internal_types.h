@@ -14,11 +14,13 @@ struct bpg_use_sp {
     bpg_pkg_manage_t m_pkg_manage;
     error_monitor_t m_em;
 
-    size_t m_pkg_buf_size;
-    bpg_pkg_t m_pkg_buf;
+    uint64_t m_client_id;
+
+    dp_req_t m_pkg_buf;
     struct mem_buffer m_data_buf;
 
     bpg_pkg_dsp_t m_dsp;
+    int m_debug;
 };
 
 struct bpg_use_pkg_chanel {
@@ -33,7 +35,7 @@ struct bpg_use_pkg_chanel {
 
     dp_rsp_t m_incoming_recv_at;
     bpg_pkg_dsp_t m_incoming_send_to;
-    bpg_pkg_t m_incoming_buf;
+    dp_req_t m_incoming_buf;
 
     int m_debug;
 };

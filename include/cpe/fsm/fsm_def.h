@@ -18,6 +18,7 @@ void fsm_def_machine_set_evt_dumper(fsm_def_machine_t m, fsm_evt_dumper_t dumper
 
 /*state def*/
 fsm_def_state_t fsm_def_state_create(fsm_def_machine_t m, const char * name);
+fsm_def_state_t fsm_def_state_create_ex(fsm_def_machine_t m, const char * name, int state_id);
 void fsm_def_state_free(fsm_def_state_t s);
 
 const char * fsm_def_state_name(fsm_def_state_t s);
