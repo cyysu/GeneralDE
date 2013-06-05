@@ -19,9 +19,10 @@ mongo_pkg_create(mongo_driver_t driver, size_t capacity) {
 
     dp_req = dp_req_create(
         gd_app_dp_mgr(driver->m_app),
-        mongo_pkg_type_name,
         sizeof(struct mongo_pkg) + capacity);
     if (dp_req == NULL) return NULL;
+
+    dp_req_set_type(dp_req, req_type_mongo_pkg);
 
     pkg = (mongo_pkg_t)dp_req_data(dp_req);
 
@@ -42,7 +43,7 @@ dp_req_t mongo_pkg_to_dp_req(mongo_pkg_t req) {
 }
 
 mongo_pkg_t mongo_pkg_from_dp_req(dp_req_t req) {
-    if (cpe_hs_cmp(dp_req_type_hs(req), mongo_pkg_type_name) != 0) return NULL;
+    if (!dp_req_is_type(req, req_type_mongo_pkg)) return NULL;
     return (mongo_pkg_t)dp_req_data(req);
 }
 
@@ -472,6 +473,8 @@ const char * mongo_pkg_dump(mongo_pkg_t req, mem_buffer_t buffer, int level) {
 
         mongo_pkg_data_dump_i((write_stream_t)&stream, mongo_doc_data(doc), level + 1);
 
+        stream_printf((write_stream_t)&stream, "\n");
+
         ++i;
     }
 
@@ -583,5 +586,5 @@ void mongo_pkg_query_set_number_to_return(mongo_pkg_t pkg, int32_t number_to_ret
     pkg->m_pro_data.m_query.number_to_return = number_to_return;
 }
 
-CPE_HS_DEF_VAR(mongo_pkg_type_name, "mongo_pkg_type");
+const char * req_type_mongo_pkg = "mongo_pkg";
 
