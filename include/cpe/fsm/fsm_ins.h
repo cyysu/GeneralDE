@@ -20,6 +20,7 @@ int fsm_machine_init(fsm_machine_t fsm, fsm_def_machine_t fsm_def, const char * 
 void fsm_machine_fini(fsm_machine_t fsm);
 void * fsm_machine_context(fsm_machine_t fsm);
 void fsm_machine_set_debug(fsm_machine_t fsm, int debug);
+int fsm_machine_curent_state(fsm_machine_t fsm);
 
 void * fsm_state_set_context(fsm_machine_t fsm);
 void * fsm_state_context(fsm_machine_t fsm);

@@ -41,12 +41,12 @@ void bpg_cli_proxy_set_client_id(bpg_cli_proxy_t proxy, uint64_t client_id);
 bpg_pkg_manage_t bpg_cli_proxy_pkg_manage(bpg_cli_proxy_t proxy);
 
 void * bpg_cli_proxy_data_buf(bpg_cli_proxy_t proxy);
-bpg_pkg_t bpg_cli_proxy_pkg_buf(bpg_cli_proxy_t proxy);
+dp_req_t bpg_cli_proxy_pkg_buf(bpg_cli_proxy_t proxy);
 
 int bpg_cli_proxy_send(
     bpg_cli_proxy_t proxy,
     logic_require_t require,
-    bpg_pkg_t pkg);
+    dp_req_t pkg);
 
 #ifdef __cplusplus
 }

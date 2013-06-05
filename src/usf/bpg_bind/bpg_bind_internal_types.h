@@ -25,7 +25,7 @@ struct bpg_bind_manage {
     dp_rsp_t m_outgoing_recv_at;
     bpg_pkg_dsp_t m_outgoing_send_to;
 
-    bpg_pkg_t m_data_pkg;
+    dp_req_t m_data_pkg;
     vnet_control_pkg_t m_control_pkg;
 
     struct cpe_hash_table m_cliensts;

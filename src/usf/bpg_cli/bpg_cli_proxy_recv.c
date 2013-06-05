@@ -7,6 +7,7 @@
 #include "gd/app/app_module.h"
 #include "gd/app/app_context.h"
 #include "usf/bpg_pkg/bpg_pkg.h"
+#include "usf/bpg_pkg/bpg_pkg_data.h"
 #include "usf/logic/logic_manage.h"
 #include "usf/logic/logic_require.h"
 #include "usf/logic/logic_data.h"
@@ -17,7 +18,7 @@
 
 extern unsigned char g_metalib_bpg_cli_pkg_info[];
 
-static int bpg_cli_proxy_save_pkg_info(logic_require_t require, bpg_pkg_t pkg, error_monitor_t em) {
+static int bpg_cli_proxy_save_pkg_info(logic_require_t require, dp_req_t pkg, error_monitor_t em) {
     logic_data_t data;
     LPDRMETA meta;
     BPG_CLI_PKG_INFO * pkg_info;
@@ -41,7 +42,7 @@ static int bpg_cli_proxy_save_pkg_info(logic_require_t require, bpg_pkg_t pkg, e
     return 0;
 }
 
-static int bpg_cli_proxy_save_main_body(logic_require_t require, bpg_pkg_t pkg, error_monitor_t em) {
+static int bpg_cli_proxy_save_main_body(logic_require_t require, dp_req_t pkg, error_monitor_t em) {
     logic_data_t data;
     LPDRMETA meta;
     size_t size;
@@ -49,19 +50,19 @@ static int bpg_cli_proxy_save_main_body(logic_require_t require, bpg_pkg_t pkg, 
     meta = bpg_pkg_main_data_meta(pkg, em);
     if (meta == NULL) return 0;
 
-    size = bpg_pkg_body_len(pkg);
+    size = bpg_pkg_main_data_len(pkg);
     data = logic_require_data_get_or_create(require, meta, size);
     if (data == NULL) {
         CPE_ERROR(em, "bpg_cli_proxy_rsp: save_main_body: crate data with meta %s fail!", dr_meta_name(meta));
         return -1;
     }
 
-    memcpy(logic_data_data(data), bpg_pkg_body_data(pkg), size);
+    memcpy(logic_data_data(data), bpg_pkg_main_data(pkg), size);
 
     return 0;
 }
 
-static int bpg_cli_proxy_save_append_infos(logic_require_t require, bpg_pkg_t pkg, error_monitor_t em) {
+static int bpg_cli_proxy_save_append_infos(logic_require_t require, dp_req_t pkg, error_monitor_t em) {
     logic_data_t data;
     LPDRMETA meta;
     size_t size;
@@ -98,23 +99,16 @@ static int bpg_cli_proxy_save_append_infos(logic_require_t require, bpg_pkg_t pk
 
 int bpg_cli_proxy_rsp(dp_req_t req, void * ctx, error_monitor_t em) {
     struct bpg_cli_proxy * proxy;
-    bpg_pkg_t pkg;
     uint32_t sn;
     logic_require_t require;
  
     proxy = (struct bpg_cli_proxy *)ctx;
 
-    pkg = bpg_pkg_from_dp_req(req);
-    if (pkg == NULL) {
-        CPE_ERROR(em, "bpg_cli_proxy_rsp: cast to pkg fail!");
-        return -1;
-    }
-
-    sn = bpg_pkg_sn(pkg);
+    sn = bpg_pkg_sn(req);
     require = logic_require_find(proxy->m_logic_mgr, sn);
     if (require == NULL) {
         if (proxy->m_incoming_no_sn_send_to) {
-            return bpg_pkg_dsp_dispatch(proxy->m_incoming_no_sn_send_to, pkg, em);
+            return bpg_pkg_dsp_dispatch(proxy->m_incoming_no_sn_send_to, req, em);
         }
         else {
             CPE_ERROR(em, "bpg_cli_proxy_rsp: require not exist, sn=%u!", (unsigned int)sn);
@@ -122,17 +116,17 @@ int bpg_cli_proxy_rsp(dp_req_t req, void * ctx, error_monitor_t em) {
         }
     }
 
-    if (bpg_cli_proxy_save_pkg_info(require, pkg, em) != 0
-        || bpg_cli_proxy_save_main_body(require, pkg, em) != 0
-        || bpg_cli_proxy_save_append_infos(require, pkg, em) != 0
+    if (bpg_cli_proxy_save_pkg_info(require, req, em) != 0
+        || bpg_cli_proxy_save_main_body(require, req, em) != 0
+        || bpg_cli_proxy_save_append_infos(require, req, em) != 0
         )
     {
         logic_require_set_error(require);
         return -1;
     }
 
-    if (bpg_pkg_errno(pkg) != 0) {
-        logic_require_set_error_ex(require, bpg_pkg_errno(pkg));
+    if (bpg_pkg_errno(req) != 0) {
+        logic_require_set_error_ex(require, bpg_pkg_errno(req));
     }
     else {
         logic_require_set_done(require);

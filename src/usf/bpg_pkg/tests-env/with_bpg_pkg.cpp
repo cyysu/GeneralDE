@@ -6,8 +6,8 @@
 #include "usf/bpg_pkg/tests-env/with_bpg_pkg.hpp"
 
 extern "C" {
-int bpg_metalib_app_init(gd_app_context_t app, gd_app_module_t module, cfg_t cfg);
-void bpg_metalib_app_fini(gd_app_context_t app, gd_app_module_t module);
+    int bpg_metalib_app_init(gd_app_context_t app, gd_app_module_t module, cfg_t cfg);
+    void bpg_metalib_app_fini(gd_app_context_t app, gd_app_module_t module);
 }
 
 namespace usf { namespace bpg { namespace testenv {
@@ -83,43 +83,43 @@ void with_bpg_pkg::t_bpg_pkg_manage_add_cmd_by_meta(const char * cmd_meta_name, 
     bpg_pkg_manage_add_cmd_by_meta(mgr, cmd_meta_name);
 }
 
-bpg_pkg_t with_bpg_pkg::t_bpg_pkg_create(size_t capacity, const char * mgr_name) {
-    return bpg_pkg_create(t_bpg_pkg_manage(mgr_name), capacity, NULL, 0);
+dp_req_t with_bpg_pkg::t_bpg_pkg_create(size_t capacity, const char * mgr_name) {
+    return bpg_pkg_create_with_body(t_bpg_pkg_manage(mgr_name), capacity);
 }
 
-const char * with_bpg_pkg::t_bpg_pkg_dump(bpg_pkg_t pkg) {
+const char * with_bpg_pkg::t_bpg_pkg_dump(dp_req_t body) {
     mem_buffer buffer;
     mem_buffer_init(&buffer, NULL);
 
-    const char * r = t_tmp_strdup(bpg_pkg_dump(pkg, &buffer));
+    const char * r = t_tmp_strdup(bpg_pkg_dump(body, &buffer));
 
     mem_buffer_clear(&buffer);
 
     return r;
 }
 
-bpg_pkg_t with_bpg_pkg::t_bpg_pkg_build(const char * cfg, const char * mgr_name) {
-    bpg_pkg_t pkg = t_bpg_pkg_create(1024, mgr_name);
-    if (pkg == NULL) return NULL;
-    t_bpg_pkg_init(pkg, cfg);
-    return pkg; 
+dp_req_t with_bpg_pkg::t_bpg_pkg_build(const char * cfg, const char * mgr_name) {
+    dp_req_t body = t_bpg_pkg_create(1024, mgr_name);
+    if (body == NULL) return NULL;
+    t_bpg_pkg_init(body, cfg);
+    return body; 
 }
 
-bpg_pkg_t with_bpg_pkg::t_bpg_pkg_build(cfg_t cfg, const char * mgr_name) {
-    bpg_pkg_t pkg = t_bpg_pkg_create(1024, mgr_name);
-    if (pkg == NULL) return NULL;
-    t_bpg_pkg_init(pkg, cfg);
-    return pkg; 
+dp_req_t with_bpg_pkg::t_bpg_pkg_build(cfg_t cfg, const char * mgr_name) {
+    dp_req_t body = t_bpg_pkg_create(1024, mgr_name);
+    if (body == NULL) return NULL;
+    t_bpg_pkg_init(body, cfg);
+    return body; 
 }
 
-void with_bpg_pkg::t_bpg_pkg_init(bpg_pkg_t pkg, const char * cfg) {
-    t_bpg_pkg_init(pkg, envOf<cpe::cfg::testenv::with_cfg>().t_cfg_parse(cfg));
+void with_bpg_pkg::t_bpg_pkg_init(dp_req_t body, const char * cfg) {
+    t_bpg_pkg_init(body, envOf<cpe::cfg::testenv::with_cfg>().t_cfg_parse(cfg));
 }
 
-void with_bpg_pkg::t_bpg_pkg_init(bpg_pkg_t pkg, cfg_t cfg) {
+void with_bpg_pkg::t_bpg_pkg_init(dp_req_t body, cfg_t cfg) {
     ASSERT_EQ(
         0,
-        bpg_pkg_build_from_cfg(pkg, cfg, envOf<utils::testenv::with_em>().t_em()))
+        bpg_pkg_build_from_cfg(body, cfg, envOf<utils::testenv::with_em>().t_em()))
         << "build pkg from cfg fail!";
 }
 

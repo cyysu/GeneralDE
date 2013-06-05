@@ -9,11 +9,10 @@ vnet_control_pkg_create(gd_app_context_t app, size_t pkg_capacity) {
     dp_req_t dp_req;
     vnet_control_pkg_t pkg;
 
-    dp_req = dp_req_create(
-        gd_app_dp_mgr(app),
-        vnet_control_pkg_type_name,
-        sizeof(struct vnet_control_pkg) + pkg_capacity);
+    dp_req = dp_req_create(gd_app_dp_mgr(app), sizeof(struct vnet_control_pkg) + pkg_capacity);
     if (dp_req == NULL) return NULL;
+
+    dp_req_set_type(dp_req, req_type_vnet_control_pkg);
 
     pkg = (vnet_control_pkg_t)dp_req_data(dp_req);
 
@@ -35,7 +34,7 @@ dp_req_t vnet_control_pkg_to_dp_req(vnet_control_pkg_t req) {
 }
 
 vnet_control_pkg_t vnet_control_pkg_from_dp_req(dp_req_t req) {
-    if (cpe_hs_cmp(dp_req_type_hs(req), vnet_control_pkg_type_name) != 0) return NULL;
+    if (!dp_req_is_type(req, req_type_vnet_control_pkg)) return NULL;
     return (vnet_control_pkg_t)dp_req_data(req);
 }
 
@@ -109,5 +108,5 @@ void * vnet_control_pkg_alloc_data(vnet_control_pkg_t pkg, LPDRMETA meta, size_t
     return pkg + 1;
 }
 
-CPE_HS_DEF_VAR(vnet_control_pkg_type_name, "vnet_control_pkg_type");
+const char * req_type_vnet_control_pkg = "vnet_control_pkg";
 

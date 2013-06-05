@@ -67,7 +67,7 @@ int gd_app_flag_is_enable(gd_app_context_t context, gd_app_flag_t flag);
  
 /*the main*/
 int gd_app_run(gd_app_context_t context);
-int gd_app_stop(gd_app_context_t context);
+int gd_app_notify_stop(gd_app_context_t context);
 
 int gd_app_begin(gd_app_context_t context);
 void gd_app_end(gd_app_context_t context);

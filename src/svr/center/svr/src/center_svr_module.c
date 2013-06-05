@@ -1,5 +1,6 @@
 #include <assert.h>
 #include "cpe/pal/pal_external.h"
+#include "cpe/utils/string_utils.h"
 #include "cpe/cfg/cfg_read.h"
 #include "cpe/net/net_connector.h"
 #include "cpe/dp/dp_manage.h"
@@ -13,13 +14,25 @@ int center_svr_app_init(gd_app_context_t app, gd_app_module_t module, cfg_t cfg)
     center_svr_t center_svr;
     const char * ip;
     short port;
-    int accept_queue_size;
-    const char * cvt_name;
+    const char * str_ringbuf_size;
+    uint64_t ringbuf_size;
+    const char * str_read_block_size;
+    const char * str_max_pkg_size;
  
     ip = cfg_get_string(cfg, "ip", "");
     port = cfg_get_int16(cfg, "port", 0);
-    accept_queue_size = cfg_get_int32(cfg, "accept-queue-size", 256);
-    cvt_name = cfg_get_string(cfg, "pkg-cvt", "pbuf-len");
+
+    if ((str_ringbuf_size = cfg_get_string(cfg, "ringbuf-size", NULL)) == NULL) {
+        CPE_ERROR(gd_app_em(app), "%s: create: ringbuf-size not configured!", gd_app_module_name(module));
+        return -1;
+    }
+
+    if (cpe_str_parse_byte_size(&ringbuf_size, str_ringbuf_size) != 0) {
+        CPE_ERROR(
+            gd_app_em(app), "%s: create: read ringbuf-size %s fail!",
+            gd_app_module_name(module), str_ringbuf_size);
+        return -1;
+    }
 
     center_svr =
         center_svr_create(
@@ -27,27 +40,52 @@ int center_svr_app_init(gd_app_context_t app, gd_app_module_t module, cfg_t cfg)
             gd_app_alloc(app), gd_app_em(app));
     if (center_svr == NULL) return -1;
 
-
-    center_svr->m_process_count_per_tick = cfg_get_uint32(cfg, "process-count-per-tick", center_svr->m_process_count_per_tick);
-    center_svr->m_max_pkg_size = cfg_get_uint32(cfg, "max-pkg-size", center_svr->m_max_pkg_size);
-    center_svr->m_read_chanel_size = cfg_get_uint32(cfg, "read-chanel-size", center_svr->m_read_chanel_size);
-    center_svr->m_write_chanel_size = cfg_get_uint32(cfg, "write-chanel-size", center_svr->m_write_chanel_size);
-    center_svr->m_conn_timeout_ms = cfg_get_uint32(cfg, "conn-timeout-ms", center_svr->m_conn_timeout_ms);
-
-    center_svr->m_debug = cfg_get_int8(cfg, "debug", center_svr->m_debug);
-
-    if (center_svr_set_cvt(center_svr, cvt_name) != 0) {
-        CPE_ERROR(
-            gd_app_em(app), "%s: create: set cvt %s fail!",
-            gd_app_module_name(module), cvt_name);
+    if (center_svr_set_ringbuf_size(center_svr, ringbuf_size) != 0) {
+        CPE_ERROR(gd_app_em(app), "%s: create: set ringbuf-size %d fail!", gd_app_module_name(module), (int)ringbuf_size);
         center_svr_free(center_svr);
         return -1;
     }
 
-    if (center_svr_set_listener(center_svr, ip, port, accept_queue_size) != 0) {
+    if ((str_read_block_size = cfg_get_string(cfg, "read-block-size", NULL))) {
+        uint64_t read_block_size;
+        if (cpe_str_parse_byte_size(&read_block_size, str_read_block_size) != 0) {
+            CPE_ERROR(
+                gd_app_em(app), "%s: create: read read-block-size %s fail!",
+                gd_app_module_name(module), str_read_block_size);
+            return -1;
+        }
+
+        center_svr->m_read_block_size = (uint32_t)read_block_size;
+    }
+
+    if ((str_max_pkg_size = cfg_get_string(cfg, "max-pkg-size", NULL))) {
+        uint64_t max_pkg_size;
+        if (cpe_str_parse_byte_size(&max_pkg_size, str_max_pkg_size) != 0) {
+            CPE_ERROR(
+                gd_app_em(app), "%s: create: read max-pkg-size %s fail!",
+                gd_app_module_name(module), str_max_pkg_size);
+            return -1;
+        }
+
+        center_svr->m_max_pkg_size = (uint32_t)max_pkg_size;
+    }
+
+
+    center_svr->m_process_count_per_tick = cfg_get_uint32(cfg, "process-count-per-tick", center_svr->m_process_count_per_tick);
+    center_svr->m_conn_timeout_ms = cfg_get_uint32(cfg, "conn-timeout-ms", center_svr->m_conn_timeout_ms);
+
+    center_svr->m_debug = cfg_get_int8(cfg, "debug", center_svr->m_debug);
+
+    if (center_svr_load_svr_config(center_svr) != 0) {
+        CPE_ERROR(gd_app_em(app), "%s: create: load svr config fail!", gd_app_module_name(module));
+        center_svr_free(center_svr);
+        return -1;
+    }
+
+    if (center_svr_start(center_svr, ip, port) != 0) {
         CPE_ERROR(
-            gd_app_em(app), "%s: create: set listener %s:%d accept-queue-size=%d fail!",
-            gd_app_module_name(module), ip, port, accept_queue_size);
+            gd_app_em(app), "%s: create: set listener %s:%d fail!",
+            gd_app_module_name(module), ip, port);
         center_svr_free(center_svr);
         return -1;
     }
@@ -62,18 +100,28 @@ int center_svr_app_init(gd_app_context_t app, gd_app_module_t module, cfg_t cfg)
         }
     }
     else {
-        uint32_t capacity = cfg_get_uint32(cfg, "record-buf-size-m", 0) * 1024 * 1024;
-        if (capacity == 0) {
+        const char * str_record_buf_size = cfg_get_string(cfg, "record-buf-size", NULL);
+        uint64_t record_buf_size;
+        if (str_record_buf_size == NULL) {
             CPE_ERROR(
-                gd_app_em(app), "%s: create: load from mem, mem-record-buf-size not configured or zero!",
+                gd_app_em(app), "%s: create: load from mem, mem-record-buf-size not configured!",
                 gd_app_module_name(module));
             center_svr_free(center_svr);
             return -1;
         }
-        else if (center_svr_init_clients_from_mem(center_svr, capacity) != 0) {
+
+        if (cpe_str_parse_byte_size(&record_buf_size, str_record_buf_size) != 0) {
+            CPE_ERROR(
+                gd_app_em(app), "%s: create: read record-buf-size %s fail!",
+                gd_app_module_name(module), str_record_buf_size);
+            center_svr_free(center_svr);
+            return -1;
+        }
+
+        if (center_svr_init_clients_from_mem(center_svr, record_buf_size) != 0) {
             CPE_ERROR(
                 gd_app_em(app), "%s: create: load from mem fail, size=%d!",
-                gd_app_module_name(module), (int)capacity);
+                gd_app_module_name(module), (int)record_buf_size);
             center_svr_free(center_svr);
             return -1;
         }
@@ -82,8 +130,8 @@ int center_svr_app_init(gd_app_context_t app, gd_app_module_t module, cfg_t cfg)
     if (center_svr->m_debug) {
         CPE_INFO(
             gd_app_em(app),
-            "%s: create: done. ip=%s, port=%u, accept-queue-size=%d, timeout=%d(ms)",
-            gd_app_module_name(module), ip, port, accept_queue_size, (int)center_svr->m_conn_timeout_ms);
+            "%s: create: done. ip=%s, port=%u, timeout=%d(ms)",
+            gd_app_module_name(module), ip, port, (int)center_svr->m_conn_timeout_ms);
     }
 
     CPE_INFO(

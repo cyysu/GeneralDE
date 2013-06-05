@@ -10,6 +10,7 @@
 #include "gd/app/app_module.h"
 #include "usf/bpg_pkg/bpg_pkg_manage.h"
 #include "usf/bpg_pkg/bpg_pkg.h"
+#include "usf/bpg_pkg/bpg_pkg_data.h"
 #include "usf/bpg_pkg/bpg_pkg_dsp.h"
 #include "usf/bpg_use/bpg_use_pkg_chanel.h"
 #include "bpg_use_internal_types.h"
@@ -82,7 +83,7 @@ static void bpg_use_pkg_chanel_clear(nm_node_t node) {
 
     /*incoming */
     if (chanel->m_incoming_buf) {
-        bpg_pkg_free(chanel->m_incoming_buf);
+        dp_req_free(chanel->m_incoming_buf);
         chanel->m_incoming_buf = NULL;
     }
 
@@ -259,7 +260,7 @@ int bpg_use_pkg_chanel_incoming_rsp(dp_req_t req, void * ctx, error_monitor_t em
     chanel = (bpg_use_pkg_chanel_t)ctx;
 
     if (chanel->m_incoming_buf == NULL) {
-        chanel->m_incoming_buf = bpg_pkg_create(chanel->m_pkg_manage, 2048, NULL, 0);
+        chanel->m_incoming_buf = bpg_pkg_create_with_body(chanel->m_pkg_manage, 2048);
         if (chanel->m_incoming_buf == NULL) {
             CPE_ERROR(chanel->m_em, "%s: incomint: create buf fail!", bpg_use_pkg_chanel_name(chanel));
             return -1;
@@ -271,7 +272,7 @@ INCOMING_TRY_AGAIN:
     r = bpg_pkg_decode(chanel->m_incoming_buf, dp_req_data(req), &buf_size, chanel->m_em, chanel->m_debug);
     if (r != dr_cvt_result_success) {
         if (r == dr_cvt_result_not_enough_output) {
-            buf_size = bpg_pkg_pkg_data_capacity(chanel->m_incoming_buf);
+            buf_size = dp_req_capacity(chanel->m_incoming_buf);
             buf_size *= 2;
 
             if (buf_size > 20480000) {
@@ -279,8 +280,8 @@ INCOMING_TRY_AGAIN:
                 return -1;
             }
 
-            bpg_pkg_free(chanel->m_incoming_buf);
-            chanel->m_incoming_buf = bpg_pkg_create(chanel->m_pkg_manage, buf_size, NULL, 0);
+            dp_req_free(chanel->m_incoming_buf);
+            chanel->m_incoming_buf = bpg_pkg_create_with_body(chanel->m_pkg_manage, buf_size);
             if (chanel->m_incoming_buf == NULL) {
                 CPE_ERROR(chanel->m_em, "%s: incoming: create buf fail, size=%d!", bpg_use_pkg_chanel_name(chanel), (int)buf_size);
                 return -1;
@@ -302,24 +303,15 @@ INCOMING_TRY_AGAIN:
     return 0;
 }
 
-CPE_HS_DEF_VAR(g_bpg_use_pkg_chanel_req_name, "bpg_use_pkg_chanel_req");
-
 int bpg_use_pkg_chanel_outgoing_rsp(dp_req_t req, void * ctx, error_monitor_t em) {
     bpg_use_pkg_chanel_t chanel;
-    bpg_pkg_t pkg;
     dr_cvt_result_t r;
     size_t buf_size;
 
     chanel = (bpg_use_pkg_chanel_t)ctx;
 
-    pkg = bpg_pkg_from_dp_req(req);
-    if (pkg == NULL) {
-        CPE_ERROR(chanel->m_em, "%s: outgoing: cast to pkg fail!", bpg_use_pkg_chanel_name(chanel));
-        return -1;
-    }
-
     if (chanel->m_outgoing_buf == NULL) {
-        chanel->m_outgoing_buf = dp_req_create(gd_app_dp_mgr(chanel->m_app), g_bpg_use_pkg_chanel_req_name, 2048);
+        chanel->m_outgoing_buf = dp_req_create(gd_app_dp_mgr(chanel->m_app), 2048);
         if (chanel->m_outgoing_buf == NULL) {
             CPE_ERROR(chanel->m_em, "%s: outgoing: create buf fail!", bpg_use_pkg_chanel_name(chanel));
             return -1;
@@ -328,7 +320,7 @@ int bpg_use_pkg_chanel_outgoing_rsp(dp_req_t req, void * ctx, error_monitor_t em
 
 OUTGOING_TRY_AGAIN:
     buf_size = dp_req_capacity(chanel->m_outgoing_buf);
-    r = bpg_pkg_encode(pkg, dp_req_data(chanel->m_outgoing_buf), &buf_size,  chanel->m_em, chanel->m_debug);
+    r = bpg_pkg_encode(req, dp_req_data(chanel->m_outgoing_buf), &buf_size,  chanel->m_em, chanel->m_debug);
     if (r != dr_cvt_result_success) {
         if (r == dr_cvt_result_not_enough_output) {
             buf_size = dp_req_capacity(chanel->m_outgoing_buf);
@@ -340,7 +332,7 @@ OUTGOING_TRY_AGAIN:
             }
 
             dp_req_free(chanel->m_outgoing_buf);
-            chanel->m_outgoing_buf = dp_req_create(gd_app_dp_mgr(chanel->m_app), g_bpg_use_pkg_chanel_req_name, buf_size);
+            chanel->m_outgoing_buf = dp_req_create(gd_app_dp_mgr(chanel->m_app), buf_size);
             if (chanel->m_outgoing_buf == NULL) {
                 CPE_ERROR(chanel->m_em, "%s: outgoing: create buf fail, size=%d!", bpg_use_pkg_chanel_name(chanel), (int)buf_size);
                 return -1;

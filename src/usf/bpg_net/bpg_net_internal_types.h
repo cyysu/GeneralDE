@@ -18,7 +18,7 @@ struct bpg_net_agent {
     net_listener_t m_listener;
 
     size_t m_req_max_size;
-    bpg_pkg_t m_req_buf;
+    dp_req_t m_req_buf;
     struct mem_buffer m_rsp_buf;
 
     size_t m_read_chanel_size;
@@ -44,7 +44,7 @@ struct bpg_net_client {
     net_connector_t m_connector;
 
     size_t m_req_max_size;
-    bpg_pkg_t m_req_buf;
+    dp_req_t m_req_buf;
     struct mem_buffer m_send_encode_buf;
 
     uint32_t m_runing_require_capacity;

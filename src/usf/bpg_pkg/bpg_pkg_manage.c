@@ -382,6 +382,13 @@ LPDRMETA bpg_pkg_manage_basepkg_head_meta(bpg_pkg_manage_t mgr) {
     return metalib ? dr_lib_find_meta_by_name(metalib, "basepkg_head") : NULL;
 }
 
+LPDRMETA bpg_pkg_manage_basepkg_meta(bpg_pkg_manage_t mgr) {
+    LPDRMETALIB metalib;
+
+    metalib = bpg_pkg_manage_basepkg_metalib(mgr);
+    return metalib ? dr_lib_find_meta_by_name(metalib, "basepkg") : NULL;
+}
+
 LPDRMETA bpg_pkg_manage_find_meta_by_cmd(bpg_pkg_manage_t mgr, uint32_t cmd) {
     struct bpg_pkg_cmd_info * r;
     struct bpg_pkg_cmd_info key;

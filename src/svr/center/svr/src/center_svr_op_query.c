@@ -2,7 +2,7 @@
 #include "center_svr_ops.h"
 #include "protocol/svr/center/svr_center_pro.h"
 
-void center_cli_conn_op_query_by_type(center_cli_conn_t conn, SVR_CENTER_PKG * pkg, size_t pkg_size) {
+void center_svr_conn_op_query_by_type(center_svr_conn_t conn, SVR_CENTER_PKG * pkg, size_t pkg_size) {
     center_svr_t svr = conn->m_svr;
     SVR_CENTER_REQ_QUERY_SVR_BY_TYPE * req = &pkg->data.svr_center_req_query_svr_by_type;
     uint16_t type_i;
@@ -20,13 +20,12 @@ void center_cli_conn_op_query_by_type(center_cli_conn_t conn, SVR_CENTER_PKG * p
     res = center_svr_get_res_pkg_buff(svr, pkg, res_len);
     if (res == NULL) {
         CPE_ERROR(
-            svr->m_em, "%s: ep %d: query by type: alloc res buf fail!",
-            center_svr_name(svr), center_cli_conn_id(conn));
+            svr->m_em, "%s: conn %d: query by type: alloc res buf fail!",
+            center_svr_name(svr), conn->m_fd);
         return;
     }
 
     res->cmd = SVR_CENTER_CMD_RES_QUERY_SVR_BY_TYPE;
-    res->sn = pkg->sn;
 
     res_records = &res->data.svr_center_res_query_svr_by_type;
 
@@ -48,5 +47,5 @@ void center_cli_conn_op_query_by_type(center_cli_conn_t conn, SVR_CENTER_PKG * p
         }
     }
 
-    center_cli_conn_send(conn, res, res_len);
+    center_svr_conn_send(conn, res, res_len);
 }

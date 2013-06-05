@@ -199,41 +199,96 @@ static void cpe_dr_generate_h_traits(write_stream_t stream, dr_metalib_source_t 
         stream_printf(stream, "    static Meta const & META;\n");
         stream_printf(stream, "    static const char * const NAME;\n");
 
-        if (dr_meta_type(meta) == CPE_DR_TYPE_STRUCT && dr_meta_find_dyn_info(meta, &dyn_info) == 0) {
+        if (dr_meta_type(meta) != CPE_DR_TYPE_STRUCT) {
+            stream_printf(stream, "    static size_t data_size( ");
+            stream_toupper(stream, meta_name);
+            stream_printf(stream, " const & o) { return sizeof(o); }\n");
+            goto PRINT_TRAITS_END;
+        }
+
+        assert(dr_meta_type(meta) == CPE_DR_TYPE_STRUCT);
+
+        if (dr_meta_find_dyn_info(meta, &dyn_info) != 0) {
+            stream_printf(stream, "    static size_t data_size( ");
+            stream_toupper(stream, meta_name);
+            stream_printf(stream, " const & o) { return sizeof(o); }\n");
+            goto PRINT_TRAITS_END;
+        }
+
+        if (dyn_info.m_type == dr_meta_dyn_info_type_array) {
+            assert(dyn_info.m_data.m_array.m_array_entry);
+
             stream_printf(stream, "    typedef ");
-            cpe_dr_generate_h_print_type(stream, dyn_info.m_array_entry);
+            cpe_dr_generate_h_print_type(stream, dyn_info.m_data.m_array.m_array_entry);
             stream_printf(stream, " dyn_element_type;\n");
 
-            stream_printf(stream, "    static const int dyn_data_start_pos = %d;\n", dyn_info.m_array_start);
-            stream_printf(stream, "    static const int dyn_count = %d;\n", dr_entry_array_count(dyn_info.m_array_entry));
+            stream_printf(stream, "    static const int dyn_data_start_pos = %d;\n", dyn_info.m_data.m_array.m_array_start);
+            stream_printf(stream, "    static const int dyn_count = %d;\n", dr_entry_array_count(dyn_info.m_data.m_array.m_array_entry));
 
-            if (dyn_info.m_refer_entry) {
+            if (dyn_info.m_data.m_array.m_refer_entry) {
                 char buf[256];
 
                 stream_printf(stream, "    typedef ");
-                cpe_dr_generate_h_print_type(stream, dyn_info.m_refer_entry);
+                cpe_dr_generate_h_print_type(stream, dyn_info.m_data.m_array.m_refer_entry);
                 stream_printf(stream, " dyn_size_type;\n");
 
-                stream_printf(stream, "    static const int dyn_refer_start_pos = %d;\n", dyn_info.m_refer_start);
+                stream_printf(stream, "    static const int dyn_refer_start_pos = %d;\n", dyn_info.m_data.m_array.m_refer_start);
 
                 stream_printf(stream, "    static size_t data_size( ");
                 stream_toupper(stream, meta_name);
                 stream_printf(
                     stream, " const & o) { return sizeof(o) - sizeof(dyn_element_type) + sizeof(dyn_element_type) * o.%s; }\n",
-                    dr_meta_off_to_path(meta, dyn_info.m_refer_start, buf, sizeof(buf)));
+                    dr_meta_off_to_path(meta, dyn_info.m_data.m_array.m_refer_start, buf, sizeof(buf)));
             }
             else {
-                stream_printf(stream, "    static size_t data_size( ");
-                stream_toupper(stream, meta_name);
-                stream_printf(stream, " const & o) { return sizeof(o); }\n");
+                //no data_size function
             }
         }
         else {
-            stream_printf(stream, "    static size_t data_size( ");
-            stream_toupper(stream, meta_name);
-            stream_printf(stream, " const & o) { return sizeof(o); }\n");
+            char buf[256];
+            assert(dyn_info.m_type == dr_meta_dyn_info_type_union);
+
+            if (dyn_info.m_data.m_union.m_union_select_entry) {
+                LPDRMETA union_meta = dr_entry_ref_meta(dyn_info.m_data.m_union.m_union_entry);
+                int i;
+
+                stream_printf(stream, "    static size_t data_size( ");
+                stream_toupper(stream, meta_name);
+                stream_printf(stream, " const & o) {\n");
+
+                dr_meta_off_to_path(meta, dyn_info.m_data.m_union.m_union_select_start, buf, sizeof(buf));
+                stream_printf(stream, "        switch(o.%s) {\n", buf);
+
+                for(i = 0; i < dr_meta_entry_num(union_meta); ++i) {
+                    struct dr_meta_dyn_info sub_dyn_info;
+                    LPDRMETAENTRY union_member = dr_meta_entry_at(union_meta, i);
+                    LPDRMETA union_member_meta = dr_entry_ref_meta(union_member);
+
+                    if (union_member_meta == NULL) continue;
+                    if (dr_meta_type(union_member_meta) != CPE_DR_TYPE_STRUCT) continue;
+
+                    if (dr_meta_find_dyn_info(union_member_meta, &sub_dyn_info) != 0) continue;
+
+                    
+                    dr_meta_off_to_path(meta, dyn_info.m_data.m_union.m_union_start, buf, sizeof(buf));
+                    stream_printf(stream, "        case %d:\n", (int)dr_entry_id(union_member));
+                    stream_printf(stream, "            return MetaTraits<");
+                    stream_toupper(stream, dr_meta_name(union_member_meta));
+                    stream_printf(stream, ">::data_size(o.%s.%s);\n", buf, dr_entry_name(union_member));
+                }
+
+                stream_printf(stream, "        default:\n");
+                stream_printf(stream, "            return sizeof(o);\n");
+
+                stream_printf(stream, "        }\n"); /*end switch*/
+                stream_printf(stream, "}\n");
+            }
+            else {
+                //no data_size function
+            }
         }
 
+    PRINT_TRAITS_END:
         stream_printf(stream, "};\n\n");
     }
 

@@ -12,7 +12,7 @@
 #include "gd/app/app_module.h"
 #include "gd/app/app_context.h"
 #include "gd/dr_cvt/dr_cvt.h"
-#include "svr/center/center_agent.h"
+#include "svr/center/agent/center_agent.h"
 #include "center_agent_internal_ops.h"
 
 static void center_agent_clear(nm_node_t node);
@@ -26,9 +26,6 @@ center_agent_t
 center_agent_create(
     gd_app_context_t app,
     const char * name,
-    uint16_t svr_type,
-    uint16_t svr_id,
-    uint16_t port,
     mem_allocrator_t alloc,
     error_monitor_t em)
 {
@@ -46,45 +43,15 @@ center_agent_create(
     mgr->m_alloc = alloc;
     mgr->m_em = em;
     mgr->m_debug = 0;
-    mgr->m_svr_type = svr_type;
-    mgr->m_svr_id = svr_id;
 
     if (cpe_hash_table_init(
-            &mgr->m_groups,
+            &mgr->m_svr_types,
             alloc,
-            (cpe_hash_fun_t) center_agent_data_group_hash,
-            (cpe_hash_cmp_t) center_agent_data_group_eq,
-            CPE_HASH_OBJ2ENTRY(center_agent_data_group, m_hh),
+            (cpe_hash_fun_t) center_agent_svr_type_hash,
+            (cpe_hash_cmp_t) center_agent_svr_type_eq,
+            CPE_HASH_OBJ2ENTRY(center_agent_svr_type, m_hh),
             -1) != 0)
     {
-        nm_node_free(mgr_node);
-        return NULL;
-    }
-
-    if (cpe_hash_table_init(
-            &mgr->m_svrs,
-            alloc,
-            (cpe_hash_fun_t) center_agent_data_svr_hash,
-            (cpe_hash_cmp_t) center_agent_data_svr_eq,
-            CPE_HASH_OBJ2ENTRY(center_agent_data_svr, m_hh),
-            -1) != 0)
-    {
-        cpe_hash_table_fini(&mgr->m_groups);
-        nm_node_free(mgr_node);
-        return NULL;
-    }
-
-    if (center_agent_svr_init(mgr, &mgr->m_svr, port) != 0) {
-        cpe_hash_table_fini(&mgr->m_groups);
-        cpe_hash_table_fini(&mgr->m_svrs);
-        nm_node_free(mgr_node);
-        return NULL;
-    }
-
-    if (center_agent_center_init(mgr, &mgr->m_center) != 0) {
-        center_agent_svr_clear(&mgr->m_svr);
-        cpe_hash_table_fini(&mgr->m_groups);
-        cpe_hash_table_fini(&mgr->m_svrs);
         nm_node_free(mgr_node);
         return NULL;
     }
@@ -100,16 +67,10 @@ static void center_agent_clear(nm_node_t node) {
     center_agent_t mgr;
     mgr = (center_agent_t)nm_node_data(node);
 
-    center_agent_center_clear(&mgr->m_center);
-    center_agent_svr_clear(&mgr->m_svr);
+    center_agent_svr_type_free_all(mgr);
 
-    center_agent_data_svr_free_all(mgr);
-    center_agent_data_group_free_all(mgr);
-
-    assert(cpe_hash_table_count(&mgr->m_groups) == 0);
-    assert(cpe_hash_table_count(&mgr->m_svrs) == 0);
-    cpe_hash_table_fini(&mgr->m_groups);
-    cpe_hash_table_fini(&mgr->m_svrs);
+    assert(cpe_hash_table_count(&mgr->m_svr_types) == 0);
+    cpe_hash_table_fini(&mgr->m_svr_types);
 
     mem_buffer_clear(&mgr->m_dump_buffer);
 }
@@ -139,6 +100,8 @@ center_agent_find(gd_app_context_t app, cpe_hash_string_t name) {
 center_agent_t
 center_agent_find_nc(gd_app_context_t app, const char * name) {
     nm_node_t node;
+
+    if (name == NULL) name = "center_agent";
 
     node = nm_mgr_find_node_nc(gd_app_nm_mgr(app), name);
     if (node == NULL || nm_node_type(node) != &s_nm_node_type_center_agent) return NULL;
