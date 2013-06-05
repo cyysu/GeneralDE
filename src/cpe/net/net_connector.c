@@ -48,7 +48,9 @@ net_connector_create(
     connector->m_state = net_connector_state_disable;
     connector->m_monitors = NULL;
     connector->m_reconnect_span = 30.0;
-
+    connector->m_processing = 0;
+    connector->m_deleted = 0;
+    connector->m_unregisted = 0;
     connector->m_ep = NULL;
     cpe_hash_entry_init(&connector->m_hh);
 
@@ -65,12 +67,20 @@ net_connector_create(
 
 void net_connector_free(net_connector_t connector) {
     struct net_connector_monitor ** monitor;
+    net_ep_t ep;
 
     assert(connector);
     assert(connector->m_mgr);
+
+    if (connector->m_unregisted == 0) {
+        cpe_hash_table_remove_by_ins(&connector->m_mgr->m_connectors, connector);
+        connector->m_unregisted = 1;
+    }
+
     if (connector->m_ep) {
-        net_ep_free(connector->m_ep);
-        assert(connector->m_ep == NULL);
+        ep = connector->m_ep;
+        net_connector_unbind(ep->m_connector);
+        net_ep_free(ep);
     }
 
     monitor = &connector->m_monitors;
@@ -81,8 +91,13 @@ void net_connector_free(net_connector_t connector) {
         mem_free(connector->m_mgr->m_alloc, cur);
     }
 
-    cpe_hash_table_remove_by_ins(&connector->m_mgr->m_connectors, connector);
-    mem_free(connector->m_mgr->m_alloc, (void*)connector->m_name);
+    if (connector->m_processing) {
+        assert(!connector->m_deleted);
+        connector->m_deleted = 1;
+    }
+    else {
+        mem_free(connector->m_mgr->m_alloc, (void*)connector->m_name);
+    }
 }
 
 int net_connector_set_address(net_connector_t connector, const char * ip, short port) {
@@ -90,12 +105,29 @@ int net_connector_set_address(net_connector_t connector, const char * ip, short 
 
     if (connector->m_state != net_connector_state_disable) return -1;
 
-    inetAddr = (struct sockaddr_in *)(&connector->m_addr);
-    inetAddr->sin_family = AF_INET;
-    inetAddr->sin_port = htons(port);
-    inetAddr->sin_addr.s_addr = inet_addr(ip);
+    if (ip && ip[0] != 0) {
+        inetAddr = (struct sockaddr_in *)(&connector->m_addr);
+        inetAddr->sin_family = AF_INET;
+        inetAddr->sin_port = htons(port);
+        inetAddr->sin_addr.s_addr = inet_addr(ip);
+
+        strncpy(connector->m_ip, ip, sizeof(connector->m_ip));
+        connector->m_port = port;
+    }
+    else {
+        connector->m_ip[0] = 0;
+        connector->m_port = port;
+    }
 
     return 0;
+}
+
+const char * net_connector_ip(net_connector_t connector) {
+    return connector->m_ip;
+}
+
+short net_connector_port(net_connector_t connector) {
+    return connector->m_port;
 }
 
 net_connector_t
@@ -279,7 +311,7 @@ static void net_connector_do_connect_i(net_connector_t connector) {
     ep = connector->m_ep;
     assert(ep);
 
-    ep->m_fd = cpe_socket_open(AF_INET, SOCK_STREAM, 0);
+    ep->m_fd = cpe_sock_open(AF_INET, SOCK_STREAM, 0);
     if (ep->m_fd == -1) {
         CPE_ERROR(
             connector->m_mgr->m_em,
@@ -340,7 +372,7 @@ static void net_connector_check_connect_result(net_connector_t connector) {
 
     err_len = sizeof(err);
 
-    if (cpe_getsockopt(connector->m_ep->m_fd, SOL_SOCKET, SO_ERROR, &err, &err_len) == -1) {
+    if (cpe_getsockopt(connector->m_ep->m_fd, SOL_SOCKET, SO_ERROR, (void*)&err, &err_len) == -1) {
         CPE_ERROR(
             connector->m_mgr->m_em,
             "connector %s: check state, getsockopt error, errno=%d (%s)",
@@ -378,16 +410,28 @@ static void net_connector_io_cb_connect(EV_P_ ev_io *w, int revents) {
 
     old_state = connector->m_state;
 
+    connector->m_processing = 1;
+
     net_connector_check_connect_result(connector);
 
-    if (connector->m_state == net_connector_state_connected) {
-        net_connector_on_connected(connector);
-    }
-    else {
-        net_connector_cb_prepaire(connector);
+    if (!connector->m_deleted) {
+        if (connector->m_state == net_connector_state_connected) {
+            net_connector_on_connected(connector);
+        }
+        else {
+            net_connector_cb_prepaire(connector);
+        }
     }
 
-    net_connector_notify_state_change(connector, old_state);
+    if (!connector->m_deleted) {
+        net_connector_notify_state_change(connector, old_state);
+    }
+
+    connector->m_processing = 0;
+
+    if (connector->m_deleted) {
+        net_connector_free(connector);
+    }
 }
 
 static void net_connector_timer_cb_reconnect(EV_P_ ev_timer *w, int revents) {
@@ -402,16 +446,26 @@ static void net_connector_timer_cb_reconnect(EV_P_ ev_timer *w, int revents) {
     old_state = connector->m_state;
     connector->m_state = net_connector_state_idle;
     
-    net_connector_do_connect_i(connector);
+    connector->m_processing = 1;
 
-    if (connector->m_state == net_connector_state_connected) {
-        net_connector_on_connected(connector);
-    }
-    else {
-        net_connector_cb_prepaire(connector);
+    if (!connector->m_deleted) {
+        net_connector_do_connect_i(connector);
     }
 
-    net_connector_notify_state_change(connector, old_state);
+    if (!connector->m_deleted) {
+        if (connector->m_state == net_connector_state_connected) {
+            net_connector_on_connected(connector);
+        }
+        else {
+            net_connector_cb_prepaire(connector);
+        }
+    }
+
+    connector->m_processing = 0;
+
+    if (!connector->m_deleted) {
+        net_connector_notify_state_change(connector, old_state);
+    }
 }
 
 static void net_connector_cb_clear(net_connector_t connector) {
@@ -422,6 +476,10 @@ static void net_connector_cb_clear(net_connector_t connector) {
     else if (connector->m_state == net_connector_state_error) {
         ev_timer_stop(connector->m_mgr->m_ev_loop, &connector->m_timer);
         connector->m_state = net_connector_state_idle;
+    }
+
+    if (connector->m_deleted) {
+        net_connector_free(connector);
     }
 }
 
@@ -455,7 +513,13 @@ static void net_connector_do_connect(net_connector_t connector) {
         net_connector_cb_prepaire(connector);
     }
 
+    connector->m_processing = 1;
     net_connector_notify_state_change(connector, old_state);
+    connector->m_processing = 0;
+
+    if (connector->m_deleted) {
+        net_connector_free(connector);
+    }
 }
 
 int net_connector_enable(net_connector_t connector) {
@@ -465,6 +529,11 @@ int net_connector_enable(net_connector_t connector) {
             connector->m_mgr->m_em,
             "connector %s: can`t enable for no ep binded!",
             connector->m_name);
+        return -1;
+    }
+
+    if (connector->m_ip[0] == 0) {
+        CPE_ERROR(connector->m_mgr->m_em, "connector %s: address not set!", connector->m_name);
         return -1;
     }
 
@@ -520,7 +589,7 @@ const char * net_connector_state_str(net_connector_state_t state) {
     case net_connector_state_connected:
         return "net_connector_state_connected";
     case net_connector_state_error:
-        return "net_connector_state_connected";
+        return "net_connector_state_error";
     default:
         return "net_connector_state_unknown";
     }

@@ -80,7 +80,7 @@ int cpe_sock_set_reuseaddr(int fd, int is_reuseaddr) {
 
     flag = is_reuseaddr ? TRUE : FALSE;
     //return setsockopt(fd,  SOL_SOCKET, SO_EXCLUSIVEADDRUSE, &flag, sizeof(flag));
-    return setsockopt(_get_osfhandle(fd),  SOL_SOCKET, SO_REUSEADDR, &flag, sizeof(flag));
+    return setsockopt(_get_osfhandle(fd),  SOL_SOCKET, SO_REUSEADDR, (const char *)&flag, sizeof(flag));
 #else
 	int opt = is_reuseaddr;
 	return setsockopt( fd , SOL_SOCKET , SO_REUSEADDR , &opt , sizeof(opt) );
