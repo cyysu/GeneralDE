@@ -25,6 +25,7 @@ void gd_app_set_alloc(gd_app_context_t context, mem_allocrator_t alloc);
 /*arg operations*/
 int gd_app_argc(gd_app_context_t context);
 char ** gd_app_argv(gd_app_context_t context);
+const char * gd_app_arg_find(gd_app_context_t context, const char * arg_name);
 int gd_app_add_arg(gd_app_context_t context, char * arg);
 
 /*basic suupport operations*/
