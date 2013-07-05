@@ -86,6 +86,32 @@ char ** gd_app_context_argv(gd_app_context_t context) {
     return context->m_argv;
 }
 
+const char * gd_app_arg_find(gd_app_context_t context, const char * arg_name) {
+    int i;
+    int arg_name_len = strlen(arg_name);
+
+    for(i = 1; i < context->m_argc; ++i) {
+        char * p;
+
+        p = strstr(context->m_argv[i], arg_name);
+        if (p != context->m_argv[i]) continue;
+
+        if (p[arg_name_len] == 0) {
+            if ((i + 1) < context->m_argc) {
+                return context->m_argv[i + 1];
+            }
+            else {
+                return NULL;
+            }
+        }
+        else if (p[arg_name_len] == '=') {
+            return p + arg_name_len + 1;
+        }
+    }
+
+    return NULL;
+}
+
 void * gd_app_context_user_data(gd_app_context_t context) {
     return (void*)(context + 1);
 }
