@@ -2,6 +2,8 @@
 #include "cpe/pal/pal_platform.h"
 #include "cpe/pal/pal_string.h"
 #include "cpe/pal/pal_socket.h"
+#include "cpe/utils/buffer.h"
+#include "cpe/utils/stream_buffer.h"
 #include "gd/app/app_context.h"
 #include "usf/mongo_driver/mongo_driver.h"
 #include "usf/mongo_driver/mongo_pkg.h"
@@ -117,15 +119,23 @@ void mongo_server_rw_cb(EV_P_ ev_io *w, int revents) {
         }
     }
 
+    if (driver->m_debug >= 3) {
+        CPE_INFO(
+            driver->m_em, "%s: server %s.%d: dump buff info: %s",
+            mongo_driver_name(driver), server->m_ip, server->m_port,
+            ringbuffer_dump(&driver->m_dump_buffer, driver->m_ringbuf));
+    }
+
     ev_io_stop(driver->m_ev_loop, &server->m_watcher);
     mongo_server_start_watch(server);
 }
 
-static void * mongo_server_merge_rb(mongo_driver_t driver, mongo_server_t server, int total_data_len) {
+static void * mongo_server_merge_rb(mongo_driver_t driver, mongo_server_t server) {
     ringbuffer_block_t new_blk;
     void * buf;
-
-    if (mongo_server_alloc(&new_blk, driver, server, total_data_len) != 0) return NULL;
+    int length = ringbuffer_block_total_len(driver->m_ringbuf, server->m_rb);
+    
+    if (mongo_server_alloc(&new_blk, driver, server, length) != 0) return NULL;
     assert(new_blk);
 
     buf = ringbuffer_copy(driver->m_ringbuf, server->m_rb, 0, new_blk);
@@ -200,7 +210,7 @@ static int mongo_server_process_data(mongo_driver_t driver, mongo_server_t serve
         if (received_data_len < sizeof(uint32_t)) return 0; /*缓存数据不够读取包长度 */
 
          /*数据主够读取包的大小，但是头块太小，无法保存数据头，提前合并一次数据 */
-        if (buf == NULL) buf = mongo_server_merge_rb(driver, server, received_data_len);
+        if (buf == NULL) buf = mongo_server_merge_rb(driver, server);
         if (buf == NULL) return -1;
 
         read_pos = 0;
@@ -209,12 +219,13 @@ static int mongo_server_process_data(mongo_driver_t driver, mongo_server_t serve
         MONGO_BUF_READ_32(total_len, "total_len");
 
         received_data_len = ringbuffer_data(driver->m_ringbuf, server->m_rb, total_len, 0, &buf);
+
         if (total_len > (uint32_t)received_data_len) return 0; /*数据包不完整 */
         
         /*确保获取完整的数据包 */
         ringbuffer_data(driver->m_ringbuf, server->m_rb, total_len, 0, &buf);
         /*完整的数据包不在一个块内 */
-        if (buf == NULL) buf = mongo_server_merge_rb(driver, server, total_len);
+        if (buf == NULL) buf = mongo_server_merge_rb(driver, server);
         if (buf == NULL) return -1;
 
         if (pkg == NULL) {
@@ -323,7 +334,14 @@ static int mongo_server_process_data(mongo_driver_t driver, mongo_server_t serve
         mongo_server_fsm_apply_recv_pkg(server, pkg);
 
         /*移除已经获取的数据 */
-        if (server->m_rb) server->m_rb = ringbuffer_yield(driver->m_ringbuf, server->m_rb, total_len);
+        assert(server->m_rb);
+        server->m_rb = ringbuffer_yield(driver->m_ringbuf, server->m_rb, total_len);
+
+        if (driver->m_debug >= 3) {
+            CPE_INFO(
+                driver->m_em, "%s: server %s.%d: yield %d bytes",
+                mongo_driver_name(driver), server->m_ip, server->m_port, total_len);
+        }
     }
 
     return 0;
