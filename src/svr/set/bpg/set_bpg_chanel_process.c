@@ -80,6 +80,14 @@ DECODE_PKG:
         dp_req_set_buf(body, dp_req_data(chanel->m_incoming_buf), dp_req_capacity(chanel->m_incoming_buf));
         dp_req_set_size(body, dp_req_size(chanel->m_incoming_buf));
 
+        if (chanel->m_debug) {
+            CPE_INFO(
+                chanel->m_em,
+                "%s: <== recv one bpg request\n%s",
+                set_bpg_chanel_name(chanel),
+                bpg_pkg_dump(body, &chanel->m_dump_buffer));
+        }
+
         rv = dp_dispatch_by_string(chanel->m_incoming_dispatch_to, body, em);
 
         dp_req_set_parent(bpg_pkg_to_dp_req(chanel->m_bpg_head), NULL);
@@ -96,6 +104,14 @@ int set_bpg_chanel_outgoing_recv(dp_req_t body, void * ctx, error_monitor_t em) 
     dr_cvt_result_t encode_rv;
     size_t buf_size;
     dp_req_t input_head;
+
+    if (chanel->m_debug) {
+        CPE_INFO(
+            chanel->m_em,
+            "%s: ==> send one bpg response\n%s",
+            set_bpg_chanel_name(chanel),
+            bpg_pkg_dump(body, &chanel->m_dump_buffer));
+    }
 
     input_head = set_pkg_head_find(body);
     if (input_head == NULL) {

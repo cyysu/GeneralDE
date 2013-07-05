@@ -18,5 +18,11 @@ set_svr_stub_find_dispatch_info(set_svr_stub_t svr, uint16_t svr_type);
 
 int set_svr_stub_outgoing_recv(dp_req_t req, void * ctx, error_monitor_t em);
 ptr_int_t set_svr_stub_tick(void * ctx, ptr_int_t arg);
+void set_svr_stub_set_chanel(set_svr_stub_t svr, set_chanel_t chanel);
+
+int set_svr_stub_write_pidfile(set_svr_stub_t svr, const char * pidfile);
+
+/*app operations*/
+int set_svr_app_run(gd_app_context_t ctx, void * user_ctx);
 
 #endif

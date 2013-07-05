@@ -2,6 +2,7 @@
 #include "cpe/pal/pal_external.h"
 #include "cpe/cfg/cfg_read.h"
 #include "cpe/utils/string_utils.h"
+#include "cpe/dr/dr_metalib_manage.h"
 #include "gd/app/app_context.h"
 #include "gd/app/app_module.h"
 #include "gd/dr_store/dr_store_manage.h"
