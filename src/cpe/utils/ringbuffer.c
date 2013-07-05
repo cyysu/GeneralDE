@@ -3,6 +3,7 @@
 #include "cpe/pal/pal_stdlib.h"
 #include "cpe/pal/pal_string.h"
 #include "cpe/utils/ringbuffer.h"
+#include "cpe/utils/stream_buffer.h"
 
 #define ALIGN(s) (((s) + 3 ) & ~3)
 
@@ -215,6 +216,18 @@ ringbuffer_block_data(ringbuffer_t rb, ringbuffer_block_t blk, int skip, void **
     }
 }
 
+int ringbuffer_block_total_len(ringbuffer_t rb, ringbuffer_block_t blk) {
+	int length;
+    length = blk->length - sizeof(struct ringbuffer_block) - blk->offset;
+    while (blk->next >= 0) {
+        blk = block_ptr(rb, blk->next);
+        assert(blk->offset == 0);
+        length += blk->length - sizeof(struct ringbuffer_block);
+    }
+
+    return length;
+}
+
 int
 ringbuffer_data(ringbuffer_t rb, ringbuffer_block_t blk, int size, int skip, void **ptr) {
 	int length = blk->length - sizeof(struct ringbuffer_block) - blk->offset;
@@ -233,7 +246,7 @@ ringbuffer_data(ringbuffer_t rb, ringbuffer_block_t blk, int size, int skip, voi
 				blk = block_ptr(rb, blk->next);
 				ret += blk->length - sizeof(struct ringbuffer_block);
 				if (ret >= size)
-					return size;
+					return ret;
 			}
 			return ret;
 		}
@@ -300,28 +313,44 @@ ringbuffer_yield(ringbuffer_t rb, ringbuffer_block_t blk, int skip) {
 	}
 }
 
-void ringbuffer_dump(write_stream_t s, ringbuffer_t rb) {
-	ringbuffer_block_t blk = block_ptr(rb,0);
-	int i = 0;
+void ringbuffer_dump_i(write_stream_t s, ringbuffer_t rb) {
+    if (rb) {
+        ringbuffer_block_t blk = block_ptr(rb,0);
+        int i = 0;
 
-	stream_printf(s, "total size= %d\n",rb->size);
-	while (blk) {
-		++i;
-		if (i > 1024) break;
+        stream_printf(s, "total size= %d\n",rb->size);
+        while (blk) {
+            ++i;
+            if (i > 1024) break;
 
-		if (blk->length >= sizeof(*blk)) {
-			stream_printf(s, "[%u : %d]", (unsigned)(blk->length - sizeof(*blk)), block_offset(rb,blk));
-			stream_printf(s, " id=%d",blk->id);
-			if (blk->id >=0) {
-				stream_printf(s, " offset=%d next=%d",blk->offset, blk->next);
-			}
-		}
-        else {
-			stream_printf(s, "<%u : %d>", blk->length, block_offset(rb,blk));
-		}
+            if (blk->length >= sizeof(*blk)) {
+                stream_printf(s, "[%u : %d]", (unsigned)(blk->length - sizeof(*blk)), block_offset(rb,blk));
+                stream_printf(s, " id=%d",blk->id);
+                if (blk->id >=0) {
+                    stream_printf(s, " offset=%d next=%d",blk->offset, blk->next);
+                }
+            }
+            else {
+                stream_printf(s, "<%u : %d>", blk->length, block_offset(rb,blk));
+            }
 
-		stream_printf(s, "\n");
+            stream_printf(s, " ");
 
-		blk = block_next(rb, blk);
-	}
+            blk = block_next(rb, blk);
+        }
+    }
+    else {
+        stream_printf(s, "rb null");
+    }
+}
+
+const char * ringbuffer_dump(mem_buffer_t buffer, ringbuffer_t rb) {
+    struct write_stream_buffer s = CPE_WRITE_STREAM_BUFFER_INITIALIZER(buffer);
+    mem_buffer_clear_data(buffer);
+
+    ringbuffer_dump_i((write_stream_t)&s, rb);
+
+    mem_buffer_append_char(buffer, 0);
+
+    return mem_buffer_make_continuous(buffer, 0);
 }

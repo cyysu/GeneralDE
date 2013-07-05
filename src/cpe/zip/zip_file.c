@@ -21,17 +21,17 @@ cpe_unzip_context_create(const char * path, mem_allocrator_t alloc, error_monito
         return NULL;
     }
 
-    r->m_zip_file = unzOpen64(path);
+    r->m_zip_file = cpe_unzOpen64(path);
     if (r == NULL) {
         CPE_ERROR(em, "cpe_unzip_context_create: open zip file %s fail!", path);
         mem_free(alloc, r);
         return NULL;
     }
 
-    rv = unzGetGlobalInfo64(r->m_zip_file, &r->m_global_info);
+    rv = cpe_unzGetGlobalInfo64(r->m_zip_file, &r->m_global_info);
     if (rv != UNZ_OK) {
         CPE_ERROR(em, "cpe_unzip_context_create: zip file %s: get global info fail!", path);
-        unzClose(r->m_zip_file);
+        cpe_unzClose(r->m_zip_file);
         mem_free(alloc, r);
         return NULL;
     }
@@ -50,7 +50,7 @@ cpe_unzip_context_create(const char * path, mem_allocrator_t alloc, error_monito
 
 void cpe_unzip_context_free(cpe_unzip_context_t unzc) {
     if (unzc->m_root) cpe_unzip_dir_free(unzc->m_root);
-    unzClose(unzc->m_zip_file);
+    cpe_unzClose(unzc->m_zip_file);
     mem_free(unzc->m_alloc, unzc);
 }
 
@@ -184,7 +184,7 @@ ssize_t cpe_unzip_file_load_to_buffer(mem_buffer_t buffer, cpe_unzip_file_t zf, 
 
     assert(buf == mem_buffer_make_continuous(buffer, 0));
 
-    r = unzReadCurrentFile(zf->m_context->m_zip_file, buf + start, len);
+    r = cpe_unzReadCurrentFile(zf->m_context->m_zip_file, buf + start, len);
     assert(r == len);
     
     return len;
@@ -198,14 +198,14 @@ ssize_t cpe_unzip_file_load_to_buf(char * buf, size_t size, cpe_unzip_file_t zf,
         return -1;
     }
 
-    read_size = unzReadCurrentFile(zf->m_context->m_zip_file, buf, size);
+    read_size = cpe_unzReadCurrentFile(zf->m_context->m_zip_file, buf, size);
     if (read_size < 0) {
         CPE_ERROR(em, "cpe_unzip_file_load_to_buf: read fail!");
-        unzCloseCurrentFile(zf->m_context->m_zip_file);
+        cpe_unzCloseCurrentFile(zf->m_context->m_zip_file);
         return -1;
     }
 
-    unzCloseCurrentFile(zf->m_context->m_zip_file);
+    cpe_unzCloseCurrentFile(zf->m_context->m_zip_file);
     return read_size;
 }
 
@@ -223,14 +223,14 @@ static int cpe_unzip_file_open(cpe_unzip_file_t zf, error_monitor_t em) {
         return -1;
     }
 
-    rv = unzLocateFile(zf->m_context->m_zip_file, path, 0);
+    rv = cpe_unzLocateFile(zf->m_context->m_zip_file, path, 0);
     if (rv != UNZ_OK) {
         CPE_ERROR(em, "cpe_unzip_file_load_to_buf: zip file %s: locate file fail!", path);
         mem_buffer_clear(&name_buffer);
         return -1;
     }
 
-    rv = unzOpenCurrentFile(zf->m_context->m_zip_file);
+    rv = cpe_unzOpenCurrentFile(zf->m_context->m_zip_file);
     if (rv != UNZ_OK) {
         CPE_ERROR(em, "cpe_unzip_file_load_to_buf: zip file %s: open zip fail!", path);
         mem_buffer_clear(&name_buffer);
@@ -329,7 +329,7 @@ static int cpe_unzip_context_build(cpe_unzip_context_t context, error_monitor_t 
         return -1;
     }
 
-    err = unzGoToFirstFile(context->m_zip_file);
+    err = cpe_unzGoToFirstFile(context->m_zip_file);
     if (err != UNZ_OK) {
         CPE_ERROR(em, "cpe_unzip_context_build: unzGoToFirstFile error, error=%d", err);
         return -1;
@@ -342,7 +342,7 @@ static int cpe_unzip_context_build(cpe_unzip_context_t context, error_monitor_t 
         char * start;
         char * end;
 
-        err = unzGetCurrentFileInfo64(context->m_zip_file, &file_info, filename_inzip, sizeof(filename_inzip), NULL, 0, NULL, 0);
+        err = cpe_unzGetCurrentFileInfo64(context->m_zip_file, &file_info, filename_inzip, sizeof(filename_inzip), NULL, 0, NULL, 0);
         if (err != UNZ_OK) {
             CPE_ERROR(em, "cpe_unzip_context_build: unzGetCurrentFileInfo error, error=%d", err);
             return -1;
@@ -366,7 +366,7 @@ static int cpe_unzip_context_build(cpe_unzip_context_t context, error_monitor_t 
         }
 
         if ((i + 1) < context->m_global_info.number_entry) {
-            err = unzGoToNextFile(context->m_zip_file);
+            err = cpe_unzGoToNextFile(context->m_zip_file);
             if (err != UNZ_OK) {
                 CPE_ERROR(em, "cpe_unzip_context_build: unzGoToNextFile error, error=%d",err);
                 return -1;

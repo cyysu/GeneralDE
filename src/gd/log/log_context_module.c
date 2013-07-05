@@ -215,11 +215,18 @@ static int log_context_app_init_categories(struct log_context * ctx, cfg_t cfg) 
 }
 
 static int log_context_app_init_appender_rollingfile(struct log_context * context, log4c_appender_t * appender, cfg_t cfg) {
-    const char * log_dir = cfg_get_string(cfg, "dir", NULL);
+    const char * log_dir;
     const char * log_prefix = cfg_get_string(cfg, "prefix", NULL);
     const char * rollingpolicy_name = cfg_get_string(cfg, "policy", NULL);
     struct mem_buffer buffer;
-    rollingfile_udata_t * udata = rollingfile_make_udata();
+    rollingfile_udata_t * udata;
+
+    log_dir = gd_app_arg_find(context->m_app, "--log-dir");
+    if (log_dir == NULL) {
+        log_dir = cfg_get_string(cfg, "dir", NULL);
+    }
+
+    udata = rollingfile_make_udata();
     if (udata == NULL) {
         CPE_ERROR(context->m_em, "%s: create append rollingfile: create udata fail!", log_context_name(context));
         return -1;
