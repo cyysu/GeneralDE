@@ -60,7 +60,7 @@ void set_svr_router_free_all(set_svr_t svr) {
     cpe_hash_it_init(&router_it, &svr->m_routers_by_addr);
 
     router = cpe_hash_it_next(&router_it);
-    while(svr) {
+    while(router) {
         set_svr_router_t next = cpe_hash_it_next(&router_it);
         set_svr_router_free(router);
         router = next;

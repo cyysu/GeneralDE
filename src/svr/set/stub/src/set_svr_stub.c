@@ -50,6 +50,8 @@ set_svr_stub_create(
     svr->m_em = em;
     svr->m_debug = 0;
     svr->m_agent = agent;
+    svr->m_pidfile_fd = -1;
+
     svr->m_svr_type = svr_type;
     svr->m_svr_id = svr_id;
     svr->m_process_count_per_tick = 10;
@@ -62,12 +64,7 @@ set_svr_stub_create(
 
     svr->m_incoming_buf = NULL;
 
-    svr->m_chanel = set_repository_chanel_open(app, center_agent_svr_type_name(svr_type), svr_id, em);
-    if (svr->m_chanel == NULL) {
-        CPE_ERROR(em, "%s: create: open chanel fail!", name);
-        nm_node_free(mgr_node);
-        return NULL;
-    }
+    svr->m_chanel = NULL;
 
     if (gd_app_tick_add(app, set_svr_stub_tick, svr, 0) != 0) {
         CPE_ERROR(em, "%s: create: add tick fail!", name);
@@ -88,6 +85,11 @@ static void set_svr_stub_clear(nm_node_t node) {
     set_svr_stub_t svr;
 
     svr = (set_svr_stub_t)nm_node_data(node);
+
+    if (svr->m_pidfile_fd == -1) {
+        close(svr->m_pidfile_fd);
+        svr->m_pidfile_fd = -1;
+    }
 
     gd_app_tick_remove(svr->m_app, set_svr_stub_tick, svr);
 
@@ -179,6 +181,10 @@ cpe_hash_string_t set_svr_stub_name_hs(set_svr_stub_t mgr) {
 
 cpe_hash_string_t set_svr_stub_request_dispatch_to(set_svr_stub_t svr) {
     return svr->m_request_dispatch_to;
+}
+
+void set_svr_stub_set_chanel(set_svr_stub_t svr, set_chanel_t chanel) {
+    svr->m_chanel = chanel;
 }
 
 int set_svr_stub_set_request_dispatch_to(set_svr_stub_t svr, const char * request_dispatch_to) {
@@ -313,4 +319,52 @@ struct set_svr_stub_dispach_info * set_svr_stub_find_dispatch_info_check_create(
     }
 
     return &svr->m_dispatch_infos[svr_type];
+}
+
+int set_svr_stub_write_pidfile(set_svr_stub_t svr, const char * pidfile) {
+    char buf[16];  
+  
+    /* 打开放置记录锁的文件 */
+    svr->m_pidfile_fd = open(pidfile, O_RDWR | O_CREAT, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);  
+    if (svr->m_pidfile_fd < 0) {  
+        CPE_ERROR(
+            svr->m_em, "%s: write pidfile: can`t open %s, error=%d (%s)!",
+            set_svr_stub_name(svr), pidfile, errno, strerror(errno));
+        return -1;
+    }  
+
+    /*试图对文件fd加锁，*/
+    svr->m_pidfile_lock.l_type = F_WRLCK;  
+    svr->m_pidfile_lock.l_start = 0;  
+    svr->m_pidfile_lock.l_whence = SEEK_SET;  
+    svr->m_pidfile_lock.l_len = 0;  
+
+    if (fcntl(svr->m_pidfile_fd, F_SETLK, &svr->m_pidfile_lock) < 0) {      /*如果加锁失败的话 */
+        /* 如果是因为权限不够或资源暂时不可用，则返回1  */
+        if (EACCES == errno || EAGAIN == errno) {  
+            CPE_ERROR(
+                svr->m_em, "%s: write pidfile: can`t lock %s, error=%d (%s)!",
+                set_svr_stub_name(svr), pidfile, errno, strerror(errno));
+
+            close(svr->m_pidfile_fd);
+            svr->m_pidfile_fd = -1;
+            return -1;
+        }
+        else {
+            CPE_ERROR(
+                svr->m_em, "%s: write pidfile: can`t lock %s, error=%d (%s)!",
+                set_svr_stub_name(svr), pidfile, errno, strerror(errno));
+
+            close(svr->m_pidfile_fd);
+            svr->m_pidfile_fd = -1;
+            return -1;
+        }
+    }  
+  
+    /* 先将文件fd清空，然后再向其中写入当前的进程号 */
+    ftruncate(svr->m_pidfile_fd, 0);
+    snprintf(buf, sizeof(buf), "%d", (int)getpid());
+    write(svr->m_pidfile_fd, buf, strlen(buf));
+
+    return 0;
 }
