@@ -21,18 +21,14 @@ static gd_app_context_t g_main_app_context = NULL;
 
 static int gd_app_parse_args(gd_app_context_t context, int argc, char * argv[]) {
     int i;
+    const char * value;
 
-    for(i = 0; i < argc;) {
-        char * arg = argv[i];
+    for(i = 0; i < argc; ++i) {
+        if (gd_app_add_arg(context, argv[i]) != 0) return -1;
+    }
 
-        if (strstr(arg, "--root=") == arg) {
-            context->m_root = strdup(arg + strlen("--root="));
-            ++i;
-        }
-        else {
-            if (gd_app_add_arg(context, arg) != 0) return -1;
-            ++i;
-        }
+    if ((value = gd_app_arg_find(context, "--root"))) {
+        context->m_root = strdup(value);
     }
 
     return 0;
