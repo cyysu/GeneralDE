@@ -7,9 +7,6 @@
 extern "C" {
 #endif
 
-set_chanel_t set_chanel_init(void * buf, uint32_t capacity, uint32_t read_queu_size, uint32_t write_queue_size);
-set_chanel_t set_chanel_attach(void * buf, uint32_t capacity);
-
 int set_chanel_r_write(set_chanel_t chanel, dp_req_t body, size_t * size);
 int set_chanel_r_peak(set_chanel_t chanel, dp_req_t body);
 int set_chanel_r_erase(set_chanel_t chanel);

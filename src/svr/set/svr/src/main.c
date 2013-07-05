@@ -51,20 +51,26 @@ int main(int argc, char * argv[]) {
 
     /*run*/
     struct arg_rex  * run = arg_rex1(NULL, NULL, "run", NULL, 0, NULL);
+    struct arg_str  * run_set_type = arg_str1(NULL, "set-type", NULL, "set type name");
+    struct arg_int  * run_set_id = arg_int1(NULL, "set-id", NULL, "set id");
     struct arg_end  * run_end = arg_end(20);
-    void* run_argtable[] = { run, run_end };
+    void* run_argtable[] = { run, run_set_type, run_set_id, run_end };
     int run_nerrors;
 
     /*start service*/
     struct arg_rex  * start = arg_rex1(NULL, NULL, "start", NULL, 0, NULL);
+    struct arg_str  * start_set_type = arg_str1(NULL, "set-type", NULL, "set type name");
+    struct arg_int  * start_set_id = arg_int1(NULL, "set-id", NULL, "set id");
     struct arg_end  * start_end = arg_end(20);
-    void* start_argtable[] = { start, start_end };
+    void* start_argtable[] = { start, start_set_type, start_set_id, start_end };
     int start_nerrors;
 
     /*stop service*/
     struct arg_rex  * stop = arg_rex1(NULL, NULL, "stop", NULL, 0, NULL);
+    struct arg_str  * stop_set_type = arg_str1(NULL, "set-type", NULL, "set type name");
+    struct arg_int  * stop_set_id = arg_int1(NULL, "set-id", NULL, "set id");
     struct arg_end  * stop_end = arg_end(20);
-    void* stop_argtable[] = { stop, stop_end };
+    void* stop_argtable[] = { stop, stop_set_type, stop_set_id, stop_end };
     int stop_nerrors;
 
     /*common*/

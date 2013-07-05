@@ -31,7 +31,6 @@ void set_svr_center_rw_cb(EV_P_ ev_io *w, int revents) {
 
         for(;;) {
             int bytes = cpe_recv(center->m_fd, buffer, center->m_read_block_size, 0);
-            printf("read %d bytes\n", bytes);
             if (bytes > 0) {
                 if (svr->m_debug >= 2) {
                     CPE_INFO(
@@ -126,16 +125,17 @@ void set_svr_center_rw_cb(EV_P_ ev_io *w, int revents) {
     set_svr_center_start_watch(center);
 }
 
-static void * set_svr_center_merge_rb(set_svr_center_t center, int total_data_len) {
+static void * set_svr_center_merge_rb(set_svr_center_t center) {
     set_svr_t svr = center->m_svr;
+    int length = ringbuffer_block_total_len(svr->m_ringbuf, center->m_rb);
     ringbuffer_block_t new_blk;
     void * buf;
 
-    new_blk = set_svr_ringbuffer_alloc(svr, total_data_len, center->m_conn_id);
+    new_blk = set_svr_ringbuffer_alloc(svr, length, center->m_conn_id);
     if (new_blk == NULL) {
         CPE_ERROR(
             svr->m_em, "%s: center: recv: not enouth ringbuf, len=%d!",
-            set_svr_name(svr), (int)total_data_len);
+            set_svr_name(svr), (int)length);
         set_svr_center_apply_evt(center, set_svr_center_fsm_evt_disconnected);
         return NULL;
     }
@@ -224,7 +224,7 @@ static int set_svr_center_process_data(set_svr_center_t center) {
         if (received_data_len < sizeof(pkg_data_len)) return 0; /*缓存数据不够读取包长度*/
 
          /*数据主够读取包的大小，但是头块太小，无法保存数据头，提前合并一次数据*/
-        if (buf == NULL) buf = set_svr_center_merge_rb(center, received_data_len);
+        if (buf == NULL) buf = set_svr_center_merge_rb(center);
         if (buf == NULL) return -1;
 
         CPE_COPY_HTON32(&pkg_data_len, buf);
@@ -236,7 +236,7 @@ static int set_svr_center_process_data(set_svr_center_t center) {
         ringbuffer_data(svr->m_ringbuf, center->m_rb, pkg_data_len, 0, &buf);
 
         /*完整的数据包不在一个块内*/
-        if (buf == NULL) buf = set_svr_center_merge_rb(center, received_data_len);
+        if (buf == NULL) buf = set_svr_center_merge_rb(center);
         if (buf == NULL) return -1;
 
         /*解包并移除已经获取的数据*/

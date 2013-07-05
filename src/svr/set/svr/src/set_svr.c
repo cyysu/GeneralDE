@@ -11,6 +11,7 @@
 #include "gd/app/app_context.h"
 #include "gd/dr_cvt/dr_cvt.h"
 #include "set_svr_ops.h"
+#include "set_svr_mon_ops.h"
 #include "set_svr_center_ops.h"
 #include "set_svr_router_ops.h"
 
@@ -26,6 +27,7 @@ set_svr_t
 set_svr_create(
     gd_app_context_t app,
     const char * name,
+    const char * repository_root, const char * set_type, uint16_t set_id,
     mem_allocrator_t alloc,
     error_monitor_t em)
 {
@@ -43,8 +45,12 @@ set_svr_create(
     svr->m_alloc = alloc;
     svr->m_em = em;
     svr->m_debug = 0;
+
+    strncpy(svr->m_repository_root, repository_root, sizeof(svr->m_repository_root));
+    strncpy(svr->m_set_type, set_type, sizeof(svr->m_set_type));
+    svr->m_set_id = set_id;
+
     svr->m_ringbuf = NULL;
-    svr->m_local_search_timer_id = GD_TIMER_ID_INVALID;
     svr->m_ev_loop = net_mgr_ev_loop(gd_app_net_mgr(app));
     svr->m_incoming_buf = NULL;
 
@@ -139,6 +145,18 @@ set_svr_create(
         return NULL;
     }
 
+    svr->m_mon = set_svr_mon_create(svr);
+    if (svr->m_mon == NULL) {
+        cpe_hash_table_fini(&svr->m_svr_types_by_id);
+        cpe_hash_table_fini(&svr->m_svr_types_by_name);
+        cpe_hash_table_fini(&svr->m_svrs);
+        cpe_hash_table_fini(&svr->m_routers_by_id);
+        cpe_hash_table_fini(&svr->m_routers_by_addr);
+        set_svr_center_free(svr->m_center);
+        nm_node_free(svr_node);
+        return NULL;
+    }
+
     svr->m_router_conn_fsm_def = set_svr_router_conn_create_fsm_def("router_conn_fsm", alloc, em);
     if (svr->m_router_conn_fsm_def == NULL) {
         CPE_ERROR(em, "%s: create: create router_conn_fsm_def fail!", name);
@@ -148,6 +166,7 @@ set_svr_create(
         cpe_hash_table_fini(&svr->m_routers_by_id);
         cpe_hash_table_fini(&svr->m_routers_by_addr);
         set_svr_center_free(svr->m_center);
+        set_svr_mon_free(svr->m_mon);
         nm_node_free(svr_node);
         return NULL;
     }
@@ -160,6 +179,7 @@ set_svr_create(
         cpe_hash_table_fini(&svr->m_routers_by_id);
         cpe_hash_table_fini(&svr->m_routers_by_addr);
         set_svr_center_free(svr->m_center);
+        set_svr_mon_free(svr->m_mon);
         fsm_def_machine_free(svr->m_router_conn_fsm_def);
         nm_node_free(svr_node);
         return NULL;
@@ -178,7 +198,6 @@ static void set_svr_clear(nm_node_t node) {
     set_svr_t svr;
     svr = (set_svr_t)nm_node_data(node);
 
-    set_svr_stop_local_search_timer(svr);
     gd_app_tick_remove(svr->m_app, set_svr_dispatch_tick, svr);
 
     while(!TAILQ_EMPTY(&svr->m_accept_router_conns)) {
@@ -199,6 +218,11 @@ static void set_svr_clear(nm_node_t node) {
     if (svr->m_center) {
         set_svr_center_free(svr->m_center);
         svr->m_center = NULL;
+    }
+
+    if (svr->m_mon) {
+        set_svr_mon_free(svr->m_mon);
+        svr->m_mon = NULL;
     }
 
     if (svr->m_ringbuf) {
@@ -226,52 +250,6 @@ int set_svr_set_ringbuf_size(set_svr_t svr, size_t capacity) {
     svr->m_ringbuf = ringbuffer_new(capacity);
     if (svr->m_ringbuf == NULL) return -1;
     return 0;
-}
-
-void set_svr_do_local_search(void * ctx, gd_timer_id_t timer_id, void * arg) {
-    set_svr_t svr = ctx;
-    if (set_svr_svr_search(svr) != 0) {
-        CPE_ERROR(svr->m_em, "%s: local search: fail!", set_svr_name(svr));
-    }
-    else {
-        if (svr->m_debug >= 2) {
-            CPE_ERROR(svr->m_em, "%s: local search: complete!", set_svr_name(svr));
-        }
-    }
-}
-
-int set_svr_start_local_search_timer(set_svr_t svr, tl_time_span_t span) {
-    gd_timer_mgr_t timer_mgr = gd_timer_mgr_default(svr->m_app);
-    if (timer_mgr == NULL) {
-        CPE_ERROR(svr->m_em, "%s: start local search timer: get default timer manager fail!", set_svr_name(svr));
-        return -1;
-    }
-
-    assert(svr->m_local_search_timer_id == GD_TIMER_ID_INVALID);
-
-    if (gd_timer_mgr_regist_timer(timer_mgr, &svr->m_local_search_timer_id, set_svr_do_local_search, svr, NULL, NULL, 0, span, -1) != 0) {
-        assert(svr->m_local_search_timer_id == GD_TIMER_ID_INVALID);
-        CPE_ERROR(svr->m_em, "%s: start local search timer: regist timer fail!", set_svr_name(svr));
-        return -1;
-    }
-
-    assert(svr->m_local_search_timer_id != GD_TIMER_ID_INVALID);
-    return 0;
-}
-
-void set_svr_stop_local_search_timer(set_svr_t svr) {
-    gd_timer_mgr_t timer_mgr;
-
-    if (svr->m_local_search_timer_id == GD_TIMER_ID_INVALID) return;
-
-    timer_mgr = gd_timer_mgr_default(svr->m_app);
-    if (timer_mgr == NULL) {
-        CPE_ERROR(svr->m_em, "%s: stop local search timer: get default timer manager fail!", set_svr_name(svr));
-        return;
-    }
-
-    gd_timer_mgr_unregist_timer_by_id(timer_mgr, svr->m_local_search_timer_id);
-    svr->m_local_search_timer_id = GD_TIMER_ID_INVALID;
 }
 
 gd_app_context_t set_svr_app(set_svr_t svr) {

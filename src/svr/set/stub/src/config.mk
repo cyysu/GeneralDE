@@ -1,6 +1,6 @@
 product:=set_svr_stub
 $(product).type:=cpe-dr lib
-$(product).depends:=cpe_cfg cpe_fsm set_share center_agent
+$(product).depends:=cpe_cfg cpe_fsm set_share center_agent argtable2
 $(product).c.sources:=$(wildcard $(product-base)/*.c)
 $(product).product.c.flags.ld:=-rdynamic
 
