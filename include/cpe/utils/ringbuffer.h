@@ -1,6 +1,7 @@
 #ifndef CPE_RINGBUFFER_H
 #define CPE_RINGBUFFER_H
 #include "stream.h"
+#include "buffer.h"
 
 /* 
   这段代码是从云凤的代码中拿来的,但是为了和这里的代码风格一致，做了部分修改。
@@ -28,11 +29,12 @@ int ringbuffer_collect(ringbuffer_t rb);
 void ringbuffer_shrink(ringbuffer_t rb, ringbuffer_block_t blk, int size);
 void ringbuffer_free(ringbuffer_t rb, ringbuffer_block_t blk);
 int ringbuffer_block_data(ringbuffer_t rb, ringbuffer_block_t blk, int skip, void **ptr);
+int ringbuffer_block_total_len(ringbuffer_t rb, ringbuffer_block_t blk);
 int ringbuffer_data(ringbuffer_t rb, ringbuffer_block_t blk, int size, int skip, void **ptr);
 void * ringbuffer_copy(ringbuffer_t rb, ringbuffer_block_t from, int skip, ringbuffer_block_t to);
 ringbuffer_block_t ringbuffer_yield(ringbuffer_t rb, ringbuffer_block_t blk, int skip);
 
-void ringbuffer_dump(write_stream_t s, ringbuffer_t rb);
+const char * ringbuffer_dump(mem_buffer_t buff, ringbuffer_t rb);
 
 #endif
 
