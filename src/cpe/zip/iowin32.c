@@ -338,7 +338,7 @@ int ZCALLBACK win32_error_file_func (voidpf opaque,voidpf stream)
     return ret;
 }
 
-void fill_win32_filefunc (zlib_filefunc_def* pzlib_filefunc_def)
+void cpe_fill_win32_filefunc (zlib_filefunc_def* pzlib_filefunc_def)
 {
     pzlib_filefunc_def->zopen_file = win32_open_file_func;
     pzlib_filefunc_def->zread_file = win32_read_file_func;
@@ -350,7 +350,7 @@ void fill_win32_filefunc (zlib_filefunc_def* pzlib_filefunc_def)
     pzlib_filefunc_def->opaque = NULL;
 }
 
-void fill_win32_filefunc64(zlib_filefunc64_def* pzlib_filefunc_def)
+void cpe_fill_win32_filefunc64(zlib_filefunc64_def* pzlib_filefunc_def)
 {
     pzlib_filefunc_def->zopen64_file = win32_open64_file_func;
     pzlib_filefunc_def->zread_file = win32_read_file_func;
@@ -363,7 +363,7 @@ void fill_win32_filefunc64(zlib_filefunc64_def* pzlib_filefunc_def)
 }
 
 
-void fill_win32_filefunc64A(zlib_filefunc64_def* pzlib_filefunc_def)
+void cpe_fill_win32_filefunc64A(zlib_filefunc64_def* pzlib_filefunc_def)
 {
     pzlib_filefunc_def->zopen64_file = win32_open64_file_funcA;
     pzlib_filefunc_def->zread_file = win32_read_file_func;
@@ -376,7 +376,7 @@ void fill_win32_filefunc64A(zlib_filefunc64_def* pzlib_filefunc_def)
 }
 
 
-void fill_win32_filefunc64W(zlib_filefunc64_def* pzlib_filefunc_def)
+void cpe_fill_win32_filefunc64W(zlib_filefunc64_def* pzlib_filefunc_def)
 {
     pzlib_filefunc_def->zopen64_file = win32_open64_file_funcW;
     pzlib_filefunc_def->zread_file = win32_read_file_func;
