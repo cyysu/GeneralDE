@@ -393,27 +393,26 @@ int set_svr_router_conn_write_to_net(set_svr_router_conn_t conn) {
     return 0;
 }
 
-static void * set_svr_router_conn_merge_rb(set_svr_router_conn_t conn, int total_data_len) {
+static void * set_svr_router_conn_merge_rb(set_svr_router_conn_t conn) {
     set_svr_t svr = conn->m_svr;
+    int length = ringbuffer_block_total_len(svr->m_ringbuf, conn->m_rb);
     set_svr_router_t router = conn->m_router;
     ringbuffer_block_t new_blk;
     void * buf;
 
     assert(router);
 
-    new_blk = set_svr_ringbuffer_alloc(svr, total_data_len, router->m_id);
+    new_blk = set_svr_ringbuffer_alloc(svr, length, router->m_id);
     if (new_blk == NULL) {
         if (router) {
             CPE_ERROR(
                 svr->m_em, "%s: router %d-%d.%d: fd %d: recv: not enouth ringbuf, len=%d!",
-                set_svr_name(svr), router->m_id, router->m_ip, router->m_port, conn->m_fd,
-                (int)total_data_len);
+                set_svr_name(svr), router->m_id, router->m_ip, router->m_port, conn->m_fd, (int)length);
         }
         else {
             CPE_ERROR(
                 svr->m_em, "%s: fd %d: recv: not enouth ringbuf, len=%d!",
-                set_svr_name(svr), conn->m_fd,
-                (int)total_data_len);
+                set_svr_name(svr), conn->m_fd, (int)length);
         }
 
         return NULL;
@@ -442,7 +441,7 @@ int set_svr_router_conn_r_buf(set_svr_router_conn_t conn, size_t require_size, v
     if (received_size < require_size) return received_size;
 
     if (*buf == NULL) {
-        *buf = set_svr_router_conn_merge_rb(conn, received_size);
+        *buf = set_svr_router_conn_merge_rb(conn);
         if (*buf == NULL) return -1;
     }
 

@@ -62,7 +62,7 @@ void set_svr_svr_free_all(set_svr_t svr) {
     cpe_hash_it_init(&svr_it, &svr->m_svrs);
 
     svr_svr = cpe_hash_it_next(&svr_it);
-    while(svr) {
+    while(svr_svr) {
         set_svr_svr_t next = cpe_hash_it_next(&svr_it);
         set_svr_svr_free(svr_svr);
         svr_svr = next;

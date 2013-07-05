@@ -4,7 +4,7 @@
     bufsize: 0
 
   rollingpolicies:
-    - dev: { type: sizewin, maxsize: 500mb, maxnum: 1 }
+    - dev: { type: sizewin, maxsize: 500mb, maxnum: 10 }
 
   layouts:
     - default: { type: dated }
@@ -17,7 +17,7 @@
     - stderr: { type: stream, layout: default }
 
   categories:
-    - default: { appender: stderr }
+    - default: { appender: dev }
 
   debug: 0
 
@@ -45,8 +45,6 @@
     #max-pkg-size: 5 * 1024 * 1024
     reconnect-span-ms: 3000
     update-span-s: 300
-    ip: 127.0.0.1
-    port: 8099
 
   set:
     #ip:

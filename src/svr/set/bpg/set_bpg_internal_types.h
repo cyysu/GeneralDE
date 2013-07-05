@@ -24,6 +24,8 @@ struct set_bpg_chanel {
     dp_req_t m_outgoing_buf;
     cpe_hash_string_t m_outgoing_dispatch_to;
     dp_rsp_t m_outgoing_recv_at;
+
+    struct mem_buffer m_dump_buffer;
 };
 
 #endif

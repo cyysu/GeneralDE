@@ -57,6 +57,8 @@ set_bpg_chanel_create(
     mgr->m_incoming_dispatch_to = NULL;
     mgr->m_incoming_recv_at = NULL;
 
+    mem_buffer_init(&mgr->m_dump_buffer, alloc);
+
     nm_node_set_type(mgr_node, &s_nm_node_type_set_bpg_chanel);
 
     return mgr;
@@ -105,6 +107,8 @@ static void set_bpg_chanel_clear(nm_node_t node) {
         dp_req_free(mgr->m_set_head);
         mgr->m_set_head = NULL;
     }
+
+    mem_buffer_clear(&mgr->m_dump_buffer);
 }
 
 gd_app_context_t set_bpg_chanel_app(set_bpg_chanel_t mgr) {

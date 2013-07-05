@@ -1,4 +1,5 @@
 #include <assert.h>
+#include "cpe/pal/pal_strings.h"
 #include "cpe/pal/pal_platform.h"
 #include "cpe/pal/pal_socket.h"
 #include "cpe/utils/stream_buffer.h"
@@ -131,15 +132,16 @@ void conn_cli_rw_cb(EV_P_ ev_io *w, int revents) {
     conn_cli_start_watch(cli);
 }
 
-static void * conn_cli_merge_rb(conn_cli_t cli, int total_data_len) {
+static void * conn_cli_merge_rb(conn_cli_t cli) {
+    int length = ringbuffer_block_total_len(cli->m_ringbuf, cli->m_rb);
     ringbuffer_block_t new_blk;
     void * buf;
 
-    new_blk = ringbuffer_alloc(cli->m_ringbuf, total_data_len);
+    new_blk = ringbuffer_alloc(cli->m_ringbuf, length);
     if (new_blk == NULL) {
         CPE_ERROR(
             cli->m_em, "%s: recv: not enouth ringbuf, len=%d!",
-            conn_cli_name(cli), (int)total_data_len);
+            conn_cli_name(cli), (int)length);
         conn_cli_apply_evt(cli, conn_cli_fsm_evt_disconnected);
         return NULL;
     }
@@ -233,18 +235,18 @@ static int conn_cli_process_data(conn_cli_t cli) {
 
     while(cli->m_rb) {
         received_data_len = ringbuffer_data(cli->m_ringbuf, cli->m_rb, sizeof(uint16_t), 0, &buf);
-        if (received_data_len < sizeof(uint16_t)) return 0; /*缓存数据不够读取包长度*/
+        if (received_data_len < sizeof(uint16_t)) return 0; /*缓存数据不够读取包长度 */ 
 
-         /*数据主够读取包的大小，但是头块太小，无法保存数据头，提前合并一次数据*/
-        if (buf == NULL) buf = conn_cli_merge_rb(cli, received_data_len);
+         /*数据主够读取包的大小，但是头块太小，无法保存数据头，提前合并一次数据 */  
+        if (buf == NULL) buf = conn_cli_merge_rb(cli);
         if (buf == NULL) return -1;
 
         CPE_COPY_HTON16(&pkg_data_len, buf);
 
         received_data_len = ringbuffer_data(cli->m_ringbuf, cli->m_rb, pkg_data_len, 0, &buf);
-        if (pkg_data_len > received_data_len) return 0; /*数据包不完整*/
+        if (pkg_data_len > received_data_len) return 0; /*数据包不完整 */  
 
-        /*包大小太小，则断开连接*/
+        /*包大小太小，则断开连接 */  
         if (pkg_data_len < sizeof(SVR_CONN_NET_RES_HEAD)) {
             CPE_ERROR(
                 cli->m_em, "%s: free for receive small pkg, pkg-len=%d!!!",
@@ -253,11 +255,11 @@ static int conn_cli_process_data(conn_cli_t cli) {
             return -1;
         }
 
-        /*完整的数据包不在一个块内*/
-        if (buf == NULL) buf = conn_cli_merge_rb(cli, received_data_len);
+        /*完整的数据包不在一个块内 */  
+        if (buf == NULL) buf = conn_cli_merge_rb(cli);
         if (buf == NULL) return -1;
 
-        /*转换成内部的pkg*/
+        /*转换成内部的pkg */  
         head = buf;
         cli_pkg->m_result = head->result;
         cli_pkg->m_flags = head->flags;
@@ -270,7 +272,7 @@ static int conn_cli_process_data(conn_cli_t cli) {
             continue;
         }
 
-        /*解包并移除已经获取的数据*/
+        /*解包并移除已经获取的数据 */  
         decode_result = conn_cli_decode_pkg_buf(cli, svr_stub->m_pkg_meta, head + 1, pkg_data_len - sizeof(SVR_CONN_NET_RES_HEAD));
         cli->m_rb = ringbuffer_yield(cli->m_ringbuf, cli->m_rb, pkg_data_len);
 
@@ -322,7 +324,7 @@ static int conn_cli_process_data(conn_cli_t cli) {
                 conn_cli_name(cli), conn_cli_svr_stub_type_name(svr_stub));
         }
 
-        /*清理可能的解包缓存*/
+        /*清理可能的解包缓存 */  
         if (cli->m_tb) { 
             dp_req_set_buf(cli->m_incoming_body, NULL, 0);
             ringbuffer_free(cli->m_ringbuf, cli->m_tb);
