@@ -446,6 +446,7 @@ bpg_rsp_manage_create_follow_op_by_name(bpg_rsp_manage_t bpg_mgr, logic_context_
     logic_data_t input_carry_data;
     logic_data_t carry_data;
     bpg_rsp_carry_info_t carry_info;
+    logic_data_t carry_info_list_data;
 
     assert(rsp_name);
 
@@ -467,6 +468,39 @@ bpg_rsp_manage_create_follow_op_by_name(bpg_rsp_manage_t bpg_mgr, logic_context_
             em, "%s.%s: create follow op: fail, capacity is %d!",
             bpg_rsp_manage_name(bpg_mgr), rsp_name, (int)bpg_mgr->m_ctx_capacity);
         return NULL;
+    }
+
+    if ((carry_info_list_data = logic_context_data_find(context, "bpg_carry_metas"))) {
+        BPG_CARRY_METAS const * carry_info_list = logic_data_data(carry_info_list_data);
+        uint32_t i;
+
+        if (logic_context_data_copy(follow_context, carry_info_list_data) == NULL) {
+            CPE_ERROR(
+                em, "%s.%s: create follow op: bpg_carry_metas: data create fail!",
+                bpg_rsp_manage_name(rsp->m_mgr), bpg_rsp_name(rsp));
+            logic_context_free(follow_context);
+            return NULL;
+        }
+
+        for(i = 0; i < carry_info_list->count; ++i) {
+            logic_data_t carry_data = logic_context_data_find(context, carry_info_list->data[i].name);
+
+            if (carry_data == NULL) {
+                CPE_ERROR(
+                    em, "%s.%s: create follow op: %s: data not exist!",
+                    bpg_rsp_manage_name(rsp->m_mgr), bpg_rsp_name(rsp), carry_info_list->data[i].name);
+                logic_context_free(follow_context);
+                return NULL;
+            }
+
+            if (logic_context_data_copy(follow_context, carry_data) == NULL) {
+                CPE_ERROR(
+                    em, "%s.%s: create follow op: %s: copy data fail, size=%d!",
+                    bpg_rsp_manage_name(rsp->m_mgr), bpg_rsp_name(rsp), carry_info_list->data[i].name, (int)logic_data_capacity(carry_data));
+                logic_context_free(follow_context);
+                return NULL;
+            }
+        }
     }
 
     if ((input_carry_data = logic_context_data_find(context, "bpg_carry_info"))) {
