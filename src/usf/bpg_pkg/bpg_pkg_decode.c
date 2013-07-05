@@ -78,22 +78,40 @@ dr_cvt_result_t bpg_pkg_decode_data(dp_req_t body, const void * input, size_t * 
     if (input_pkg->head.flags & BASEPKG_HEAD_FLAG_ZIP) {
         Bytef * unzip_buf;
         uLongf unzip_size;
+        size_t unzip_capacity;
+        int rv;
+
+        unzip_capacity = mem_buffer_size(&pkg->m_mgr->m_zip_buff);
+        if (unzip_capacity < 4096) unzip_capacity = 4096;
+
+    UNZIP_RETRY:
+        if (mem_buffer_size(&pkg->m_mgr->m_zip_buff) != unzip_capacity) {
+            mem_buffer_set_size(&pkg->m_mgr->m_zip_buff, unzip_capacity);
+        }
 
         unzip_buf = (Bytef *)mem_buffer_make_continuous(&pkg->m_mgr->m_zip_buff, 0);
+        if (unzip_buf == NULL) goto UNZIP_RETRY;
 
         memcpy(unzip_buf, input, sizeof(BASEPKG_HEAD));
 
         unzip_size = mem_buffer_size(&pkg->m_mgr->m_zip_buff) - sizeof(BASEPKG_HEAD);
-        if (uncompress(
+        rv = uncompress(
                 unzip_buf + sizeof(BASEPKG_HEAD), &unzip_size,
-                ((const Bytef *)input) + sizeof(BASEPKG_HEAD), *input_capacity - sizeof(BASEPKG_HEAD)) != 0)
-        {
-            CPE_ERROR(
-                em, "%s: decode: unzip fail, output_size=%d, input_size=%d!",
-                bpg_pkg_manage_name(pkg->m_mgr),
-                (int)(mem_buffer_size(&pkg->m_mgr->m_zip_buff) - sizeof(BASEPKG_HEAD)),
-                (int)(*input_capacity - sizeof(BASEPKG_HEAD)));
-            return dr_cvt_result_error;
+                ((const Bytef *)input) + sizeof(BASEPKG_HEAD), *input_capacity - sizeof(BASEPKG_HEAD));
+
+        if (rv != Z_OK) {
+            if (rv == Z_BUF_ERROR) {
+                unzip_capacity *= 2;
+                goto UNZIP_RETRY;
+            }
+            else {
+                CPE_ERROR(
+                    em, "%s: decode: unzip fail, output_size=%d, input_size=%d!",
+                    bpg_pkg_manage_name(pkg->m_mgr),
+                    (int)(mem_buffer_size(&pkg->m_mgr->m_zip_buff) - sizeof(BASEPKG_HEAD)),
+                    (int)(*input_capacity - sizeof(BASEPKG_HEAD)));
+                return dr_cvt_result_error;
+            }
         }
         
         input_data = (char *)unzip_buf;
@@ -101,7 +119,7 @@ dr_cvt_result_t bpg_pkg_decode_data(dp_req_t body, const void * input, size_t * 
         input_pkg->head.flags &= ~BASEPKG_HEAD_FLAG_ZIP;
     }
     else {
-        if (input_pkg->head.bodytotallen + sizeof(BASEPKG_HEAD) != *input_capacity) {
+        if ((input_pkg->head.bodytotallen ? input_pkg->head.bodytotallen : 1) + sizeof(BASEPKG_HEAD) != *input_capacity) {
             CPE_ERROR(
                 em, "%s: decode: totalbodylen error, totalbodylen=%d, headlen=%d, input-total-len=%d!",
                 bpg_pkg_manage_name(pkg->m_mgr),
