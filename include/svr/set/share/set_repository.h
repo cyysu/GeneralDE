@@ -7,17 +7,9 @@
 extern "C" {
 #endif
 
-const char * set_repository_root(gd_app_context_t app, char * buf, size_t buf_capacity, error_monitor_t em);
-set_chanel_t set_repository_chanel_open(gd_app_context_t app, const char * svr_type_name, uint16_t svr_id, error_monitor_t em);
-set_chanel_t set_repository_chanel_attach(gd_app_context_t app, const char * svr_type_name, uint16_t svr_id, error_monitor_t em);
-
-int set_repository_chanel_destory(gd_app_context_t app, const char * svr_type_name, uint16_t svr_id);
+set_chanel_t set_chanel_shm_attach(int shmid, error_monitor_t em);
+set_chanel_t set_chanel_shm_init(int shmid, uint32_t w_capacity, uint32_t r_capacity, error_monitor_t em);
 void set_repository_chanel_detach(set_chanel_t chanel, error_monitor_t em);
-
-int set_repository_search(
-    gd_app_context_t app,
-    void (*on_find_svr)(void * ctx, const char * svr_type, uint16_t svr_id), void * ctx,
-    error_monitor_t em);
 
 #ifdef __cplusplus
 }

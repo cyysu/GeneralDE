@@ -149,11 +149,12 @@ void conn_svr_rw_cb(EV_P_ ev_io *w, int revents) {
     conn_svr_conn_start_watch(conn);
 }
 
-static void * conn_svr_conn_merge_rb(conn_svr_t svr, conn_svr_conn_t conn, int total_data_len) {
+static void * conn_svr_conn_merge_rb(conn_svr_t svr, conn_svr_conn_t conn) {
+    int length = ringbuffer_block_total_len(svr->m_ringbuf, conn->m_rb);
     ringbuffer_block_t new_blk;
     void * buf;
 
-    if (conn_svr_conn_alloc(&new_blk, svr, conn, total_data_len) != 0) return NULL;
+    if (conn_svr_conn_alloc(&new_blk, svr, conn, length) != 0) return NULL;
     assert(new_blk);
 
     buf = ringbuffer_copy(svr->m_ringbuf, conn->m_rb, 0, new_blk);
@@ -184,7 +185,7 @@ static int conn_svr_conn_process_data(conn_svr_t svr, conn_svr_conn_t conn) {
         if (received_data_len < sizeof(uint16_t)) return 0; /*缓存数据不够读取包长度*/
 
          /*数据主够读取包的大小，但是头块太小，无法保存数据头，提前合并一次数据*/
-        if (buf == NULL) buf = conn_svr_conn_merge_rb(svr, conn, received_data_len);
+        if (buf == NULL) buf = conn_svr_conn_merge_rb(svr, conn);
         if (buf == NULL) return -1;
 
         CPE_COPY_HTON16(&pkg_data_len, buf);
@@ -205,7 +206,7 @@ static int conn_svr_conn_process_data(conn_svr_t svr, conn_svr_conn_t conn) {
         ringbuffer_data(svr->m_ringbuf, conn->m_rb, pkg_data_len, 0, &buf);
 
         /*完整的数据包不在一个块内*/
-        if (buf == NULL) buf = conn_svr_conn_merge_rb(svr, conn, received_data_len);
+        if (buf == NULL) buf = conn_svr_conn_merge_rb(svr, conn);
         if (buf == NULL) return -1;
 
         /*转换成内部的pkg*/

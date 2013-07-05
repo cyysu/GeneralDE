@@ -4,7 +4,7 @@
     bufsize: 0
 
   rollingpolicies:
-    - dev: { type: sizewin, maxsize: 500mb, maxnum: 1 }
+    - dev: { type: sizewin, maxsize: 500mb, maxnum: 10 }
 
   layouts:
     - default: { type: dated }
@@ -17,7 +17,7 @@
     - stderr: { type: stream, layout: default }
 
   categories:
-    - default: { appender: stderr }
+    - default: { appender: dev }
   debug: 1
 
 - name: app_net_env
@@ -48,7 +48,6 @@
 - name: conn_svr_stub
   type: set_svr_stub
   svr-type: svr_conn
-  svr-id: 1
   request-send-to: process-conn-request
   response-send-to: process-conn-response
   response-decode: 0

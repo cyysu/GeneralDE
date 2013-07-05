@@ -16,6 +16,8 @@
 #include "protocol/svr/set/svr_set_internal.h"
 #include "protocol/svr/center/svr_center_pro.h"
 
+typedef struct set_svr_mon * set_svr_mon_t;
+typedef struct set_svr_mon_app * set_svr_mon_app_t;
 typedef struct set_svr * set_svr_t;
 typedef struct set_svr_router * set_svr_router_t;
 typedef struct set_svr_router_conn * set_svr_router_conn_t;
@@ -32,10 +34,15 @@ struct set_svr {
     error_monitor_t m_em;
     int m_debug;
 
+    char m_repository_root[128];
+    char m_set_type[64];
+    uint16_t m_set_id;
+
     struct ev_loop * m_ev_loop;
     uint32_t m_max_conn_id;
 
     set_svr_center_t m_center;
+    set_svr_mon_t m_mon;
 
     fsm_def_machine_t m_router_conn_fsm_def;
 
@@ -48,8 +55,6 @@ struct set_svr {
     uint32_t m_router_max_pkg_size;
 
     ringbuffer_t m_ringbuf;
-    gd_timer_id_t m_local_search_timer_id;
-
     
     uint16_t m_local_svr_count;
     set_svr_svr_list_t m_local_svrs;

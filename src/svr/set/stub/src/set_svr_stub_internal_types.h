@@ -1,5 +1,6 @@
 #ifndef SVR_SET_STUB_INTERNAL_TYPES_H
 #define SVR_SET_STUB_INTERNAL_TYPES_H
+#include <sys/file.h>
 #include "cpe/utils/memory.h"
 #include "cpe/utils/error.h"
 #include "cpe/utils/buffer.h"
@@ -24,6 +25,8 @@ struct set_svr_stub {
     error_monitor_t m_em;
     int m_debug;
     center_agent_t m_agent;
+    int m_pidfile_fd;  
+    struct flock m_pidfile_lock;  
 
     center_agent_svr_type_t m_svr_type;
     uint16_t m_svr_id;

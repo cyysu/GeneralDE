@@ -172,16 +172,17 @@ void center_svr_conn_rw_cb(EV_P_ ev_io *w, int revents) {
     center_svr_conn_start_watch(conn);
 }
 
-static void * center_svr_conn_merge_rb(center_svr_conn_t conn, int total_data_len) {
+static void * center_svr_conn_merge_rb(center_svr_conn_t conn) {
     center_svr_t svr = conn->m_svr;
+    int length = ringbuffer_block_total_len(svr->m_ringbuf, conn->m_rb);
     ringbuffer_block_t new_blk;
     void * buf;
 
-    new_blk = ringbuffer_alloc(svr->m_ringbuf, total_data_len);
+    new_blk = ringbuffer_alloc(svr->m_ringbuf, length);
     if (new_blk == NULL) {
         CPE_ERROR(
             svr->m_em, "%s: conn: recv: not enouth ringbuf, len=%d!",
-            center_svr_name(svr), (int)total_data_len);
+            center_svr_name(svr), (int)length);
         center_svr_conn_free(conn);
         return NULL;
     }
@@ -269,7 +270,7 @@ static int center_svr_conn_process_data(center_svr_conn_t conn) {
         if (received_data_len < sizeof(pkg_data_len)) return 0; /*缓存数据不够读取包长度*/
 
          /*数据主够读取包的大小，但是头块太小，无法保存数据头，提前合并一次数据*/
-        if (buf == NULL) buf = center_svr_conn_merge_rb(conn, received_data_len);
+        if (buf == NULL) buf = center_svr_conn_merge_rb(conn);
         if (buf == NULL) return -1;
 
         CPE_COPY_HTON32(&pkg_data_len, buf);
@@ -278,7 +279,7 @@ static int center_svr_conn_process_data(center_svr_conn_t conn) {
         if (pkg_data_len > received_data_len) return 0; /*数据包不完整*/
 
         /*完整的数据包不在一个块内*/
-        if (buf == NULL) buf = center_svr_conn_merge_rb(conn, received_data_len);
+        if (buf == NULL) buf = center_svr_conn_merge_rb(conn);
         if (buf == NULL) return -1;
 
         /*解包并移除已经获取的数据*/

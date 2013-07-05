@@ -6,7 +6,10 @@
 
 /*operations of set_svr */
 set_svr_t
-set_svr_create(gd_app_context_t app, const char * name, mem_allocrator_t alloc, error_monitor_t em);
+set_svr_create(
+    gd_app_context_t app, const char * name, 
+    const char * repository_root, const char * set_type, uint16_t set_id,
+    mem_allocrator_t alloc, error_monitor_t em);
 void set_svr_free(set_svr_t svr);
 
 set_svr_t set_svr_find(gd_app_context_t app, cpe_hash_string_t name);
@@ -16,8 +19,6 @@ cpe_hash_string_t set_svr_name_hs(set_svr_t mgr);
 const char * set_svr_name(set_svr_t svr);
 
 int set_svr_set_ringbuf_size(set_svr_t svr, size_t capacity);
-void set_svr_stop_local_search_timer(set_svr_t svr);
-int set_svr_start_local_search_timer(set_svr_t svr, tl_time_span_t span);
 
 ptr_int_t set_svr_dispatch_tick(void * ctx, ptr_int_t arg);
 

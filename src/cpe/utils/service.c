@@ -127,6 +127,7 @@ int cpe_check_and_write_pid(const char * pidfile, error_monitor_t em) {
     ftruncate(fd, 0);
     snprintf(buf, sizeof(buf), "%d", (int)getpid());
     write(fd, buf, strlen(buf)+1);  
+    close(fd);
     return 0;  
 }
 
