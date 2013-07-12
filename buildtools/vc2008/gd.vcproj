@@ -41,11 +41,11 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\include;..\..\3rdTools\yaml\include;..\..\3rdTools\yajl\include;..\..\3rdTools\libxml2\include;..\..\3rdTools\libev\include"
+				AdditionalIncludeDirectories="..\..\include;..\..\3rdTools\yaml\include;..\..\3rdTools\yajl\include;..\..\3rdTools\libxml2\include;..\..\3rdTools\libev\include;..\..\3rdTools\log4c\include;..\..\build\vc\protocol\gd"
 				PreprocessorDefinitions="WIN32;_LIB;"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
-				RuntimeLibrary="2"
+				RuntimeLibrary="3"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				DebugInformationFormat="4"
@@ -108,7 +108,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="..\..\include;..\..\3rdTools\yaml\include;..\..\3rdTools\yajl\include;..\..\3rdTools\libxml2\include;..\..\3rdTools\libev\include"
+				AdditionalIncludeDirectories="..\..\include;..\..\3rdTools\yaml\include;..\..\3rdTools\yajl\include;..\..\3rdTools\libxml2\include;..\..\3rdTools\libev\include;..\..\3rdTools\log4c\include;..\..\build\vc\protocol\gd"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
@@ -321,6 +321,10 @@
 				Name="app"
 				>
 				<File
+					RelativePath="..\..\src\gd\app\app_child.c"
+					>
+				</File>
+				<File
 					RelativePath="..\..\src\gd\app\app_context.c"
 					>
 				</File>
@@ -362,6 +366,10 @@
 				</File>
 				<File
 					RelativePath="..\..\src\gd\app\app_module_type.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\gd\app\app_named_em.c"
 					>
 				</File>
 				<File
@@ -500,6 +508,10 @@
 					RelativePath="..\..\src\gd\utils\id_generator.c"
 					>
 				</File>
+				<File
+					RelativePath="..\..\src\gd\utils\id_generator_file.c"
+					>
+				</File>
 			</Filter>
 			<Filter
 				Name="dr_dm"
@@ -549,23 +561,73 @@
 				Name="vnet"
 				>
 				<File
+					RelativePath="..\..\src\gd\vnet\vnet_conn_info.c"
+					>
+				</File>
+				<File
 					RelativePath="..\..\src\gd\vnet\vnet_control_pkg.c"
 					>
+				</File>
+				<File
+					RelativePath="..\..\build\vc\protocol\gd\protocol\vnet\vnet_data.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\build\vc\protocol\gd\protocol\vnet\vnet_data.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\gd\vnet\vnet_data.xml"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							CommandLine="set PATH=$(SolutionDir)..\..\3rdTools\iconv\vc\bin;$(SolutionDir)..\..\3rdTools\zlib\vc\bin;%PATH%&#x0D;&#x0A;$(SolutionDir)..\..\build\vc\tools\cpe_dr_tool.exe -i $(InputPath) --output-h $(SolutionDir)..\..\build\vc\protocol\$(SafeRootNamespace)\protocol\vnet --output-lib-c $(SolutionDir)..\..\build\vc\protocol\$(SafeRootNamespace)\protocol\vnet\$(InputName).c --output-lib-c-arg g_metalib_vnet_metalib&#x0D;&#x0A;"
+							Outputs="$(SolutionDir)..\..\build\vc\protocol\$(SafeRootNamespace)\protocol\vnet\vnet_data.h"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							CommandLine="set PATH=$(SolutionDir)..\..\3rdTools\iconv\vc\bin;$(SolutionDir)..\..\3rdTools\zlib\vc\bin;%PATH%&#x0D;&#x0A;$(SolutionDir)..\..\build\vc\tools\cpe_dr_tool.exe -i $(InputPath) --output-h $(SolutionDir)..\..\build\vc\protocol\$(SafeRootNamespace)\protocol\vnet --output-lib-c $(SolutionDir)..\..\build\vc\protocol\$(SafeRootNamespace)\protocol\vnet\$(InputName).c --output-lib-c-arg g_metalib_vnet_metalib&#x0D;&#x0A;"
+							Outputs="$(SolutionDir)..\..\build\vc\protocol\$(SafeRootNamespace)\protocol\vnet\vnet_data.h"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\..\src\gd\vnet\vnet_internal_types.h"
 					>
 				</File>
 			</Filter>
+			<Filter
+				Name="log"
+				>
+				<File
+					RelativePath="..\..\src\gd\log\log_context.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\gd\log\log_context_module.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\gd\log\log_em.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\gd\log\log_internal_ops.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\gd\log\log_internal_types.h"
+					>
+				</File>
+			</Filter>
 		</Filter>
-		<File
-			RelativePath="..\..\src\gd\app\app_child.c"
-			>
-		</File>
-		<File
-			RelativePath="..\..\src\gd\app\app_named_em.c"
-			>
-		</File>
 	</Files>
 	<Globals>
 	</Globals>
