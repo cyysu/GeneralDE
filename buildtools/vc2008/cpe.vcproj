@@ -41,11 +41,11 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../../include;../../3rdTools/yaml/include;../../3rdTools/yajl/include;../../3rdTools/libev/include;../../3rdTools/libxml2/include;../../3rdTools/iconv/vc/include"
+				AdditionalIncludeDirectories="../../include;../../3rdTools/yaml/include;../../3rdTools/yajl/include;../../3rdTools/libev/include;../../3rdTools/libxml2/include;../../3rdTools/iconv/vc/include;..\..\3rdTools\libxml2\include\vc"
 				PreprocessorDefinitions="WIN32;_LIB;YAML_DECLARE_STATIC"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
-				RuntimeLibrary="2"
+				RuntimeLibrary="3"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				DebugInformationFormat="4"
@@ -108,7 +108,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="../../include;../../3rdTools/yaml/include;../../3rdTools/yajl/include;../../3rdTools/libev/include;../../3rdTools/libxml2/include;../../3rdTools/iconv/vc/include"
+				AdditionalIncludeDirectories="../../include;../../3rdTools/yaml/include;../../3rdTools/yajl/include;../../3rdTools/libev/include;../../3rdTools/libxml2/include;../../3rdTools/iconv/vc/include;..\..\3rdTools\libxml2\include\vc"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;YAML_DECLARE_STATIC"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
@@ -194,10 +194,6 @@
 				</File>
 				<File
 					RelativePath="..\..\include\cpe\dr\dr_ctypes_op.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\include\cpe\dr\dr_cvt.h"
 					>
 				</File>
 				<File
@@ -389,11 +385,19 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\include\cpe\utils\hex_utils.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\include\cpe\utils\log.h"
 					>
 				</File>
 				<File
 					RelativePath="..\..\include\cpe\utils\memory.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\include\cpe\utils\memory_debug.h"
 					>
 				</File>
 				<File
@@ -409,11 +413,35 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\include\cpe\utils\ringbuffer.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\include\cpe\utils\rwpipe.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\include\cpe\utils\rwpipe_mmap.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\include\cpe\utils\rwpipe_shm.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\include\cpe\utils\service.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\include\cpe\utils\stream.h"
 					>
 				</File>
 				<File
 					RelativePath="..\..\include\cpe\utils\stream_buffer.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\include\cpe\utils\stream_error.h"
 					>
 				</File>
 				<File
@@ -426,6 +454,10 @@
 				</File>
 				<File
 					RelativePath="..\..\include\cpe\utils\string_utils.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\include\cpe\utils\tsort.h"
 					>
 				</File>
 			</Filter>
@@ -506,10 +538,6 @@
 				</File>
 				<File
 					RelativePath="..\..\include\cpe\dp\dp_manage.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\include\cpe\dp\dp_node.h"
 					>
 				</File>
 				<File
@@ -637,6 +665,22 @@
 					>
 				</File>
 			</Filter>
+			<Filter
+				Name="fsm"
+				>
+				<File
+					RelativePath="..\..\include\cpe\fsm\fsm_def.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\include\cpe\fsm\fsm_ins.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\include\cpe\fsm\fsm_types.h"
+					>
+				</File>
+			</Filter>
 		</Filter>
 		<Filter
 			Name="src"
@@ -670,6 +714,10 @@
 				</File>
 				<File
 					RelativePath="..\..\src\cpe\cfg\cfg_merge.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\cpe\cfg\cfg_modify.c"
 					>
 				</File>
 				<File
@@ -801,10 +849,6 @@
 					</File>
 					<File
 						RelativePath="..\..\src\cpe\dr\meta-inout\dr_inbuild.c"
-						>
-					</File>
-					<File
-						RelativePath="..\..\src\cpe\dr\meta-inout\dr_inbuild.h"
 						>
 					</File>
 					<File
@@ -1021,6 +1065,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\src\cpe\utils\ringbuffer.c"
+					>
+				</File>
+				<File
 					RelativePath="..\..\src\cpe\utils\stream.c"
 					>
 				</File>
@@ -1042,6 +1090,14 @@
 				</File>
 				<File
 					RelativePath="..\..\src\cpe\utils\tsort_str.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\cpe\utils\urange.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\cpe\utils\urange_bitarry.c"
 					>
 				</File>
 			</Filter>
@@ -1142,10 +1198,6 @@
 				</File>
 				<File
 					RelativePath="..\..\src\cpe\dp\dp_manage.c"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\cpe\dp\dp_node.c"
 					>
 				</File>
 				<File
@@ -1253,7 +1305,11 @@
 				Name="pom_grp"
 				>
 				<File
-					RelativePath="..\..\src\cpe\pom_grp\pom_grp_build.c"
+					RelativePath="..\..\src\cpe\pom_grp\pom_grp_build_from_cfg.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\cpe\pom_grp\pom_grp_build_from_meta.c"
 					>
 				</File>
 				<File
@@ -1366,6 +1422,30 @@
 				</File>
 				<File
 					RelativePath="..\..\src\cpe\otm\otm_timer.c"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="fsm"
+				>
+				<File
+					RelativePath="..\..\src\cpe\fsm\fsm_def_machine.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\cpe\fsm\fsm_def_state.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\cpe\fsm\fsm_ins.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\cpe\fsm\fsm_internal_ops.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\cpe\fsm\fsm_internal_types.h"
 					>
 				</File>
 			</Filter>
