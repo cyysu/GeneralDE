@@ -44,7 +44,7 @@
 				PreprocessorDefinitions="WIN32;_LIB;"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
-				RuntimeLibrary="2"
+				RuntimeLibrary="3"
 				WarningLevel="3"
 				DebugInformationFormat="4"
 				CompileAs="1"
@@ -181,10 +181,6 @@
 				</File>
 				<File
 					RelativePath="..\..\include\usf\logic\logic_require.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\include\usf\logic\logic_require_type.h"
 					>
 				</File>
 				<File
@@ -414,10 +410,6 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\src\usf\bpg_pkg\bpg_pkg_code.c"
-					>
-				</File>
-				<File
 					RelativePath="..\..\src\usf\bpg_pkg\bpg_pkg_data.c"
 					>
 				</File>
@@ -426,7 +418,15 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\src\usf\bpg_pkg\bpg_pkg_decode.c"
+					>
+				</File>
+				<File
 					RelativePath="..\..\src\usf\bpg_pkg\bpg_pkg_dsp.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\usf\bpg_pkg\bpg_pkg_encode.c"
 					>
 				</File>
 				<File
@@ -596,6 +596,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\src\usf\bpg_use\bpg_use_pkg_chanel.c"
+					>
+				</File>
+				<File
 					RelativePath="..\..\src\usf\bpg_use\bpg_use_sp.c"
 					>
 				</File>
@@ -644,7 +648,7 @@
 						>
 						<Tool
 							Name="VCCustomBuildTool"
-							CommandLine="set PATH=$(SolutionDir)..\..\3rdTools\iconv\vc\bin;$(SolutionDir)..\..\3rdTools\zlib\vc\bin;%PATH%"
+							CommandLine="set PATH=$(SolutionDir)..\..\3rdTools\iconv\vc\bin;$(SolutionDir)..\..\3rdTools\zlib\vc\bin;%PATH%&#x0D;&#x0A;$(SolutionDir)..\..\build\vc\tools\cpe_dr_tool.exe -i $(InputDir)logic_op_async_info.xml  -i $(InputDir)logic_uni_res_info.xml  --output-h $(SolutionDir)..\..\build\vc\protocol\$(SafeRootNamespace)\protocol\logic_use --output-lib-c $(SolutionDir)..\..\build\vc\protocol\$(SafeRootNamespace)\protocol\logic_use\$(InputName).c --output-lib-c-arg g_metalib_logic_use&#x0D;&#x0A;&#x0D;&#x0A;"
 							Outputs="$(SolutionDir)..\..\build\vc\protocol\$(SafeRootNamespace)\protocol\logic_use\logic_uni_res_info.h;$(SolutionDir)..\..\build\vc\protocol\$(SafeRootNamespace)\protocol\logic_use\logic_op_async_info.h;$(SolutionDir)..\..\build\vc\protocol\$(SafeRootNamespace)\protocol\logic_use\logic_op_async_info.c"
 						/>
 					</FileConfiguration>
@@ -663,10 +667,6 @@
 				</File>
 				<File
 					RelativePath="..\..\src\usf\logic_use\logic_uni_res.c"
-					>
-				</File>
-				<File
-					RelativePath="..\..\build\protocol\logic_use\logic_uni_res_info.h"
 					>
 				</File>
 				<File
@@ -698,6 +698,15 @@
 					>
 					<FileConfiguration
 						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+							CommandLine="set PATH=$(SolutionDir)..\..\3rdTools\iconv\vc\bin;$(SolutionDir)..\..\3rdTools\zlib\vc\bin;%PATH%&#x0D;&#x0A;$(SolutionDir)..\..\build\vc\tools\cpe_dr_tool.exe -i $(InputPath) --output-h $(SolutionDir)..\..\build\vc\protocol\$(SafeRootNamespace)\protocol\bpg_cli --output-lib-c $(SolutionDir)..\..\build\vc\protocol\$(SafeRootNamespace)\protocol\bpg_cli\$(InputName).c --output-lib-c-arg g_metalib_bpg_cli_pkg_info&#x0D;&#x0A;&#x0D;&#x0A;"
+							Outputs="$(SolutionDir)..\..\build\vc\protocol\$(SafeRootNamespace)\protocol\bpg_cli\bpg_cli_pkg_info.h;$(SolutionDir)..\..\build\vc\protocol\$(SafeRootNamespace)\protocol\bpg_cli\bpg_cli_pkg_info.c"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
 						>
 						<Tool
 							Name="VCCustomBuildTool"
