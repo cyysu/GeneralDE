@@ -2,9 +2,10 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9.00"
-	Name="cpe_dr_tool"
-	ProjectGUID="{43BAEC36-FC38-4CFB-8812-6E83795E6920}"
-	RootNamespace="cpe_dr_tool"
+	Name="svr_center"
+	ProjectGUID="{65F874C0-CF27-4F8C-85C7-788C6F706A36}"
+	RootNamespace="svr_center"
+	Keyword="Win32Proj"
 	TargetFrameworkVersion="196613"
 	>
 	<Platforms>
@@ -17,10 +18,10 @@
 	<Configurations>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory="$(SolutionDir)..\..\build\vc\tools"
-			IntermediateDirectory="$(SolutionDir)..\..\build\vc\$(ConfigurationName)\$(ProjectName)\building"
-			ConfigurationType="1"
-			CharacterSet="2"
+			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
+			IntermediateDirectory="$(ConfigurationName)"
+			ConfigurationType="4"
+			CharacterSet="1"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
@@ -40,15 +41,14 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../../include;../../3rdTools/argtable2/include"
-				PreprocessorDefinitions="WIN32;_WINDOWS;STRICT;_CRT_SECURE_NO_WARNINGS"
+				AdditionalIncludeDirectories="..\..\include;&quot;..\..\build\vc\protocol\$(SafeRootNamespace)&quot;;../../3rdTools/bson/include"
+				PreprocessorDefinitions="WIN32;_DEBUG;_LIB"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
+				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				DebugInformationFormat="4"
-				CompileAs="1"
-				DisableSpecificWarnings="4624;4819"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -60,18 +60,10 @@
 				Name="VCPreLinkEventTool"
 			/>
 			<Tool
-				Name="VCLinkerTool"
-				AdditionalDependencies="iconv.lib Ws2_32.lib zdll.lib"
-				OutputFile="$(OutDir)\$(ProjectName).exe"
-				AdditionalLibraryDirectories="../../3rdTools/zlib/vc/lib;../../3rdTools/iconv/vc/lib"
-				GenerateDebugInformation="true"
-				TargetMachine="1"
+				Name="VCLibrarianTool"
 			/>
 			<Tool
 				Name="VCALinkTool"
-			/>
-			<Tool
-				Name="VCManifestTool"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
@@ -83,18 +75,15 @@
 				Name="VCFxCopTool"
 			/>
 			<Tool
-				Name="VCAppVerifierTool"
-			/>
-			<Tool
 				Name="VCPostBuildEventTool"
 			/>
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="$(SolutionDir)..\..\build\vc\tools"
-			IntermediateDirectory="$(SolutionDir)..\..\build\vc\$(ConfigurationName)\$(ProjectName)\building"
-			ConfigurationType="1"
-			CharacterSet="2"
+			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
+			IntermediateDirectory="$(ConfigurationName)"
+			ConfigurationType="4"
+			CharacterSet="1"
 			WholeProgramOptimization="1"
 			>
 			<Tool
@@ -116,14 +105,13 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="../../include;../../3rdTools/argtable2/include"
-				PreprocessorDefinitions="WIN32;_WINDOWS;STRICT;NDEBUG;_CRT_SECURE_NO_WARNINGS"
+				AdditionalIncludeDirectories="..\..\include;&quot;..\..\build\vc\protocol\$(SafeRootNamespace)&quot;;../../3rdTools/bson/include"
+				PreprocessorDefinitions="WIN32;NDEBUG;_LIB"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
+				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				DebugInformationFormat="3"
-				CompileAs="1"
-				DisableSpecificWarnings="4624;4819"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -135,20 +123,10 @@
 				Name="VCPreLinkEventTool"
 			/>
 			<Tool
-				Name="VCLinkerTool"
-				AdditionalDependencies="iconv.lib Ws2_32.lib zdll.lib"
-				OutputFile="$(OutDir)\$(ProjectName).exe"
-				AdditionalLibraryDirectories="../../3rdTools/zlib/vc/lib;../../3rdTools/iconv/vc/lib"
-				GenerateDebugInformation="true"
-				OptimizeReferences="2"
-				EnableCOMDATFolding="2"
-				TargetMachine="1"
+				Name="VCLibrarianTool"
 			/>
 			<Tool
 				Name="VCALinkTool"
-			/>
-			<Tool
-				Name="VCManifestTool"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
@@ -160,9 +138,6 @@
 				Name="VCFxCopTool"
 			/>
 			<Tool
-				Name="VCAppVerifierTool"
-			/>
-			<Tool
 				Name="VCPostBuildEventTool"
 			/>
 		</Configuration>
@@ -170,26 +145,34 @@
 	<References>
 	</References>
 	<Files>
-		<File
-			RelativePath="..\..\src\cpe\dr\tools\generate_h.c"
+		<Filter
+			Name="c"
 			>
-		</File>
-		<File
-			RelativePath="..\..\src\cpe\dr\tools\generate_lib_c.c"
+			<File
+				RelativePath="..\..\src\svr\center\agent\src\center_agent.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\src\svr\center\agent\src\center_agent_internal_ops.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\src\svr\center\agent\src\center_agent_internal_types.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\src\svr\center\agent\src\center_agent_module.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\src\svr\center\agent\src\center_agent_svr_type.c"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="cpp"
 			>
-		</File>
-		<File
-			RelativePath="..\..\src\cpe\dr\tools\generate_ops.h"
-			>
-		</File>
-		<File
-			RelativePath="..\..\src\cpe\dr\tools\generate_traits_cpp.c"
-			>
-		</File>
-		<File
-			RelativePath="..\..\src\cpe\dr\tools\main.c"
-			>
-		</File>
+		</Filter>
 	</Files>
 	<Globals>
 	</Globals>
