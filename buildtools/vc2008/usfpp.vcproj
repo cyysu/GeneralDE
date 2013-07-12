@@ -44,7 +44,7 @@
 				PreprocessorDefinitions="WIN32;_LIB;"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
-				RuntimeLibrary="2"
+				RuntimeLibrary="3"
 				WarningLevel="3"
 				DebugInformationFormat="4"
 				DisableSpecificWarnings="4624;4819"
@@ -256,10 +256,6 @@
 			<Filter
 				Name="utils"
 				>
-				<File
-					RelativePath="..\..\include\usfpp\utils\IdGenerator.hpp"
-					>
-				</File>
 			</Filter>
 			<Filter
 				Name="bpg_cli"
