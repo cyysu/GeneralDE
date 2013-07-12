@@ -44,7 +44,7 @@
 				PreprocessorDefinitions="WIN32;_WINDOWS;STRICT;_CRT_SECURE_NO_WARNINGS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
-				RuntimeLibrary="2"
+				RuntimeLibrary="3"
 				WarningLevel="3"
 				DebugInformationFormat="4"
 				CompileAs="1"
@@ -61,7 +61,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="iconv.lib Ws2_32.lib zlib.lib"
+				AdditionalDependencies="iconv.lib Ws2_32.lib zdll.lib"
 				OutputFile="$(OutDir)\$(ProjectName).exe"
 				AdditionalLibraryDirectories="../../3rdTools/zlib/vc/lib;../../3rdTools/iconv/vc/lib"
 				GenerateDebugInformation="true"
@@ -136,8 +136,8 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="iconv.lib Ws2_32.lib zlib.lib"
-				OutputFile="$(OutDir)\..\$(ProjectName).exe"
+				AdditionalDependencies="iconv.lib Ws2_32.lib zdll.lib"
+				OutputFile="$(OutDir)\$(ProjectName).exe"
 				AdditionalLibraryDirectories="../../3rdTools/zlib/vc/lib;../../3rdTools/iconv/vc/lib"
 				GenerateDebugInformation="true"
 				OptimizeReferences="2"
