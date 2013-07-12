@@ -44,7 +44,7 @@
 				PreprocessorDefinitions="WIN32;_WINDOWS;STRICT;_CRT_SECURE_NO_WARNINGS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
-				RuntimeLibrary="2"
+				RuntimeLibrary="3"
 				WarningLevel="3"
 				DebugInformationFormat="4"
 			/>
@@ -59,7 +59,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="iconv.lib zlib.lib regex.lib"
+				AdditionalDependencies="iconv.lib zdll.lib regex.lib"
 				AdditionalLibraryDirectories="../../3rdTools/zlib/vc/lib;../../3rdTools/iconv/vc/lib;../../3rdTools/regex/vc/lib"
 				GenerateDebugInformation="true"
 				TargetMachine="1"
@@ -131,7 +131,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="iconv.lib zlib.lib regex.lib"
+				AdditionalDependencies="iconv.lib zdll.lib regex.lib"
 				AdditionalLibraryDirectories="../../3rdTools/zlib/vc/lib;../../3rdTools/iconv/vc/lib;../../3rdTools/regex/vc/lib"
 				GenerateDebugInformation="true"
 				OptimizeReferences="2"
