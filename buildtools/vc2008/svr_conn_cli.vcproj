@@ -2,9 +2,10 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9.00"
-	Name="libyajl"
-	ProjectGUID="{003F09A9-BF8D-4A66-B0AE-22AE72EFB82A}"
-	RootNamespace="yajl"
+	Name="svr_conn_cli"
+	ProjectGUID="{95EB7DD2-A721-4246-A3DA-863D11C15008}"
+	RootNamespace="svr_conn_cli"
+	Keyword="Win32Proj"
 	TargetFrameworkVersion="196613"
 	>
 	<Platforms>
@@ -17,10 +18,10 @@
 	<Configurations>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory="$(SolutionDir)..\..\build\vc\$(ConfigurationName)\lib"
-			IntermediateDirectory="$(SolutionDir)..\..\build\vc\$(ConfigurationName)\$(ProjectName)\building"
+			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
+			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="4"
-			CharacterSet="2"
+			CharacterSet="1"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
@@ -40,11 +41,12 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../../3rdTools/yajl/include"
-				PreprocessorDefinitions="_CRT_SECURE_NO_WARNINGS;WIN32"
+				AdditionalIncludeDirectories="..\..\include;&quot;..\..\build\vc\protocol\$(SafeRootNamespace)&quot;;../../3rdTools/bson/include;../../3rdTools/libev/include"
+				PreprocessorDefinitions="WIN32;_DEBUG;_LIB"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
+				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				DebugInformationFormat="4"
 			/>
@@ -78,10 +80,10 @@
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="$(SolutionDir)..\..\build\vc\$(ConfigurationName)\lib"
-			IntermediateDirectory="$(SolutionDir)..\..\build\vc\$(ConfigurationName)\$(ProjectName)\building"
+			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
+			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="4"
-			CharacterSet="2"
+			CharacterSet="1"
 			WholeProgramOptimization="1"
 			>
 			<Tool
@@ -103,13 +105,13 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="../../3rdTools/yajl/include"
-				PreprocessorDefinitions="_CRT_SECURE_NO_WARNINGS;WIN32"
+				AdditionalIncludeDirectories="..\..\include;&quot;..\..\build\vc\protocol\$(SafeRootNamespace)&quot;;../../3rdTools/bson/include;../../3rdTools/libev/include"
+				PreprocessorDefinitions="WIN32;NDEBUG;_LIB"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
+				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				DebugInformationFormat="3"
-				DisableSpecificWarnings="4013"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -144,93 +146,86 @@
 	</References>
 	<Files>
 		<Filter
-			Name="src"
+			Name="conn"
 			>
 			<File
-				RelativePath="..\..\3rdTools\yajl\src\yajl.c"
+				RelativePath="..\..\src\svr\conn\cli\conn_cli.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\3rdTools\yajl\src\yajl_alloc.c"
+				RelativePath="..\..\src\svr\conn\cli\conn_cli_fsm_connecting.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\3rdTools\yajl\src\yajl_alloc.h"
+				RelativePath="..\..\src\svr\conn\cli\conn_cli_fsm_disable.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\3rdTools\yajl\src\yajl_buf.c"
+				RelativePath="..\..\src\svr\conn\cli\conn_cli_fsm_disconnected.c.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\3rdTools\yajl\src\yajl_buf.h"
+				RelativePath="..\..\src\svr\conn\cli\conn_cli_fsm_established.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\3rdTools\yajl\src\yajl_bytestack.h"
+				RelativePath="..\..\src\svr\conn\cli\conn_cli_internal_ops.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\3rdTools\yajl\src\yajl_encode.c"
+				RelativePath="..\..\src\svr\conn\cli\conn_cli_internal_types.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\3rdTools\yajl\src\yajl_encode.h"
+				RelativePath="..\..\src\svr\conn\cli\conn_cli_module.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\3rdTools\yajl\src\yajl_gen.c"
+				RelativePath="..\..\src\svr\conn\cli\conn_cli_net.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\3rdTools\yajl\src\yajl_lex.c"
+				RelativePath="..\..\src\svr\conn\cli\conn_cli_pkg.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\3rdTools\yajl\src\yajl_lex.h"
+				RelativePath="..\..\src\svr\conn\cli\conn_cli_send.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\3rdTools\yajl\src\yajl_parser.c"
+				RelativePath="..\..\src\svr\conn\cli\conn_cli_svr_stub.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\3rdTools\yajl\src\yajl_parser.h"
+				RelativePath="..\..\build\vc\protocol\svr_conn_cli\protocol\svr\conn\metalib.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\3rdTools\yajl\src\yajl_tree.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\3rdTools\yajl\src\yajl_version.c"
+				RelativePath="..\..\build\vc\protocol\svr_conn_cli\protocol\svr\conn\svr_conn_net.h"
 				>
 			</File>
 		</Filter>
 		<Filter
-			Name="include"
+			Name="pp_conn"
 			>
 			<File
-				RelativePath="..\..\3rdTools\yajl\include\yajl\yajl_common.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\3rdTools\yajl\include\yajl\yajl_gen.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\3rdTools\yajl\include\yajl\yajl_parse.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\3rdTools\yajl\include\yajl\yajl_tree.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\3rdTools\yajl\include\yajl\yajl_version.h"
+				RelativePath="..\..\src\svrpp\conn\cli\Client.cpp"
 				>
 			</File>
 		</Filter>
+		<File
+			RelativePath="..\..\src\svr\conn\svr\pro\net\svr_conn_net.xml"
+			>
+			<FileConfiguration
+				Name="Release|Win32"
+				>
+				<Tool
+					Name="VCCustomBuildTool"
+					CommandLine="set PATH=$(SolutionDir)..\..\3rdTools\iconv\vc\bin;$(SolutionDir)..\..\3rdTools\zlib\vc\bin;%PATH%&#x0D;&#x0A;$(SolutionDir)..\..\build\vc\tools\cpe_dr_tool.exe -i $(InputPath) --output-h $(SolutionDir)..\..\build\vc\protocol\$(SafeRootNamespace)\protocol\svr\conn --output-lib-c $(SolutionDir)..\..\build\vc\protocol\$(SafeRootNamespace)\protocol\svr\conn\metalib.c --output-lib-c-arg g_metalib_svr_conn_pro&#x0D;&#x0A;"
+					Outputs="$(SolutionDir)..\..\build\vc\protocol\$(SafeRootNamespace)\protocol\svr\conn\metalib.c"
+				/>
+			</FileConfiguration>
+		</File>
 	</Files>
 	<Globals>
 	</Globals>

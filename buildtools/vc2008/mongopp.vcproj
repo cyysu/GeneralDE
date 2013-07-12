@@ -44,7 +44,7 @@
 				PreprocessorDefinitions="WIN32;_LIB;MONGO_STATIC_BUILD;MONGO_USE__INT64"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
-				RuntimeLibrary="2"
+				RuntimeLibrary="3"
 				WarningLevel="3"
 				DebugInformationFormat="4"
 				DisableSpecificWarnings="4819"
@@ -155,6 +155,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\include\usfpp\mongo_cli\Result.hpp"
+					>
+				</File>
+				<File
 					RelativePath="..\..\include\usfpp\mongo_cli\System.hpp"
 					>
 				</File>
@@ -192,6 +196,10 @@
 				>
 				<File
 					RelativePath="..\..\src\usfpp\mongo_cli\CliProxy.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\usfpp\mongo_cli\Result.cpp"
 					>
 				</File>
 			</Filter>
