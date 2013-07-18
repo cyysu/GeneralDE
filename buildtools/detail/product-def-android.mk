@@ -35,6 +35,12 @@ $(call product-def-rule-android-proj-copy,$1,$2,$(CPDE_ROOT)/$(strip $(word 1,$3
 
 endef
 
+# $(call product-def-rule-android-gen-dep,dep,dep-to,domain)
+define product-def-rule-android-gen-dep
+$1.$3.android.proj: $2.$3.android.proj
+
+endef
+
 # $(call product-def-rule-android-gen-depends-projs,product-name,domain)
 define product-def-rule-android-gen-depends-projs
 $(foreach d,$(call product-gen-depend-list,$($2.env),$1),\
@@ -42,8 +48,8 @@ $(foreach d,$(call product-gen-depend-list,$($2.env),$1),\
        $(if $(filter $d,$(android.$2.defined-projects)),,\
             $(eval android.$2.defined-projects+=$d) \
             $(call product-def-rule-android-rules,$d,$2) \
-            $1.$2.android.proj: $d.$2.android.proj \
         ) \
+        $(call product-def-rule-android-gen-dep,$1,$d,$2) \
     )) \
 
 endef
@@ -126,9 +132,9 @@ auto-build-dirs+=$$(CPDE_OUTPUT_ROOT)/$$($1.$2.android.output) $$(CPDE_OUTPUT_RO
 
 $2.android.proj android.proj $1.android.proj: $1.$2.android.proj
 
-$1.$2.android.proj: $(CPDE_OUTPUT_ROOT)/$$($1.$2.android.output)/jni/Android.mk $$(r.$1.$2.generated-sources)
+$1.$2.android.proj: $(CPDE_OUTPUT_ROOT)/$($1.$2.android.output)/jni/Android.mk $$(r.$1.$2.generated-sources)
 
-$(CPDE_OUTPUT_ROOT)/$$($1.$2.android.output)/jni/Android.mk: $$(r.$1.c.sources) $$(r.$1.$($2.env).c.sources) $$(r.$1.$2.c.sources)
+$(CPDE_OUTPUT_ROOT)/$($1.$2.android.output)/jni/Android.mk: $$(r.$1.c.sources) $$(r.$1.$($2.env).c.sources) $$(r.$1.$2.c.sources)
 	$$(call with_message,$1.$2 <== generating $$(notdir $$@))echo '# anto generate by makefile' >> $$@
 	$$(CPE_SILENCE_TAG)echo 'LOCAL_PATH := $$$$(call my-dir)' > $$@
 	$$(CPE_SILENCE_TAG)echo '' >> $$@
@@ -173,6 +179,7 @@ $(call product-def-for-domain,$1,$2-android)
 $(call product-def-rule-android-rules,$1,$2-android)
 
 $(call post-commands-add,product-def-rule-android-gen-depends-projs,$1,$2-android)
+
 $(call post-commands-add,product-def-rule-android-gen-java-rules,$1,$2-android)
 
 endef
