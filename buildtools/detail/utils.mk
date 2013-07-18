@@ -90,7 +90,6 @@ endef
 compiler-category=$(strip \
                       $(if $(filter %clang,$1),clang,\
                       $(if $(filter %clang++,$1),clang,\
-                      $(if $(filter %gcc,$1),gcc,\
-                      $(if $(filter %g++,$1),gcc,\
-                      $(warning unknown compiler $1))))))
+                      $(if $(filter %gcc %g++ %gcc44 %g++44,$1),gcc,\
+                      $(warning unknown compiler $1)))))
 
