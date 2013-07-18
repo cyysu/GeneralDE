@@ -80,7 +80,6 @@ static uint32_t set_svr_mon_app_fsm_runing_trans(fsm_machine_t fsm, fsm_def_stat
     case set_svr_mon_app_fsm_evt_disable:
         return set_svr_mon_app_state_disable;
     default:
-        printf("********** other\n");
         return FSM_INVALID_STATE;
     }
 }
