@@ -2,6 +2,7 @@
 #include <fcntl.h>
 #include <errno.h>
 #include "cpe/pal/pal_external.h"
+#include "cpe/pal/pal_stdio.h"
 #include "cpe/utils/string_utils.h"
 #include "cpe/nm/nm_manage.h"
 #include "cpe/nm/nm_read.h"

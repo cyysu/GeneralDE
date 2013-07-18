@@ -26,9 +26,10 @@
   debug-app: 0
   debug-net: 0
   tickers:
+    - net
     - tl: {process-count: 500}
 
-- name: app_net_runner
+- name: app_tick_runner
 
 - name: gd_timer_mgr
 
