@@ -43,7 +43,7 @@ app_net_runner_create(gd_app_context_t app, const char * name) {
 
     runner = (struct app_net_runner *)nm_node_data(runner_node);
     runner->m_app = app;
-    runner->m_tick_span = 1000;
+    runner->m_tick_span = 10;
 
     gd_app_set_main(app, app_net_run_main, app_net_run_stop, runner);
 
