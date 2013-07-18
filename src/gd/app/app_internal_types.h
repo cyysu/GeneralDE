@@ -114,6 +114,12 @@ struct gd_app_context {
 
 };
 
+struct app_tick_runner {
+    gd_app_context_t m_app;
+    int m_is_runing;
+    int64_t m_tick_span;
+};
+
 struct gd_app_module_type {
     cpe_hash_string_t m_name;
     struct gd_app_lib * m_lib;
