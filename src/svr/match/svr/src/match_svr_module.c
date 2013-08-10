@@ -1,0 +1,120 @@
+#include <assert.h>
+#include "cpe/pal/pal_external.h"
+#include "cpe/cfg/cfg_read.h"
+#include "cpe/net/net_connector.h"
+#include "cpe/dp/dp_manage.h"
+#include "cpe/aom/aom_obj_mgr.h"
+#include "gd/app/app_context.h"
+#include "gd/app/app_module.h"
+#include "svr/center/agent/center_agent.h"
+#include "svr/center/agent/center_agent_svr_type.h"
+#include "match_svr_ops.h"
+
+EXPORT_DIRECTIVE
+int match_svr_app_init(gd_app_context_t app, gd_app_module_t module, cfg_t cfg) {
+    center_agent_t agent;
+    match_svr_t match_svr;
+    center_agent_svr_type_t room_svr_type;
+    uint32_t check_span_ms;
+    uint32_t create_retry_span_s;
+    const char * send_to;
+    const char * match_request_recv_at;
+    const char * room_response_recv_at;
+
+    if ((send_to = cfg_get_string(cfg, "send-to", NULL)) == NULL) {
+        CPE_ERROR(gd_app_em(app), "%s: create: send-to not configured!", gd_app_module_name(module));
+        return -1;
+    }
+
+    if ((match_request_recv_at = cfg_get_string(cfg, "match-request-recv-at", NULL)) == NULL) {
+        CPE_ERROR(gd_app_em(app), "%s: create: match-request-recv-at not configured!", gd_app_module_name(module));
+        return -1;
+    }
+
+    if ((room_response_recv_at = cfg_get_string(cfg, "room-response-recv-at", NULL)) == NULL) {
+        CPE_ERROR(gd_app_em(app), "%s: create: room-response-recv-at not configured!", gd_app_module_name(module));
+        return -1;
+    }
+
+    if (cfg_try_get_uint32(cfg, "check-span-ms", &check_span_ms) != 0) {
+        CPE_ERROR(gd_app_em(app), "%s: create: check-span-ms not configured!", gd_app_module_name(module));
+        return -1;
+    }
+
+    if (cfg_try_get_uint32(cfg, "create-retry-span-s", &create_retry_span_s) != 0) {
+        CPE_ERROR(gd_app_em(app), "%s: create: create-retry-span-s not configured!", gd_app_module_name(module));
+        return -1;
+    }
+
+    agent = center_agent_find_nc(app, cfg_get_string(cfg, "center-agent", NULL));
+    if (agent == NULL) {
+        CPE_ERROR(
+            gd_app_em(app), "%s: create: center-agent %s not exist!",
+            gd_app_module_name(module), cfg_get_string(cfg, "center-agent", "default"));
+        return -1;
+    }
+
+    room_svr_type = center_agent_svr_type_lsearch_by_name(agent, "svr_room");
+    if (room_svr_type == NULL) {
+        CPE_ERROR(gd_app_em(app), "%s: create: svr_room find type fail!", gd_app_module_name(module));
+        return -1;
+    }
+
+    match_svr =
+        match_svr_create(
+            app, gd_app_module_name(module),
+            agent,
+            center_agent_svr_type_id(room_svr_type),
+            gd_app_alloc(app), gd_app_em(app));
+    if (match_svr == NULL) return -1;
+
+    match_svr->m_debug = cfg_get_int8(cfg, "debug", match_svr->m_debug);
+
+    if (match_svr_set_send_to(match_svr, send_to) != 0) {
+        CPE_ERROR(gd_app_em(app), "%s: create: set send-to %s fail!", gd_app_module_name(module), send_to);
+        match_svr_free(match_svr);
+        return -1;
+    }
+
+    if (match_svr_set_match_require_recv_at(match_svr, match_request_recv_at) != 0) {
+        CPE_ERROR(gd_app_em(app), "%s: create: set match-request-recv-at %s fail!", gd_app_module_name(module), match_request_recv_at);
+        match_svr_free(match_svr);
+        return -1;
+    }
+
+    if (match_svr_set_match_require_recv_at(match_svr, room_response_recv_at) != 0) {
+        CPE_ERROR(gd_app_em(app), "%s: create: set room-response-recv-at %s fail!", gd_app_module_name(module), room_response_recv_at);
+        match_svr_free(match_svr);
+        return -1;
+    }
+
+    if (match_svr_set_check_span(match_svr, check_span_ms) != 0) {
+        CPE_ERROR(gd_app_em(app), "%s: create: set check-span-ms %d fail!", gd_app_module_name(module), check_span_ms);
+        match_svr_free(match_svr);
+        return -1;
+    }
+
+    match_svr->m_create_retry_span_s = create_retry_span_s;
+
+    if (match_svr_meta_room_load(match_svr, cfg_find_cfg(gd_app_cfg(app), "meta.match_room_def")) != 0) {
+        CPE_ERROR(gd_app_em(app), "%s: create: load match_room_def fail!", gd_app_module_name(module));
+        match_svr_free(match_svr);
+        return -1;
+    }
+
+    if (match_svr->m_debug) {
+        CPE_INFO(gd_app_em(app), "%s: create: done.", gd_app_module_name(module));
+    }
+
+    return 0;
+}
+
+EXPORT_DIRECTIVE
+void match_svr_app_fini(gd_app_context_t app, gd_app_module_t module) {
+    match_svr_t match_svr;
+
+    match_svr = match_svr_find_nc(app, gd_app_module_name(module));
+    if (match_svr) {
+        match_svr_free(match_svr);
+    }
+}

@@ -1,0 +1,66 @@
+- name: log_context
+  config:
+    nocleanup: 0
+    bufsize: 0
+
+  rollingpolicies:
+    - dev: { type: sizewin, maxsize: 500mb, maxnum: 1 }
+
+  layouts:
+    - default: { type: dated }
+
+  appenders:
+    - dev: { type: rollingfile, policy: dev, layout: default }
+    - deploment: { type: rollingfile, policy: dev, layout: default }
+    - syslog: { type: syslog, layout: default }
+    - stdout: { type: stream, layout: default }
+    - stderr: { type: stream, layout: default }
+
+  categories:
+    - default: { appender: stderr }
+  debug: 1
+
+- name: app_net_env
+
+- name: app_setup
+  debug-app: 0
+  debug-net: 0
+  tickers:
+    - tl: {process-count: 500}
+
+- name: app_net_runner
+
+- name: gd_timer_mgr
+
+- name: dr_cvt_manage
+- name: dr_pbuf_cvt
+- name: dr_pbuf_len_cvt
+
+- name: dr_store_manage
+
+- include: svr_room_lib
+
+- name: svr_match_lib
+  type: dr_store_loader
+  load-from-symbol: g_metalib_svr_match_pro
+
+- include: svr_center
+
+- name: match_svr_stub
+  type: set_svr_stub
+  svr-type: svr_match
+  svr-id: 1
+  request-send-to: process-match-request
+  outgoing-recv-at: process-match-outgoing
+  svr-dispatch-infos:
+    - svr-type: svr_room
+      response-send-to: process-room-response
+
+- name: match_svr
+  send-to: process-match-outgoing
+  match-request-recv-at: process-match-request
+  room-response-recv-at: process-room-response
+  check-span-ms: 1000
+  create-retry-span-s: 5
+
+# -*- coding: utf-8 -*-

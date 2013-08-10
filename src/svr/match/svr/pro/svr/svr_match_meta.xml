@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<metalib tagsetversion="1" name="" version="1">
+
+    <struct name="svr_match_room_meta" version="1">
+        <entry name="match_room_type" type="uint16" id="1"/>
+        <entry name="require_user_count" type="uint16" id="2"/>
+        <entry name="sync_user" type="uint8" id="3"/>
+        <entry name="runing_room_type" type="uint16" id="4"/>
+    </struct>
+
+</metalib>
