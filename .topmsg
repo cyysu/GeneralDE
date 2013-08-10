@@ -1,6 +1,4 @@
-From: lokiwang <wangjian1009@gmail.com>
-Subject: [PATCH] t/support/game
+From: wangjian1009 <wangjian1009@gmail.coom>
+Subject: [PATCH] t/svr/match
 
-game develop support component
-
-Signed-off-by: lokiwang <wangjian1009@gmail.com>
+匹配服务
