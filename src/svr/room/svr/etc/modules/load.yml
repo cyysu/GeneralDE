@@ -1,0 +1,60 @@
+- name: log_context
+  config:
+    nocleanup: 0
+    bufsize: 0
+
+  rollingpolicies:
+    - dev: { type: sizewin, maxsize: 500mb, maxnum: 1 }
+
+  layouts:
+    - default: { type: dated }
+
+  appenders:
+    - dev: { type: rollingfile, policy: dev, layout: default }
+    - deploment: { type: rollingfile, policy: dev, layout: default }
+    - syslog: { type: syslog, layout: default }
+    - stdout: { type: stream, layout: default }
+    - stderr: { type: stream, layout: default }
+
+  categories:
+    - default: { appender: stderr }
+  debug: 1
+
+- name: app_net_env
+
+- name: app_setup
+  debug-app: 0
+  debug-net: 0
+  tickers:
+    - tl: {process-count: 500}
+
+- name: app_net_runner
+
+- name: gd_timer_mgr
+
+- name: dr_cvt_manage
+- name: dr_pbuf_cvt
+- name: dr_pbuf_len_cvt
+
+- name: dr_store_manage
+
+- name: svr_room_lib
+  type: dr_store_loader
+  load-from-symbol: g_metalib_svr_room_pro
+
+- include: svr_center
+
+- name: room_svr_stub
+  type: set_svr_stub
+  svr-type: svr_room
+  svr-id: 1
+  request-send-to: process-room-incoming
+  outgoing-recv-at: process-room-outgoing
+
+- name: room_svr
+  send-to: process-room-outgoing
+  recv-at: process-room-incoming
+  check-span-ms: 1000
+  timeout-span-s: 300
+
+# -*- coding: utf-8 -*-

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<metalib tagsetversion="1" name="" version="1">
+
+    <struct name="svr_room_room_meta" version="1" primarykey="room_id">
+        <entry name="room_type" type="uint16" id="1"/>
+    </struct>
+
+</metalib>

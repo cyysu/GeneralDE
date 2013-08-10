@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="GBK" standalone="yes"?>
+<metalib tagsetversion="1" name="" version="1">
+
+    <macro name="SVR_ROOM_USER_DATA_MAX" value="128"/>
+
+    <struct name="svr_room_data" version="1">
+        <entry name="room_svr_id" type="uint16" id="1"/>
+        <entry name="room_id" type="uint64" id="2"/>
+        <entry name="room_role_count" type="uint32" id="3"/>
+    </struct>
+
+    <struct name="svr_room_user" version="1">
+        <entry name="user_id" type="uint64" id="1"/>
+        <entry name="user_data_len" type="uint16" id="4"/>
+        <entry name="user_data" type="uint8" count="SVR_ROOM_USER_DATA_MAX" refer="user_data_len" id="5"/>
+    </struct>
+
+</metalib>
