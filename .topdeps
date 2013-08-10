@@ -5,3 +5,4 @@ t/svr/account
 t/3rdTools/zmq
 t/svr/usf
 t/svr/room
+t/svr/match
