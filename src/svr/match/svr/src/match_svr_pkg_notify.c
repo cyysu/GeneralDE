@@ -1,0 +1,228 @@
+#include <assert.h>
+#include "cpe/dp/dp_request.h"
+#include "svr/set/share/set_pkg.h"
+#include "match_svr_ops.h"
+
+void match_svr_room_notify_other_user_join(match_svr_room_t room, match_svr_user_t user) {
+    match_svr_t svr = room->m_svr;
+    dp_req_t notify_pkg = NULL;
+    dp_req_t notify_pkg_head = NULL;
+    SVR_MATCH_NOTIFY_JOIN * notify;
+    match_svr_user_t process_user;
+
+    TAILQ_FOREACH(process_user, &room->m_users, m_next) {
+        if (user == process_user) continue; /*忽略自己*/
+
+        if (notify_pkg == NULL) {
+            notify_pkg = match_svr_build_notify(svr, SVR_MATCH_CMD_NOTIFY_JOIN, sizeof(SVR_MATCH_PKG));
+            if (notify_pkg == NULL) {
+                CPE_ERROR(svr->m_em, "%s: create: notify_other_join, alloc notify pkg fail!", match_svr_name(svr));
+                return;
+            }
+
+            notify_pkg_head = set_pkg_head_find(notify_pkg);
+            assert(notify_pkg_head);
+
+            notify = &((SVR_MATCH_PKG*)dp_req_data(notify_pkg))->data.svr_match_notify_join;
+            notify->match_room_id = room->m_data->match_room_id;
+            notify->join_user.user_id = user->m_data->user_id;
+            notify->join_user.user_data_len = user->m_data->user_data_len;
+            memcpy(notify->join_user.user_data, user->m_data->user_data, user->m_data->user_data_len);
+        }
+
+        assert(notify);
+        notify->user_id = process_user->m_data->user_id;
+
+        assert(notify_pkg_head);
+        set_pkg_set_to_svr(
+            notify_pkg_head,
+            process_user->m_data->user_at_svr_type,
+            process_user->m_data->user_at_svr_id);
+
+        match_svr_send_pkg(svr, notify_pkg);
+    }
+}
+
+void match_svr_room_notify_user_other_join(match_svr_room_t room, match_svr_user_t user) {
+    match_svr_t svr = room->m_svr;
+    dp_req_t notify_pkg = NULL;
+    SVR_MATCH_NOTIFY_JOIN * notify;
+    match_svr_user_t process_user;
+
+    TAILQ_FOREACH(process_user, &room->m_users, m_next) {
+        if (user == process_user) continue; /*忽略自己*/
+
+        if (notify_pkg == NULL) {
+            notify_pkg = match_svr_build_notify(svr, SVR_MATCH_CMD_NOTIFY_JOIN, sizeof(SVR_MATCH_PKG));
+            if (notify_pkg == NULL) {
+                CPE_ERROR(svr->m_em, "%s: create: notify_other_join, alloc notify pkg fail!", match_svr_name(svr));
+                return;
+            }
+
+            notify = &((SVR_MATCH_PKG*)dp_req_data(notify_pkg))->data.svr_match_notify_join;
+            notify->match_room_id = room->m_data->match_room_id;
+            notify->user_id = user->m_data->user_id;
+        }
+
+        assert(notify);
+
+        notify->join_user.user_id = process_user->m_data->user_id;
+        notify->join_user.user_data_len = process_user->m_data->user_data_len;
+        memcpy(notify->join_user.user_data, process_user->m_data->user_data, process_user->m_data->user_data_len);
+
+        set_pkg_set_to_svr(
+            notify_pkg,
+            process_user->m_data->user_at_svr_type,
+            process_user->m_data->user_at_svr_id);
+
+        match_svr_send_pkg(svr, notify_pkg);
+    }
+}
+
+void match_svr_room_notify_other_user_leave(match_svr_room_t room, match_svr_user_t user) {
+    match_svr_t svr = room->m_svr;
+    dp_req_t notify_pkg = NULL;
+    dp_req_t notify_pkg_head;
+    SVR_MATCH_NOTIFY_LEAVE * notify;
+    match_svr_user_t process_user;
+
+    TAILQ_FOREACH(process_user, &room->m_users, m_next) {
+        if (user == process_user) continue; /*忽略自己*/
+
+        if (notify_pkg == NULL) {
+            notify_pkg = match_svr_build_notify(svr, SVR_MATCH_CMD_NOTIFY_LEAVE, sizeof(SVR_MATCH_PKG));
+            if (notify_pkg == NULL) {
+                CPE_ERROR(svr->m_em, "%s: create: notify other user leave, alloc notify pkg fail!", match_svr_name(svr));
+                return;
+            }
+
+            notify = &((SVR_MATCH_PKG*)dp_req_data(notify_pkg))->data.svr_match_notify_leave;
+            notify->match_room_id = room->m_data->match_room_id;
+            notify->leave_user_id = user->m_data->user_id;
+
+            notify_pkg_head = set_pkg_head_find(notify_pkg);
+            assert(notify_pkg_head);
+        }
+
+        assert(notify);
+        notify->user_id = process_user->m_data->user_id;
+
+        assert(notify_pkg_head);
+        set_pkg_set_to_svr(
+            notify_pkg_head,
+            process_user->m_data->user_at_svr_type,
+            process_user->m_data->user_at_svr_id);
+
+        match_svr_send_pkg(svr, notify_pkg);
+    }
+}
+
+void match_svr_room_notify_user_other_leave(match_svr_room_t room, match_svr_user_t user) {
+    match_svr_t svr = room->m_svr;
+    dp_req_t notify_pkg = NULL;
+    dp_req_t notify_pkg_head = NULL;
+    SVR_MATCH_NOTIFY_LEAVE * notify;
+    match_svr_user_t process_user;
+
+    TAILQ_FOREACH(process_user, &room->m_users, m_next) {
+        if (user == process_user) continue; /*忽略自己*/
+
+        if (notify_pkg == NULL) {
+            notify_pkg = match_svr_build_notify(svr, SVR_MATCH_CMD_NOTIFY_LEAVE, sizeof(SVR_MATCH_PKG));
+            if (notify_pkg == NULL) {
+                CPE_ERROR(svr->m_em, "%s: create: notify other user leave, alloc notify pkg fail!", match_svr_name(svr));
+                return;
+            }
+
+            notify = &((SVR_MATCH_PKG*)dp_req_data(notify_pkg))->data.svr_match_notify_leave;
+            notify->match_room_id = room->m_data->match_room_id;
+            notify->user_id = user->m_data->user_id;
+
+            notify_pkg_head = set_pkg_head_find(notify_pkg);
+            assert(notify_pkg_head);
+        }
+
+        assert(notify);
+        notify->leave_user_id = process_user->m_data->user_id;
+
+        assert(notify_pkg_head);
+        set_pkg_set_to_svr(
+            notify_pkg_head,
+            process_user->m_data->user_at_svr_type,
+            process_user->m_data->user_at_svr_id);
+
+        match_svr_send_pkg(svr, notify_pkg);
+    }
+}
+
+void match_svr_room_notify_room_created(match_svr_room_t room, uint16_t room_svr_id, uint64_t room_id) {
+    match_svr_t svr = room->m_svr;
+    dp_req_t notify_pkg = NULL;
+    dp_req_t notify_pkg_head = NULL;
+    SVR_MATCH_NOTIFY_ROOM_CREATED * notify;
+    match_svr_user_t to_user;
+    match_svr_user_t pre_user;
+    int to_user_index;
+
+    assert(room->m_user_count > 0);
+
+    notify_pkg = match_svr_build_notify(
+        svr,
+        SVR_MATCH_CMD_NOTIFY_ROOM_CREATED,
+        sizeof(SVR_MATCH_PKG) + sizeof(SVR_MATCH_MATCHING_USER) * (room->m_user_count - 1));
+    if (notify_pkg == NULL) {
+        CPE_ERROR(svr->m_em, "%s: create: notify other user leave, alloc notify pkg fail!", match_svr_name(svr));
+        return;
+    }
+    notify = &((SVR_MATCH_PKG*)dp_req_data(notify_pkg))->data.svr_match_notify_room_created;
+    notify->match_room_id = room->m_data->match_room_id;
+    notify->room_id = room_id;
+    notify->room_svr_id = room_svr_id;
+    notify->user_count = 0;
+
+    notify_pkg_head = set_pkg_head_find(notify_pkg);
+    assert(notify_pkg_head);
+
+    for(pre_user = NULL, to_user = TAILQ_FIRST(&room->m_users), to_user_index = 0;
+        to_user != TAILQ_END(&room->m_users);
+        pre_user = to_user, to_user = TAILQ_NEXT(to_user, m_next), ++to_user_index)
+    {
+        if (to_user_index == 0) { /*第一个请求，填写所有其他用户信息*/
+            match_svr_user_t other_user;
+
+            for(other_user = TAILQ_NEXT(to_user, m_next);
+                other_user != TAILQ_END(&room->m_users);
+                other_user = TAILQ_NEXT(other_user, m_next))
+            {
+                SVR_MATCH_MATCHING_USER * matching_user;
+                matching_user = &notify->users[notify->user_count++];
+
+                matching_user->user_id = other_user->m_data->user_id;
+                matching_user->user_data_len = other_user->m_data->user_data_len;
+                memcpy(matching_user->user_data, other_user->m_data->user_data, other_user->m_data->user_data_len);
+            }
+        }
+        else { /*其他用户只需要替换一个用户信息*/
+            SVR_MATCH_MATCHING_USER * replace_user;
+
+            replace_user = &notify->users[to_user_index - 1];
+
+            assert(pre_user);
+            
+            replace_user->user_id = pre_user->m_data->user_id;
+            replace_user->user_data_len = pre_user->m_data->user_data_len;
+            memcpy(replace_user->user_data, pre_user->m_data->user_data, pre_user->m_data->user_data_len);
+        }
+
+        notify->user_id = to_user->m_data->user_id;
+
+        assert(notify_pkg_head);
+        set_pkg_set_to_svr(
+            notify_pkg_head,
+            to_user->m_data->user_at_svr_type,
+            to_user->m_data->user_at_svr_id);
+
+        match_svr_send_pkg(svr, notify_pkg);
+    }
+}
+

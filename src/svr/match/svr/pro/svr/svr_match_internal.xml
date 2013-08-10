@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<metalib tagsetversion="1" name="" version="1">
+    <include name="svr_match_data" file="svr_match_data.xml"/>
+
+    <struct name="svr_match_room_record" version="1" primarykey="match_room_id,creating_id">
+        <entry name="match_room_id" type="uint64" id="1"/>
+        <entry name="match_room_type" type="uint16" id="2"/>
+        <entry name="creating_id" type="uint32" id="3"/>
+        <entry name="creating_req_time" type="uint32" id="4"/>
+    </struct>
+
+    <struct name="svr_match_user_record" version="1" primarykey="match_room_id,user_id">
+        <entry name="match_room_id" type="uint64" id="1"/>
+        <entry name="creating_id" type="uint32" id="3"/>
+        <entry name="user_id" type="uint64" id="2"/>
+        <entry name="user_at_svr_type" type="uint16" id="3"/>
+        <entry name="user_at_svr_id" type="uint16" id="4"/>
+        <entry name="user_join_time" type="uint32" id="5"/>
+        <entry name="user_last_op_time" type="uint32" id="6"/>
+        <entry name="user_data_len" type="uint32" id="7"/>
+        <entry name="user_data" type="uint8" count="SVR_MATCH_USER_DATA_MAX" refer="user_data_len" id="8"/>
+    </struct>
+
+</metalib>
