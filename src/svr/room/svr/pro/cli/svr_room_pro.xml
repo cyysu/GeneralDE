@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="GBK" standalone="yes"?>
+<metalib tagsetversion="1" name="" version="1">
+    <include name="svr_room_data" file="svr_room_data.xml"/>
+
+    <macrosgroup name="svr_room_user_leave_reason">
+        <macro name="SVR_ROOM_USER_LEAVE_BY_USER" value="1"/>
+        <macro name="SVR_ROOM_USER_LEAVE_BY_TIMEOUT" value="2"/>
+    </macrosgroup>
+
+    <macrosgroup name="svr_room_room_destory_reason">
+        <macro name="SVR_ROOM_ROOM_DESTORY_BY_USER" value="1"/>
+        <macro name="SVR_ROOM_ROOM_DESTORY_TIMEOUT" value="2"/>
+    </macrosgroup>
+
+    <macrosgroup name="svr_room_error">
+        <macro name="SVR_ROOM_ERROR_ROOM_TYPE_UNKNOWN" value="1"/>
+        <macro name="SVR_ROOM_ERROR_ROOM_NOT_EXIST" value="2"/>
+        <macro name="SVR_ROOM_ERROR_USER_NOT_IN_ROOM" value="3"/>
+        <macro name="SVR_ROOM_ERROR_INTERNAL" value="-1"/>
+    </macrosgroup>
+
+    <!--  ============ 协议定义 ========== -->
+
+    <!-- 创建房间 -->
+    <struct name="svr_room_creating_user" version="1">
+        <entry name="user_id" type="uint64" id="1"/>
+        <entry name="user_at_svr_type" type="uint16" id="2"/>
+        <entry name="user_at_svr_id" type="uint16" id="3"/>
+        <entry name="user_data_len" type="uint16" id="4"/>
+        <entry name="user_data" type="uint8" count="128" refer="user_data_len" id="5"/>
+    </struct>
+
+    <struct name="svr_room_req_create" version="1">
+        <entry name="room_type" type="uint16" id="2"/>
+        <entry name="user_count" type="uint16" id="3"/>
+        <entry name="users" type="svr_room_creating_user" count="0" refer="user_count" id="4"/>
+    </struct>
+
+    <struct name="svr_room_res_create" version="1">
+        <entry name="result" type="int16" id="1"/>
+        <entry name="room_id" type="uint64" id="3"/>
+    </struct>
+
+    <!-- 删除房间 -->
+    <struct name="svr_room_req_delete" version="1">
+        <entry name="room_id" type="uint64" id="2"/>
+    </struct>
+
+    <struct name="svr_room_res_delete" version="1">
+        <entry name="result" type="int16" id="1"/>
+    </struct>
+
+    <!-- 加入房间 -->
+    <struct name="svr_room_req_join" version="1">
+        <entry name="room_id" type="uint64" id="1"/>
+        <entry name="user" type="svr_room_user" id="2"/>
+    </struct>
+
+    <struct name="svr_room_res_join" version="1">
+        <entry name="result" type="int16" id="1"/>
+    </struct>
+
+    <!-- 离开房间 -->
+    <struct name="svr_room_req_leave" version="1">
+        <entry name="room_id" type="uint64" id="1"/>
+        <entry name="user_id" type="uint64" id="2"/>
+    </struct>
+
+    <struct name="svr_room_res_leave" version="1">
+        <entry name="result" type="int16" id="1"/>
+    </struct>
+
+    <!-- 在房间内发送广播 -->
+    <struct name="svr_room_req_broadcast" version="1">
+        <entry name="room_id" type="uint64" id="1"/>
+        <entry name="user_id" type="uint64" id="2"/>
+        <entry name="data_len" type="uint32" id="3"/>
+        <entry name="data" type="int8" count="0" refer="data_len" id="4"/>
+    </struct>
+
+    <!-- 查询指定类型房间列表 -->
+    <struct name="svr_room_req_query_room_by_type" version="1">
+        <entry name="count" type="uint16" id="1"/>
+        <entry name="types" type="uint16" id="2" count="127" refer="count"/>
+    </struct>
+
+    <struct name="svr_room_res_query_room_by_type" version="1">
+        <entry name="count" type="uint16" id="1"/>
+        <entry name="data" type="svr_room_data" count="0" refer="count" id="2"/>
+    </struct>
+
+    <!-- 查询指定用户房间列表 -->
+    <struct name="svr_room_req_query_room_by_user" version="1">
+        <entry name="gid" type="uint64" id="1"/>
+    </struct>
+
+    <struct name="svr_room_res_query_room_by_user" version="1">
+        <entry name="count" type="uint16" id="1"/>
+        <entry name="data" type="svr_room_data" count="0" refer="count" id="2"/>
+    </struct>
+
+    <!--  =========== 通知定义 ========== -->
+    <struct name="svr_room_notify_msg" version="1">
+        <entry name="room_id" type="uint64" id="1"/>
+        <entry name="user_id" type="uint64" id="2"/>
+        <entry name="send_user" type="uint64" id="3"/>
+        <entry name="data_len" type="uint32" id="4"/>
+        <entry name="data" type="int8" count="0" refer="data_len" id="5"/>
+    </struct>
+
+    <struct name="svr_room_notify_user_join" version="1">
+        <entry name="room_id" type="uint64" id="1"/>
+        <entry name="user_id" type="uint64" id="2"/>
+        <entry name="join_user" type="svr_room_user" id="3"/>
+    </struct>
+
+    <struct name="svr_room_notify_user_leave" version="1">
+        <entry name="room_id" type="uint64" id="1"/>
+        <entry name="user_id" type="uint64" id="2"/>
+        <entry name="leave_user" type="uint64" id="2"/>
+        <entry name="leave_reason" type="uint8" id="3" bindmacrosgroup="svr_room_user_leave_reason"/>
+    </struct>
+
+    <struct name="svr_room_notify_room_destory" version="1">
+        <entry name="room_id" type="uint64" id="1"/>
+        <entry name="user_id" type="uint64" id="2"/>
+        <entry name="destory_reason" type="uint8" id="2" bindmacrosgroup="svr_room_room_destory_reason"/>
+    </struct>
+
+    <struct name="svr_room_notify_room_tick" version="1">
+        <entry name="room_id" type="uint64" id="1"/>
+        <entry name="user_id" type="uint64" id="2"/>
+    </struct>
+
+    <!--  =========== 整体协议定义 ========== -->
+    <!-- 整体协议定义 -->
+    <macrosgroup name="SVR_ROOM_CMD_ID">
+        <macro name="SVR_ROOM_CMD_REQ_CREATE" value="1"/>
+        <macro name="SVR_ROOM_CMD_RES_CREATE" value="2"/>
+
+        <macro name="SVR_ROOM_CMD_REQ_DELETE" value="3"/>
+        <macro name="SVR_ROOM_CMD_RES_DELETE" value="4"/>
+
+        <macro name="SVR_ROOM_CMD_REQ_QUERY_ROOM_BY_TYPE" value="5"/>
+        <macro name="SVR_ROOM_CMD_RES_QUERY_ROOM_BY_TYPE" value="6"/>
+
+        <macro name="SVR_ROOM_CMD_REQ_QUERY_ROOM_BY_USER" value="7"/>
+        <macro name="SVR_ROOM_CMD_RES_QUERY_ROOM_BY_USER" value="8"/>
+
+        <macro name="SVR_ROOM_CMD_REQ_JOIN" value="9"/>
+        <macro name="SVR_ROOM_CMD_RES_JOIN" value="10"/>
+
+        <macro name="SVR_ROOM_CMD_REQ_LEAVE" value="11"/>
+        <macro name="SVR_ROOM_CMD_RES_LEAVE" value="12"/>
+
+        <macro name="SVR_ROOM_CMD_REQ_BROADCAST" value="13"/>
+
+        <macro name="SVR_ROOM_CMD_NOTIFY_MSG" value="21"/>
+        <macro name="SVR_ROOM_CMD_NOTIFY_USER_JOIN" value="22"/>
+        <macro name="SVR_ROOM_CMD_NOTIFY_USER_LEAVE" value="23"/>
+        <macro name="SVR_ROOM_CMD_NOTIFY_ROOM_DESTORY" value="24"/>
+        <macro name="SVR_ROOM_CMD_NOTIFY_ROOM_TICK" value="25"/>
+    </macrosgroup>
+
+    <union name="svr_room_pkg_data" version="1" desc="">
+        <entry name="svr_room_req_create" type="svr_room_req_create" id="SVR_ROOM_CMD_REQ_CREATE"/>
+        <entry name="svr_room_res_create" type="svr_room_res_create" id="SVR_ROOM_CMD_RES_CREATE"/>
+
+        <entry name="svr_room_req_delete" type="svr_room_req_delete" id="SVR_ROOM_CMD_REQ_DELETE"/>
+        <entry name="svr_room_res_delete" type="svr_room_res_delete" id="SVR_ROOM_CMD_RES_DELETE"/>
+
+        <entry name="svr_room_req_join" type="svr_room_req_join" id="SVR_ROOM_CMD_REQ_JOIN"/>
+        <entry name="svr_room_res_join" type="svr_room_res_join" id="SVR_ROOM_CMD_RES_JOIN"/>
+
+        <entry name="svr_room_req_leave" type="svr_room_req_leave" id="SVR_ROOM_CMD_REQ_LEAVE"/>
+        <entry name="svr_room_res_leave" type="svr_room_res_leave" id="SVR_ROOM_CMD_RES_LEAVE"/>
+
+        <entry name="svr_room_req_query_room_by_type" type="svr_room_req_query_room_by_type" id="SVR_ROOM_CMD_REQ_QUERY_ROOM_BY_TYPE"/>
+        <entry name="svr_room_res_query_room_by_type" type="svr_room_res_query_room_by_type" id="SVR_ROOM_CMD_RES_QUERY_ROOM_BY_TYPE"/>
+
+        <entry name="svr_room_req_query_room_by_user" type="svr_room_req_query_room_by_user" id="SVR_ROOM_CMD_REQ_QUERY_ROOM_BY_USER"/>
+        <entry name="svr_room_res_query_room_by_user" type="svr_room_res_query_room_by_user" id="SVR_ROOM_CMD_RES_QUERY_ROOM_BY_USER"/>
+
+        <entry name="svr_room_req_broadcast" type="svr_room_req_broadcast" id="SVR_ROOM_CMD_REQ_BROADCAST"/>
+
+        <entry name="svr_room_notify_msg" type="svr_room_notify_msg" id="SVR_ROOM_CMD_NOTIFY_MSG"/>
+        <entry name="svr_room_notify_user_join" type="svr_room_notify_user_join" id="SVR_ROOM_CMD_NOTIFY_USER_JOIN"/>
+        <entry name="svr_room_notify_user_leave" type="svr_room_notify_user_leave" id="SVR_ROOM_CMD_NOTIFY_USER_LEAVE"/>
+        <entry name="svr_room_notify_room_destory" type="svr_room_notify_room_destory" id="SVR_ROOM_CMD_NOTIFY_ROOM_DESTORY"/>
+        <entry name="svr_room_notify_room_tick" type="svr_room_notify_room_tick" id="SVR_ROOM_CMD_NOTIFY_ROOM_TICK"/>
+    </union>
+
+    <struct name="svr_room_pkg" version="1">
+        <entry name="cmd" type="uint32" id="1"/>
+        <entry name="data" type="svr_room_pkg_data" id="3" select="cmd"/>
+    </struct>
+
+</metalib>
