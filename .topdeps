@@ -4,3 +4,4 @@ t/svr/friend
 t/svr/account
 t/3rdTools/zmq
 t/svr/usf
+t/svr/room
