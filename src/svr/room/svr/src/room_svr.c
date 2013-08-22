@@ -31,7 +31,6 @@ room_svr_t
 room_svr_create(
     gd_app_context_t app,
     const char * name,
-    center_agent_t agent,
     mem_allocrator_t alloc,
     error_monitor_t em)
 {
@@ -49,7 +48,6 @@ room_svr_create(
     svr->m_alloc = alloc;
     svr->m_em = em;
     svr->m_debug = 0;
-    svr->m_agent = agent;
     svr->m_timeout_span_s = 5 * 60;
     svr->m_check_timer_id = GD_TIMER_ID_INVALID;
     svr->m_outgoing_pkg = NULL;
