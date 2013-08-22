@@ -1,7 +1,6 @@
 #include <assert.h> 
 #include "cpe/pal/pal_stdio.h"
 #include "cpe/dp/dp_request.h"
-#include "svr/center/agent/center_agent.h"
 #include "svr/set/share/set_pkg.h"
 #include "conn_svr_ops.h"
 

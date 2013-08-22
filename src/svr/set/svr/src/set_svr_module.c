@@ -193,6 +193,7 @@ int set_svr_app_init(gd_app_context_t app, gd_app_module_t module, cfg_t cfg) {
         return -1;
     }
 
+    set_svr->m_mon->m_restart_wait_ms = (tl_time_span_t)cfg_get_uint32(cfg, "mon.restart-wait-ms", 1000);
     if (set_svr_app_init_mon(set_svr->m_mon) != 0) {
         set_svr_free(set_svr);
         return -1;

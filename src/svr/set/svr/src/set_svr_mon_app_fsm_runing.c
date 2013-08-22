@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <errno.h>
 #include "cpe/utils/error.h"
+#include "cpe/utils/string_utils.h"
 #include "set_svr_mon_ops.h"
 
 static void set_svr_mon_app_fsm_runing_enter(fsm_machine_t fsm, fsm_def_state_t state, void * event) {
@@ -27,9 +28,24 @@ static void set_svr_mon_app_fsm_runing_enter(fsm_machine_t fsm, fsm_def_state_t 
     else { /*父进程 */
         mon_app->m_pid = pid;
 
-        CPE_INFO(
-            svr->m_em, "%s: mon app %s: start: fork success, pid=%d!",
-            set_svr_name(svr), mon_app->m_bin, pid);
+        do {
+            char dump_buffer[512];
+            struct cpe_str_buf str_buffer = CPE_STR_BUF_INIT(dump_buffer, sizeof(dump_buffer));
+            int i;
+
+            for(i = 0; mon_app->m_args[i]; ++i) {
+                if (i != 0) {
+                    cpe_str_buf_cat(&str_buffer, " ");
+                }
+
+                cpe_str_buf_cat(&str_buffer, mon_app->m_args[i]);
+            }
+
+            CPE_INFO(
+                svr->m_em, "%s: mon app %s: start: fork success, pid=%d, args=(%s)!",
+                set_svr_name(svr), mon_app->m_bin, pid, dump_buffer);
+
+        } while(0);
     }
 }
 

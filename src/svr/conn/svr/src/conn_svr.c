@@ -32,7 +32,7 @@ struct nm_node_type s_nm_node_type_conn_svr = {
 conn_svr_t
 conn_svr_create(
     gd_app_context_t app,
-    const char * name, center_agent_t agent,
+    const char * name, 
     uint16_t conn_svr_type,
     mem_allocrator_t alloc, error_monitor_t em)
 {
@@ -51,7 +51,6 @@ conn_svr_create(
     svr->m_em = em;
     svr->m_debug = 0;
     svr->m_ev_loop = net_mgr_ev_loop(gd_app_net_mgr(app));
-    svr->m_agent = agent;
     svr->m_conn_svr_type = conn_svr_type;
     svr->m_outgoing_pkg = NULL;
     svr->m_ss_send_to = NULL;
@@ -351,7 +350,7 @@ dp_req_t conn_svr_pkg_buf(conn_svr_t svr) {
             return NULL;
         }
 
-        carry = set_pkg_carry_check_create(svr->m_outgoing_pkg, sizeof(struct conn_svr_pkg_carry_data));
+        carry = set_pkg_carry_check_create(svr->m_outgoing_pkg, sizeof(CONN_SVR_CONN_INFO));
         if (carry == NULL) {
             CPE_ERROR(svr->m_em, "%s: crate outgoing pkg buf carry fail!", conn_svr_name(svr));
             dp_req_free(svr->m_outgoing_pkg);
@@ -359,7 +358,7 @@ dp_req_t conn_svr_pkg_buf(conn_svr_t svr) {
             return NULL;
         }
 
-        set_pkg_carry_set_size(carry, sizeof(struct conn_svr_pkg_carry_data));
+        set_pkg_carry_set_size(carry, sizeof(CONN_SVR_CONN_INFO));
     }
     else {
         head = set_pkg_head_find(svr->m_outgoing_pkg);
