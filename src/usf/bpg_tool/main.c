@@ -13,6 +13,7 @@
 #include "gd/app/app_context.h"
 #include "gd/app/app_module.h"
 #include "usf/bpg_pkg/bpg_pkg.h"
+#include "usf/bpg_pkg/bpg_pkg_data.h"
 #include "usf/bpg_use/bpg_use_sp.h"
 #include "usf/bpg_pkg/bpg_pkg_manage.h"
 #include "usf/bpg_net/bpg_net_client.h"
@@ -94,25 +95,23 @@ cfg_t read_pkg_cfg(gd_app_context_t app) {
 }
 
 int send_request(gd_app_context_t app) {
-    cfg_t sp_cfg;
     bpg_use_sp_t sp;
-    bpg_pkg_t pkg;
+    dp_req_t pkg;
     cfg_t pkg_cfg;
+    bpg_pkg_manage_t pkg_manage;
 
-    sp_cfg = cfg_create(0);
-    cfg_struct_add_string(sp_cfg, "name", "client", cfg_replace);
-    cfg_struct_add_string(sp_cfg, "pkg-manage", "bpg_pkg_manage", cfg_replace);
-    cfg_struct_add_string(sp_cfg, "send-to", "send-to-server", cfg_replace);
-    cfg_struct_add_int32(sp_cfg, "debug", debug_level(), cfg_replace);
-    sp = bpg_use_sp_create(app, sp_cfg, NULL);
-    cfg_free(sp_cfg);
+    pkg_manage = bpg_pkg_manage_find_nc(app, "bpg_pkg_manage");
+    if (pkg_manage == NULL) {
+        CPE_ERROR(gd_app_em(app), "find bpg_pkg_manage fail!");
+    }
 
+    sp = bpg_use_sp_create(app, "client", pkg_manage, gd_app_alloc(app), gd_app_em(app));
     if (sp == NULL) {
         CPE_ERROR(gd_app_em(app), "create sp fail!");
         return -1;
     }
 
-    pkg = bpg_use_sp_pkg_buf(sp);
+    pkg = bpg_use_sp_pkg_buf(sp, 2048);
     assert(pkg);
 
     pkg_cfg = read_pkg_cfg(app);
@@ -158,7 +157,7 @@ void net_connector_state_monitor(net_connector_t connector, void * ctx) {
     case net_connector_state_connecting:
         break;
     default:
-        gd_app_stop(app);
+        gd_app_notify_stop(app);
     }
 }
 
