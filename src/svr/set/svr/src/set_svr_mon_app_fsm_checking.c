@@ -36,6 +36,9 @@ static void set_svr_mon_app_fsm_checking_enter(fsm_machine_t fsm, fsm_def_state_
         set_svr_mon_app_apply_evt(mon_app, set_svr_mon_app_fsm_evt_start);
         return;
     case set_svr_mon_app_get_pid_error:
+        CPE_ERROR(
+            svr->m_em, "%s: mon app %s: get pid error",
+            set_svr_name(svr), mon_app->m_bin);
         return;
     }
 }
@@ -54,6 +57,8 @@ static uint32_t set_svr_mon_app_fsm_checking_trans(fsm_machine_t fsm, fsm_def_st
         return set_svr_mon_app_state_runing;
     case set_svr_mon_app_fsm_evt_timeout:
         return set_svr_mon_app_state_checking;
+    case set_svr_mon_app_fsm_evt_stoped:
+        return set_svr_mon_app_state_waiting;
     case set_svr_mon_app_fsm_evt_disable:
         return set_svr_mon_app_state_disable;
     default:

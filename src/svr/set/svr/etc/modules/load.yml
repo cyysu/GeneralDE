@@ -24,11 +24,9 @@
 - name: app_net_env
 
 - name: app_setup
-  debug-app: 0
+  debug-app: 1
   debug-net: 0
-  tickers:
-    - net
-    - tl: {process-count: 500}
+  tickers: [ net, tl ]
 
 - name: app_tick_runner
 
@@ -54,6 +52,9 @@
   ringbuf-size: 5mb
   local-search-span-s: 30
   process-count-per-tick: 10
+
+  mon:
+    restart-wait-ms: 30000
 
   debug: 2
 

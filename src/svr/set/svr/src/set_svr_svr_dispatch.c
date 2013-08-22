@@ -55,7 +55,7 @@ ptr_int_t set_svr_dispatch_tick(void * ctx, ptr_int_t arg) {
         }
 
         if (first_svr == NULL) first_svr = local_svr;
-        else if (first_svr == local_svr && process_count == 0) break; 
+        else if (first_svr == local_svr) break; 
 
         TAILQ_REMOVE(&svr->m_local_svrs, local_svr, m_next_for_local);
         TAILQ_INSERT_TAIL(&svr->m_local_svrs, local_svr, m_next_for_local);

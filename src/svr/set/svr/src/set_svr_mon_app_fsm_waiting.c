@@ -4,7 +4,7 @@
 
 static void set_svr_mon_app_fsm_waiting_enter(fsm_machine_t fsm, fsm_def_state_t state, void * event) {
     set_svr_mon_app_t mon_app = fsm_machine_context(fsm);
-    set_svr_mon_app_start_state_timer(mon_app, 30000);
+    set_svr_mon_app_start_state_timer(mon_app, mon_app->m_mon->m_restart_wait_ms);
 }
 
 static void set_svr_mon_app_fsm_waiting_leave(fsm_machine_t fsm, fsm_def_state_t state, void * event) {

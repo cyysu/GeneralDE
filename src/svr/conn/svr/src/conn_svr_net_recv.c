@@ -178,7 +178,7 @@ static int conn_svr_conn_process_data(conn_svr_t svr, conn_svr_conn_t conn) {
     dp_req_t ss_pkg = NULL;
     dp_req_t ss_pkg_head = NULL;
     dp_req_t ss_pkg_carry = NULL;
-    struct conn_svr_pkg_carry_data * ss_pkg_carry_data;
+    CONN_SVR_CONN_INFO * ss_pkg_carry_data;
 
     while(conn->m_rb) {
         received_data_len = ringbuffer_data(svr->m_ringbuf, conn->m_rb, sizeof(uint16_t), 0, &buf);
@@ -242,9 +242,8 @@ static int conn_svr_conn_process_data(conn_svr_t svr, conn_svr_conn_t conn) {
 
         /*设置carry*/
         ss_pkg_carry_data = set_pkg_carry_data(ss_pkg_carry);
-        ss_pkg_carry_data->m_conn_id = conn->m_conn_id;
-        ss_pkg_carry_data->m_user_id = conn->m_user_id;
-        ss_pkg_carry_data->m_svr_type = head->to_svr;
+        ss_pkg_carry_data->conn_id = conn->m_conn_id;
+        ss_pkg_carry_data->user_id = conn->m_user_id;
 
         /*查找需要发送的目的服务信息*/
         backend = conn_svr_backend_find(svr, to_svr_type);

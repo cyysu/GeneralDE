@@ -2,14 +2,13 @@
 #define SVR_CONN_SVR_OPS_H
 #include "cpe/utils/hash_string.h"
 #include "conn_svr_types.h"
-#include "svr/center/agent/center_agent_types.h" 
 #include "protocol/svr/conn/svr_conn_pro.h"
 
 /*operations of conn_svr */
 conn_svr_t
 conn_svr_create(
     gd_app_context_t app,
-    const char * name, center_agent_t agent,
+    const char * name,
     uint16_t conn_svr_type,
     mem_allocrator_t alloc, error_monitor_t em);
 

@@ -16,17 +16,18 @@ gd_app_context_t set_svr_stub_app(set_svr_stub_t mgr);
 const char * set_svr_stub_name(set_svr_stub_t mgr);
 cpe_hash_string_t set_svr_stub_name_hs(set_svr_stub_t mgr);
 
+set_svr_svr_info_t set_svr_stub_svr_type(set_svr_stub_t mgr);
+uint16_t set_svr_stub_svr_id(set_svr_stub_t mgr);
+
 cpe_hash_string_t set_svr_stub_request_dispatch_to(set_svr_stub_t svr);
 int set_svr_stub_set_request_dispatch_to(set_svr_stub_t svr, const char * dispatch_to);
 
 cpe_hash_string_t set_svr_stub_svr_notify_dispatch_to(set_svr_stub_t svr, uint16_t svr_type);
-int set_svr_stub_set_svr_notify_dispatch_to(set_svr_stub_t svr, uint16_t svr_type, const char * dispatch_to);
 
 cpe_hash_string_t set_svr_stub_response_dispatch_to(set_svr_stub_t svr);
 int set_svr_stub_set_response_dispatch_to(set_svr_stub_t svr, const char * dispatch_to);
 
 cpe_hash_string_t set_svr_stub_svr_response_dispatch_to(set_svr_stub_t svr, uint16_t svr_type);
-int set_svr_stub_set_svr_response_dispatch_to(set_svr_stub_t svr, uint16_t svr_type, const char * dispatch_to);
 
 int set_svr_stub_set_outgoing_recv_at(set_svr_stub_t svr, const char * outgoing_recv_at);
 
@@ -38,6 +39,20 @@ void set_svr_stub_stop(set_svr_stub_t svr);
 const char * set_svr_stub_name(set_svr_stub_t svr);
 
 int set_svr_stub_send_pkg(set_svr_stub_t svr, dp_req_t body);
+
+int set_svr_stub_send_req_data(
+    set_svr_stub_t svr, uint16_t svr_type, uint16_t svr_id,
+    uint16_t sn, void const * data, uint16_t data_size, LPDRMETA meta);
+
+int set_svr_stub_send_req_cmd(
+    set_svr_stub_t svr, uint16_t svr_type, uint16_t svr_id,
+    uint16_t sn, uint32_t cmd);
+
+int set_svr_stub_send_response_data(
+    set_svr_stub_t svr, uint16_t svr_type, uint16_t svr_id,
+    uint16_t sn, void const * data, uint16_t data_size, LPDRMETA meta);
+
+dp_req_t set_svr_stub_outgoing_pkg_buf(set_svr_stub_t stub, size_t capacity);
 
 #ifdef __cplusplus
 }
