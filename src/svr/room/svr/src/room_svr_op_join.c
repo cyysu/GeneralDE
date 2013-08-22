@@ -3,7 +3,6 @@
 #include "cpe/aom/aom_obj_mgr.h"
 #include "cpe/dp/dp_request.h"
 #include "gd/timer/timer_manage.h"
-#include "svr/center/agent/center_agent.h"
 #include "svr/set/share/set_pkg.h"
 #include "room_svr_ops.h"
 

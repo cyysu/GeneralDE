@@ -6,12 +6,11 @@
 #include "cpe/aom/aom_obj_mgr.h"
 #include "gd/app/app_context.h"
 #include "gd/app/app_module.h"
-#include "svr/center/agent/center_agent.h"
+#include "svr/set/stub/set_svr_stub.h"
 #include "room_svr_ops.h"
 
 EXPORT_DIRECTIVE
 int room_svr_app_init(gd_app_context_t app, gd_app_module_t module, cfg_t cfg) {
-    center_agent_t agent;
     room_svr_t room_svr;
     uint32_t check_span_ms;
     uint32_t timeout_span_s;
@@ -38,18 +37,9 @@ int room_svr_app_init(gd_app_context_t app, gd_app_module_t module, cfg_t cfg) {
         return -1;
     }
 
-    agent = center_agent_find_nc(app, cfg_get_string(cfg, "center-agent", NULL));
-    if (agent == NULL) {
-        CPE_ERROR(
-            gd_app_em(app), "%s: create: center-agent %s not exist!",
-            gd_app_module_name(module), cfg_get_string(cfg, "center-agent", "default"));
-        return -1;
-    }
-
     room_svr =
         room_svr_create(
             app, gd_app_module_name(module),
-            agent,
             gd_app_alloc(app), gd_app_em(app));
     if (room_svr == NULL) return -1;
 

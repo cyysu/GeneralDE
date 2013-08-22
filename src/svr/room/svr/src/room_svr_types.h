@@ -9,7 +9,6 @@
 #include "cpe/aom/aom_types.h"
 #include "gd/dr_cvt/dr_cvt_types.h"
 #include "gd/timer/timer_types.h"
-#include "svr/center/agent/center_agent_types.h"
 #include "protocol/svr/room/svr_room_internal.h"
 #include "protocol/svr/room/svr_room_meta.h"
 
@@ -24,7 +23,6 @@ struct room_svr {
     gd_app_context_t m_app;
     mem_allocrator_t m_alloc;
     error_monitor_t m_em;
-    center_agent_t m_agent;
     int m_debug;
 
     uint32_t m_timeout_span_s;
