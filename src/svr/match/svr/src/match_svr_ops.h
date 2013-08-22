@@ -10,7 +10,6 @@ match_svr_t
 match_svr_create(
     gd_app_context_t app,
     const char * name,
-    center_agent_t agent,
     uint16_t room_svr_type_id,
     mem_allocrator_t alloc,
     error_monitor_t em);

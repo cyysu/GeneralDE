@@ -14,10 +14,19 @@ static int match_svr_meta_room_meta_cmp(void const * l, void const * r) {
 
 int match_svr_meta_room_load(match_svr_t svr, cfg_t cfg) {
     struct cfg_it child_it;
-    uint16_t meta_count = cfg_seq_count(cfg);
+    uint16_t meta_count;
     uint16_t i;
     SVR_MATCH_ROOM_META * metas;
     LPDRMETA record_meta;
+
+    if (cfg == NULL) {
+        CPE_INFO(svr->m_em, "%s: load room meta: no room meta!", match_svr_name(svr));
+        svr->m_metas = NULL;
+        svr->m_meta_count = 0;
+        return 0;
+    }
+
+    meta_count = cfg_seq_count(cfg);
 
     if (meta_count == 0) {
         if (svr->m_metas) mem_free(svr->m_alloc, svr->m_metas);
