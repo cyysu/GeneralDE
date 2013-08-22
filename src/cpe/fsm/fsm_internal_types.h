@@ -34,6 +34,12 @@ struct fsm_def_state {
     struct cpe_hash_entry m_hh;
 };
 
+struct fsm_machine_monitor_node {
+    fsm_machine_monitor_t m_process;
+    void * m_process_ctx;
+    struct fsm_machine_monitor_node * m_next;
+};
+
 #ifdef __cplusplus
 }
 #endif

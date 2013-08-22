@@ -28,7 +28,7 @@ gd_timer_mgr_create(
     error_monitor_t em)
 {
     gd_timer_mgr_t mgr;
-    tl_manage_t tl;
+    tl_manage_t tl_mgr;
     nm_node_t mgr_node;
 
     if (name == 0) name = cpe_hs_data(s_gd_timer_mgr_default_name);
@@ -54,15 +54,15 @@ gd_timer_mgr_create(
         return NULL;
     }
 
-    tl = app_tl_manage_find(app, tl_name);
-    if (tl == NULL) {
+    tl_mgr = app_tl_manage_find(app, tl_name);
+    if (tl_mgr == NULL) {
         CPE_ERROR(em, "gd_timer_mgr_create: tl %s not exist!", tl_name ? tl_name : "default");
         cpe_range_mgr_fini(&mgr->m_ids);
         nm_node_free(mgr_node);
         return NULL;
     }
 
-    mgr->m_tl = tl_create(tl);
+    mgr->m_tl = tl_create(tl_mgr);
     if (mgr->m_tl == NULL) {
         CPE_ERROR(em, "gd_timer_mgr_create: create tl fail!");
         cpe_range_mgr_fini(&mgr->m_ids);
