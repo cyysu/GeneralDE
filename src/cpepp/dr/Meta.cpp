@@ -89,6 +89,8 @@ Meta const & Meta::_cast(LPDRMETA meta) {
 const char * Meta::dump_data(mem_buffer_t buffer, const void * data, size_t capacity) const {
     write_stream_buffer stream = CPE_WRITE_STREAM_BUFFER_INITIALIZER(buffer);
 
+    mem_buffer_clear_data(buffer);
+
     dump_data((write_stream_t)&stream, data, capacity);
 
     stream_putc((write_stream_t)&stream, 0);
