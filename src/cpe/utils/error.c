@@ -100,13 +100,12 @@ void cpe_error_log_to_consol(struct error_info * info, void * context, const cha
     vsnprintf(buf + s, sizeof(buf) - s, fmt, args);
     OutputDebugStringA(buf);
     OutputDebugStringA("\n");
-#else
+#endif
     if (info->m_file) printf("%s:%d: ", info->m_file, info->m_line > 0 ? info->m_line : 0);
     else if (info->m_line >= 0) printf("%d: ", info->m_line);
 
     vprintf(fmt, args);
     printf("\n");
-#endif
 }
 
 void cpe_error_log_to_consol_and_flush(struct error_info * info, void * context, const char * fmt, va_list args) {

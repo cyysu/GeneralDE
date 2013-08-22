@@ -14,6 +14,7 @@ struct fsm_machine {
     int m_debug;
     int32_t m_curent_state;
     void * m_curent_state_ctx;
+    void * m_monitors;
 };
 
 int fsm_machine_init(fsm_machine_t fsm, fsm_def_machine_t fsm_def, const char * init_state, void * ctx, int debug);
@@ -21,6 +22,9 @@ void fsm_machine_fini(fsm_machine_t fsm);
 void * fsm_machine_context(fsm_machine_t fsm);
 void fsm_machine_set_debug(fsm_machine_t fsm, int debug);
 int fsm_machine_curent_state(fsm_machine_t fsm);
+
+int fsm_machine_monitor_add(fsm_machine_t fsm, fsm_machine_monitor_t process, void * process_ctx);
+void fsm_machine_monitor_remove(fsm_machine_t fsm, fsm_machine_monitor_t process, void * process_ctx);
 
 void * fsm_state_set_context(fsm_machine_t fsm);
 void * fsm_state_context(fsm_machine_t fsm);
