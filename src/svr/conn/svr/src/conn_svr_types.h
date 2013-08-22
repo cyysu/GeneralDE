@@ -9,7 +9,7 @@
 #include "cpe/utils/ringbuffer.h"
 #include "gd/dr_cvt/dr_cvt_types.h"
 #include "gd/timer/timer_types.h"
-#include "svr/center/agent/center_agent_types.h"
+#include "svr/set/stub/set_svr_stub_types.h"
 #include "protocol/svr/conn/svr_conn_internal.h"
 #include "protocol/svr/conn/svr_conn_meta.h"
 
@@ -21,7 +21,6 @@ struct conn_svr {
     gd_app_context_t m_app;
     mem_allocrator_t m_alloc;
     error_monitor_t m_em;
-    center_agent_t m_agent;
     int m_debug;
     uint16_t m_conn_svr_type;
 
@@ -81,12 +80,6 @@ struct conn_svr_backend {
     LPDRMETAENTRY m_user_id_entry;
 
     struct cpe_hash_entry m_hh;
-};
-
-struct conn_svr_pkg_carry_data {
-    uint32_t m_conn_id;
-    uint16_t m_svr_type;
-    uint64_t m_user_id;
 };
 
 typedef void (*conn_svr_op_t)(conn_svr_t svr, dp_req_t pkg);

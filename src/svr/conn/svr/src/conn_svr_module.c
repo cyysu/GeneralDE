@@ -5,17 +5,17 @@
 #include "cpe/dp/dp_manage.h"
 #include "gd/app/app_context.h"
 #include "gd/app/app_module.h"
-#include "svr/center/agent/center_agent.h"
-#include "svr/center/agent/center_agent_svr_type.h"
+#include "svr/set/stub/set_svr_stub.h"
+#include "svr/set/stub/set_svr_svr_info.h"
 #include "conn_svr_ops.h"
 
-static int conn_svr_load_backends(conn_svr_t conn_svr);
+static int conn_svr_load_backends(conn_svr_t conn_svr, set_svr_stub_t stub);
 
 EXPORT_DIRECTIVE
 int conn_svr_app_init(gd_app_context_t app, gd_app_module_t module, cfg_t cfg) {
-    center_agent_t agent;
+    set_svr_stub_t stub;
+    set_svr_svr_info_t svr_info;
     conn_svr_t conn_svr;
-    center_agent_svr_type_t conn_svr_type;
     uint32_t check_span_ms;
     uint32_t conn_timeout_s;
     const char * ip;
@@ -74,25 +74,21 @@ int conn_svr_app_init(gd_app_context_t app, gd_app_module_t module, cfg_t cfg) {
         return -1;
     }
 
-    agent = center_agent_find_nc(app, cfg_get_string(cfg, "center-agent", NULL));
-    if (agent == NULL) {
+    stub = set_svr_stub_find_nc(app, cfg_get_string(cfg, "set-stub", NULL));
+    if (stub == NULL) {
         CPE_ERROR(
-            gd_app_em(app), "%s: create: center-agent %s not exist!",
-            gd_app_module_name(module), cfg_get_string(cfg, "center-agent", "default"));
+            gd_app_em(app), "%s: create: set-stub %s not exist!",
+            gd_app_module_name(module), cfg_get_string(cfg, "set-stub", "default"));
         return -1;
     }
 
-    conn_svr_type = center_agent_svr_type_lsearch_by_name(agent, "svr_conn");
-    if (conn_svr_type == NULL) {
-        CPE_ERROR(gd_app_em(app), "%s: create: svr_conn find type fail!", gd_app_module_name(module));
-        return -1;
-    }
+    svr_info = set_svr_stub_svr_type(stub);
+    assert(svr_info);
 
     conn_svr =
         conn_svr_create(
             app, gd_app_module_name(module),
-            agent,
-            center_agent_svr_type_id(conn_svr_type),
+            set_svr_svr_info_svr_type_id(svr_info),
             gd_app_alloc(app), gd_app_em(app));
     if (conn_svr == NULL) return -1;
 
@@ -142,7 +138,7 @@ int conn_svr_app_init(gd_app_context_t app, gd_app_module_t module, cfg_t cfg) {
 
     conn_svr->m_conn_timeout_s = conn_timeout_s;
 
-    if (conn_svr_load_backends(conn_svr) != 0) {
+    if (conn_svr_load_backends(conn_svr, stub) != 0) {
         conn_svr_free(conn_svr);
         return -1;
     }
@@ -164,13 +160,13 @@ void conn_svr_app_fini(gd_app_context_t app, gd_app_module_t module) {
     }
 }
 
-static int conn_svr_init_backend(conn_svr_t conn_svr, center_agent_svr_type_t svr_type, cfg_t cfg) {
+static int conn_svr_init_backend(conn_svr_t conn_svr, set_svr_stub_t stub, set_svr_svr_info_t svr_type, cfg_t cfg) {
     conn_svr_backend_t backend;
     const char * str_safe_policy;
 
-    backend = conn_svr_backend_create(conn_svr, center_agent_svr_type_id(svr_type));
+    backend = conn_svr_backend_create(conn_svr, set_svr_svr_info_svr_type_id(svr_type));
     if (backend == NULL) {
-        CPE_ERROR(conn_svr->m_em, "%s: create: backend %s fail!", conn_svr_name(conn_svr), center_agent_svr_type_name(svr_type));
+        CPE_ERROR(conn_svr->m_em, "%s: create: backend %s fail!", conn_svr_name(conn_svr), set_svr_svr_info_svr_type_name(svr_type));
         return -1;
     }
 
@@ -178,7 +174,7 @@ static int conn_svr_init_backend(conn_svr_t conn_svr, center_agent_svr_type_t sv
     if (str_safe_policy == NULL) {
         CPE_ERROR(
             conn_svr->m_em, "%s: create: backend %s: safe-policy not configured!",
-            conn_svr_name(conn_svr), center_agent_svr_type_name(svr_type));
+            conn_svr_name(conn_svr), set_svr_svr_info_svr_type_name(svr_type));
         conn_svr_backend_free(backend);
         return -1;
     }
@@ -195,7 +191,7 @@ static int conn_svr_init_backend(conn_svr_t conn_svr, center_agent_svr_type_t sv
     else {
         CPE_ERROR(
             conn_svr->m_em, "%s: create: backend %s: safe-policy %s is unknown!",
-            conn_svr_name(conn_svr), center_agent_svr_type_name(svr_type), str_safe_policy);
+            conn_svr_name(conn_svr), set_svr_svr_info_svr_type_name(svr_type), str_safe_policy);
         conn_svr_backend_free(backend);
         return -1;
     }
@@ -203,7 +199,7 @@ static int conn_svr_init_backend(conn_svr_t conn_svr, center_agent_svr_type_t sv
     return 0;
 }
 
-static int conn_svr_load_backends(conn_svr_t conn_svr) {
+static int conn_svr_load_backends(conn_svr_t conn_svr, set_svr_stub_t stub) {
     gd_app_context_t app = conn_svr->m_app;
     cfg_t svr_cfg = cfg_find_cfg(cfg_find_cfg(gd_app_cfg(app), "svr_types"), "svr_conn");
     struct cfg_it depends_it;
@@ -216,7 +212,7 @@ static int conn_svr_load_backends(conn_svr_t conn_svr) {
 
     cfg_it_init(&depends_it, cfg_find_cfg(svr_cfg, "connect-to"));
     while((depend_cfg = cfg_it_next(&depends_it))) {
-        center_agent_svr_type_t depend_svr_type;
+        set_svr_svr_info_t depend_svr_type;
         const char * depend_svr_name = cfg_as_string(depend_cfg, NULL);
 
         if (depend_svr_name == NULL) {
@@ -224,7 +220,7 @@ static int conn_svr_load_backends(conn_svr_t conn_svr) {
             return -1;
         }
 
-        depend_svr_type = center_agent_svr_type_check_create(conn_svr->m_agent, depend_svr_name);
+        depend_svr_type = set_svr_svr_info_find_by_name(stub, depend_svr_name);
         if (depend_svr_type == NULL) {
             CPE_ERROR(conn_svr->m_em, "%s: create: depend svr %s not exist!", conn_svr_name(conn_svr), depend_svr_name);
             return -1;
@@ -236,7 +232,7 @@ static int conn_svr_load_backends(conn_svr_t conn_svr) {
             return -1;
         }
 
-        if (conn_svr_init_backend(conn_svr, depend_svr_type, depend_cfg) != 0) return -1;
+        if (conn_svr_init_backend(conn_svr, stub, depend_svr_type, depend_cfg) != 0) return -1;
     }
 
     return 0;

@@ -11,41 +11,56 @@
 #include "gd/timer/timer_manage.h"
 #include "gd/dr_cvt/dr_cvt_types.h"
 #include "svr/set/stub/set_svr_stub_types.h"
-#include "svr/center/agent/center_agent_types.h"
 #include "protocol/svr/set/svr_set_pro.h"
-
-struct set_svr_stub_dispach_info {
-    cpe_hash_string_t m_notify_dispatch_to;
-    cpe_hash_string_t m_response_dispatch_to;
-};
 
 struct set_svr_stub {
     gd_app_context_t m_app;
     mem_allocrator_t m_alloc;
     error_monitor_t m_em;
     int m_debug;
-    center_agent_t m_agent;
+
     int m_pidfile_fd;  
     struct flock m_pidfile_lock;  
 
-    center_agent_svr_type_t m_svr_type;
+    set_svr_svr_info_t m_svr_type;
+
     uint16_t m_svr_id;
     uint32_t m_process_count_per_tick;
 
     cpe_hash_string_t m_request_dispatch_to;
     cpe_hash_string_t m_response_dispatch_to;
-    size_t m_dispatch_info_count;
-    struct set_svr_stub_dispach_info * m_dispatch_infos;
+
+    struct cpe_hash_table m_svr_infos;
 
     dp_rsp_t m_outgoing_recv_at;
 
     set_chanel_t m_chanel;
 
     dp_req_t m_incoming_buf;
+    dp_req_t m_outgoing_buf;
 
     struct mem_buffer m_dump_buffer_head;
     struct mem_buffer m_dump_buffer_carry;
     struct mem_buffer m_dump_buffer_body;
 };
+
+struct set_svr_cmd_info {
+    const char * m_meta_name;
+    LPDRMETAENTRY m_entry;
+    struct cpe_hash_entry m_hh;
+};
+
+struct set_svr_svr_info {
+    uint16_t m_svr_type_id;
+    char m_svr_type_name[64];
+    LPDRMETA m_pkg_meta;
+    LPDRMETAENTRY m_pkg_cmd_entry;
+    LPDRMETAENTRY m_pkg_data_entry;
+    cpe_hash_string_t m_notify_dispatch_to;
+    cpe_hash_string_t m_response_dispatch_to;
+    struct cpe_hash_entry m_hh;
+    struct cpe_hash_table m_cmds;
+};
+
 
 #endif

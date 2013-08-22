@@ -44,10 +44,7 @@
   type: dr_store_loader
   load-from-symbol: g_metalib_svr_conn_pro
 
-- include: svr_center
-
-- name: conn_svr_stub
-  type: set_svr_stub
+- name: set_svr_stub
   svr-type: svr_conn
   request-send-to: process-conn-request
   response-send-to: process-conn-response

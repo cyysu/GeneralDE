@@ -24,6 +24,7 @@ set_svr_mon_t set_svr_mon_create(set_svr_t svr) {
     }
 
     mon->m_svr = svr;
+    mon->m_restart_wait_ms = 0;
 
     mon->m_fsm_def = set_svr_mon_app_create_fsm_def(set_svr_name(svr), svr->m_alloc, svr->m_em);
     if (mon->m_fsm_def == NULL) {
@@ -87,10 +88,10 @@ static void set_svr_mon_sig_child_handler(int sig) {
         return;
     }
 
-    set_svr_mon_app_apply_evt(mon_app, set_svr_mon_app_fsm_evt_stoped);
-
     if (svr->m_debug) {
         CPE_INFO(svr->m_em, "%s: sig child: mon app %s: stop, pid=%d, status=%d", set_svr_name(svr), mon_app->m_bin, pid, status);
     }
+
+    set_svr_mon_app_apply_evt(mon_app, set_svr_mon_app_fsm_evt_stoped);
 }
 
