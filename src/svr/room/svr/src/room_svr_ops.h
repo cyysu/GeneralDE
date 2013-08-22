@@ -2,7 +2,6 @@
 #define SVR_ROOM_SVR_OPS_H
 #include "cpe/utils/hash_string.h"
 #include "room_svr_types.h"
-#include "svr/center/agent/center_agent_types.h" 
 #include "protocol/svr/room/svr_room_pro.h"
 
 /*operations of room_svr */
@@ -10,7 +9,6 @@ room_svr_t
 room_svr_create(
     gd_app_context_t app,
     const char * name,
-    center_agent_t agent,
     mem_allocrator_t alloc,
     error_monitor_t em);
 
