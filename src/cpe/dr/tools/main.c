@@ -37,16 +37,17 @@ struct dir_visitor g_input_search_visitor = {
     NULL, NULL, accept_input_file
 };
 
-void prepare_input_group(dr_metalib_builder_t builder, error_monitor_t em) {
+int prepare_input_group(dr_metalib_builder_t builder, error_monitor_t em) {
     char path_buf[256];
     size_t path_len = 0;
     FILE * group_file;
 
-    if (i_group->count <= 0) return;
+    if (i_group->count <= 0) return 0;
 
     path_len = strlen(i_group_root->filename[0]);
     if (path_len + 5 > sizeof(path_buf)) {
         CPE_ERROR(em, "group input %s is too long!", i_group->filename[0]);
+		return -1;
     }
 
     snprintf(path_buf, sizeof(path_buf), "%s", i_group_root->filename[0]);
@@ -59,6 +60,7 @@ void prepare_input_group(dr_metalib_builder_t builder, error_monitor_t em) {
     group_file = file_stream_open(i_group->filename[0], "r", em);
     if (group_file == NULL) {
         CPE_ERROR(em, "group input %s not exist!", i_group->filename[0]);
+		return -1;
     }
 
     while(fgets(path_buf + path_len, sizeof(path_buf) - path_len, group_file)) {
@@ -77,8 +79,11 @@ void prepare_input_group(dr_metalib_builder_t builder, error_monitor_t em) {
         }
         else {
             CPE_ERROR(em, "input %s not exist!", path_buf);
+			return -1;
         }
     }
+
+	return 0;
 }
 
 void prepare_input(dr_metalib_builder_t builder, error_monitor_t em) {
@@ -289,7 +294,7 @@ int tools_main(error_monitor_t em) {
     }
 
     prepare_input(ctx.m_builder, em);
-    prepare_input_group(ctx.m_builder, em);
+    if (prepare_input_group(ctx.m_builder, em) != 0) return -1;
 
     dr_metalib_builder_analize(ctx.m_builder);
 
