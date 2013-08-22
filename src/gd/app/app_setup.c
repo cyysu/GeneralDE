@@ -54,22 +54,22 @@ static int app_setup_build_tickers(gd_app_context_t app, cfg_t cfg) {
         (void)ticker_args;
 
         if (strcmp(ticker_name, "tl") == 0) {
-            const char * tl_name = cfg_get_string(ticker_cfg, "name", "default");
+            const char * tl_name = cfg_get_string(ticker_cfg, "name", NULL);
             int32_t process_count = cfg_get_int32(ticker_cfg, "process-count", 500);
 
             tl_manage_t tl_mgr = app_tl_manage_find(app, tl_name);
             if (tl_mgr == NULL) {
-                APP_CTX_ERROR(app, "app_setup: read ticker: add tl ticker: %s not exist!", tl_name);
+                APP_CTX_ERROR(app, "app_setup: read ticker: add tl ticker: %s not exist!", tl_name ? tl_name : "default");
                 return -1;
             }
 
             if (gd_app_tick_add(app, (gd_app_tick_fun)tl_manage_tick, tl_mgr, process_count) != 0) {
-                APP_CTX_ERROR(app, "app_setup: read ticker: add tl ticker for %s fail!", tl_name);
+                APP_CTX_ERROR(app, "app_setup: read ticker: add tl ticker for %s fail!", tl_name ? tl_name : "default");
                 return -1;
             }
             else {
                 if (gd_app_debug(app)) {
-                    APP_CTX_INFO(app, "app_setup: read ticker: add tl ticker %s success, process-count=%d!", tl_name, process_count);
+                    APP_CTX_INFO(app, "app_setup: read ticker: add tl ticker %s success, process-count=%d!", tl_name ? tl_name : "default", process_count);
                 }
             }
         }
@@ -82,6 +82,11 @@ static int app_setup_build_tickers(gd_app_context_t app, cfg_t cfg) {
             {
                 APP_CTX_ERROR(app, "app_setup: read ticker: add net ticker fail!");
                 return -1;
+            }
+            else {
+                if (gd_app_debug(app)) {
+                    APP_CTX_INFO(app, "app_setup: read ticker: add net ticker success!");
+                }
             }
         }
         else {
