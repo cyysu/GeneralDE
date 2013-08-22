@@ -11,13 +11,15 @@ extern "C" {
 #include <errno.h>
 #include <io.h>
 
-#ifndef EINPROGRESS
-#define EINPROGRESS WSAEINPROGRESS
+#ifdef EINPROGRESS
+#undef EINPROGRESS
 #endif
+#define EINPROGRESS WSAEINPROGRESS
 
-#ifndef EWOULDBLOCK
+#ifdef EWOULDBLOCK
+#undef EWOULDBLOCK
+#endif
 #define EWOULDBLOCK WSAEWOULDBLOCK
-#endif EWOULDBLOCK
 
 //extern int cpe_socket_open(int af, int type, int protocol);
 #define cpe_sock_open(_af, _type, _protocol) (_open_osfhandle(socket((_af), (_type), (_protocol)), 0))

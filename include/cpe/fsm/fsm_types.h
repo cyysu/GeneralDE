@@ -20,6 +20,8 @@ typedef void (*fsm_machine_action_t)(fsm_machine_t fsm_ins, fsm_def_state_t stat
 
 typedef uint32_t (*fsm_def_transition_t)(fsm_machine_t fsm_ins, fsm_def_state_t state, void * event);
 
+typedef void(*fsm_machine_monitor_t)(fsm_machine_t fsm_ins, void * ctx);
+
 typedef void (*fsm_evt_dumper_t)(write_stream_t s, fsm_def_machine_t m, void * event);
 
 #define FSM_INVALID_STATE ((uint32_t)-1)
