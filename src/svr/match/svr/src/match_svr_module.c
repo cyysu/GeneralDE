@@ -6,15 +6,15 @@
 #include "cpe/aom/aom_obj_mgr.h"
 #include "gd/app/app_context.h"
 #include "gd/app/app_module.h"
-#include "svr/center/agent/center_agent.h"
-#include "svr/center/agent/center_agent_svr_type.h"
+#include "svr/set/stub/set_svr_stub.h"
+#include "svr/set/stub/set_svr_svr_info.h"
 #include "match_svr_ops.h"
 
 EXPORT_DIRECTIVE
 int match_svr_app_init(gd_app_context_t app, gd_app_module_t module, cfg_t cfg) {
-    center_agent_t agent;
+    set_svr_stub_t stub;
+    set_svr_svr_info_t room_svr_type;
     match_svr_t match_svr;
-    center_agent_svr_type_t room_svr_type;
     uint32_t check_span_ms;
     uint32_t create_retry_span_s;
     const char * send_to;
@@ -46,15 +46,15 @@ int match_svr_app_init(gd_app_context_t app, gd_app_module_t module, cfg_t cfg) 
         return -1;
     }
 
-    agent = center_agent_find_nc(app, cfg_get_string(cfg, "center-agent", NULL));
-    if (agent == NULL) {
+    stub = set_svr_stub_find_nc(app, cfg_get_string(cfg, "set-stub", NULL));
+    if (stub == NULL) {
         CPE_ERROR(
-            gd_app_em(app), "%s: create: center-agent %s not exist!",
-            gd_app_module_name(module), cfg_get_string(cfg, "center-agent", "default"));
+            gd_app_em(app), "%s: create: set-stub %s not exist!",
+            gd_app_module_name(module), cfg_get_string(cfg, "set-stub", "default"));
         return -1;
     }
 
-    room_svr_type = center_agent_svr_type_lsearch_by_name(agent, "svr_room");
+    room_svr_type = set_svr_svr_info_find_by_name(stub, "svr_room");
     if (room_svr_type == NULL) {
         CPE_ERROR(gd_app_em(app), "%s: create: svr_room find type fail!", gd_app_module_name(module));
         return -1;
@@ -63,8 +63,7 @@ int match_svr_app_init(gd_app_context_t app, gd_app_module_t module, cfg_t cfg) 
     match_svr =
         match_svr_create(
             app, gd_app_module_name(module),
-            agent,
-            center_agent_svr_type_id(room_svr_type),
+            set_svr_svr_info_svr_type_id(room_svr_type),
             gd_app_alloc(app), gd_app_em(app));
     if (match_svr == NULL) return -1;
 

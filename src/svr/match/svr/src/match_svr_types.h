@@ -23,7 +23,6 @@ struct match_svr {
     gd_app_context_t m_app;
     mem_allocrator_t m_alloc;
     error_monitor_t m_em;
-    center_agent_t m_agent;
     int m_debug;
     uint32_t m_creating_max_id;
     uint16_t m_room_svr_type_id;
