@@ -10,6 +10,8 @@ extern "C" {
 
 typedef struct set_svr_stub * set_svr_stub_t;
 typedef struct set_svr_app * set_svr_app_t;
+typedef struct set_svr_svr_info * set_svr_svr_info_t;
+typedef struct set_svr_cmd_info * set_svr_cmd_info_t;
 
 #ifdef __cplusplus
 }
