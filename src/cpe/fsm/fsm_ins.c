@@ -11,6 +11,7 @@ int fsm_machine_init_ex(fsm_machine_t fsm, fsm_def_machine_t fsm_def, fsm_def_st
     fsm->m_ctx = ctx;
     fsm->m_curent_state_ctx = NULL;
     fsm->m_debug = debug ? 1 : 0;
+    fsm->m_monitors = NULL;
 
     if (fsm->m_debug) {
         CPE_INFO(fsm_def->m_em, "%s(%p): init", fsm_def_machine_name(fsm_def), fsm);
@@ -49,7 +50,7 @@ int fsm_machine_init(fsm_machine_t fsm, fsm_def_machine_t fsm_def, const char * 
 
 void fsm_machine_fini(fsm_machine_t fsm) {
     fsm_def_state_t cur_state;
-
+ 
     assert(fsm->m_def);
 
     cur_state = fsm_def_state_find_by_id(fsm->m_def, fsm->m_curent_state);
@@ -69,6 +70,12 @@ void fsm_machine_fini(fsm_machine_t fsm) {
     
     if (fsm->m_debug) {
         CPE_INFO(fsm->m_def->m_em, "%s(%p): fini", fsm_def_machine_name(fsm->m_def), fsm);
+    }
+
+    while(fsm->m_monitors) {
+        struct fsm_machine_monitor_node * node = fsm->m_monitors;
+        fsm->m_monitors = node->m_next;
+        mem_free(fsm->m_def->m_alloc, node);
     }
 
     fsm->m_def = NULL;
@@ -107,6 +114,7 @@ int fsm_machine_apply_event(fsm_machine_t fsm, void * evt) {
     uint32_t next_state_id = FSM_INVALID_STATE;
     int i;
     int base_trans_count;
+    struct fsm_machine_monitor_node * monitor;
 
     fsm_def = fsm->m_def;
 
@@ -145,7 +153,7 @@ int fsm_machine_apply_event(fsm_machine_t fsm, void * evt) {
         }
     }
 
-    if (next_state_id == FSM_DESTORIED_STATE) return 0;
+    if (next_state_id == FSM_DESTORIED_STATE) goto COMPLETE;
 
     if (next_state_id == FSM_KEEP_STATE) {
         if (fsm->m_debug) {
@@ -163,7 +171,7 @@ int fsm_machine_apply_event(fsm_machine_t fsm, void * evt) {
                     fsm_def_machine_name(fsm_def), fsm, fsm_def_state_name(cur_state));
             }
         }
-        return 0;
+        goto COMPLETE;
     }
 
     if (next_state_id == FSM_INVALID_STATE) {
@@ -238,5 +246,44 @@ int fsm_machine_apply_event(fsm_machine_t fsm, void * evt) {
     }
     if (next_state->m_enter) next_state->m_enter(fsm, cur_state, evt);
 
+COMPLETE:
+    monitor = fsm->m_monitors;
+    while(monitor) {
+        monitor->m_process(fsm, monitor->m_process_ctx);
+        monitor = monitor->m_next;
+    }
+
     return 0;
+}
+
+int fsm_machine_monitor_add(fsm_machine_t fsm, fsm_machine_monitor_t process, void * process_ctx) {
+    struct fsm_machine_monitor_node ** head = (struct fsm_machine_monitor_node **)&fsm->m_monitors;
+    struct fsm_machine_monitor_node * new_node = mem_alloc(fsm->m_def->m_alloc, sizeof(struct fsm_machine_monitor_node));
+    if (new_node == NULL) return -1;
+
+    new_node->m_next = 0;
+    new_node->m_process = process;
+    new_node->m_process_ctx = process_ctx;
+
+    while(*head) head = &(*head)->m_next;
+
+    *head = new_node;
+
+    return 0;
+}
+
+void fsm_machine_monitor_remove(fsm_machine_t fsm, fsm_machine_monitor_t process, void * process_ctx) {
+    struct fsm_machine_monitor_node ** head = (struct fsm_machine_monitor_node **)&fsm->m_monitors;
+
+    while(*head) {
+        struct fsm_machine_monitor_node * check = *head;
+        
+        if (check->m_process_ctx == process_ctx && check->m_process == process) {
+            *head = check->m_next;
+            mem_free(fsm->m_def->m_alloc, check);
+        }
+        else {
+            head = &check->m_next;
+        }
+    }
 }
