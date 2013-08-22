@@ -301,6 +301,10 @@ enum set_svr_mon_app_get_pid_result set_svr_mon_app_get_pid(set_svr_mon_app_t mo
             return set_svr_mon_app_get_pid_ok;
         }
         else {
+            CPE_ERROR(
+                svr->m_em, "%s: mon app %s: read pid fcntl fail, error=%d (%s)",
+                set_svr_name(svr), mon_app->m_bin, errno, strerror(errno));
+
             close(fd);
             return set_svr_mon_app_get_pid_error;
         }
