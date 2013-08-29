@@ -21,6 +21,8 @@ int conn_net_cli_svr_stub_set_notify_dispatch_to(struct conn_net_cli_svr_stub * 
 
 int conn_net_cli_svr_stub_set_outgoing_recv_at(conn_net_cli_svr_stub_t svr, const char * outgoing_recv_at);
 
+LPDRMETA conn_net_cli_svr_stub_find_data_meta_by_cmd(conn_net_cli_svr_stub_t svr_info, uint32_t cmd);
+
 #ifdef __cplusplus
 }
 #endif

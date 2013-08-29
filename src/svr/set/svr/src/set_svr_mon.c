@@ -25,6 +25,7 @@ set_svr_mon_t set_svr_mon_create(set_svr_t svr) {
 
     mon->m_svr = svr;
     mon->m_restart_wait_ms = 0;
+    mon->m_debug = 0;
 
     mon->m_fsm_def = set_svr_mon_app_create_fsm_def(set_svr_name(svr), svr->m_alloc, svr->m_em);
     if (mon->m_fsm_def == NULL) {

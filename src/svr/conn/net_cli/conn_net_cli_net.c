@@ -277,6 +277,8 @@ static int conn_net_cli_process_data(conn_net_cli_t cli) {
         cli->m_rb = ringbuffer_yield(cli->m_ringbuf, cli->m_rb, pkg_data_len);
 
         if (decode_result == 0) {
+            dp_req_set_parent(conn_net_cli_pkg_to_dp_req(cli_pkg), cli->m_incoming_body);
+
             if (cli_pkg->m_sn) {
                 if (cli->m_debug) {
                     CPE_INFO(
@@ -317,6 +319,8 @@ static int conn_net_cli_process_data(conn_net_cli_t cli) {
                         (int)pkg_data_len, cpe_hs_data(svr_stub->m_notify_dispatch_to));
                 }
             }
+
+            dp_req_set_parent(conn_net_cli_pkg_to_dp_req(cli_pkg), NULL);
         }
         else {
             CPE_ERROR(

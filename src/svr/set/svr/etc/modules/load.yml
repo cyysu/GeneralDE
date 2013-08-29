@@ -1,7 +1,7 @@
 - name: log_context
   config:
     nocleanup: 0
-    bufsize: 0
+    bufsize: 4kb
 
   rollingpolicies:
     - dev: { type: sizewin, maxsize: 500mb, maxnum: 10 }

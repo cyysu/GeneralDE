@@ -18,7 +18,7 @@ int set_svr_stub_write_pidfile(set_svr_stub_t svr, const char * pidfile);
 /*svr info operations*/
 set_svr_svr_info_t
 set_svr_svr_info_create(set_svr_stub_t svr, const char * svr_name, uint16_t svr_type);
-
+void set_svr_svr_info_free(set_svr_stub_t stub, set_svr_svr_info_t svr_info);
 void set_svr_svr_info_free_all(set_svr_stub_t svr);
 
 uint32_t set_svr_svr_info_id_hash(set_svr_svr_info_t svr);

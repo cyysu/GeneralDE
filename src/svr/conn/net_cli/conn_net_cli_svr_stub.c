@@ -35,11 +35,27 @@ conn_net_cli_svr_stub_create(conn_net_cli_t cli, const char * svr_type_name, uin
     memcpy(svr->m_svr_type_name, svr_type_name, name_len);
 
     svr->m_pkg_meta = NULL;
-    svr->m_cvt = NULL;
+    svr->m_pkg_cmd_entry = NULL;
+    svr->m_pkg_data_entry = NULL;
 
     svr->m_response_dispatch_to = NULL;
     svr->m_notify_dispatch_to = NULL;
     svr->m_outgoing_recv_at = NULL;
+
+    if (cpe_hash_table_init(
+            &svr->m_cmds,
+            svr->m_cli->m_alloc,
+            (cpe_hash_fun_t) conn_net_cli_cmd_info_hash,
+            (cpe_hash_cmp_t) conn_net_cli_cmd_info_eq,
+            CPE_HASH_OBJ2ENTRY(conn_net_cli_cmd_info, m_hh),
+            -1) != 0)
+    {
+        CPE_ERROR(
+            svr->m_cli->m_em, "%s: create svr stub %s(%d): init cmd hash table fail!",
+            conn_net_cli_name(svr->m_cli), svr_type_name, svr_type_id);
+        mem_free(cli->m_alloc, svr);
+        return NULL;
+    }
 
     cpe_hash_entry_init(&svr->m_hh);
     if (cpe_hash_table_insert_unique(&cli->m_svrs, svr) != 0) {
@@ -55,6 +71,8 @@ conn_net_cli_svr_stub_create(conn_net_cli_t cli, const char * svr_type_name, uin
 
 void conn_net_cli_svr_stub_free(struct conn_net_cli_svr_stub * svr) {
     conn_net_cli_t cli = svr->m_cli;
+
+    conn_net_cli_cmd_info_free_all(svr);
 
     if (svr->m_response_dispatch_to) {
         mem_free(cli->m_alloc, svr->m_response_dispatch_to);
@@ -166,6 +184,21 @@ int conn_net_cli_svr_stub_set_outgoing_recv_at(conn_net_cli_svr_stub_t svr, cons
     }
 
     return 0;
+}
+
+LPDRMETA conn_net_cli_svr_stub_find_data_meta_by_cmd(conn_net_cli_svr_stub_t svr_info, uint32_t cmd) {
+    LPDRMETA union_meta;
+    LPDRMETAENTRY data_entry;
+
+    if (svr_info->m_pkg_data_entry == NULL) return NULL;
+
+    union_meta = dr_entry_ref_meta(svr_info->m_pkg_data_entry);
+    if (union_meta == NULL) return NULL;
+
+    data_entry = dr_meta_find_entry_by_id(union_meta, cmd);
+    if (data_entry == NULL) return NULL;
+
+    return dr_entry_ref_meta(data_entry);
 }
 
 uint32_t conn_net_cli_svr_stub_hash(conn_net_cli_svr_stub_t svr) {

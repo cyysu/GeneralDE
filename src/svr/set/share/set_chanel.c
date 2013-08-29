@@ -134,7 +134,7 @@ PIPE_PEAK_TRY_AGAIN:
         switch(rv) {
         case 0:
             break;
-        case gset_chanel_evt_not_enouth_data:
+        case set_chanel_evt_not_enouth_data:
             assert(pipe->rp == wp);
             pipe->rp = wp;
             return set_chanel_error_chanel_empty;

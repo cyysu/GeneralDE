@@ -23,8 +23,7 @@ int conn_svr_app_init(gd_app_context_t app, gd_app_module_t module, cfg_t cfg) {
     int accept_queue_size;
     const char * send_to;
     const char * ss_request_recv_at;
-    const char * ss_response_recv_at;
-    const char * ss_notify_recv_at;
+    const char * ss_trans_recv_at;
     const char * str_ringbuf_size;
     uint64_t ringbuf_size;
 
@@ -54,13 +53,8 @@ int conn_svr_app_init(gd_app_context_t app, gd_app_module_t module, cfg_t cfg) {
         return -1;
     }
 
-    if ((ss_response_recv_at = cfg_get_string(cfg, "ss-response-recv-at", NULL)) == NULL) {
-        CPE_ERROR(gd_app_em(app), "%s: create: ss-response-recv-at not configured!", gd_app_module_name(module));
-        return -1;
-    }
-
-    if ((ss_notify_recv_at = cfg_get_string(cfg, "ss-notify-recv-at", NULL)) == NULL) {
-        CPE_ERROR(gd_app_em(app), "%s: create: ss-notify-recv-at not configured!", gd_app_module_name(module));
+    if ((ss_trans_recv_at = cfg_get_string(cfg, "ss-trans-recv-at", NULL)) == NULL) {
+        CPE_ERROR(gd_app_em(app), "%s: create: ss-trans-recv-at not configured!", gd_app_module_name(module));
         return -1;
     }
 
@@ -112,14 +106,8 @@ int conn_svr_app_init(gd_app_context_t app, gd_app_module_t module, cfg_t cfg) {
         return -1;
     }
 
-    if (conn_svr_set_ss_response_recv_at(conn_svr, ss_response_recv_at) != 0) {
-        CPE_ERROR(gd_app_em(app), "%s: create: set ss-response-recv-at %s fail!", gd_app_module_name(module), ss_response_recv_at);
-        conn_svr_free(conn_svr);
-        return -1;
-    }
-
-    if (conn_svr_set_ss_notify_recv_at(conn_svr, ss_notify_recv_at) != 0) {
-        CPE_ERROR(gd_app_em(app), "%s: create: set ss-notify-recv-at %s fail!", gd_app_module_name(module), ss_notify_recv_at);
+    if (conn_svr_set_ss_trans_recv_at(conn_svr, ss_trans_recv_at) != 0) {
+        CPE_ERROR(gd_app_em(app), "%s: create: set ss-trans-recv-at %s fail!", gd_app_module_name(module), ss_trans_recv_at);
         conn_svr_free(conn_svr);
         return -1;
     }
