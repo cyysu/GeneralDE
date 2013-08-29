@@ -98,7 +98,14 @@ ptr_int_t set_svr_dispatch_tick(void * ctx, ptr_int_t arg) {
 }
 
 static set_svr_svr_t set_svr_dispatch_select_target(set_svr_svr_type_t to_svr_type, dp_req_t body, dp_req_t head) {
-    return NULL;
+    set_svr_t svr = to_svr_type->m_svr;
+
+    if (TAILQ_EMPTY(&to_svr_type->m_svrs)) {
+        CPE_ERROR(svr->m_em, "%s: select target: svr type %s have no instance!", set_svr_name(svr), to_svr_type->m_svr_type_name);
+        return NULL;
+    }
+
+    return TAILQ_FIRST(&to_svr_type->m_svrs);
 }
 
 static int set_svr_dispatch_send_pkg(set_svr_t svr, set_svr_svr_t local_svr, dp_req_t body, dp_req_t head, dp_req_t carry) {

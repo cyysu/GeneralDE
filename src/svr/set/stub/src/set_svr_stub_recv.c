@@ -58,7 +58,7 @@ ptr_int_t set_svr_stub_tick(void * ctx, ptr_int_t arg) {
         assert(carry);
 
         /*检查目的地址*/
-        if (head_buf->to_svr_type != stub->m_svr_type->m_svr_type_id || head_buf->to_svr_id != stub->m_svr_id) {
+        if (head_buf->to_svr_type != stub->m_svr_type->m_svr_type_id || (head_buf->to_svr_id != 0 && head_buf->to_svr_id != stub->m_svr_id)) {
             CPE_ERROR(
                 stub->m_em, "%s: svr %s.%d: ==> recv one pkg from %d.%d : to_svr %d.%d mismatch!",
                 set_svr_stub_name(stub), stub->m_svr_type->m_svr_type_name, stub->m_svr_id,
@@ -165,7 +165,10 @@ ptr_int_t set_svr_stub_tick(void * ctx, ptr_int_t arg) {
         }
         case set_pkg_notify: {
             set_svr_svr_info_t dispatch_info = set_svr_svr_info_find(stub, head_buf->from_svr_type);
-            if (dispatch_info == NULL || dispatch_info->m_notify_dispatch_to == NULL) {
+            cpe_hash_string_t dispatch_to = dispatch_info ? dispatch_info->m_notify_dispatch_to : NULL;
+            if (dispatch_to == NULL) dispatch_to = stub->m_notify_dispatch_to;
+ 
+            if (dispatch_to == NULL) {
                 CPE_ERROR(
                     stub->m_em, "%s: svr %s.%d: ==> recv one pkg from %d.%d: notify-dispatch-to not configured!",
                     set_svr_stub_name(stub), stub->m_svr_type->m_svr_type_name, stub->m_svr_id,
@@ -173,12 +176,12 @@ ptr_int_t set_svr_stub_tick(void * ctx, ptr_int_t arg) {
                 goto NEXT_PKG;
             }
 
-            if (dp_dispatch_by_string(dispatch_info->m_notify_dispatch_to, body, stub->m_em) != 0) {
+            if (dp_dispatch_by_string(dispatch_to, body, stub->m_em) != 0) {
                 CPE_ERROR(
                     stub->m_em, "%s: svr %s.%d: ==> recv one pkg from %d.%d: notify-dispatch-to %s fail!",
                     set_svr_stub_name(stub), stub->m_svr_type->m_svr_type_name, stub->m_svr_id,
                     head_buf->from_svr_type, head_buf->from_svr_id,
-                    cpe_hs_data(dispatch_info->m_notify_dispatch_to));
+                    cpe_hs_data(dispatch_to));
                 goto NEXT_PKG;
             }
             break;

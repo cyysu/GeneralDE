@@ -6,6 +6,7 @@ namespace Svr { namespace Set {
 class Stub;
 class PkgHead;
 class PkgBody;
+class SvrType;
 
 }}
 
