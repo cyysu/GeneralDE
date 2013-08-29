@@ -22,9 +22,10 @@ typedef enum set_pkg_pack_state {
 typedef struct set_chanel * set_chanel_t;
 
 typedef enum set_chanel_error {
-    set_chanel_error_chanel_full = -2
-    , set_chanel_error_chanel_empty = -3
-    , set_chanel_error_carry_overflow = -4
+    set_chanel_evt_not_enouth_data = -1
+    , set_chanel_error_bad_data = -2
+    , set_chanel_error_chanel_full = -3
+    , set_chanel_error_chanel_empty = -4
     , set_chanel_error_no_memory = -5
     , set_chanel_error_decode = -6
 } set_chanel_error_t;
