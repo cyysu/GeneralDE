@@ -8,10 +8,10 @@
 #include "match_svr_ops.h"
 
 static match_svr_user_t match_svr_do_user_join_room(
-    match_svr_t svr, match_svr_room_t room, uint32_t cur_time, dp_req_t req_pkg, SVR_MATCH_REQ_JOIN const * req, int16_t * err);
+    match_svr_t svr, match_svr_room_t room, uint32_t cur_time, dp_req_t pkg_head, SVR_MATCH_REQ_JOIN const * req, int16_t * err);
 static match_svr_room_t match_svr_do_find_or_create_room(match_svr_t svr, SVR_MATCH_REQ_JOIN const * req, int16_t * err);
 
-void match_svr_request_join(match_svr_t svr, dp_req_t agent_pkg) {
+void match_svr_request_join(match_svr_t svr, dp_req_t pkg_body, dp_req_t pkg_head) {
     dp_req_t res_pkg;
     SVR_MATCH_REQ_JOIN * req;
     SVR_MATCH_RES_JOIN * result;
@@ -21,7 +21,7 @@ void match_svr_request_join(match_svr_t svr, dp_req_t agent_pkg) {
     int16_t err = SVR_MATCH_ERROR_INTERNAL;
     uint32_t cur_time = match_svr_cur_time(svr);
 
-    req = & ((SVR_MATCH_PKG *)dp_req_data(agent_pkg))->data.svr_match_req_join;
+    req = & ((SVR_MATCH_PKG *)dp_req_data(pkg_body))->data.svr_match_req_join;
 
     /*获取房间配置数据*/
     room_meta = match_svr_meta_foom_find(svr, req->match_room_type);
@@ -35,11 +35,11 @@ void match_svr_request_join(match_svr_t svr, dp_req_t agent_pkg) {
     room = match_svr_do_find_or_create_room(svr, req, &err);
     if (room == NULL) goto REQ_JOIN_MATCH_FAIL;
 
-    user = match_svr_do_user_join_room(svr, room, cur_time, agent_pkg, req, &err);
+    user = match_svr_do_user_join_room(svr, room, cur_time, pkg_head, req, &err);
     if (user == NULL) goto REQ_JOIN_MATCH_FAIL;
 
     /*发送成功响应*/
-    res_pkg = match_svr_build_response(svr, agent_pkg, sizeof(SVR_MATCH_PKG) + sizeof(SVR_MATCH_MATCHING_USER) * (room->m_user_count - 1));
+    res_pkg = match_svr_build_response(svr, pkg_body, sizeof(SVR_MATCH_PKG) + sizeof(SVR_MATCH_MATCHING_USER) * (room->m_user_count - 1));
     if (res_pkg == NULL) return;
     result = &((SVR_MATCH_PKG*)dp_req_data(res_pkg))->data.svr_match_res_join;
     result->result = 0;
@@ -47,13 +47,10 @@ void match_svr_request_join(match_svr_t svr, dp_req_t agent_pkg) {
 
     if (match_svr_room_is_full(room, room_meta)) {
         /*向svr_room创建房间*/
-        match_svr_room_to_creating(room);
         if (match_svr_room_send_create_req(room, room_meta) != 0) {
             CPE_ERROR(svr->m_em, "%s: join: send create room to room svr fail!", match_svr_name(svr));
-            return;
         }
-
-        room->m_data->creating_req_time = cur_time;
+        match_svr_room_destory(room);
     }
     else {
         /*通知所有房间用户加入游戏*/
@@ -69,7 +66,7 @@ REQ_JOIN_MATCH_FAIL:
     if (room && room->m_user_count == 0) match_svr_room_destory(room);
 
     /*发送失败响应*/
-    res_pkg = match_svr_build_response(svr, agent_pkg, sizeof(SVR_MATCH_PKG));
+    res_pkg = match_svr_build_response(svr, pkg_body, sizeof(SVR_MATCH_PKG));
     if (res_pkg == NULL) return;
     result = &((SVR_MATCH_PKG*)dp_req_data(res_pkg))->data.svr_match_res_join;
     result->result = err;
@@ -79,7 +76,7 @@ REQ_JOIN_MATCH_FAIL:
 static match_svr_user_t
 match_svr_do_user_join_room(
     match_svr_t svr, match_svr_room_t room, uint32_t cur_time, 
-    dp_req_t req_pkg, SVR_MATCH_REQ_JOIN const * req, int16_t * err) 
+    dp_req_t pkg_head, SVR_MATCH_REQ_JOIN const * req, int16_t * err) 
 {
     match_svr_user_t user;
 
@@ -95,7 +92,7 @@ match_svr_do_user_join_room(
 
         user_record->match_room_id = req->match_room_id;
         user_record->user_id = req->user.user_id;
-        user->m_data->user_join_time = cur_time;
+        user_record->user_join_time = cur_time;
 
         user = match_svr_user_create(room, user_record);
         if (user == NULL) {
@@ -111,8 +108,8 @@ match_svr_do_user_join_room(
 
     assert(user);
     user->m_data->user_last_op_time = cur_time;
-    user->m_data->user_at_svr_type = set_pkg_from_svr_type(req_pkg);
-    user->m_data->user_at_svr_id = set_pkg_from_svr_id(req_pkg);
+    user->m_data->user_at_svr_type = set_pkg_from_svr_type(pkg_head);
+    user->m_data->user_at_svr_id = set_pkg_from_svr_id(pkg_head);
     user->m_data->user_data_len = req->user.user_data_len;
     memcpy(user->m_data->user_data, req->user.user_data, req->user.user_data_len);
         

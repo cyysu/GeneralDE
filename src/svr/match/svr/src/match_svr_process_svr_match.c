@@ -11,7 +11,14 @@ static match_svr_op_t g_svr_match_request_ops[] = {
 
 int match_svr_match_require_rsp(dp_req_t req, void * ctx, error_monitor_t em) {
     match_svr_t svr = ctx;
+    dp_req_t pkg_head;
     SVR_MATCH_PKG * pkg;
+
+    pkg_head = set_pkg_head_find(req);
+    if (pkg_head == NULL) {
+        CPE_ERROR(svr->m_em, "%s: process match request: no pkg head!", match_svr_name(svr));
+        return -1;
+    }
 
     pkg = dp_req_data(req);
 
@@ -22,7 +29,7 @@ int match_svr_match_require_rsp(dp_req_t req, void * ctx, error_monitor_t em) {
         return -1;
     }
     
-    g_svr_match_request_ops[pkg->cmd](svr, req);
+    g_svr_match_request_ops[pkg->cmd](svr, req, pkg_head);
 
     return 0;
 }
