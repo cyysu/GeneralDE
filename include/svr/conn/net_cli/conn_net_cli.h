@@ -39,6 +39,19 @@ int conn_net_cli_send(
     uint16_t to_svr, uint32_t sn,
     LPDRMETA meta, void const * data, uint16_t data_len);
 
+int conn_net_cli_send_data(
+    conn_net_cli_t cli,
+    uint16_t to_svr, uint32_t sn,
+    LPDRMETA meta, void const * data, uint16_t data_size);
+
+int conn_net_cli_send_cmd(
+    conn_net_cli_t cli,
+    uint16_t to_svr, uint32_t sn, uint32_t cmd);
+
+int conn_net_cli_read_data(
+    conn_net_cli_t cli, conn_net_cli_svr_stub_t svr_info, dp_req_t pkg,
+    uint32_t * r_cmd, LPDRMETA * r_meta, void ** r_data, size_t * r_data_size);
+
 #ifdef __cplusplus
 }
 #endif

@@ -29,6 +29,7 @@ struct set_svr_stub {
 
     cpe_hash_string_t m_request_dispatch_to;
     cpe_hash_string_t m_response_dispatch_to;
+    cpe_hash_string_t m_notify_dispatch_to;
 
     struct cpe_hash_table m_svr_infos;
 
@@ -56,6 +57,7 @@ struct set_svr_svr_info {
     LPDRMETA m_pkg_meta;
     LPDRMETAENTRY m_pkg_cmd_entry;
     LPDRMETAENTRY m_pkg_data_entry;
+    LPDRMETA m_carry_meta;
     cpe_hash_string_t m_notify_dispatch_to;
     cpe_hash_string_t m_response_dispatch_to;
     struct cpe_hash_entry m_hh;

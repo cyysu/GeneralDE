@@ -1,7 +1,7 @@
 - name: log_context
   config:
     nocleanup: 0
-    bufsize: 0
+    bufsize: 4kb
 
   rollingpolicies:
     - dev: { type: sizewin, maxsize: 500mb, maxnum: 10 }
@@ -47,9 +47,8 @@
 - name: set_svr_stub
   svr-type: svr_conn
   request-send-to: process-conn-request
-  response-send-to: process-conn-response
-  response-decode: 0
-  notify-send-to: process-conn-notify
+  response-send-to: process-conn-trans
+  notify-send-to: process-conn-trans
   outgoing-recv-at: process-conn-outgoing
   debug: 1
 
@@ -59,8 +58,7 @@
   ringbuf-size: 5mb
   ss-send-to: process-conn-outgoing
   ss-request-recv-at: process-conn-request
-  ss-response-recv-at: process-conn-response
-  ss-notify-recv-at: process-conn-notify
+  ss-trans-recv-at: process-conn-trans
   check-span-ms: 1000
   conn-timeout-s: 300
   debug: 2

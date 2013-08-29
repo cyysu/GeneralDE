@@ -18,11 +18,11 @@ static LPDRMETA g_meta_set_pkg_carry = NULL;
 static void set_pkg_head_dump(dp_req_t head, write_stream_t s);
 
 dp_req_t set_pkg_head_find(dp_req_t body) {
-    return dp_req_child_find(body, "set_pkg_head");
+    return dp_req_child_find(body, req_type_set_pkg_head);
 }
 
 dp_req_t set_pkg_head_check_create(dp_req_t body) {
-    dp_req_t r = dp_req_child_find(body, "set_pkg_head");
+    dp_req_t r = dp_req_child_find(body, req_type_set_pkg_head);
     if (r) return r;
 
     r = set_pkg_head_create(dp_req_mgr(body));
@@ -53,11 +53,11 @@ dp_req_t set_pkg_head_create(dp_mgr_t dp_mgr) {
 }
 
 dp_req_t set_pkg_carry_find(dp_req_t body) {
-    return dp_req_child_find(body, "set_pkg_carry");
+    return dp_req_child_find(body, req_type_set_pkg_carry);
 }
 
 dp_req_t set_pkg_carry_check_create(dp_req_t body, size_t capacity) {
-    dp_req_t r = dp_req_child_find(body, "set_pkg_carry");
+    dp_req_t r = dp_req_child_find(body, req_type_set_pkg_carry);
     if (r) {
         if (set_pkg_carry_capacity(r) >= capacity) {
             set_pkg_carry_set_size(r, 0);
@@ -328,8 +328,8 @@ static void set_pkg_head_dump(dp_req_t head, write_stream_t s) {
     head_buf = dp_req_data(head);
 
     stream_printf(
-        s, "{\"to_svr_type\":%d,\"to_svr_id\":%d,\"from_svr_type\":%d,\"from_svr_id\":%d,\"sn\":%d,\"flags\":0x%0xd",
-        head_buf->to_svr_type, head_buf->to_svr_id, head_buf->from_svr_type, head_buf->from_svr_id, head_buf->sn, head_buf->flags);
+        s, "set_pkg_head(%d bytes): {\"to_svr_type\":%d,\"to_svr_id\":%d,\"from_svr_type\":%d,\"from_svr_id\":%d,\"sn\":%d,\"flags\":0x%0xd",
+        (int)dp_req_size(head), head_buf->to_svr_type, head_buf->to_svr_id, head_buf->from_svr_type, head_buf->from_svr_id, head_buf->sn, head_buf->flags);
 
     switch(set_pkg_category(head)) {
     case set_pkg_request:
@@ -352,3 +352,6 @@ static void set_pkg_head_dump(dp_req_t head, write_stream_t s) {
 
     stream_printf(s, ")}");
 }
+
+const char * req_type_set_pkg_head = "set_pkg_head";
+const char * req_type_set_pkg_carry = "set_pkg_carry";

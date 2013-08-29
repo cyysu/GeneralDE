@@ -8,7 +8,6 @@
 #include "cpe/fsm/fsm_def.h"
 #include "cpe/fsm/fsm_ins.h"
 #include "gd/timer/timer_manage.h"
-#include "gd/dr_cvt/dr_cvt_types.h"
 #include "svr/conn/net_cli/conn_net_cli_types.h"
 
 #ifdef __cplusplus
@@ -16,6 +15,7 @@ extern "C" {
 #endif
 
 typedef struct conn_net_cli_monitor * conn_net_cli_monitor_t;
+typedef struct conn_net_cli_cmd_info * conn_net_cli_cmd_info_t;
 typedef TAILQ_HEAD(conn_net_cli_monitor_list, conn_net_cli_monitor) conn_net_cli_monitor_list_t;
 
 struct conn_net_cli {
@@ -46,6 +46,8 @@ struct conn_net_cli {
     conn_net_cli_pkg_t m_incoming_pkg;
     dp_req_t m_incoming_body;
 
+    dp_req_t m_outgoing_body;
+
     struct mem_buffer m_dump_buffer;
 
     struct cpe_hash_table m_svrs;
@@ -59,19 +61,27 @@ struct conn_net_cli_monitor {
     TAILQ_ENTRY(conn_net_cli_monitor) m_next;
 };
 
+struct conn_net_cli_cmd_info {
+    const char * m_meta_name;
+    LPDRMETAENTRY m_entry;
+    struct cpe_hash_entry m_hh;
+};
+
 struct conn_net_cli_svr_stub {
     conn_net_cli_t m_cli;
     uint16_t m_svr_type_id;
     char * m_svr_type_name;
 
     LPDRMETA m_pkg_meta;
-    dr_cvt_t m_cvt;
+    LPDRMETAENTRY m_pkg_cmd_entry;
+    LPDRMETAENTRY m_pkg_data_entry;
 
     cpe_hash_string_t m_response_dispatch_to;
     cpe_hash_string_t m_notify_dispatch_to;
     dp_rsp_t m_outgoing_recv_at;
 
     struct cpe_hash_entry m_hh;
+    struct cpe_hash_table m_cmds;
 };
 
 enum conn_net_cli_fsm_evt_type {

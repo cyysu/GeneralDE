@@ -3,6 +3,7 @@
 #include "cpe/pal/pal_platform.h"
 #include "cpe/pal/pal_string.h"
 #include "cpe/dr/dr_pbuf.h"
+#include "cpe/dr/dr_data.h"
 #include "cpe/dr/dr_metalib_manage.h"
 #include "cpe/dp/dp_request.h"
 #include "svr/conn/net_cli/conn_net_cli.h"
@@ -138,4 +139,91 @@ int conn_net_cli_svr_stub_outgoing_recv(dp_req_t req, void * ctx, error_monitor_
     }
 
     return conn_net_cli_send_i(svr_stub->m_cli, svr_stub, pkg->m_sn, dp_req_meta(req), dp_req_data(req), dp_req_size(req));
+}
+
+int conn_net_cli_send_data(conn_net_cli_t cli, uint16_t to_svr, uint32_t sn, LPDRMETA meta, void const * data, uint16_t data_size) {
+    dp_req_t pkg;
+    conn_net_cli_svr_stub_t svr_stub;
+    conn_net_cli_cmd_info_t cmd_info;
+    size_t total_size;
+
+    svr_stub = conn_net_cli_svr_stub_find_by_id(cli, to_svr);
+    if (svr_stub == NULL) {
+        CPE_ERROR(cli->m_em, "%s: send: svr_stub %d is unknown!", conn_net_cli_name(cli), to_svr);
+        return -1;
+    }
+
+    if (svr_stub->m_pkg_data_entry == NULL || svr_stub->m_pkg_cmd_entry == NULL) {
+        CPE_ERROR(
+            svr_stub->m_cli->m_em, "%s: send %s to svr %s(%d):  no pkg cmd info!",
+            conn_net_cli_name(svr_stub->m_cli), dr_meta_name(meta), svr_stub->m_svr_type_name, to_svr);
+        return -1;
+    }
+
+    cmd_info = conn_net_cli_cmd_info_find_by_name(svr_stub, dr_meta_name(meta));
+    if (cmd_info == NULL) {
+        CPE_ERROR(
+            svr_stub->m_cli->m_em, "%s: send %s to svr %s(%d):  cmd is unknown!",
+            conn_net_cli_name(svr_stub->m_cli), dr_meta_name(meta), svr_stub->m_svr_type_name, to_svr);
+        return -1;
+    }
+
+    total_size = (size_t)data_size + dr_entry_data_start_pos(svr_stub->m_pkg_data_entry, 0);
+    pkg = conn_net_cli_outgoing_pkg_buf(svr_stub->m_cli, total_size);
+
+    dp_req_set_size(pkg, total_size);
+
+    memcpy(
+        ((char*)dp_req_data(pkg)) + dr_entry_data_start_pos(svr_stub->m_pkg_data_entry, 0),
+        data,
+        data_size);
+
+    if (dr_entry_set_from_uint32(
+            ((char*)dp_req_data(pkg)) + dr_entry_data_start_pos(svr_stub->m_pkg_cmd_entry, 0),
+            (uint32_t)dr_entry_id(cmd_info->m_entry), svr_stub->m_pkg_cmd_entry, svr_stub->m_cli->m_em) != 0)
+    {
+        CPE_ERROR(
+            svr_stub->m_cli->m_em, "%s: send %s to svr %s(%d):  set cmd fail!",
+            conn_net_cli_name(svr_stub->m_cli), dr_meta_name(meta), svr_stub->m_svr_type_name, to_svr);
+        return -1;
+    }
+
+    return conn_net_cli_send_i(cli, svr_stub, sn, svr_stub->m_pkg_meta, dp_req_data(pkg), total_size);
+}
+
+int conn_net_cli_send_cmd(conn_net_cli_t cli, uint16_t to_svr, uint32_t sn, uint32_t cmd) {
+    dp_req_t pkg;
+    conn_net_cli_svr_stub_t svr_stub;
+    conn_net_cli_cmd_info_t cmd_info;
+    size_t total_size;
+
+    svr_stub = conn_net_cli_svr_stub_find_by_id(cli, to_svr);
+    if (svr_stub == NULL) {
+        CPE_ERROR(cli->m_em, "%s: send: svr_stub %d is unknown!", conn_net_cli_name(cli), to_svr);
+        return -1;
+    }
+
+    if (svr_stub->m_pkg_data_entry == NULL || svr_stub->m_pkg_cmd_entry == NULL) {
+        CPE_ERROR(
+            svr_stub->m_cli->m_em, "%s: send cmd %d to svr %s(%d):  no pkg cmd info!",
+            conn_net_cli_name(svr_stub->m_cli), cmd, svr_stub->m_svr_type_name, to_svr);
+        return -1;
+    }
+
+    total_size = (size_t)dr_meta_size(svr_stub->m_pkg_meta);
+    pkg = conn_net_cli_outgoing_pkg_buf(svr_stub->m_cli, total_size);
+
+    dp_req_set_size(pkg, total_size);
+
+    if (dr_entry_set_from_uint32(
+            ((char*)dp_req_data(pkg)) + dr_entry_data_start_pos(svr_stub->m_pkg_cmd_entry, 0),
+            cmd, svr_stub->m_pkg_cmd_entry, svr_stub->m_cli->m_em) != 0)
+    {
+        CPE_ERROR(
+            svr_stub->m_cli->m_em, "%s: send cmd %d to svr %s(%d):  set cmd fail!",
+            conn_net_cli_name(svr_stub->m_cli), cmd, svr_stub->m_svr_type_name, to_svr);
+        return -1;
+    }
+
+    return conn_net_cli_send_i(cli, svr_stub, sn, svr_stub->m_pkg_meta, dp_req_data(pkg), total_size);
 }

@@ -27,7 +27,6 @@ set_svr_stub_load_svr_info(set_svr_stub_t stub, dr_store_manage_t store_mgr, cfg
 EXPORT_DIRECTIVE
 int set_svr_stub_app_init(gd_app_context_t app, gd_app_module_t module, cfg_t cfg) {
     set_svr_stub_t svr;
-    const char * request_dispatch_to;
     const char * outgoing_recv_at;
     const char * value;
     const char * svr_type_name;
@@ -60,12 +59,6 @@ int set_svr_stub_app_init(gd_app_context_t app, gd_app_module_t module, cfg_t cf
     shmid = cpe_shm_key_gen(pidfile, 'a');
     if (shmid == -1) {
         CPE_ERROR(gd_app_em(app), "%s: create: gen shm key fail, error=%d (%s)!", gd_app_module_name(module), errno, strerror(errno));
-        return -1;
-    }
-
-    request_dispatch_to = cfg_get_string(cfg, "request-send-to", NULL);
-    if (request_dispatch_to == NULL) {
-        CPE_ERROR(gd_app_em(app), "%s: create: request-send-to not configured!", gd_app_module_name(module));
         return -1;
     }
 
@@ -122,17 +115,25 @@ int set_svr_stub_app_init(gd_app_context_t app, gd_app_module_t module, cfg_t cf
     }
     set_svr_stub_set_chanel(svr, chanel);
 
-    if (set_svr_stub_set_request_dispatch_to(svr, request_dispatch_to) != 0) {
-        CPE_ERROR(
-            gd_app_em(app), "%s: create: set request-send-to %s fail!",
-            gd_app_module_name(module), request_dispatch_to);
-        set_svr_stub_free(svr);
-        return -1;
+    if ((value = cfg_get_string(cfg, "request-send-to", NULL))) {
+        if (set_svr_stub_set_request_dispatch_to(svr, value) != 0) {
+            CPE_ERROR(gd_app_em(app), "%s: create: set request-send-to %s fail!", gd_app_module_name(module), value);
+            set_svr_stub_free(svr);
+            return -1;
+        }
     }
 
     if ((value = cfg_get_string(cfg, "response-send-to", NULL))) {
         if (set_svr_stub_set_response_dispatch_to(svr, value) != 0) {
             CPE_ERROR(gd_app_em(app), "%s: create: set response-send-to %s fail!", gd_app_module_name(module), value);
+            set_svr_stub_free(svr);
+            return -1;
+        }
+    }
+
+    if ((value = cfg_get_string(cfg, "notify-send-to", NULL))) {
+        if (set_svr_stub_set_notify_dispatch_to(svr, value) != 0) {
+            CPE_ERROR(gd_app_em(app), "%s: create: set notify-send-to %s fail!", gd_app_module_name(module), value);
             set_svr_stub_free(svr);
             return -1;
         }
@@ -243,6 +244,7 @@ static set_svr_svr_info_t set_svr_stub_load_svr_info(set_svr_stub_t stub, dr_sto
     cfg_t svr_cfg;
     const char * str_pkg_meta;
     const char * svr_pkg_data_entry;
+    const char * str_carry_meta;
 
     svr_cfg = cfg_find_cfg(svr_types_cfg, svr_type_name);
     if (svr_cfg == NULL) {
@@ -267,20 +269,26 @@ static set_svr_svr_info_t set_svr_stub_load_svr_info(set_svr_stub_t stub, dr_sto
         return NULL;
     }
 
-    str_pkg_meta = cfg_get_string(svr_cfg, "pkg-meta", NULL);
-    if (str_pkg_meta == NULL) {
-        CPE_ERROR(
-            stub->m_em, "%s: %s: pkg-meta not configured!",
-            set_svr_stub_name(stub), svr_type_name);
-        return NULL;
+    if ((str_pkg_meta = cfg_get_string(svr_cfg, "pkg-meta", NULL))) {
+        svr_info->m_pkg_meta = set_svr_stub_load_pkg_meta(store_mgr, stub->m_em, set_svr_stub_name(stub), svr_type_name, str_pkg_meta);
+        if (svr_info->m_pkg_meta == NULL) {
+            CPE_ERROR(
+                stub->m_em, "%s: %s: load pkg-meta %s fail!",
+                set_svr_stub_name(stub), svr_type_name, str_pkg_meta);
+            set_svr_svr_info_free(stub, svr_info);
+            return NULL;
+        }
     }
 
-    svr_info->m_pkg_meta = set_svr_stub_load_pkg_meta(store_mgr, stub->m_em, set_svr_stub_name(stub), svr_type_name, str_pkg_meta);
-    if (svr_info->m_pkg_meta == NULL) {
-        CPE_ERROR(
-            stub->m_em, "%s: %s: load pkg-meta %s fail!",
-            set_svr_stub_name(stub), svr_type_name, str_pkg_meta);
-        return NULL;
+    if ((str_carry_meta = cfg_get_string(svr_cfg, "carry-meta", NULL))) {
+        svr_info->m_carry_meta = set_svr_stub_load_pkg_meta(store_mgr, stub->m_em, set_svr_stub_name(stub), svr_type_name, str_carry_meta);
+        if (svr_info->m_carry_meta == NULL) {
+            CPE_ERROR(
+                stub->m_em, "%s: %s: load carry-meta %s fail!",
+                set_svr_stub_name(stub), svr_type_name, str_carry_meta);
+            set_svr_svr_info_free(stub, svr_info);
+            return NULL;
+        }
     }
 
     svr_pkg_data_entry = cfg_get_string(svr_cfg, "pkg-meta-data", NULL);
@@ -295,6 +303,7 @@ static set_svr_svr_info_t set_svr_stub_load_svr_info(set_svr_stub_t stub, dr_sto
             CPE_ERROR(
                 stub->m_em, "%s: %s: pkg-meta %s no data entry %s!",
                 set_svr_stub_name(stub), svr_type_name, str_pkg_meta, svr_pkg_data_entry);
+            set_svr_svr_info_free(stub, svr_info);
             return NULL;
         }
 
@@ -303,6 +312,7 @@ static set_svr_svr_info_t set_svr_stub_load_svr_info(set_svr_stub_t stub, dr_sto
             CPE_ERROR(
                 stub->m_em, "%s: %s: data_entry %s.%s not union!",
                 set_svr_stub_name(stub), svr_type_name, str_pkg_meta, svr_pkg_data_entry);
+            set_svr_svr_info_free(stub, svr_info);
             return NULL;
         }
 
@@ -311,6 +321,7 @@ static set_svr_svr_info_t set_svr_stub_load_svr_info(set_svr_stub_t stub, dr_sto
             CPE_ERROR(
                 stub->m_em, "%s: %s: pkg-meta %s data entry %s no select entry!",
                 set_svr_stub_name(stub), svr_type_name, str_pkg_meta, svr_pkg_data_entry);
+            set_svr_svr_info_free(stub, svr_info);
             return NULL;
         }
 
@@ -323,6 +334,7 @@ static set_svr_svr_info_t set_svr_stub_load_svr_info(set_svr_stub_t stub, dr_sto
                 CPE_ERROR(
                     stub->m_em, "%s: %s: add cmd %s fail!",
                     set_svr_stub_name(stub), svr_type_name, dr_entry_name(cmd_entry));
+                set_svr_svr_info_free(stub, svr_info);
                 return NULL;
             }
         }

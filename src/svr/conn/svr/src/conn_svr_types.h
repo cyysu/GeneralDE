@@ -34,8 +34,7 @@ struct conn_svr {
     gd_timer_id_t m_check_timer_id;
 
     dp_rsp_t m_ss_request_recv_at;
-    dp_rsp_t m_ss_response_recv_at;
-    dp_rsp_t m_ss_notify_recv_at;
+    dp_rsp_t m_ss_trans_recv_at;
     cpe_hash_string_t m_ss_send_to;
 
     dp_req_t m_outgoing_pkg;

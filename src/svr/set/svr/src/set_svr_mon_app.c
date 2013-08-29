@@ -45,7 +45,7 @@ set_svr_mon_app_create(set_svr_mon_t mon, set_svr_svr_type_t svr_type, const cha
     mon_app->m_arg_count = 0;
     mon_app->m_arg_capacity = 0;
 
-    if (fsm_machine_init(&mon_app->m_fsm, mon->m_fsm_def, "disable", mon_app, svr->m_debug) != 0) {
+    if (fsm_machine_init(&mon_app->m_fsm, mon->m_fsm_def, "disable", mon_app, mon->m_debug) != 0) {
         CPE_ERROR(svr->m_em, "%s: mon_app: init fsm fail!", set_svr_name(svr));
         mem_free(svr->m_alloc, mon_app->m_bin);
         mem_free(svr->m_alloc, mon_app->m_pidfile);
@@ -55,7 +55,7 @@ set_svr_mon_app_create(set_svr_mon_t mon, set_svr_svr_type_t svr_type, const cha
 
     TAILQ_INSERT_TAIL(&mon->m_mon_apps, mon_app, m_next);
 
-    if (svr->m_debug) {
+    if (mon->m_debug) {
         CPE_INFO(svr->m_em, "%s: mon app %s: create", set_svr_name(svr), mon_app->m_bin);
     }
 
@@ -66,7 +66,7 @@ void set_svr_mon_app_free(set_svr_mon_app_t mon_app) {
     set_svr_mon_t mon = mon_app->m_mon;
     set_svr_t svr = mon->m_svr;
 
-    if (svr->m_debug) {
+    if (mon->m_debug) {
         CPE_INFO(svr->m_em, "%s: mon app %s: destory", set_svr_name(svr), mon_app->m_bin);
     }
 
