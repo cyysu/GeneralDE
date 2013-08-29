@@ -27,7 +27,7 @@
         <entry name="user_at_svr_type" type="uint16" id="2"/>
         <entry name="user_at_svr_id" type="uint16" id="3"/>
         <entry name="user_data_len" type="uint16" id="4"/>
-        <entry name="user_data" type="uint8" count="128" refer="user_data_len" id="5"/>
+        <entry name="user_data" type="uint8" count="SVR_ROOM_USER_DATA_MAX" refer="user_data_len" id="5"/>
     </struct>
 
     <struct name="svr_room_req_create" version="1">
@@ -108,6 +108,35 @@
         <entry name="data" type="int8" count="0" refer="data_len" id="5"/>
     </struct>
 
+    <!--     通知匹配成功 -->
+    <macrosgroup name="svr_room_room_data_type">
+        <macro name="SVR_ROOM_ROOM_DATA_TYPE_ROLES" value="1"/>
+        <macro name="SVR_ROOM_ROOM_DATA_TYPE_DATA" value="2"/>
+    </macrosgroup>
+
+    <struct name="svr_room_room_data_roles" version="1">
+        <entry name="user_count" type="uint16" id="2"/>
+        <entry name="users" type="svr_room_creating_user" count="0" refer="user_count" id="2"/>
+    </struct>
+
+    <struct name="svr_room_room_data_data" version="1">
+        <entry name="room_data_len" type="uint16" id="1"/>
+        <entry name="room_data" type="uint8" count="0" refer="room_data_len" id="2"/>
+    </struct>
+
+    <union name="svr_room_room_data" version="1">
+        <entry name="roles" type="svr_room_room_data_roles" id="SVR_ROOM_ROOM_DATA_TYPE_ROLES"/>
+        <entry name="data" type="svr_room_room_data_data" id="SVR_ROOM_ROOM_DATA_TYPE_DATA"/>
+    </union>
+
+    <struct name="svr_room_notify_room_created" version="1">
+        <entry name="room_id" type="uint64" id="1"/>
+        <entry name="user_id" type="uint64" id="2"/>
+        <entry name="room_type" type="uint16" id="3"/>
+        <entry name="room_data_type" type="uint16" id="4"/>
+        <entry name="room_data" type="svr_room_room_data" id="5" select="room_data_type"/>
+    </struct>
+
     <struct name="svr_room_notify_user_join" version="1">
         <entry name="room_id" type="uint64" id="1"/>
         <entry name="user_id" type="uint64" id="2"/>
@@ -132,6 +161,32 @@
         <entry name="user_id" type="uint64" id="2"/>
     </struct>
 
+    <struct name="svr_room_notify_room_data" version="1">
+        <entry name="room_id" type="uint64" id="1"/>
+        <entry name="room_data_len" type="uint32" id="2"/>
+        <entry name="room_data" type="int8" count="0" refer="room_data_len" id="5"/>
+    </struct>
+
+    <!--  =========== 给逻辑服务器插件使用的通知和命令 ========== -->
+    <struct name="svr_room_p_notify_room_created" version="1">
+        <entry name="room_id" type="uint64" id="1"/>
+        <entry name="room_type" type="uint16" id="2"/>
+        <entry name="user_count" type="uint16" id="3"/>
+        <entry name="users" type="svr_room_creating_user" count="0" refer="user_count" id="4"/>
+    </struct>
+
+    <struct name="svr_room_p_notify_room_not_exist" version="1">
+        <entry name="room_id" type="uint64" id="1"/>
+    </struct>
+
+    <struct name="svr_room_p_req_send_room_data" version="1">
+        <entry name="room_id" type="uint64" id="1"/>
+        <entry name="target_user" type="uint64" id="2"/>
+        <entry name="room_data_len" type="uint32" id="3"/>
+        <entry name="room_data" type="int8" count="0" refer="room_data_len" id="4"/>
+    </struct>
+
+
     <!--  =========== 整体协议定义 ========== -->
     <!-- 整体协议定义 -->
     <macrosgroup name="SVR_ROOM_CMD_ID">
@@ -155,11 +210,17 @@
 
         <macro name="SVR_ROOM_CMD_REQ_BROADCAST" value="13"/>
 
+        <macro name="SVR_ROOM_CMD_P_REQ_SEND_ROOM_DATA" value="15"/>
+
         <macro name="SVR_ROOM_CMD_NOTIFY_MSG" value="21"/>
         <macro name="SVR_ROOM_CMD_NOTIFY_USER_JOIN" value="22"/>
         <macro name="SVR_ROOM_CMD_NOTIFY_USER_LEAVE" value="23"/>
         <macro name="SVR_ROOM_CMD_NOTIFY_ROOM_DESTORY" value="24"/>
         <macro name="SVR_ROOM_CMD_NOTIFY_ROOM_TICK" value="25"/>
+        <macro name="SVR_ROOM_CMD_NOTIFY_ROOM_CREATED" value="26"/>
+
+        <macro name="SVR_ROOM_CMD_P_NOTIFY_ROOM_CREATED" value="30"/>
+        <macro name="SVR_ROOM_CMD_P_NOTIFY_ROOM_NOT_EXIST" value="31"/>
     </macrosgroup>
 
     <union name="svr_room_pkg_data" version="1" desc="">
@@ -188,6 +249,11 @@
         <entry name="svr_room_notify_user_leave" type="svr_room_notify_user_leave" id="SVR_ROOM_CMD_NOTIFY_USER_LEAVE"/>
         <entry name="svr_room_notify_room_destory" type="svr_room_notify_room_destory" id="SVR_ROOM_CMD_NOTIFY_ROOM_DESTORY"/>
         <entry name="svr_room_notify_room_tick" type="svr_room_notify_room_tick" id="SVR_ROOM_CMD_NOTIFY_ROOM_TICK"/>
+        <entry name="svr_room_notify_room_created" type="svr_room_notify_room_created" id="SVR_ROOM_CMD_NOTIFY_ROOM_CREATED"/>
+
+        <entry name="svr_room_p_notify_room_created" type="svr_room_p_notify_room_created" id="SVR_ROOM_CMD_P_NOTIFY_ROOM_CREATED"/>
+        <entry name="svr_room_p_notify_room_not_exist" type="svr_room_p_notify_room_not_exist" id="SVR_ROOM_CMD_P_NOTIFY_ROOM_NOT_EXIST"/>
+        <entry name="svr_room_p_req_send_room_data" type="svr_room_p_req_send_room_data" id="SVR_ROOM_CMD_P_REQ_SEND_ROOM_DATA"/>
     </union>
 
     <struct name="svr_room_pkg" version="1">

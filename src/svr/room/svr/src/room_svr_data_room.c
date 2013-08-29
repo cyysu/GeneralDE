@@ -13,7 +13,9 @@ room_svr_room_create(room_svr_t svr, SVR_ROOM_ROOM_RECORD * record) {
     }
 
     room->m_svr = svr;
+    room->m_logic_svr = NULL;
     room->m_data = record;
+    room->m_user_count = 0;
     TAILQ_INIT(&room->m_users);
 
     cpe_hash_entry_init(&room->m_hh);
@@ -24,13 +26,17 @@ room_svr_room_create(room_svr_t svr, SVR_ROOM_ROOM_RECORD * record) {
         mem_free(svr->m_alloc, room);
         return NULL;
     }
-    
+
+    TAILQ_INSERT_TAIL(&svr->m_room_check_queue, room, m_next_for_check);
+
     return room;
 }
 
 void room_svr_room_free(room_svr_room_t room) {
     room_svr_t svr = room->m_svr;
     assert(svr);
+
+    TAILQ_REMOVE(&svr->m_room_check_queue, room, m_next_for_check);
 
     while(!TAILQ_EMPTY(&room->m_users)) {
         room_svr_user_free(TAILQ_FIRST(&room->m_users));

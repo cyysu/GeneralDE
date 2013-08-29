@@ -11,6 +11,7 @@ static room_svr_op_t g_svr_ops[] = {
     , room_svr_op_join, NULL
     , room_svr_op_leave, NULL
     , room_svr_op_broadcast, NULL
+    , room_svr_p_op_send_room_data, NULL
 };
 
 int room_svr_rsp(dp_req_t req, void * ctx, error_monitor_t em) {
