@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<metalib tagsetversion="1" name="" version="1">
+    <struct name="conn_svr_conn_info" version="1">
+        <entry name="conn_id" type="uint32" id="1"/>
+        <entry name="user_id" type="uint64" id="2"/>
+    </struct>
+</metalib>
