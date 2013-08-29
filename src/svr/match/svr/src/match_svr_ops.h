@@ -10,6 +10,7 @@ match_svr_t
 match_svr_create(
     gd_app_context_t app,
     const char * name,
+    set_svr_stub_t stub,
     uint16_t room_svr_type_id,
     mem_allocrator_t alloc,
     error_monitor_t em);
@@ -23,8 +24,11 @@ uint32_t match_svr_cur_time(match_svr_t svr);
 
 int match_svr_set_send_to(match_svr_t svr, const char * send_to);
 int match_svr_set_match_require_recv_at(match_svr_t svr, const char * name);
-int match_svr_set_room_response_recv_at(match_svr_t svr, const char * name);
 int match_svr_set_check_span(match_svr_t svr, uint32_t span_ms);
+int match_svr_room_data_init_from_mem(match_svr_t svr, size_t memory_size);
+int match_svr_room_data_init_from_shm(match_svr_t svr, int shm_key);
+int match_svr_user_data_init_from_mem(match_svr_t svr, size_t memory_size);
+int match_svr_user_data_init_from_shm(match_svr_t svr, int shm_key);
 
 dp_req_t match_svr_pkg_buf(match_svr_t svr, size_t capacity);
 dp_req_t match_svr_build_notify(match_svr_t svr, uint32_t cmd, size_t capacity);
@@ -41,20 +45,13 @@ match_svr_room_t match_svr_room_create(match_svr_t svr, SVR_MATCH_ROOM_RECORD * 
 void match_svr_room_free(match_svr_room_t cli);
 void match_svr_room_free_all(match_svr_t svr);
 match_svr_room_t match_svr_room_find_matching(match_svr_t svr, uint64_t match_id);
-match_svr_room_t match_svr_room_find_creating(match_svr_t svr, uint32_t creating_id);
 void match_svr_room_destory(match_svr_room_t cli); /*release data and free*/
 match_svr_user_t match_svr_room_lsearch_user(match_svr_room_t room, uint64_t user_id);
-
-void match_svr_room_to_creating(match_svr_room_t room);
-void match_svr_room_to_matching(match_svr_room_t room);
 
 int match_svr_room_is_full(match_svr_room_t room, SVR_MATCH_ROOM_META const * room_meta);
 
 uint32_t match_svr_room_room_id_hash(match_svr_room_t match);
 int match_svr_room_room_id_eq(match_svr_room_t l, match_svr_room_t r);
-
-uint32_t match_svr_room_creating_id_hash(match_svr_room_t match);
-int match_svr_room_creating_id_eq(match_svr_room_t l, match_svr_room_t r);
 
 /*user operations*/
 match_svr_user_t match_svr_user_create(match_svr_room_t match, SVR_MATCH_USER_RECORD * record);
@@ -83,10 +80,7 @@ void match_svr_room_notify_user_other_leave(match_svr_room_t room, match_svr_use
 void match_svr_room_notify_room_created(match_svr_room_t room, uint16_t room_svr_id, uint64_t room_id);
 
 /*match request ops*/
-void match_svr_request_join(match_svr_t svr, dp_req_t pkg);
-void match_svr_request_leave(match_svr_t svr, dp_req_t pkg);
-
-/*room response ops*/
-void match_svr_response_room_created(match_svr_t svr, dp_req_t pkg);
+void match_svr_request_join(match_svr_t svr, dp_req_t pkg_body, dp_req_t pkg_head);
+void match_svr_request_leave(match_svr_t svr, dp_req_t pkg_body, dp_req_t pkg_head);
 
 #endif

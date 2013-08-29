@@ -20,6 +20,7 @@
 #include "match_svr_ops.h"
 
 extern char g_metalib_svr_match_pro[];
+extern char g_metalib_svr_room_pro[];
 static void match_svr_clear(nm_node_t node);
 
 struct nm_node_type s_nm_node_type_match_svr = {
@@ -31,6 +32,7 @@ match_svr_t
 match_svr_create(
     gd_app_context_t app,
     const char * name,
+    set_svr_stub_t stub,
     uint16_t room_svr_type_id,
     mem_allocrator_t alloc,
     error_monitor_t em)
@@ -48,6 +50,7 @@ match_svr_create(
     svr->m_app = app;
     svr->m_alloc = alloc;
     svr->m_em = em;
+    svr->m_stub = stub;
     svr->m_debug = 0;
     svr->m_room_svr_type_id = room_svr_type_id;
     svr->m_create_retry_span_s = 5;
@@ -59,6 +62,25 @@ match_svr_create(
     svr->m_meta_count = 0;
     svr->m_metas = NULL;
     svr->m_creating_max_id = 0;
+
+    svr->m_room_meta_req_create_room =
+        dr_lib_find_meta_by_name((LPDRMETALIB)g_metalib_svr_room_pro, "svr_room_req_create");
+    assert(svr->m_room_meta_req_create_room);
+
+    svr->m_room_meta_req_delete_room =
+        dr_lib_find_meta_by_name((LPDRMETALIB)g_metalib_svr_room_pro, "svr_room_req_delete");
+    assert(svr->m_room_meta_req_delete_room);
+
+    svr->m_room_data_meta =
+        dr_lib_find_meta_by_name((LPDRMETALIB)g_metalib_svr_match_pro, "svr_match_room_record");
+    assert(svr->m_room_data_meta);
+    svr->m_room_data_mgr = NULL;
+    svr->m_room_data_buf = NULL;
+
+    svr->m_user_data_meta = 
+        dr_lib_find_meta_by_name((LPDRMETALIB)g_metalib_svr_match_pro, "svr_match_user_record");
+    svr->m_user_data_mgr = NULL;
+    svr->m_user_data_buf = NULL;
 
     if (cpe_hash_table_init(
             &svr->m_matching_rooms,
@@ -73,19 +95,6 @@ match_svr_create(
     }
 
     if (cpe_hash_table_init(
-            &svr->m_creating_rooms,
-            alloc,
-            (cpe_hash_fun_t) match_svr_room_creating_id_hash,
-            (cpe_hash_cmp_t) match_svr_room_creating_id_eq,
-            CPE_HASH_OBJ2ENTRY(match_svr_room, m_hh),
-            -1) != 0)
-    {
-        cpe_hash_table_fini(&svr->m_matching_rooms);
-        nm_node_free(svr_node);
-        return NULL;
-    }
-
-    if (cpe_hash_table_init(
             &svr->m_users,
             alloc,
             (cpe_hash_fun_t) match_svr_user_hash,
@@ -94,7 +103,6 @@ match_svr_create(
             -1) != 0)
     {
         cpe_hash_table_fini(&svr->m_matching_rooms);
-        cpe_hash_table_fini(&svr->m_creating_rooms);
         nm_node_free(svr_node);
         return NULL;
     }
@@ -110,6 +118,26 @@ static void match_svr_clear(nm_node_t node) {
 
     match_svr_room_free_all(svr);
     match_svr_user_free_all(svr);
+
+    if (svr->m_room_data_mgr) {
+        aom_obj_mgr_free(svr->m_room_data_mgr);
+        svr->m_room_data_mgr = NULL;
+    }
+
+    if (svr->m_room_data_buf) {
+        mem_free(svr->m_alloc, svr->m_room_data_buf);
+        svr->m_room_data_buf = NULL;
+    }
+
+    if (svr->m_user_data_mgr) {
+        aom_obj_mgr_free(svr->m_user_data_mgr);
+        svr->m_user_data_mgr = NULL;
+    }
+
+    if (svr->m_user_data_buf) {
+        mem_free(svr->m_alloc, svr->m_user_data_buf);
+        svr->m_user_data_buf = NULL;
+    }
 
     if (svr->m_outgoing_pkg) {
         dp_req_free(svr->m_outgoing_pkg);
@@ -146,7 +174,6 @@ static void match_svr_clear(nm_node_t node) {
 
     cpe_hash_table_fini(&svr->m_users);
     cpe_hash_table_fini(&svr->m_matching_rooms);
-    cpe_hash_table_fini(&svr->m_creating_rooms);
 }
 
 void match_svr_free(match_svr_t svr) {
@@ -231,34 +258,6 @@ int match_svr_set_match_require_recv_at(match_svr_t svr, const char * name) {
     return 0;
 }
 
-int match_svr_room_response_rsp(dp_req_t req, void * ctx, error_monitor_t em);
-int match_svr_set_room_response_recv_at(match_svr_t svr, const char * name) {
-    char sp_name_buf[128];
-
-    if (svr->m_room_response_recv_at != NULL) dp_rsp_free(svr->m_room_response_recv_at);
-
-    snprintf(sp_name_buf, sizeof(sp_name_buf), "%s.room.response", match_svr_name(svr));
-    svr->m_room_response_recv_at = dp_rsp_create(gd_app_dp_mgr(svr->m_app), sp_name_buf);
-    if (svr->m_room_response_recv_at == NULL) {
-        CPE_ERROR(
-            svr->m_em, "%s: match_svr_set_room_response_recv_at: create rsp fail!",
-            match_svr_name(svr));
-        return -1;
-    }
-    dp_rsp_set_processor(svr->m_room_response_recv_at, match_svr_room_response_rsp, svr);
-
-    if (dp_rsp_bind_string(svr->m_room_response_recv_at, name, svr->m_em) != 0) {
-        CPE_ERROR(
-            svr->m_em, "%s: match_svr_set_room_response_recv_at: bind rsp to %s fail!",
-            match_svr_name(svr), name);
-        dp_rsp_free(svr->m_room_response_recv_at);
-        svr->m_room_response_recv_at = NULL;
-        return -1;
-    }
-
-    return 0;
-}
-
 void match_svr_timer(void * ctx, gd_timer_id_t timer_id, void * arg);
 int match_svr_set_check_span(match_svr_t svr, uint32_t span_ms) {
     gd_timer_mgr_t timer_mgr = gd_timer_mgr_find(svr->m_app, NULL);
@@ -300,7 +299,7 @@ dp_req_t match_svr_pkg_buf(match_svr_t svr, size_t capacity) {
         }
     }
 
-    set_pkg_init(svr->m_outgoing_pkg);
+    dp_req_set_meta(svr->m_outgoing_pkg, NULL);
 
     return svr->m_outgoing_pkg;
 }
@@ -314,7 +313,7 @@ dp_req_t match_svr_build_response(match_svr_t svr, dp_req_t req, size_t capacity
     dp_req_set_size(body, capacity);
 
     ((SVR_MATCH_PKG*)dp_req_data(body))->cmd
-        = ((SVR_MATCH_PKG*)dp_req_data(body))->cmd + 1;
+        = ((SVR_MATCH_PKG*)dp_req_data(req))->cmd + 1;
 
     return body;
 }
@@ -329,6 +328,7 @@ match_svr_build_notify(match_svr_t svr, uint32_t cmd, size_t capacity) {
     head = set_pkg_head_find(body);
     assert(head);
 
+    set_pkg_init(head);
     set_pkg_set_sn(head, 0);
     set_pkg_set_category(head, set_pkg_notify);
 
@@ -342,6 +342,180 @@ match_svr_build_notify(match_svr_t svr, uint32_t cmd, size_t capacity) {
 int match_svr_send_pkg(match_svr_t svr, dp_req_t req) {
     if (dp_dispatch_by_string(svr->m_send_to, req, svr->m_em) != 0) {
         CPE_ERROR(svr->m_em, "%s: send pkg fail!", match_svr_name(svr));
+        return -1;
+    }
+
+    return 0;
+}
+
+int match_svr_room_data_init_from_mem(match_svr_t svr, size_t memory_size) {
+    if (svr->m_room_data_mgr) {
+        aom_obj_mgr_free(svr->m_room_data_mgr);
+        svr->m_room_data_mgr = NULL;
+    }
+
+    if (svr->m_room_data_buf) {
+        mem_free(svr->m_alloc, svr->m_room_data_buf);
+        svr->m_room_data_buf = NULL;
+    }
+    
+    svr->m_room_data_buf = mem_alloc(svr->m_alloc, memory_size);
+    if (svr->m_room_data_buf == NULL) {
+        CPE_ERROR(
+            svr->m_em, "%s: init room data from mem: alloc buf fail, size=%d!",
+            match_svr_name(svr), (int)memory_size);
+        return -1;
+    }
+
+    if (aom_obj_mgr_buf_init(svr->m_room_data_meta, svr->m_room_data_buf, memory_size, svr->m_em) != 0) {
+        CPE_ERROR(svr->m_em,  "%s: init room data from mem: init buf fail!", match_svr_name(svr));
+        return -1;
+    }
+
+    svr->m_room_data_mgr = aom_obj_mgr_create(svr->m_alloc, svr->m_room_data_buf, memory_size, svr->m_em);
+    if (svr->m_room_data_mgr == NULL) {
+        CPE_ERROR(svr->m_em,  "%s: init room data from mem: create aom obj mgr fail!", match_svr_name(svr));
+        return -1;
+    }
+
+    return 0;
+}
+
+int match_svr_room_data_init_from_shm(match_svr_t svr, int shm_key) {
+    cpe_shm_id_t shmid;
+    cpe_shmid_ds shm_info;
+    void * data;
+
+    if (svr->m_room_data_mgr) {
+        aom_obj_mgr_free(svr->m_room_data_mgr);
+        svr->m_room_data_mgr = NULL;
+    }
+
+    if (svr->m_room_data_buf) {
+        mem_free(svr->m_alloc, svr->m_room_data_buf);
+        svr->m_room_data_buf = NULL;
+    }
+    
+    shmid = cpe_shm_get(shm_key);
+    if (shmid == -1) {
+        CPE_ERROR(
+            svr->m_em, "%s: init room data from shm: get shm (key=%d) fail, errno=%d (%s)",
+            match_svr_name(svr), shm_key, cpe_shm_errno(), cpe_shm_errstr(cpe_shm_errno()));
+        return -1;
+    }
+
+    if (cpe_shm_ds_get(shmid, &shm_info) != 0) {
+        CPE_ERROR(
+            svr->m_em, "%s: init room data from shm: get shm info (key=%d) fail, errno=%d (%s)",
+            match_svr_name(svr), shm_key, cpe_shm_errno(), cpe_shm_errstr(cpe_shm_errno()));
+        return -1;
+    }
+
+    data = cpe_shm_attach(shmid, NULL, 0);
+    if (data == NULL) {
+        CPE_ERROR(
+            svr->m_em, "%s: init room data from shm: attach shm (key=%d, size=%d) fail, errno=%d (%s)",
+            match_svr_name(svr), shm_key, shmid, cpe_shm_errno(), cpe_shm_errstr(cpe_shm_errno()));
+        return -1;
+    }
+
+    svr->m_room_data_mgr = aom_obj_mgr_create(svr->m_alloc, data, shm_info.shm_segsz, svr->m_em);
+    if (svr->m_room_data_mgr == NULL) {
+        cpe_shm_detach(data);
+        CPE_ERROR(svr->m_em, "%s: init room data from shm: create grp obj mgr (from shm) fail!", match_svr_name(svr));
+        return -1;
+    }
+
+    if (!dr_meta_compatible(svr->m_room_data_meta, aom_obj_mgr_meta(svr->m_room_data_mgr))) {
+        cpe_shm_detach(data);
+        CPE_ERROR(svr->m_em, "%s: init room data from shm: aom grp meta not compatable!", match_svr_name(svr));
+        return -1;
+    }
+
+    return 0;
+}
+
+int match_svr_user_data_init_from_mem(match_svr_t svr, size_t memory_size) {
+    if (svr->m_user_data_mgr) {
+        aom_obj_mgr_free(svr->m_user_data_mgr);
+        svr->m_user_data_mgr = NULL;
+    }
+
+    if (svr->m_user_data_buf) {
+        mem_free(svr->m_alloc, svr->m_user_data_buf);
+        svr->m_user_data_buf = NULL;
+    }
+    
+    svr->m_user_data_buf = mem_alloc(svr->m_alloc, memory_size);
+    if (svr->m_user_data_buf == NULL) {
+        CPE_ERROR(
+            svr->m_em, "%s: init user data from mem: alloc buf fail, size=%d!",
+            match_svr_name(svr), (int)memory_size);
+        return -1;
+    }
+
+    if (aom_obj_mgr_buf_init(svr->m_user_data_meta, svr->m_user_data_buf, memory_size, svr->m_em) != 0) {
+        CPE_ERROR(svr->m_em,  "%s: init user data from mem: init buf fail!", match_svr_name(svr));
+        return -1;
+    }
+
+    svr->m_user_data_mgr = aom_obj_mgr_create(svr->m_alloc, svr->m_user_data_buf, memory_size, svr->m_em);
+    if (svr->m_user_data_mgr == NULL) {
+        CPE_ERROR(svr->m_em,  "%s: init user data from mem: create aom obj mgr fail!", match_svr_name(svr));
+        return -1;
+    }
+
+    return 0;
+}
+
+int match_svr_user_data_init_from_shm(match_svr_t svr, int shm_key) {
+    cpe_shm_id_t shmid;
+    cpe_shmid_ds shm_info;
+    void * data;
+
+    if (svr->m_user_data_mgr) {
+        aom_obj_mgr_free(svr->m_user_data_mgr);
+        svr->m_user_data_mgr = NULL;
+    }
+
+    if (svr->m_user_data_buf) {
+        mem_free(svr->m_alloc, svr->m_user_data_buf);
+        svr->m_user_data_buf = NULL;
+    }
+    
+    shmid = cpe_shm_get(shm_key);
+    if (shmid == -1) {
+        CPE_ERROR(
+            svr->m_em, "%s: init user data from shm: get shm (key=%d) fail, errno=%d (%s)",
+            match_svr_name(svr), shm_key, cpe_shm_errno(), cpe_shm_errstr(cpe_shm_errno()));
+        return -1;
+    }
+
+    if (cpe_shm_ds_get(shmid, &shm_info) != 0) {
+        CPE_ERROR(
+            svr->m_em, "%s: init user data from shm: get shm info (key=%d) fail, errno=%d (%s)",
+            match_svr_name(svr), shm_key, cpe_shm_errno(), cpe_shm_errstr(cpe_shm_errno()));
+        return -1;
+    }
+
+    data = cpe_shm_attach(shmid, NULL, 0);
+    if (data == NULL) {
+        CPE_ERROR(
+            svr->m_em, "%s: init user data from shm: attach shm (key=%d, size=%d) fail, errno=%d (%s)",
+            match_svr_name(svr), shm_key, shmid, cpe_shm_errno(), cpe_shm_errstr(cpe_shm_errno()));
+        return -1;
+    }
+
+    svr->m_user_data_mgr = aom_obj_mgr_create(svr->m_alloc, data, shm_info.shm_segsz, svr->m_em);
+    if (svr->m_user_data_mgr == NULL) {
+        cpe_shm_detach(data);
+        CPE_ERROR(svr->m_em, "%s: init user data from shm: create grp obj mgr (from shm) fail!", match_svr_name(svr));
+        return -1;
+    }
+
+    if (!dr_meta_compatible(svr->m_user_data_meta, aom_obj_mgr_meta(svr->m_user_data_mgr))) {
+        cpe_shm_detach(data);
+        CPE_ERROR(svr->m_em, "%s: init user data from shm: aom grp meta not compatable!", match_svr_name(svr));
         return -1;
     }
 

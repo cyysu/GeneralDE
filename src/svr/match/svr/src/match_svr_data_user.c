@@ -29,8 +29,8 @@ match_svr_user_create(match_svr_room_t room, SVR_MATCH_USER_RECORD * record) {
 
     if (svr->m_debug) {
         CPE_INFO(
-            svr->m_em, "%s: user "FMT_UINT64_T": join room(match_room_id="FMT_UINT64_T", creating_id="FMT_UINT32_T")!",
-            match_svr_name(svr), record->user_id, room->m_data->match_room_id, room->m_data->creating_id);
+            svr->m_em, "%s: user "FMT_UINT64_T": join room(match_room_id="FMT_UINT64_T")!",
+            match_svr_name(svr), record->user_id, room->m_data->match_room_id);
     }
 
     return user;
@@ -59,12 +59,12 @@ void match_svr_user_destory(match_svr_user_t user) {
 
     if (svr->m_debug) {
         CPE_INFO(
-            svr->m_em, "%s: user "FMT_UINT64_T": leave room(match_room_id="FMT_UINT64_T", creating_id="FMT_UINT32_T")!",
-            match_svr_name(svr), user->m_data->user_id, user->m_room->m_data->match_room_id, user->m_room->m_data->creating_id);
+            svr->m_em, "%s: user "FMT_UINT64_T": leave room(match_room_id="FMT_UINT64_T")!",
+            match_svr_name(svr), user->m_data->user_id, user->m_room->m_data->match_room_id);
     }
 
     assert(user->m_data);
-    aom_obj_free(svr->m_room_data_mgr, user->m_data);
+    aom_obj_free(svr->m_user_data_mgr, user->m_data);
     user->m_data = NULL;
 
     --user->m_room->m_user_count;
@@ -97,10 +97,10 @@ void match_svr_user_move_to_room(match_svr_user_t user, match_svr_room_t room) {
     if (svr->m_debug) {
         CPE_INFO(
             svr->m_em, "%s: user "FMT_UINT64_T":"
-            " move from room(match_room_id="FMT_UINT64_T", creating_id="FMT_UINT32_T") "
-            " to  room(match_room_id="FMT_UINT64_T", creating_id="FMT_UINT32_T")!",
-            match_svr_name(svr), user->m_data->user_id, user->m_room->m_data->match_room_id, user->m_room->m_data->creating_id,
-            room->m_data->match_room_id, room->m_data->creating_id);
+            " move from room(match_room_id="FMT_UINT64_T") "
+            " to  room(match_room_id="FMT_UINT64_T")!",
+            match_svr_name(svr), user->m_data->user_id, user->m_room->m_data->match_room_id,
+            room->m_data->match_room_id);
     }
 
     --user->m_room->m_user_count;
@@ -111,7 +111,6 @@ void match_svr_user_move_to_room(match_svr_user_t user, match_svr_room_t room) {
     TAILQ_INSERT_TAIL(&user->m_room->m_users, user, m_next);
 
     user->m_data->match_room_id = user->m_room->m_data->match_room_id;
-    user->m_data->creating_id = user->m_room->m_data->creating_id;
 }
 
 match_svr_user_t
