@@ -70,7 +70,20 @@ int set_logic_rsp_execute(dp_req_t dp_req, void * ctx, error_monitor_t em) {
     }
 
     next_op = set_logic_rsp_queue_next_op_exec;
-    //TODO: loki next_op = set_logic_rsp_queue_context(bpg_mgr, set_logic_rsp, op_context, bpg_pkg_client_id(dp_req), em);
+
+    if (bpg_mgr->m_queue_attr) {
+        uint64_t client_id;
+        if (logic_context_try_read_uint64(&client_id, op_context, bpg_mgr->m_queue_attr, em) != 0) {
+            CPE_ERROR(
+                em, "%s.%s: create op: read client id %s fail!",
+                set_logic_rsp_manage_name(bpg_mgr), set_logic_rsp_name(set_logic_rsp), bpg_mgr->m_queue_attr);
+            set_logic_rsp_commit_error(set_logic_rsp, op_context, -1);
+            return 0;
+        }
+        
+        next_op = set_logic_rsp_queue_context(bpg_mgr, set_logic_rsp, op_context, client_id, em);
+    }
+
     switch(next_op) {
     case set_logic_rsp_queue_next_op_success:
         logic_context_set_commit(op_context, set_logic_rsp_commit, set_logic_rsp);
@@ -172,7 +185,10 @@ static enum set_logic_rsp_queue_next_op set_logic_rsp_queue_context(
     }
 }
 
-static int set_logic_rsp_copy_req_main_to_ctx(set_logic_rsp_manage_t mgr, logic_context_t op_context, dp_req_t req, uint32_t cmd, error_monitor_t em) {
+static int set_logic_rsp_copy_req_main_to_ctx(
+    set_logic_rsp_manage_t mgr, logic_context_t op_context,
+    dp_req_t req, uint32_t cmd, error_monitor_t em)
+{
     LPDRMETA data_meta;
     logic_data_t data;
     size_t size;
@@ -204,72 +220,50 @@ static int set_logic_rsp_copy_req_main_to_ctx(set_logic_rsp_manage_t mgr, logic_
     return 0;
 }
 
-int set_logic_rsp_copy_req_carry_to_ctx(set_logic_rsp_manage_t mgr, logic_context_t op_context, dp_req_t bpg_req, error_monitor_t em) {
-    struct dp_req_it childs;
+static int set_logic_rsp_copy_req_carry_to_ctx(
+    set_logic_rsp_manage_t mgr, logic_context_t op_context,
+    dp_req_t bpg_req, uint16_t from_svr_type_id, error_monitor_t em)
+{
     LPDRMETA carry_meta;
     logic_data_t data;
-    dp_req_t child;
-    int carry_info_count;
-    LPDRMETA carry_info_list_meta;
-    logic_data_t carry_info_list_data;
-    SET_LOGIC_CARRY_METAS * carry_info_list;
+    dp_req_t pkg_carry;
+    const void * carry_data;
+    size_t carry_size;
+    LPDRMETA set_carry_data_meta;
+    set_svr_svr_info_t from_svr_type;
 
-    dp_req_childs(bpg_req, &childs);
-    carry_info_count = 0;
-    while((child = dp_req_next(&childs))) {
-        carry_meta = dp_req_meta(child);
-        if (carry_meta == NULL) continue;
-
-        ++carry_info_count;
-    }
-
-    if (carry_info_count == 0) return 0;
-
-    carry_info_list_meta = dr_lib_find_meta_by_name((LPDRMETALIB)g_metalib_set_logic_data_meta, "set_logic_carry_metas");
-    if (carry_info_list_meta == NULL) {
+    pkg_carry = set_pkg_carry_find(bpg_req);
+    if (pkg_carry == NULL) {
         CPE_ERROR(
-            em, "%s: copy_set_logic_carry_data: set_logic_carry_metas meta not exist!",
+            em, "%s: copy_set_logic_carry_data: no carry pkg!",
             set_logic_rsp_manage_name(mgr));
         return -1;
     }
 
-    carry_info_list_data =
-        logic_context_data_get_or_create(
-            op_context,
-            carry_info_list_meta,
-            dr_meta_calc_dyn_size(carry_info_list_meta, carry_info_count));
-    if (carry_info_list_data == NULL) {
+    from_svr_type = set_svr_svr_info_find(mgr->m_stub, from_svr_type_id);
+    set_carry_data_meta = from_svr_type ? set_svr_svr_info_carry_meta(from_svr_type) : NULL;
+
+    if (set_carry_data_meta) {
+        carry_meta = set_carry_data_meta;
+        carry_size = (size_t)set_pkg_carry_size(pkg_carry);
+        carry_data = set_pkg_carry_data(pkg_carry);
+    }
+    else {
+        carry_meta = dp_req_meta(pkg_carry);
+        carry_size = dp_req_size(pkg_carry);
+        carry_data = dp_req_data(pkg_carry);
+    }
+
+    data = logic_context_data_get_or_create(op_context, carry_meta, carry_size);
+    if (data == NULL) {
         CPE_ERROR(
-            em, "%s: copy_set_logic_carry_data: create carry_info_list_data fail!",
-            set_logic_rsp_manage_name(mgr));
+            em, "%s: copy_req_carry_data: %s create data fail, size=%d!",
+            set_logic_rsp_manage_name(mgr),
+            dr_meta_name(carry_meta), (int)carry_size);
         return -1;
     }
 
-    carry_info_list = logic_data_data(carry_info_list_data);
-    carry_info_list->count = 0;
-
-    dp_req_childs(bpg_req, &childs);
-    while((child = dp_req_next(&childs))) {
-        SET_LOGIC_CARRY_META * carry_meta_info;
-
-        carry_meta = dp_req_meta(child);
-        if (carry_meta == NULL) continue;
-
-        data = logic_context_data_get_or_create(op_context, carry_meta, dp_req_size(child));
-        if (data == NULL) {
-            CPE_ERROR(
-                em, "%s: copy_req_carry_data: %s create data fail, size=%d!",
-                set_logic_rsp_manage_name(mgr),
-                dr_meta_name(carry_meta), (int)dp_req_size(child));
-            return -1;
-        }
-
-        memcpy(logic_data_data(data), dp_req_data(child), dp_req_size(child));
-
-        carry_meta_info = &carry_info_list->data[carry_info_list->count++];
-
-        strncpy(carry_meta_info->name, dr_meta_name(carry_meta), sizeof(carry_meta_info->name));
-    }
+    memcpy(logic_data_data(data), carry_data, carry_size);
 
     return 0;
 }
@@ -304,7 +298,7 @@ set_logic_rsp_create_carry_info(set_logic_rsp_manage_t mgr, logic_context_t op_c
         buf->cmd = 0;
         buf->response = 0;
         buf->from_svr_type = set_pkg_from_svr_type(pkg_head);
-        buf->from_svr_id = set_pkg_from_svr_type(pkg_head);
+        buf->from_svr_id = set_pkg_from_svr_id(pkg_head);
 
         if (dr_entry_try_read_uint32(
                 &buf->cmd, ((const char*)dp_req_data(pkg_body)) + dr_entry_data_start_pos(mgr->m_pkg_cmd_entry, 0),
@@ -371,7 +365,7 @@ logic_context_t set_logic_rsp_manage_create_context(set_logic_rsp_manage_t bpg_m
             return NULL;
         }
 
-        if (set_logic_rsp_copy_req_carry_to_ctx(bpg_mgr, op_context, req, em) != 0) {
+        if (set_logic_rsp_copy_req_carry_to_ctx(bpg_mgr, op_context, req, carry_info->from_svr_type, em) != 0) {
             CPE_ERROR(em, "%s: create context: copy carry to context fail!", set_logic_rsp_manage_name(bpg_mgr));
             logic_context_free(op_context);
             return NULL;
@@ -623,9 +617,15 @@ set_logic_rsp_manage_create_op_by_name(
         return NULL;
     }
 
-    //TODO
-    //next_op = set_logic_rsp_queue_context(bpg_mgr, rsp, context, set_logic_rsp_context_client_id(carry_info), em);
     next_op = set_logic_rsp_queue_next_op_exec;
+
+    if (bpg_mgr->m_queue_attr) {
+        uint64_t client_id;
+        if (logic_context_try_read_uint64(&client_id, context, bpg_mgr->m_queue_attr, em) == 0) {
+            next_op = set_logic_rsp_queue_context(bpg_mgr, rsp, context, client_id, em);
+        }
+    }
+
     switch(next_op) {
     case set_logic_rsp_queue_next_op_success:
     case set_logic_rsp_queue_next_op_exec:
@@ -648,29 +648,37 @@ set_logic_rsp_manage_create_op_by_name(
 static int set_logic_rsp_copy_carry_metas(
     set_logic_rsp_manage_t bpg_mgr, const char * rsp_name, logic_context_t from_context, logic_context_t to_context, error_monitor_t em)
 {
-    logic_data_t carry_info_list_data;
-    SET_LOGIC_CARRY_METAS * carry_info_list;
-    uint32_t i;
+    logic_data_t bpg_private_data;
+    SET_LOGIC_CARRY_INFO * bpg_private;
+    LPDRMETA set_carry_data_meta;
+    set_svr_svr_info_t from_svr_type;
+    const char * carry_meta_name;
+    logic_data_t carry_data;
 
-    carry_info_list_data = logic_context_data_find(from_context, "set_logic_carry_metas");
-    if (carry_info_list_data == NULL) return 0;
+    bpg_private_data = logic_context_data_find(from_context, "set_logic_carry_info");
+    if (bpg_private_data == NULL) {
+        return 0;
+    }
 
-    carry_info_list = logic_data_data(carry_info_list_data);
+    if (logic_context_data_copy(to_context, bpg_private_data) == NULL) {
+        CPE_ERROR(
+            em, "%s.%s: copy_carry data set_logic_carry_info fial!",
+            set_logic_rsp_manage_name(bpg_mgr), rsp_name);
+        return -1;
+    }
 
-    for(i = 0; i < carry_info_list->count; ++i) {
-        logic_data_t carry_data = logic_context_data_find(from_context, carry_info_list->data[i].name);
+    bpg_private = (SET_LOGIC_CARRY_INFO *)logic_data_data(bpg_private_data);
 
-        if (carry_data == NULL) {
-            CPE_ERROR(
-                em, "%s.%s: copy_carry data %s: data not exist!",
-                set_logic_rsp_manage_name(bpg_mgr), rsp_name, carry_info_list->data[i].name);
-            return -1;
-        }
+    from_svr_type = set_svr_svr_info_find(bpg_mgr->m_stub, bpg_private->from_svr_type);
+    set_carry_data_meta = from_svr_type ? set_svr_svr_info_carry_meta(from_svr_type) : NULL;
+    carry_meta_name = set_carry_data_meta ? dr_meta_name(set_carry_data_meta) : req_type_set_pkg_carry;
 
+    carry_data = logic_context_data_find(from_context, carry_meta_name);
+    if (carry_data) {
         if (logic_context_data_copy(to_context, carry_data) == NULL) {
             CPE_ERROR(
-                em, "%s.%s: copy_carry data %s: create req_data fial!",
-                set_logic_rsp_manage_name(bpg_mgr), rsp_name, carry_info_list->data[i].name);
+                em, "%s.%s: copy_carry data %s fail!",
+                set_logic_rsp_manage_name(bpg_mgr), rsp_name, carry_meta_name);
             return -1;
         }
     }

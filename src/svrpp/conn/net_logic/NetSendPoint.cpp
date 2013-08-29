@@ -14,7 +14,7 @@ Cpe::Dp::Request & NetSendPoint::outgoingPkgBuf(size_t size) {
         APP_CTX_THROW_EXCEPTION(
             app(),
             ::std::runtime_error,
-            "center_logic_sp %s: get outgoing pkg buf fail, size=%d", name(), (int)size);
+            "conn_net_logic_sp %s: get outgoing pkg buf fail, size=%d", name(), (int)size);
     }
 
     return *(Cpe::Dp::Request *)req;
@@ -28,7 +28,7 @@ void NetSendPoint::sendReq(
         APP_CTX_THROW_EXCEPTION(
             app(),
             ::std::runtime_error,
-            "center_logic_sp %s: send %s(len=%d) fail!",
+            "conn_net_logic_sp %s: send %s(len=%d) fail!",
             name(), dr_meta_name(meta), (int)size);
     }
 }
@@ -39,7 +39,7 @@ NetSendPoint & NetSendPoint::instance(gd_app_context_t app, const char * name) {
         APP_CTX_THROW_EXCEPTION(
             app,
             ::std::runtime_error,
-            "center_logic_sp %s not exist!", name);
+            "conn_net_logic_sp %s not exist!", name);
     }
 
     return *(NetSendPoint*)sp;

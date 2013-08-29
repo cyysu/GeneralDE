@@ -7,14 +7,4 @@
         <entry name="from_svr_type" type="uint16"/>
         <entry name="from_svr_id" type="uint16"/>
     </struct>
-
-    <struct name="set_logic_carry_meta" version="1">
-        <entry name="name" type="string" size="64"/>
-    </struct>
-
-    <struct name="set_logic_carry_metas" version="1">
-        <entry name="count" type="uint32"/>
-        <entry name="data" type="set_logic_carry_meta" count="0" refer="count"/>
-    </struct>
-
 </metalib>

@@ -13,6 +13,7 @@ set_logic_sp_t set_logic_sp_create(
     gd_app_context_t app,
     const char * name, 
     logic_manage_t mgr,
+    set_svr_stub_t stub,
     mem_allocrator_t alloc, error_monitor_t em);
 
 void set_logic_sp_free(set_logic_sp_t mgr);
@@ -34,11 +35,18 @@ int set_logic_sp_send_pkg(set_logic_sp_t sp, dp_req_t pkg, logic_require_t requi
 
 int set_logic_sp_send_req_data(
     set_logic_sp_t sp, uint16_t to_svr_type, uint16_t to_svr_id,
-    LPDRMETA meta, void const * data, size_t data_size, logic_require_t require);
+    LPDRMETA meta, void const * data, size_t data_size,
+    void const * carry_data, size_t carry_data_size,
+    logic_require_t require);
 
 int set_logic_sp_send_req_cmd(
     set_logic_sp_t sp, uint16_t to_svr_type, uint16_t to_svr_id,
-    uint32_t cmd, logic_require_t require);
+    uint32_t cmd,
+    void const * carry_data, size_t carry_data_size,
+    logic_require_t require);
+
+int set_logic_sp_response_from_svr_type(logic_require_t require, uint16_t * svr_type);
+int set_logic_sp_response_from_svr_id(logic_require_t require, uint16_t * svr_id);
 
 #ifdef __cplusplus
 }
