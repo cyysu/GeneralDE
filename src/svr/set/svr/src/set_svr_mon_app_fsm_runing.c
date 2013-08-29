@@ -77,7 +77,7 @@ static uint32_t set_svr_mon_app_fsm_runing_trans(fsm_machine_t fsm, fsm_def_stat
                 return set_svr_mon_app_state_checking;
             }
             else {
-                if (svr->m_debug) {
+                if (mon->m_debug) {
                     CPE_ERROR(
                         svr->m_em, "%s: mon app %s: check in runing: process %d still runing",
                         set_svr_name(svr), mon_app->m_bin, pid);

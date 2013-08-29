@@ -19,6 +19,7 @@ const char * set_svr_svr_info_svr_type_name(set_svr_svr_info_t svr_info);
 LPDRMETA set_svr_svr_info_pkg_meta(set_svr_svr_info_t svr_info);
 LPDRMETAENTRY set_svr_svr_info_pkg_data_entry(set_svr_svr_info_t svr_info);
 LPDRMETAENTRY set_svr_svr_info_pkg_cmd_entry(set_svr_svr_info_t svr_info);
+LPDRMETA set_svr_svr_info_carry_meta(set_svr_svr_info_t svr_info);
 LPDRMETA set_svr_svr_info_find_data_meta_by_cmd(set_svr_svr_info_t svr_info, uint32_t cmd);
 
 #ifdef __cplusplus

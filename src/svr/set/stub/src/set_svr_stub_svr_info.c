@@ -15,6 +15,7 @@ set_svr_svr_info_t set_svr_svr_info_create(set_svr_stub_t stub, const char * svr
     svr_info->m_pkg_meta = NULL;
     svr_info->m_pkg_cmd_entry = NULL;
     svr_info->m_pkg_data_entry = NULL;
+    svr_info->m_carry_meta = NULL;
     svr_info->m_notify_dispatch_to = NULL;
     svr_info->m_response_dispatch_to = NULL;
 
@@ -110,6 +111,10 @@ LPDRMETAENTRY set_svr_svr_info_pkg_data_entry(set_svr_svr_info_t svr_info) {
 
 LPDRMETAENTRY set_svr_svr_info_pkg_cmd_entry(set_svr_svr_info_t svr_info) {
     return svr_info->m_pkg_cmd_entry;
+}
+
+LPDRMETA set_svr_svr_info_carry_meta(set_svr_svr_info_t svr_info) {
+    return svr_info->m_carry_meta;
 }
 
 LPDRMETA set_svr_svr_info_find_data_meta_by_cmd(set_svr_svr_info_t svr_info, uint32_t cmd) {

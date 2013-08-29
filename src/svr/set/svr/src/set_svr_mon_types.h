@@ -7,6 +7,7 @@ typedef TAILQ_HEAD(set_svr_mon_app_list, set_svr_mon_app) set_svr_mon_app_list_t
 
 struct set_svr_mon {
     set_svr_t m_svr;
+    int m_debug;
     tl_time_span_t m_restart_wait_ms;
 
     fsm_def_machine_t m_fsm_def;

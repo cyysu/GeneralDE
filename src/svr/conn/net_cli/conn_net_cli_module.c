@@ -32,6 +32,7 @@ static int conn_net_cli_app_load_svr_stubs(conn_net_cli_t conn_net_cli, cfg_t cf
         const char * notify_send_to;
         const char * outgoing_recv_at;
         const char * str_pkg_meta;
+        const char * svr_pkg_data_entry;
         dr_store_t store;
         char const * sep;
         char lib_name[64];
@@ -95,6 +96,51 @@ static int conn_net_cli_app_load_svr_stubs(conn_net_cli_t conn_net_cli, cfg_t cf
                 conn_net_cli->m_em, "%s: create svr type %s: metalib %s have no meta %s!",
                 conn_net_cli_name(conn_net_cli), svr_type_name, svr_type_name, sep + 1);
             return -1;
+        }
+
+        svr_pkg_data_entry = cfg_get_string(child_cfg, "pkg-meta-data", NULL);
+        if (svr_pkg_data_entry) {
+            LPDRMETAENTRY pkg_data_entry;
+            LPDRMETA pkg_data_meta;
+            LPDRMETAENTRY pkg_cmd_entry;
+            int i;
+
+            pkg_data_entry = dr_meta_find_entry_by_name(svr_stub->m_pkg_meta, svr_pkg_data_entry);
+            if (pkg_data_entry == NULL) {
+                CPE_ERROR(
+                    conn_net_cli->m_em, "%s: %s: pkg-meta %s no data entry %s!",
+                    conn_net_cli_name(conn_net_cli), svr_type_name, str_pkg_meta, svr_pkg_data_entry);
+                return -1;
+            }
+
+            pkg_data_meta = dr_entry_ref_meta(pkg_data_entry);
+            if (pkg_data_meta == NULL || dr_meta_type(pkg_data_meta) != CPE_DR_TYPE_UNION) {
+                CPE_ERROR(
+                    conn_net_cli->m_em, "%s: %s: data_entry %s.%s not union!",
+                    conn_net_cli_name(conn_net_cli), svr_type_name, str_pkg_meta, svr_pkg_data_entry);
+                return -1;
+            }
+
+            pkg_cmd_entry = dr_entry_select_entry(pkg_data_entry);
+            if (pkg_cmd_entry == NULL) {
+                CPE_ERROR(
+                    conn_net_cli->m_em, "%s: %s: pkg-meta %s data entry %s no select entry!",
+                    conn_net_cli_name(conn_net_cli), svr_type_name, str_pkg_meta, svr_pkg_data_entry);
+                return -1;
+            }
+
+            svr_stub->m_pkg_cmd_entry = pkg_cmd_entry;
+            svr_stub->m_pkg_data_entry = pkg_data_entry;
+
+            for(i = 0; i < dr_meta_entry_num(pkg_data_meta); ++i) {
+                LPDRMETAENTRY cmd_entry = dr_meta_entry_at(pkg_data_meta, i);
+                if (conn_net_cli_cmd_info_create(svr_stub, cmd_entry) == NULL) {
+                    CPE_ERROR(
+                        conn_net_cli->m_em, "%s: %s: add cmd %s fail!",
+                        conn_net_cli_name(conn_net_cli), svr_type_name, dr_entry_name(cmd_entry));
+                    return -1;
+                }
+            }
         }
 
         if ((response_send_to = cfg_get_string(child_cfg, "response-send-to", NULL))) {
