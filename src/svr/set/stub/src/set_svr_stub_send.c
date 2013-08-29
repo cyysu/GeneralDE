@@ -97,7 +97,6 @@ int set_svr_stub_send_pkg(set_svr_stub_t stub, dp_req_t body) {
         }
     }
     else {
-        CPE_ERROR(stub->m_em, "xxxxxx: pkg_meta=%s", dr_meta_name(pkg_meta));
         dp_req_set_meta(body, pkg_meta);
     }
 
@@ -109,7 +108,7 @@ int set_svr_stub_send_pkg(set_svr_stub_t stub, dp_req_t body) {
                 head_buf->to_svr_id, head_buf->to_svr_id,
                 rv, set_chanel_str_error(rv),
                 dp_req_dump(head, &stub->m_dump_buffer_head),
-                carry ? dp_req_dump(carry, &stub->m_dump_buffer_carry) : "none",
+                carry ? dp_req_dump(carry, &stub->m_dump_buffer_carry) : "none\n",
                 (int)dp_req_size(body));
         }
         else {
@@ -119,7 +118,7 @@ int set_svr_stub_send_pkg(set_svr_stub_t stub, dp_req_t body) {
                 head_buf->to_svr_id, head_buf->to_svr_id,
                 rv, set_chanel_str_error(rv),
                 dp_req_dump(head, &stub->m_dump_buffer_head),
-                carry ? dp_req_dump(carry, &stub->m_dump_buffer_carry) : "none",
+                carry ? dp_req_dump(carry, &stub->m_dump_buffer_carry) : "none\n",
                 dp_req_dump(body, &stub->m_dump_buffer_body));
         }
         return -1;
@@ -133,7 +132,7 @@ int set_svr_stub_send_pkg(set_svr_stub_t stub, dp_req_t body) {
                 stub->m_svr_type->m_svr_type_name, stub->m_svr_id,
                 head_buf->to_svr_type, head_buf->to_svr_id, (int)send_size,
                 dp_req_dump(head, &stub->m_dump_buffer_head),
-                carry ? dp_req_dump(carry, &stub->m_dump_buffer_carry) : "none",
+                carry ? dp_req_dump(carry, &stub->m_dump_buffer_carry) : "none\n",
                 (int)dp_req_size(body));
         }
         else {
@@ -143,7 +142,7 @@ int set_svr_stub_send_pkg(set_svr_stub_t stub, dp_req_t body) {
                 stub->m_svr_type->m_svr_type_name, stub->m_svr_id,
                 head_buf->to_svr_type, head_buf->to_svr_id, (int)send_size,
                 dp_req_dump(head, &stub->m_dump_buffer_head),
-                carry ? dp_req_dump(carry, &stub->m_dump_buffer_carry) : "none",
+                carry ? dp_req_dump(carry, &stub->m_dump_buffer_carry) : "none\n",
                 dp_req_dump(body, &stub->m_dump_buffer_body));
         }
     }
@@ -151,34 +150,26 @@ int set_svr_stub_send_pkg(set_svr_stub_t stub, dp_req_t body) {
     return 0;
 }
 
-int set_svr_stub_send_req_data(
-    set_svr_stub_t stub, uint16_t to_svr_type_id, uint16_t to_svr_id,
-    uint16_t sn, void const * data, uint16_t data_size, LPDRMETA meta)
+static int set_svr_stub_do_send_data(
+    set_svr_stub_t stub, set_svr_svr_info_t svr_info,
+    uint16_t to_svr_type_id, uint16_t to_svr_id, set_pkg_category_t c,
+    uint16_t sn, void const * data, uint16_t data_size, LPDRMETA meta, void const * carry_data, size_t carry_data_len)
 {
     dp_req_t pkg;
     dp_req_t pkg_head;
-    set_svr_svr_info_t to_svr_info;
+    dp_req_t pkg_carry;
     set_svr_cmd_info_t cmd_info;
     size_t total_size;
 
-    to_svr_info = set_svr_svr_info_find(stub, to_svr_type_id);
-    if (to_svr_info == NULL) {
+    if (svr_info->m_pkg_data_entry == NULL || svr_info->m_pkg_cmd_entry == NULL) {
         CPE_ERROR(
-            stub->m_em, "%s: svr %s.%d: send %s to %d.%d: target svr not exist!",
+            stub->m_em, "%s: svr %s.%d: send %s to %d.%d: svr type %s no pkg cmd info!",
             set_svr_stub_name(stub), stub->m_svr_type->m_svr_type_name, stub->m_svr_id,
-            dr_meta_name(meta), to_svr_type_id, to_svr_id);
+            dr_meta_name(meta), to_svr_type_id, to_svr_id, svr_info->m_svr_type_name);
         return -1;
     }
 
-    if (to_svr_info->m_pkg_data_entry == NULL || to_svr_info->m_pkg_cmd_entry == NULL) {
-        CPE_ERROR(
-            stub->m_em, "%s: svr %s.%d: send %s to %d.%d: no pkg cmd info!",
-            set_svr_stub_name(stub), stub->m_svr_type->m_svr_type_name, stub->m_svr_id,
-            dr_meta_name(meta), to_svr_type_id, to_svr_id);
-        return -1;
-    }
-
-    cmd_info = set_svr_cmd_info_find_by_name(stub, to_svr_info, dr_meta_name(meta));
+    cmd_info = set_svr_cmd_info_find_by_name(stub, svr_info, dr_meta_name(meta));
     if (cmd_info == NULL) {
         CPE_ERROR(
             stub->m_em, "%s: svr %s.%d: send %s to %d.%d: cmd is unknown!",
@@ -187,19 +178,22 @@ int set_svr_stub_send_req_data(
         return -1;
     }
 
-    total_size = (size_t)data_size + dr_entry_data_start_pos(to_svr_info->m_pkg_data_entry, 0);
+    if (data_size == 0) data_size = dr_meta_calc_data_len(meta, data, 0);
+
+    total_size = (size_t)data_size + dr_entry_data_start_pos(svr_info->m_pkg_data_entry, 0);
     pkg = set_svr_stub_outgoing_pkg_buf(stub, total_size);
 
+    dp_req_set_meta(pkg, svr_info->m_pkg_meta);
     dp_req_set_size(pkg, total_size);
 
-    memcmp(
-        ((char*)dp_req_data(pkg)) + dr_entry_data_start_pos(to_svr_info->m_pkg_data_entry, 0),
+    memcpy(
+        ((char*)dp_req_data(pkg)) + dr_entry_data_start_pos(svr_info->m_pkg_data_entry, 0),
         data,
         data_size);
 
     if (dr_entry_set_from_uint32(
-            ((char*)dp_req_data(pkg)) + dr_entry_data_start_pos(to_svr_info->m_pkg_cmd_entry, 0),
-            (uint32_t)dr_entry_id(cmd_info->m_entry), to_svr_info->m_pkg_cmd_entry, stub->m_em) != 0)
+            ((char*)dp_req_data(pkg)) + dr_entry_data_start_pos(svr_info->m_pkg_cmd_entry, 0),
+            (uint32_t)dr_entry_id(cmd_info->m_entry), svr_info->m_pkg_cmd_entry, stub->m_em) != 0)
     {
         CPE_ERROR(
             stub->m_em, "%s: svr %s.%d: send %s to %d.%d: set cmd fail!",
@@ -217,33 +211,41 @@ int set_svr_stub_send_req_data(
         return -1;
     }
 
+    set_pkg_init(pkg_head);
     set_pkg_set_sn(pkg_head, sn);
     set_pkg_set_to_svr(pkg_head, to_svr_type_id, to_svr_id);
-    set_pkg_set_category(pkg_head, set_pkg_request);
+    set_pkg_set_category(pkg_head, c);
+
+    pkg_carry = set_pkg_carry_check_create(pkg, carry_data ? carry_data_len : 0);
+    if (pkg_carry == NULL) {
+        CPE_ERROR(
+            stub->m_em, "%s: svr %s.%d: send %s to %d.%d: create pkg carry fail!",
+            set_svr_stub_name(stub), stub->m_svr_type->m_svr_type_name, stub->m_svr_id,
+            dr_meta_name(meta), to_svr_type_id, to_svr_id);
+        return -1;
+    }
+
+    if (carry_data) {
+        memcpy(set_pkg_carry_data(pkg_carry), carry_data, carry_data_len);
+        set_pkg_carry_set_size(pkg_carry, carry_data_len);
+    }
+    else {
+        set_pkg_carry_set_size(pkg_carry, 0);
+    }
 
     return set_svr_stub_send_pkg(stub, pkg);
 }
 
-int set_svr_stub_send_req_cmd(
-    set_svr_stub_t stub, uint16_t to_svr_type_id, uint16_t to_svr_id,
-    uint16_t sn, uint32_t cmd)
+static int set_svr_stub_do_send_cmd(
+    set_svr_stub_t stub, set_svr_svr_info_t svr_info,
+    uint16_t to_svr_type_id, uint16_t to_svr_id, set_pkg_category_t c,
+    uint16_t sn, uint32_t cmd, void const * carry_data, size_t carry_data_len)
 {
     dp_req_t pkg;
     dp_req_t pkg_head;
-    set_svr_svr_info_t to_svr_info;
+    dp_req_t pkg_carry;
 
-    to_svr_info = set_svr_svr_info_find(stub, to_svr_type_id);
-    if (to_svr_info == NULL) {
-        CPE_ERROR(
-            stub->m_em, "%s: svr %s.%d: send cmd %d to %d.%d: target svr not exist!",
-            set_svr_stub_name(stub), stub->m_svr_type->m_svr_type_name, stub->m_svr_id,
-            cmd, to_svr_type_id, to_svr_id);
-        return -1;
-    }
-
-    assert(to_svr_info->m_pkg_meta);
-
-    if (to_svr_info->m_pkg_data_entry == NULL || to_svr_info->m_pkg_cmd_entry == NULL) {
+    if (svr_info->m_pkg_data_entry == NULL || svr_info->m_pkg_cmd_entry == NULL) {
         CPE_ERROR(
             stub->m_em, "%s: svr %s.%d: send cmd %d to %d.%d: no pkg cmd info!",
             set_svr_stub_name(stub), stub->m_svr_type->m_svr_type_name, stub->m_svr_id,
@@ -251,12 +253,12 @@ int set_svr_stub_send_req_cmd(
         return -1;
     }
 
-    pkg = set_svr_stub_outgoing_pkg_buf(stub, (size_t)dr_meta_size(to_svr_info->m_pkg_meta));
-    dp_req_set_size(pkg, dr_meta_size(to_svr_info->m_pkg_meta));
+    pkg = set_svr_stub_outgoing_pkg_buf(stub, (size_t)dr_meta_size(svr_info->m_pkg_meta));
+    dp_req_set_size(pkg, dr_meta_size(svr_info->m_pkg_meta));
 
     if (dr_entry_set_from_uint32(
-            ((char*)dp_req_data(pkg)) + dr_entry_data_start_pos(to_svr_info->m_pkg_cmd_entry, 0),
-            cmd, to_svr_info->m_pkg_cmd_entry, stub->m_em) != 0)
+            ((char*)dp_req_data(pkg)) + dr_entry_data_start_pos(svr_info->m_pkg_cmd_entry, 0),
+            cmd, svr_info->m_pkg_cmd_entry, stub->m_em) != 0)
     {
         CPE_ERROR(
             stub->m_em, "%s: svr %s.%d: send cmd %d to %d.%d: set cmd fail!",
@@ -274,73 +276,110 @@ int set_svr_stub_send_req_cmd(
         return -1;
     }
 
+    set_pkg_init(pkg_head);
     set_pkg_set_sn(pkg_head, sn);
     set_pkg_set_to_svr(pkg_head, to_svr_type_id, to_svr_id);
-    set_pkg_set_category(pkg_head, set_pkg_request);
+    set_pkg_set_category(pkg_head, c);
+
+    pkg_carry = set_pkg_carry_check_create(pkg, carry_data ? carry_data_len : 0);
+    if (pkg_carry == NULL) {
+        CPE_ERROR(
+            stub->m_em, "%s: svr %s.%d: send cmd %d to %d.%d: create pkg carry fail!",
+            set_svr_stub_name(stub), stub->m_svr_type->m_svr_type_name, stub->m_svr_id,
+            cmd, to_svr_type_id, to_svr_id);
+        return -1;
+    }
+
+    if (carry_data) {
+        memcpy(set_pkg_carry_data(pkg_carry), carry_data, carry_data_len);
+        set_pkg_carry_set_size(pkg_carry, carry_data_len);
+    }
+    else {
+        set_pkg_carry_set_size(pkg_carry, 0);
+    }
 
     return set_svr_stub_send_pkg(stub, pkg);
 }
 
+int set_svr_stub_send_req_data(
+    set_svr_stub_t stub, uint16_t to_svr_type_id, uint16_t to_svr_id,
+    uint16_t sn, void const * data, uint16_t data_size, LPDRMETA meta,
+    void const * carry_data, size_t carry_data_len)
+{
+    set_svr_svr_info_t to_svr_info;
+
+    to_svr_info = set_svr_svr_info_find(stub, to_svr_type_id);
+    if (to_svr_info == NULL) {
+        CPE_ERROR(
+            stub->m_em, "%s: svr %s.%d: send %s to %d.%d: target svr not exist!",
+            set_svr_stub_name(stub), stub->m_svr_type->m_svr_type_name, stub->m_svr_id,
+            dr_meta_name(meta), to_svr_type_id, to_svr_id);
+        return -1;
+    }
+
+    return set_svr_stub_do_send_data(
+        stub, to_svr_info, to_svr_type_id, to_svr_id, set_pkg_request, sn,
+        data, data_size, meta, carry_data, carry_data_len);
+}
+
+int set_svr_stub_send_req_cmd(
+    set_svr_stub_t stub, uint16_t to_svr_type_id, uint16_t to_svr_id,
+    uint16_t sn, uint32_t cmd,
+    void const * carry_data, size_t carry_data_len)
+{
+    set_svr_svr_info_t to_svr_info;
+
+    to_svr_info = set_svr_svr_info_find(stub, to_svr_type_id);
+    if (to_svr_info == NULL) {
+        CPE_ERROR(
+            stub->m_em, "%s: svr %s.%d: send cmd %d to %d.%d: target svr not exist!",
+            set_svr_stub_name(stub), stub->m_svr_type->m_svr_type_name, stub->m_svr_id,
+            cmd, to_svr_type_id, to_svr_id);
+        return -1;
+    }
+
+    return set_svr_stub_do_send_cmd(
+        stub, to_svr_info, to_svr_type_id, to_svr_id, set_pkg_request, sn,
+        cmd, carry_data, carry_data_len);
+}
+
 int set_svr_stub_send_response_data(
     set_svr_stub_t stub, uint16_t to_svr_type_id, uint16_t to_svr_id,
-    uint16_t sn, void const * data, uint16_t data_size, LPDRMETA meta)
+    uint16_t sn, void const * data, uint16_t data_size, LPDRMETA meta,
+    void const * carry_data, size_t carry_data_len)
 {
-    dp_req_t pkg;
-    dp_req_t pkg_head;
-    set_svr_cmd_info_t cmd_info;
-    size_t total_size;
+    return set_svr_stub_do_send_data(
+        stub, stub->m_svr_type, to_svr_type_id, to_svr_id, set_pkg_response, sn,
+        data, data_size, meta, carry_data, carry_data_len);
+}
 
-    if (stub->m_svr_type->m_pkg_data_entry == NULL || stub->m_svr_type->m_pkg_cmd_entry == NULL) {
-        CPE_ERROR(
-            stub->m_em, "%s: svr %s.%d: send response %s to %d.%d: no pkg cmd info!",
-            set_svr_stub_name(stub), stub->m_svr_type->m_svr_type_name, stub->m_svr_id,
-            dr_meta_name(meta), to_svr_type_id, to_svr_id);
-        return -1;
-    }
+int set_svr_stub_send_response_cmd(
+    set_svr_stub_t stub, uint16_t to_svr_type_id, uint16_t to_svr_id,
+    uint16_t sn, uint32_t cmd,
+    void const * carry_data, size_t carry_data_len)
+{
+    return set_svr_stub_do_send_cmd(
+        stub, stub->m_svr_type, to_svr_type_id, to_svr_id, set_pkg_response, sn,
+        cmd, carry_data, carry_data_len);
+}
 
-    cmd_info = set_svr_cmd_info_find_by_name(stub, stub->m_svr_type, dr_meta_name(meta));
-    if (cmd_info == NULL) {
-        CPE_ERROR(
-            stub->m_em, "%s: svr %s.%d: send response %s to %d.%d: cmd is unknown!",
-            set_svr_stub_name(stub), stub->m_svr_type->m_svr_type_name, stub->m_svr_id,
-            dr_meta_name(meta), to_svr_type_id, to_svr_id);
-        return -1;
-    }
+int set_svr_stub_send_notify_data(
+    set_svr_stub_t stub, uint16_t to_svr_type_id, uint16_t to_svr_id,
+    uint16_t sn, void const * data, uint16_t data_size, LPDRMETA meta,
+    void const * carry_data, size_t carry_data_len)
+{
+    return set_svr_stub_do_send_data(
+        stub, stub->m_svr_type, to_svr_type_id, to_svr_id, set_pkg_notify, sn,
+        data, data_size, meta, carry_data, carry_data_len);
+}
 
-    total_size = (size_t)data_size + dr_entry_data_start_pos(stub->m_svr_type->m_pkg_data_entry, 0);
-    pkg = set_svr_stub_outgoing_pkg_buf(stub, total_size);
-
-    dp_req_set_size(pkg, total_size);
-
-    memcmp(
-        ((char*)dp_req_data(pkg)) + dr_entry_data_start_pos(stub->m_svr_type->m_pkg_data_entry, 0),
-        data,
-        data_size);
-
-    if (dr_entry_set_from_uint32(
-            ((char*)dp_req_data(pkg)) + dr_entry_data_start_pos(stub->m_svr_type->m_pkg_cmd_entry, 0),
-            (uint32_t)dr_entry_id(cmd_info->m_entry), stub->m_svr_type->m_pkg_cmd_entry, stub->m_em) != 0)
-    {
-        CPE_ERROR(
-            stub->m_em, "%s: svr %s.%d: send response %s to %d.%d: set cmd fail!",
-            set_svr_stub_name(stub), stub->m_svr_type->m_svr_type_name, stub->m_svr_id,
-            dr_meta_name(meta), to_svr_type_id, to_svr_id);
-        return -1;
-    }
-
-    pkg_head = set_pkg_head_check_create(pkg);
-    if (pkg_head == NULL) {
-        CPE_ERROR(
-            stub->m_em, "%s: svr %s.%d: send response %s to %d.%d: create pkg head fail!",
-            set_svr_stub_name(stub), stub->m_svr_type->m_svr_type_name, stub->m_svr_id,
-            dr_meta_name(meta), to_svr_type_id, to_svr_id);
-        return -1;
-    }
-
-    set_pkg_set_sn(pkg_head, sn);
-    set_pkg_set_to_svr(pkg_head, to_svr_type_id, to_svr_id);
-    set_pkg_set_category(pkg_head, set_pkg_response);
-
-    return set_svr_stub_send_pkg(stub, pkg);
+int set_svr_stub_send_notify_cmd(
+    set_svr_stub_t stub, uint16_t to_svr_type_id, uint16_t to_svr_id,
+    uint16_t sn, uint32_t cmd,
+    void const * carry_data, size_t carry_data_len)
+{
+    return set_svr_stub_do_send_cmd(
+        stub, stub->m_svr_type, to_svr_type_id, to_svr_id, set_pkg_notify, sn,
+        cmd, carry_data, carry_data_len);
 }
 

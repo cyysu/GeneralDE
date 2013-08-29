@@ -55,8 +55,7 @@ conn_svr_create(
     svr->m_outgoing_pkg = NULL;
     svr->m_ss_send_to = NULL;
     svr->m_ss_request_recv_at = NULL;
-    svr->m_ss_response_recv_at = NULL;
-    svr->m_ss_notify_recv_at = NULL;
+    svr->m_ss_trans_recv_at = NULL;
     svr->m_read_block_size = 2048;
     svr->m_conn_timeout_s = 300;
     svr->m_conn_max_id = 0;
@@ -131,14 +130,9 @@ static void conn_svr_clear(nm_node_t node) {
         svr->m_ss_request_recv_at = NULL;
     }
 
-    if (svr->m_ss_response_recv_at != NULL) {
-        dp_rsp_free(svr->m_ss_response_recv_at);
-        svr->m_ss_response_recv_at = NULL;
-    }
-
-    if (svr->m_ss_notify_recv_at != NULL) {
-        dp_rsp_free(svr->m_ss_notify_recv_at);
-        svr->m_ss_notify_recv_at = NULL;
+    if (svr->m_ss_trans_recv_at != NULL) {
+        dp_rsp_free(svr->m_ss_trans_recv_at);
+        svr->m_ss_trans_recv_at = NULL;
     }
 
     if (svr->m_check_timer_id != GD_TIMER_ID_INVALID) {
@@ -253,56 +247,28 @@ int conn_svr_set_ss_request_recv_at(conn_svr_t svr, const char * name) {
     return 0;
 }
 
-int conn_svr_ss_response_rsp(dp_req_t req, void * ctx, error_monitor_t em);
-int conn_svr_set_ss_response_recv_at(conn_svr_t svr, const char * name) {
+int conn_svr_ss_trans_rsp(dp_req_t req, void * ctx, error_monitor_t em);
+int conn_svr_set_ss_trans_recv_at(conn_svr_t svr, const char * name) {
     char sp_name_buf[128];
 
-    if (svr->m_ss_response_recv_at != NULL) dp_rsp_free(svr->m_ss_response_recv_at);
+    if (svr->m_ss_trans_recv_at != NULL) dp_rsp_free(svr->m_ss_trans_recv_at);
 
-    snprintf(sp_name_buf, sizeof(sp_name_buf), "%s.ss.response", conn_svr_name(svr));
-    svr->m_ss_response_recv_at = dp_rsp_create(gd_app_dp_mgr(svr->m_app), sp_name_buf);
-    if (svr->m_ss_response_recv_at == NULL) {
+    snprintf(sp_name_buf, sizeof(sp_name_buf), "%s.ss.trans", conn_svr_name(svr));
+    svr->m_ss_trans_recv_at = dp_rsp_create(gd_app_dp_mgr(svr->m_app), sp_name_buf);
+    if (svr->m_ss_trans_recv_at == NULL) {
         CPE_ERROR(
-            svr->m_em, "%s: conn_svr_set_ss_response_recv_at: create rsp fail!",
+            svr->m_em, "%s: conn_svr_set_ss_trans_recv_at: create rsp fail!",
             conn_svr_name(svr));
         return -1;
     }
-    dp_rsp_set_processor(svr->m_ss_response_recv_at, conn_svr_ss_response_rsp, svr);
+    dp_rsp_set_processor(svr->m_ss_trans_recv_at, conn_svr_ss_trans_rsp, svr);
 
-    if (dp_rsp_bind_string(svr->m_ss_response_recv_at, name, svr->m_em) != 0) {
+    if (dp_rsp_bind_string(svr->m_ss_trans_recv_at, name, svr->m_em) != 0) {
         CPE_ERROR(
-            svr->m_em, "%s: conn_svr_set_ss_recv_at: bind rsp to %s fail!",
+            svr->m_em, "%s: conn_svr_set_ss_trans_recv_at: bind rsp to %s fail!",
             conn_svr_name(svr), name);
-        dp_rsp_free(svr->m_ss_response_recv_at);
-        svr->m_ss_response_recv_at = NULL;
-        return -1;
-    }
-
-    return 0;
-}
-
-int conn_svr_ss_notify_rsp(dp_req_t req, void * ctx, error_monitor_t em);
-int conn_svr_set_ss_notify_recv_at(conn_svr_t svr, const char * name) {
-    char sp_name_buf[128];
-
-    if (svr->m_ss_notify_recv_at != NULL) dp_rsp_free(svr->m_ss_notify_recv_at);
-
-    snprintf(sp_name_buf, sizeof(sp_name_buf), "%s.ss.notify", conn_svr_name(svr));
-    svr->m_ss_notify_recv_at = dp_rsp_create(gd_app_dp_mgr(svr->m_app), sp_name_buf);
-    if (svr->m_ss_notify_recv_at == NULL) {
-        CPE_ERROR(
-            svr->m_em, "%s: conn_svr_set_ss_notify_recv_at: create rsp fail!",
-            conn_svr_name(svr));
-        return -1;
-    }
-    dp_rsp_set_processor(svr->m_ss_notify_recv_at, conn_svr_ss_notify_rsp, svr);
-
-    if (dp_rsp_bind_string(svr->m_ss_notify_recv_at, name, svr->m_em) != 0) {
-        CPE_ERROR(
-            svr->m_em, "%s: conn_svr_set_ss_recv_at: bind rsp to %s fail!",
-            conn_svr_name(svr), name);
-        dp_rsp_free(svr->m_ss_notify_recv_at);
-        svr->m_ss_notify_recv_at = NULL;
+        dp_rsp_free(svr->m_ss_trans_recv_at);
+        svr->m_ss_trans_recv_at = NULL;
         return -1;
     }
 

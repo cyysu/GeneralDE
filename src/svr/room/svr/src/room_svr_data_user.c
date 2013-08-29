@@ -24,11 +24,8 @@ room_svr_user_create(room_svr_room_t room, SVR_ROOM_USER_RECORD * record) {
         return NULL;
     }
 
+    ++room->m_user_count;
     TAILQ_INSERT_TAIL(&room->m_users, user, m_next);
-
-    if (record->user_state == SVR_ROOM_USER_ACTIVE) {
-        TAILQ_INSERT_TAIL(&svr->m_user_check_queue, user, m_next_for_check);
-    }
 
     return user;
 }
@@ -41,8 +38,8 @@ void room_svr_user_free(room_svr_user_t user) {
     assert(user->m_data);
     user->m_data = NULL;
 
+    --user->m_room->m_user_count;
     TAILQ_REMOVE(&user->m_room->m_users, user, m_next);
-    TAILQ_REMOVE(&svr->m_user_check_queue, user, m_next_for_check);
 
     cpe_hash_table_remove_by_ins(&svr->m_users, user);
 
@@ -54,35 +51,24 @@ void room_svr_user_destory(room_svr_user_t user) {
 
     assert(svr);
 
-    assert(user->m_data);
-    aom_obj_free(svr->m_room_data_mgr, user->m_data);
-    user->m_data = NULL;
-
+    --user->m_room->m_user_count;
     TAILQ_REMOVE(&user->m_room->m_users, user, m_next);
-    TAILQ_REMOVE(&svr->m_user_check_queue, user, m_next_for_check);
 
     cpe_hash_table_remove_by_ins(&svr->m_users, user);
+
+    assert(user->m_data);
+    aom_obj_free(svr->m_user_data_mgr, user->m_data);
+    user->m_data = NULL;
 
     mem_free(svr->m_alloc, user);
 }
 
 void room_svr_user_update_state(room_svr_user_t user, uint32_t last_op_time, uint8_t new_state) {
-    room_svr_room_t room = user->m_room;
-    room_svr_t svr = room->m_svr;
-
-    if (user->m_data->user_state == SVR_ROOM_USER_ACTIVE) {
-        TAILQ_REMOVE(&svr->m_user_check_queue, user, m_next_for_check);
-    }
-
     if (last_op_time > 0) {
         assert(last_op_time >= user->m_data->user_last_op_time);
         user->m_data->user_last_op_time = last_op_time;
     }
     user->m_data->user_state = new_state;
-
-    if (user->m_data->user_state == SVR_ROOM_USER_ACTIVE) {
-        TAILQ_INSERT_TAIL(&svr->m_user_check_queue, user, m_next_for_check);
-    }
 }
 
 uint32_t room_svr_user_hash(room_svr_user_t user) {

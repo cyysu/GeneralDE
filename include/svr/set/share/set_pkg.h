@@ -6,6 +6,9 @@
 extern "C" {
 #endif
 
+extern const char * req_type_set_pkg_head;
+extern const char * req_type_set_pkg_carry;
+
 dp_req_t set_pkg_head_find(dp_req_t body);
 dp_req_t set_pkg_head_check_create(dp_req_t body);
 dp_req_t set_pkg_head_create(dp_mgr_t dp_mgr);

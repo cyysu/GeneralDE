@@ -7,7 +7,7 @@
 #include "cpe/nm/nm_read.h"
 #include "cpe/utils/stream.h"
 #include "cpe/utils/stream_buffer.h"
-#include "cpe/dr/dr_json.h"
+#include "cpe/dr/dr_data.h"
 #include "cpe/dr/dr_metalib_manage.h"
 #include "cpe/dp/dp_manage.h"
 #include "cpe/dp/dp_request.h"
@@ -52,6 +52,7 @@ set_svr_stub_create(gd_app_context_t app, const char * name, uint16_t svr_id, me
 
     svr->m_request_dispatch_to = NULL;
     svr->m_response_dispatch_to = NULL;
+    svr->m_notify_dispatch_to = NULL;
     svr->m_outgoing_recv_at = NULL;
 
     svr->m_incoming_buf = NULL;
@@ -118,6 +119,11 @@ static void set_svr_stub_clear(nm_node_t node) {
     if (svr->m_response_dispatch_to) {
         mem_free(svr->m_alloc, svr->m_response_dispatch_to);
         svr->m_response_dispatch_to = NULL;
+    }
+
+    if (svr->m_notify_dispatch_to) {
+        mem_free(svr->m_alloc, svr->m_notify_dispatch_to);
+        svr->m_notify_dispatch_to = NULL;
     }
 
     set_svr_svr_info_free_all(svr);
@@ -236,6 +242,20 @@ int set_svr_stub_set_response_dispatch_to(set_svr_stub_t svr, const char * respo
     return 0;
 }
 
+cpe_hash_string_t set_svr_stub_notify_dispatch_to(set_svr_stub_t svr) {
+    return svr->m_notify_dispatch_to;
+}
+
+int set_svr_stub_set_notify_dispatch_to(set_svr_stub_t svr, const char * notify_dispatch_to) {
+    cpe_hash_string_t new_notify_dispatch_to = cpe_hs_create(svr->m_alloc, notify_dispatch_to);
+    if (new_notify_dispatch_to == NULL) return -1;
+
+    if (svr->m_notify_dispatch_to) mem_free(svr->m_alloc, svr->m_notify_dispatch_to);
+    svr->m_notify_dispatch_to = new_notify_dispatch_to;
+
+    return 0;
+}
+
 cpe_hash_string_t set_svr_stub_svr_response_dispatch_to(set_svr_stub_t svr, uint16_t svr_type) {
     set_svr_svr_info_t dispatch_info = 
         set_svr_svr_info_find(svr, svr_type);
@@ -270,6 +290,51 @@ int set_svr_stub_set_outgoing_recv_at(set_svr_stub_t svr, const char * outgoing_
         svr->m_outgoing_recv_at = NULL;
         return -1;
     }
+
+    return 0;
+}
+
+int set_svr_stub_read_data(set_svr_stub_t stub, set_svr_svr_info_t svr_info, dp_req_t pkg, uint32_t * r_cmd, LPDRMETA * r_meta, void ** r_data, size_t * r_data_size) {
+    uint32_t cmd;
+    LPDRMETA meta;
+    void * data;
+    size_t data_size;
+
+    assert(stub);
+    assert(svr_info);
+
+    if (svr_info->m_pkg_cmd_entry == NULL) {
+        CPE_ERROR(
+            stub->m_em, "%s: read cmd from pkg: svr %s(%d) no pkg_cmd_entry!",
+            set_svr_stub_name(stub), svr_info->m_svr_type_name, svr_info->m_svr_type_id);
+        return -1;
+    }
+
+    if (dr_entry_try_read_uint32(
+            &cmd, 
+            ((char*)dp_req_data(pkg)) + dr_entry_data_start_pos(svr_info->m_pkg_cmd_entry, 0),
+            svr_info->m_pkg_cmd_entry, stub->m_em) != 0)
+    {
+        CPE_ERROR(
+            stub->m_em, "%s: read cmd from pkg: read cmd from entry %s fail!",
+            set_svr_stub_name(stub), dr_entry_name(svr_info->m_pkg_cmd_entry));
+        return -1;
+    }
+
+    meta = set_svr_svr_info_find_data_meta_by_cmd(svr_info, cmd);
+    if (meta == NULL) {
+        data = NULL;
+        data_size = 0;
+    }
+    else {
+        data = ((char *)dp_req_data(pkg)) + dr_entry_data_start_pos(svr_info->m_pkg_data_entry, 0);
+        data_size = dp_req_size(pkg) - dr_entry_data_start_pos(svr_info->m_pkg_data_entry, 0);
+    }
+
+    if (r_cmd) *r_cmd = cmd;
+    if (r_meta) *r_meta = meta;
+    if (r_data) *r_data = data;
+    if (r_data_size) *r_data_size = data_size;
 
     return 0;
 }

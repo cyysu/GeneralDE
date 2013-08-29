@@ -4,6 +4,8 @@
 #include "cpe/pal/pal_socket.h"
 #include "cpe/pal/pal_string.h"
 #include "cpe/cfg/cfg_read.h"
+#include "cpe/dr/dr_metalib_manage.h"
+#include "cpe/dr/dr_data.h"
 #include "cpe/net/net_manage.h"
 #include "cpe/nm/nm_manage.h"
 #include "cpe/nm/nm_read.h"
@@ -13,6 +15,7 @@
 #include "gd/dr_cvt/dr_cvt.h"
 #include "svr/conn/net_cli/conn_net_cli.h"
 #include "svr/conn/net_cli/conn_net_cli_pkg.h"
+#include "svr/conn/net_cli/conn_net_cli_svr_stub.h"
 #include "conn_net_cli_internal_ops.h"
 
 struct nm_node_type s_nm_node_type_conn_net_cli;
@@ -44,6 +47,7 @@ conn_net_cli_create(
     cli->m_reconnect_span_ms = 30 * 1000;
     cli->m_incoming_pkg = NULL;
     cli->m_incoming_body = NULL;
+    cli->m_outgoing_body = NULL;
     cli->m_fsm_timer_id = GD_TIMER_ID_INVALID;
     cli->m_fd = -1;
     cli->m_watcher.data = cli;
@@ -119,6 +123,11 @@ static void conn_net_cli_clear(nm_node_t node) {
     if (cli->m_incoming_body) {
         dp_req_free(cli->m_incoming_body);
         cli->m_incoming_body = NULL;
+    }
+
+    if (cli->m_outgoing_body) {
+        dp_req_free(cli->m_outgoing_body);
+        cli->m_outgoing_body = NULL;
     }
 
     if (cli->m_ringbuf) {
@@ -381,6 +390,73 @@ void conn_net_cli_start_watch(conn_net_cli_t cli) {
     ev_io_init(&cli->m_watcher, conn_net_cli_rw_cb, cli->m_fd, cli->m_wb ? (EV_READ | EV_WRITE) : EV_READ);
     ev_io_start(cli->m_ev_loop, &cli->m_watcher);
 }
+
+dp_req_t conn_net_cli_outgoing_pkg_buf(conn_net_cli_t cli, size_t capacity) {
+    if (cli->m_outgoing_body && dp_req_capacity(cli->m_outgoing_body) < capacity) {
+        dp_req_free(cli->m_outgoing_body);
+        cli->m_outgoing_body = NULL;
+    }
+
+    if (cli->m_outgoing_body == NULL) {
+        cli->m_outgoing_body = dp_req_create(gd_app_dp_mgr(cli->m_app), capacity);
+        if (cli->m_outgoing_body == NULL) {
+            CPE_ERROR(cli->m_em, "%s: crate outgoing buf fail!", conn_net_cli_name(cli));
+            return NULL;
+        }
+    }
+
+    return cli->m_outgoing_body;
+}
+
+int conn_net_cli_read_data(
+    conn_net_cli_t cli, conn_net_cli_svr_stub_t svr_info, dp_req_t pkg,
+    uint32_t * r_cmd, LPDRMETA * r_meta, void ** r_data, size_t * r_data_size)
+{
+    uint32_t cmd;
+    LPDRMETA meta;
+    void * data;
+    size_t data_size;
+
+    assert(cli);
+    assert(svr_info);
+    assert(pkg);
+
+    if (svr_info->m_pkg_cmd_entry == NULL) {
+        CPE_ERROR(
+            cli->m_em, "%s: read data: svr %s(%d) no pkg_cmd_entry!",
+            conn_net_cli_name(cli), svr_info->m_svr_type_name, svr_info->m_svr_type_id);
+        return -1;
+    }
+
+    if (dr_entry_try_read_uint32(
+            &cmd, 
+            ((char*)dp_req_data(pkg)) + dr_entry_data_start_pos(svr_info->m_pkg_cmd_entry, 0),
+            svr_info->m_pkg_cmd_entry, cli->m_em) != 0)
+    {
+        CPE_ERROR(
+            cli->m_em, "%s: read data: read cmd from entry %s fail!",
+            conn_net_cli_name(cli), dr_entry_name(svr_info->m_pkg_cmd_entry));
+        return -1;
+    }
+
+    meta = conn_net_cli_svr_stub_find_data_meta_by_cmd(svr_info, cmd);
+    if (meta == NULL) {
+        data = NULL;
+        data_size = 0;
+    }
+    else {
+        data = ((char *)dp_req_data(pkg)) + dr_entry_data_start_pos(svr_info->m_pkg_data_entry, 0);
+        data_size = dp_req_size(pkg) - dr_entry_data_start_pos(svr_info->m_pkg_data_entry, 0);
+    }
+
+    if (r_cmd) *r_cmd = cmd;
+    if (r_meta) *r_meta = meta;
+    if (r_data) *r_data = data;
+    if (r_data_size) *r_data_size = data_size;
+
+    return 0;
+}
+
 
 struct nm_node_type s_nm_node_type_conn_net_cli = {
     "svr_conn_net_cli",

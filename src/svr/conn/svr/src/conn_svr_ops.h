@@ -21,8 +21,7 @@ uint32_t conn_svr_cur_time(conn_svr_t svr);
 
 int conn_svr_set_ss_send_to(conn_svr_t svr, const char * send_to);
 int conn_svr_set_ss_request_recv_at(conn_svr_t svr, const char * name);
-int conn_svr_set_ss_response_recv_at(conn_svr_t svr, const char * name);
-int conn_svr_set_ss_notify_recv_at(conn_svr_t svr, const char * name);
+int conn_svr_set_ss_trans_recv_at(conn_svr_t svr, const char * name);
 int conn_svr_set_check_span(conn_svr_t svr, uint32_t span_ms);
 int conn_svr_set_ringbuf_size(conn_svr_t svr, size_t capacity);
 

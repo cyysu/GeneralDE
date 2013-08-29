@@ -176,6 +176,7 @@ int set_svr_app_init(gd_app_context_t app, gd_app_module_t module, cfg_t cfg) {
     if (set_svr == NULL) return -1;
 
     set_svr->m_debug = cfg_get_int8(cfg, "debug", set_svr->m_debug);
+    set_svr->m_mon->m_debug = cfg_get_int32(cfg, "mon.debug", 0);
 
     if (set_svr_set_ringbuf_size(set_svr, ringbuf_size) != 0) {
         CPE_ERROR(gd_app_em(app), "%s: create: set ringbuf-size %d fail!", gd_app_module_name(module), (int)ringbuf_size);

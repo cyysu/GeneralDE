@@ -30,6 +30,8 @@ void conn_net_cli_pkg_set_sn(conn_net_cli_pkg_t pkg, uint32_t sn);
 dp_req_t conn_net_cli_pkg_to_dp_req(conn_net_cli_pkg_t pkg);
 conn_net_cli_pkg_t conn_net_cli_pkg_find(dp_req_t pkg);
 
+int conn_net_cli_pkg_read_data(conn_net_cli_pkg_t pkg, uint32_t * r_cmd, LPDRMETA * r_meta, void ** r_data, size_t * r_data_size);
+
 #ifdef __cplusplus
 }
 #endif

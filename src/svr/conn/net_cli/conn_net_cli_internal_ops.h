@@ -18,6 +18,7 @@ void conn_net_cli_link_node_w(conn_net_cli_t conn, ringbuffer_block_t blk);
 void conn_net_cli_rw_cb(EV_P_ ev_io *w, int revents);
 void conn_net_cli_start_watch(conn_net_cli_t cli);
 
+dp_req_t conn_net_cli_outgoing_pkg_buf(conn_net_cli_t cli, size_t capacity);
 conn_net_cli_pkg_t conn_net_cli_incoming_pkg(conn_net_cli_t cli);
 
 /*fsm impl operations*/
@@ -36,6 +37,15 @@ int conn_net_cli_svr_stub_outgoing_recv(dp_req_t req, void * ctx, error_monitor_
 
 uint32_t conn_net_cli_svr_stub_hash(conn_net_cli_svr_stub_t svr);
 int conn_net_cli_svr_stub_eq(conn_net_cli_svr_stub_t l, conn_net_cli_svr_stub_t r);
+
+/*cmd info operations*/
+conn_net_cli_cmd_info_t conn_net_cli_cmd_info_create(conn_net_cli_svr_stub_t stub, LPDRMETAENTRY entry);
+void conn_net_cli_cmd_info_free_all(conn_net_cli_svr_stub_t stub);
+conn_net_cli_cmd_info_t
+conn_net_cli_cmd_info_find_by_name(conn_net_cli_svr_stub_t stub, const char * meta_name);
+
+uint32_t conn_net_cli_cmd_info_hash(conn_net_cli_cmd_info_t cmd_info);
+int conn_net_cli_cmd_info_eq(conn_net_cli_cmd_info_t l, conn_net_cli_cmd_info_t r);
 
 /*conn_net_cli_monitor operations*/
 void conn_net_cli_monitor_process(fsm_machine_t fsm_ins, void * ctx);

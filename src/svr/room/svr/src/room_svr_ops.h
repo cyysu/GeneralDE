@@ -1,6 +1,7 @@
 #ifndef SVR_ROOM_SVR_OPS_H
 #define SVR_ROOM_SVR_OPS_H
 #include "cpe/utils/hash_string.h"
+#include "svr/set/stub/set_svr_stub_types.h"
 #include "room_svr_types.h"
 #include "protocol/svr/room/svr_room_pro.h"
 
@@ -9,6 +10,7 @@ room_svr_t
 room_svr_create(
     gd_app_context_t app,
     const char * name,
+    set_svr_stub_t stub,
     mem_allocrator_t alloc,
     error_monitor_t em);
 
@@ -24,10 +26,18 @@ const char * room_svr_name(room_svr_t svr);
 int room_svr_set_send_to(room_svr_t svr, const char * send_to);
 int room_svr_set_recv_at(room_svr_t svr, const char * name);
 int room_svr_set_check_span(room_svr_t svr, uint32_t span_ms);
+int room_svr_room_data_init_from_mem(room_svr_t svr, size_t memory_size);
+int room_svr_room_data_init_from_shm(room_svr_t svr, int shm_key);
+int room_svr_user_data_init_from_mem(room_svr_t svr, size_t memory_size);
+int room_svr_user_data_init_from_shm(room_svr_t svr, int shm_key);
 
 dp_req_t room_svr_build_response(room_svr_t svr, dp_req_t req, size_t capacity);
 dp_req_t room_svr_build_notify(room_svr_t svr, uint32_t cmd, size_t capacity);
 void room_svr_send_pkg(room_svr_t svr, dp_req_t req);
+
+/*room meta operations*/
+int room_svr_meta_room_load(room_svr_t svr, cfg_t cfg);
+SVR_ROOM_ROOM_META * room_svr_meta_foom_find(room_svr_t svr, uint16_t room_room_type);
 
 /*room operations*/
 room_svr_room_t room_svr_room_create(room_svr_t svr, SVR_ROOM_ROOM_RECORD * record);
@@ -66,5 +76,12 @@ void room_svr_room_notify_user_leave(room_svr_room_t room, room_svr_user_t user,
 void room_svr_room_notify_msg(room_svr_room_t room, uint64_t sender, void const * data, uint32_t data_len);
 void room_svr_room_notify_tick(room_svr_room_t room);
 void room_svr_room_notify_room_destoried(room_svr_room_t room, uint8_t reason);
+void room_svr_room_notify_room_created_with_users(room_svr_room_t room);
+void room_svr_room_notify_room_created_with_data(room_svr_room_t room, uint64_t to_user, void const * data, size_t data_len);
+
+/*plugin pkg ops*/
+int room_svr_p_notify_room_created(room_svr_t svr, set_svr_svr_info_t logic_svr, room_svr_room_t room);
+int room_svr_p_notify_room_not_exist(room_svr_t svr, dp_req_t input_pkg, uint64_t room_id);
+void room_svr_p_op_send_room_data(room_svr_t svr, dp_req_t pkg);
 
 #endif
