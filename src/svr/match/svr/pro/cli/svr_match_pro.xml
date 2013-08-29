@@ -48,16 +48,6 @@
         <entry name="leave_user_id" type="uint64" id="3"/>
     </struct>
 
-    <!--     通知匹配成功 -->
-    <struct name="svr_match_notify_room_created" version="1">
-        <entry name="match_room_id" type="uint64" id="1"/>
-        <entry name="user_id" type="uint64" id="2"/>
-        <entry name="room_id" type="uint64" id="3"/>
-        <entry name="room_svr_id" type="uint16" id="4"/>
-        <entry name="user_count" type="uint16" id="5"/>
-        <entry name="users" type="svr_match_matching_user" count="0" refer="user_count" id="6"/>
-    </struct>
-
     <!--  =========== 整体协议定义 ========== -->
     <macrosgroup name="SVR_MATCH_CMD_ID">
         <macro name="SVR_MATCH_CMD_REQ_JOIN" value="1"/>
@@ -68,7 +58,6 @@
 
         <macro name="SVR_MATCH_CMD_NOTIFY_JOIN" value="11"/>
         <macro name="SVR_MATCH_CMD_NOTIFY_LEAVE" value="12"/>
-        <macro name="SVR_MATCH_CMD_NOTIFY_ROOM_CREATED" value="13"/>
 
     </macrosgroup>
 
@@ -81,7 +70,6 @@
 
         <entry name="svr_match_notify_join" type="svr_match_notify_join" id="SVR_MATCH_CMD_NOTIFY_JOIN"/>
         <entry name="svr_match_notify_leave" type="svr_match_notify_leave" id="SVR_MATCH_CMD_NOTIFY_LEAVE"/>
-        <entry name="svr_match_notify_room_created" type="svr_match_notify_room_created" id="SVR_MATCH_CMD_NOTIFY_LEAVE"/>
     </union>
 
     <struct name="svr_match_pkg" version="1">

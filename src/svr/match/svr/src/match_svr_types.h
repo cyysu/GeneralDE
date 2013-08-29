@@ -10,6 +10,7 @@
 #include "gd/dr_cvt/dr_cvt_types.h"
 #include "gd/timer/timer_types.h"
 #include "svr/center/agent/center_agent_types.h"
+#include "svr/set/stub/set_svr_stub_types.h"
 #include "protocol/svr/match/svr_match_internal.h"
 #include "protocol/svr/match/svr_match_meta.h"
 
@@ -23,7 +24,11 @@ struct match_svr {
     gd_app_context_t m_app;
     mem_allocrator_t m_alloc;
     error_monitor_t m_em;
+    set_svr_stub_t m_stub;
     int m_debug;
+    LPDRMETA m_room_meta_req_create_room;
+    LPDRMETA m_room_meta_req_delete_room;
+
     uint32_t m_creating_max_id;
     uint16_t m_room_svr_type_id;
 
@@ -35,24 +40,21 @@ struct match_svr {
 
     dp_req_t m_outgoing_pkg;
     cpe_hash_string_t m_send_to;
+
+    LPDRMETA m_room_data_meta;
     aom_obj_mgr_t m_room_data_mgr;
+    void * m_room_data_buf;
+
+    LPDRMETA m_user_data_meta;
     aom_obj_mgr_t m_user_data_mgr;
+    void * m_user_data_buf;
 
     uint16_t m_meta_count;
     SVR_MATCH_ROOM_META * m_metas;
 
     struct cpe_hash_table m_users;
     struct cpe_hash_table m_matching_rooms;
-    struct cpe_hash_table m_creating_rooms;
 };
-
-/* int match_svr_start_ */
-/* int gd_timer_mgr_regist_timer( */
-/*     gd_timer_mgr_t mgr, */
-/*     gd_timer_id_t * id, */
-/*     gd_timer_process_fun_t fun, void * ctx, */
-/*     void * arg, void (*arg_fini)(void *), */
-/*     tl_time_span_t delay, tl_time_span_t span, int repeatCount); */
 
 struct match_svr_room {
     match_svr_t m_svr;
@@ -70,6 +72,6 @@ struct match_svr_user {
     TAILQ_ENTRY(match_svr_user) m_next;
 };
 
-typedef void (*match_svr_op_t)(match_svr_t svr, dp_req_t pkg);
+typedef void (*match_svr_op_t)(match_svr_t svr, dp_req_t pkg_body, dp_req_t pkg_head);
 
 #endif
