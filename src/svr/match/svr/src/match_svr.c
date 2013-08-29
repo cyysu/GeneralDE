@@ -31,7 +31,6 @@ match_svr_t
 match_svr_create(
     gd_app_context_t app,
     const char * name,
-    center_agent_t agent,
     uint16_t room_svr_type_id,
     mem_allocrator_t alloc,
     error_monitor_t em)
@@ -50,7 +49,6 @@ match_svr_create(
     svr->m_alloc = alloc;
     svr->m_em = em;
     svr->m_debug = 0;
-    svr->m_agent = agent;
     svr->m_room_svr_type_id = room_svr_type_id;
     svr->m_create_retry_span_s = 5;
     svr->m_check_timer_id = GD_TIMER_ID_INVALID;

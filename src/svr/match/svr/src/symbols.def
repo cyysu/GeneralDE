@@ -20,8 +20,6 @@ dr_store_manage_app_init
 dr_store_manage_app_fini
 dr_store_loader_app_init
 dr_store_loader_app_fini
-center_agent_app_init
-center_agent_app_fini
 set_svr_stub_app_init
 set_svr_stub_app_fini
 match_svr_app_init
