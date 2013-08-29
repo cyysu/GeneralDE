@@ -1,7 +1,7 @@
 - name: log_context
   config:
     nocleanup: 0
-    bufsize: 0
+    bufsize: 4kb
 
   rollingpolicies:
     - dev: { type: sizewin, maxsize: 500mb, maxnum: 1 }
@@ -21,8 +21,6 @@
 
   debug: 1
 
-- name: app_net_env
-
 - name: app_setup
   debug-app: 0
   debug-net: 0
@@ -31,10 +29,6 @@
 - name: app_tick_runner
 
 - name: gd_timer_mgr
-
-- name: dr_cvt_manage
-- name: dr_pbuf_cvt
-- name: dr_pbuf_len_cvt
 
 - name: dr_store_manage
 
@@ -46,11 +40,16 @@
   svr-type: svr_room
   request-send-to: process-room-incoming
   outgoing-recv-at: process-room-outgoing
+  debug: 1
 
 - name: room_svr
   send-to: process-room-outgoing
   recv-at: process-room-incoming
   check-span-ms: 1000
   timeout-span-s: 300
+
+  load-from-shm: 0
+  room-buf-size: 200kb
+  user-buf-size: 200kb
 
 # -*- coding: utf-8 -*-
