@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="GBK" standalone="yes"?>
+<metalib tagsetversion="1" name="" version="1">
+    <struct name="svr_center_svr_id" version="1">
+        <entry name="svr_type" type="uint16" id="1"/>
+        <entry name="svr_id" type="uint16" id="2"/>
+    </struct>
+
+    <struct name="svr_center_svr_info" version="1">
+        <entry name="id" type="svr_center_svr_id" id="1"/>
+        <entry name="ip" type="uint32" id="2"/>
+        <entry name="port" type="uint16" id="3"/>
+    </struct>
+
+</metalib>
