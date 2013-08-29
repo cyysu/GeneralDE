@@ -246,6 +246,9 @@ void dp_req_print(dp_req_t req, write_stream_t s, int ident) {
         req->m_dumper(req, s);
     }
     else if (req->m_data_meta) {
+        stream_printf(s, "%s(%d bytes): ", dr_meta_name(req->m_data_meta), (int)dp_req_size(req));
+        /* struct error_monitor em; */
+        /* cpe_error_monitor_init(&em, cpe_error_log_to_consol_and_flush, NULL); */
         dr_json_print(s, dp_req_data(req), dp_req_size(req), req->m_data_meta, DR_JSON_PRINT_MINIMIZE, NULL);
     }
     else if (req->m_type) {
