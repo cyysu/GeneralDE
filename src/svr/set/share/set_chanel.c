@@ -53,20 +53,21 @@ static int set_chanel_pipe_erase(SVR_SET_CHANEL * chanel, SVR_SET_PIPE * pipe) {
     SET_PKG_HEAD * head;
     uint32_t total_size;
     uint32_t capacity;
+    uint32_t wp = pipe->wp;
 
 TRY_AGAIN:
-    if (pipe->wp >= pipe->rp) {
-        capacity = pipe->wp - pipe->rp;
+    if (wp >= pipe->rp) {
+        capacity = wp - pipe->rp;
 
         if (capacity < SET_SHARE_SAVE_HEAD_SIZE) {
-            pipe->rp = pipe->wp;
+            pipe->rp = wp;
             return set_chanel_error_chanel_empty;
         }
 
         total_size = *((uint32_t*)(buf + pipe->rp));
 
         if (capacity < total_size) {
-            pipe->rp = pipe->wp;
+            pipe->rp = wp;
             return set_chanel_error_chanel_empty;
         }
 
@@ -85,7 +86,7 @@ TRY_AGAIN:
         return 0;
     }
     else {
-        assert(pipe->wp < pipe->rp);
+        assert(wp < pipe->rp);
         assert(pipe->rp <= pipe->capacity);
 
         capacity = pipe->capacity - pipe->rp;
@@ -121,29 +122,57 @@ static int set_chanel_pipe_peak(SVR_SET_CHANEL * chanel, SVR_SET_PIPE * pipe, dp
     dp_req_t carry = set_pkg_carry_check_create(body, 0);
     char * buf = ((char *)chanel) + pipe->begin;
     int rv;
+    SET_PKG_HEAD * head_buf;
+    uint32_t wp = pipe->wp;
 
+    assert(head);
     if (head == NULL) return set_chanel_error_no_memory;
 
-    if (pipe->wp >= pipe->rp) {
-        rv = set_chanel_pipe_load_pkg(body, head, carry, buf + pipe->rp, pipe->wp - pipe->rp);
+PIPE_PEAK_TRY_AGAIN:
+    if (wp >= pipe->rp) {
+        rv = set_chanel_pipe_load_pkg(body, head, carry, buf + pipe->rp, wp - pipe->rp);
+        switch(rv) {
+        case 0:
+            break;
+        case gset_chanel_evt_not_enouth_data:
+            assert(pipe->rp == wp);
+            pipe->rp = wp;
+            return set_chanel_error_chanel_empty;
+        case set_chanel_error_bad_data:
+            pipe->rp = wp;
+            return rv;
+        default:
+            return rv;
+        }
     }
     else {
-        assert(pipe->wp < pipe->rp);
+        assert(wp < pipe->rp);
 
         rv = set_chanel_pipe_load_pkg(body, head, carry, buf + pipe->rp, pipe->capacity - pipe->rp);
-        if (rv == set_chanel_error_chanel_empty || rv == -1) {
+        switch(rv) {
+        case 0:
+            break;
+        case set_chanel_evt_not_enouth_data:
             pipe->rp = 0;
-            rv = set_chanel_pipe_load_pkg(body, head, carry, buf + pipe->rp, pipe->wp - pipe->rp);
+            goto PIPE_PEAK_TRY_AGAIN;
+        case set_chanel_error_bad_data:
+            pipe->rp = wp;
+            return rv;
+        default:
+            return rv;
         }
     }
 
-    if (rv == -1) {/*internal error, should not occure*/
-        pipe->rp = pipe->wp; /*清空数据*/
-        return set_chanel_error_chanel_empty;
+    head_buf = dp_req_data(head);
+    assert(head_buf);
+
+    /*ignore empty pkg*/
+    if (head_buf->to_svr_id == 0 && head_buf->to_svr_type == 0) {
+        set_chanel_pipe_erase(chanel, pipe);
+        goto PIPE_PEAK_TRY_AGAIN;
     }
-    else {
-        return rv;
-    }
+
+    return 0;
 }
 
 static int set_chanel_pipe_write(SVR_SET_CHANEL * chanel, SVR_SET_PIPE * pipe, dp_req_t body, size_t * size) {
@@ -151,15 +180,16 @@ static int set_chanel_pipe_write(SVR_SET_CHANEL * chanel, SVR_SET_PIPE * pipe, d
     dp_req_t carry = set_pkg_carry_find(body);
     char * buf = ((char *)chanel) + pipe->begin;
     int write_size;
+    uint32_t rp = pipe->rp;
 
     assert(head);
 
     if (pipe->wp >= pipe->capacity) {
-        if (pipe->rp == 0) return set_chanel_error_chanel_full;
+        if (rp == 0) return set_chanel_error_chanel_full;
         pipe->wp = 0;
     }
 
-    if (pipe->wp >= pipe->rp) {
+    if (pipe->wp >= rp) {
         assert(pipe->wp != pipe->capacity);
 
         write_size = set_chanel_pipe_save_pkg(body, head, carry, buf + pipe->wp, pipe->capacity - pipe->wp);
@@ -167,9 +197,9 @@ static int set_chanel_pipe_write(SVR_SET_CHANEL * chanel, SVR_SET_PIPE * pipe, d
             pipe->wp += write_size;
         }
         else if (write_size == set_chanel_error_chanel_full) {
-            if (pipe->rp <= 0) return set_chanel_error_chanel_full;
+            if (rp <= 0) return set_chanel_error_chanel_full;
 
-            write_size = set_chanel_pipe_save_pkg(body, head, carry, buf, pipe->rp - 1);
+            write_size = set_chanel_pipe_save_pkg(body, head, carry, buf, rp - 1);
             if (write_size > 0) {
                 set_chanel_pipe_save_ignore_pkg(buf + pipe->wp, pipe->capacity - pipe->wp);
                 pipe->wp = write_size;
@@ -179,19 +209,22 @@ static int set_chanel_pipe_write(SVR_SET_CHANEL * chanel, SVR_SET_PIPE * pipe, d
             }
         }
         else {
+            assert(write_size < 0);
             return write_size;
         }
     }
     else {
-        write_size = set_chanel_pipe_save_pkg(body, head, carry, buf + pipe->wp, pipe->rp - pipe->wp - 1);
+        write_size = set_chanel_pipe_save_pkg(body, head, carry, buf + pipe->wp, rp - pipe->wp - 1);
         if (write_size > 0) {
             pipe->wp += write_size;
         }
         else {
+            assert(write_size < 0);
             return write_size;
         }
     }
 
+    assert(write_size > 0);
     if (size) *size = write_size;
 
     return 0;
@@ -215,17 +248,18 @@ static int set_chanel_pipe_load_pkg(dp_req_t body, dp_req_t head, dp_req_t carry
     char * read_buf = buf;
     uint32_t read_pos;
 
-TRY_AGAIN:
-    if (capacity < SET_SHARE_SAVE_HEAD_SIZE) return set_chanel_error_chanel_empty;
+    if (capacity < SET_SHARE_SAVE_HEAD_SIZE) {
+        return set_chanel_evt_not_enouth_data;
+    }
 
     total_size = *((uint32_t*)read_buf);
 
-    if (capacity < total_size) return -1;
+    if (capacity < total_size) {
+        return set_chanel_evt_not_enouth_data;
+    }
 
     if (total_size < SET_SHARE_SAVE_HEAD_SIZE) {
-        read_buf += total_size;
-        capacity -= total_size;
-        goto TRY_AGAIN;
+        return set_chanel_error_bad_data;
     }
 
     read_pos = sizeof(uint32_t);
@@ -235,18 +269,11 @@ TRY_AGAIN:
     read_pos += sizeof(SET_PKG_HEAD);
     left_size -= sizeof(SET_PKG_HEAD);
 
-    if (head_buf->to_svr_id == 0 && head_buf->to_svr_type == 0) {
-        read_buf += total_size;
-        capacity -= total_size;
-        goto TRY_AGAIN;
-    }
-
     dp_req_set_buf(head, head_buf, sizeof(SET_PKG_HEAD));
     dp_req_set_size(head, sizeof(SET_PKG_HEAD));
 
     if (set_pkg_carry_set_buf(carry, read_buf + read_pos, left_size) != 0) {
-        assert(0);
-        return -1;
+        return set_chanel_error_bad_data;
     }
 
     read_pos += dp_req_size(carry);
@@ -327,12 +354,12 @@ const char * set_chanel_str_error(int err) {
         return "chanel_full";
     case set_chanel_error_chanel_empty:
         return "chanel_empty";
-    case set_chanel_error_carry_overflow:
-        return "carry_overflow";
     case set_chanel_error_no_memory:
         return "no_memory";
     case set_chanel_error_decode:
         return "decode_error";
+    case 0:
+        return "success";
     default:
         return "unknown set_chanel_error";
     }
