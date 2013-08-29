@@ -643,5 +643,7 @@ size_t dr_meta_calc_data_len(LPDRMETA meta, void const * data, size_t capacity) 
         r = dr_meta_size(meta);
     }
 
-    return r > capacity ? capacity : r;
+    return capacity
+        ? (r > capacity ? capacity : r)
+        : r;
 }
