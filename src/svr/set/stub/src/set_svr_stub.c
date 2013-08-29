@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <sys/stat.h>
 #include "cpe/pal/pal_external.h"
 #include "cpe/pal/pal_stdio.h"
 #include "cpe/pal/pal_socket.h"
