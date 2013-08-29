@@ -10,8 +10,7 @@ struct set_logic_sp {
     set_svr_stub_t m_stub;
     int m_debug;
 
-    LPDRMETA m_pkg_info_meta;
-
+    LPDRMETA m_sp_data_meta;
     logic_require_queue_t m_require_queue;
     dp_req_t m_outgoing_pkg;
     dp_req_t m_outgoing_body;

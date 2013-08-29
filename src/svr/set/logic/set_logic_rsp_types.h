@@ -12,6 +12,7 @@ extern "C" {
 
 typedef TAILQ_HEAD(set_logic_rsp_pkg_builder_list, set_logic_rsp_pkg_builder) * set_logic_rsp_pkg_builder_list_t;
 struct set_logic_rsp_queue_info;
+struct set_logic_rsp_error_response;
 
 struct set_logic_rsp_manage {
     gd_app_context_t m_app;
@@ -36,6 +37,9 @@ struct set_logic_rsp_manage {
     void * m_ctx_ctx;
 
     dp_req_t m_rsp_buf;
+
+    char * m_queue_attr;
+    struct set_logic_rsp_error_response * m_error_response;
 
     struct set_logic_rsp_queue_info * m_default_queue_info;
     struct cpe_hash_table m_queue_infos;
@@ -71,6 +75,12 @@ struct set_logic_rsp {
     struct cpe_hash_entry m_hh;
 };
 
+struct set_logic_rsp_error_response {
+    uint32_t m_cmd;
+    LPDRMETA m_data_meta;
+    LPDRMETAENTRY m_errno_entry;
+    LPDRMETAENTRY m_req_entry;
+};
 
 #ifdef __cplusplus
 }

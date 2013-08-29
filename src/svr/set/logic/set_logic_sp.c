@@ -15,11 +15,13 @@
 #include "usf/logic_use/logic_require_queue.h"
 #include "svr/set/share/set_pkg.h"
 #include "svr/set/stub/set_svr_stub.h"
+#include "svr/set/stub/set_svr_svr_info.h"
 #include "svr/set/logic/set_logic_sp.h"
 #include "set_logic_sp_ops.h"
+#include "protocol/set/logic/set_logic_sp_data.h"
 
 static void set_logic_sp_clear(nm_node_t node);
-extern char g_metalib_set_logic_pkg_info[];
+extern char g_metalib_set_logic_data_meta[];
 
 struct nm_node_type s_nm_node_type_set_logic_sp = {
     "svr_set_logic_sp",
@@ -31,6 +33,7 @@ set_logic_sp_create(
     gd_app_context_t app,
     const char * name,
     logic_manage_t logic_mgr,
+    set_svr_stub_t stub,
     mem_allocrator_t alloc,
     error_monitor_t em)
 {
@@ -48,8 +51,11 @@ set_logic_sp_create(
     mgr->m_alloc = alloc;
     mgr->m_em = em;
     mgr->m_debug = 0;
+    mgr->m_stub = stub;
     mgr->m_outgoing_dispatch_to = NULL;
     mgr->m_incoming_recv_at = NULL;
+    mgr->m_sp_data_meta = dr_lib_find_meta_by_name((LPDRMETALIB)g_metalib_set_logic_data_meta, "set_logic_sp_data");
+    assert(mgr->m_sp_data_meta);
 
     mgr->m_require_queue = logic_require_queue_create(app, alloc, em, name, logic_mgr);
     if (mgr->m_require_queue == NULL) {
@@ -143,8 +149,45 @@ cpe_hash_string_t set_logic_sp_outgoing_dispatch_to(set_logic_sp_t sp) {
 static int set_logic_sp_incoming_recv(dp_req_t req, void * ctx, error_monitor_t em) {
     set_logic_sp_t sp = ctx;
     dp_req_t pkg_head = set_pkg_head_find(req);
+    set_svr_svr_info_t svr_type;
     logic_require_t require;
+    uint32_t cmd;
+    void * data_buf;
+    LPDRMETA data_meta;
+    size_t data_size;
     logic_data_t data;
+    SET_LOGIC_SP_DATA * carry_data;
+
+    if (pkg_head == NULL) {
+        CPE_ERROR(
+            sp->m_em, "%s: receive response of ???: no pkg head!",
+            set_logic_sp_name(sp));
+        return -1;
+    }
+
+    if (set_pkg_sn(pkg_head) == 0) {
+        if (sp->m_debug) {
+            CPE_INFO(
+                sp->m_em, "%s: receive response of %d: ignore for no sn!",
+                set_logic_sp_name(sp), set_pkg_sn(pkg_head));
+        }
+        return 0;
+    }
+
+    if (set_pkg_category(pkg_head) != set_pkg_response) {
+        CPE_ERROR(
+            sp->m_em, "%s: receive response of %d: pkg is not response, category=%d!",
+            set_logic_sp_name(sp), set_pkg_sn(pkg_head), set_pkg_category(pkg_head));
+        return -1;
+    }
+
+    svr_type = set_svr_svr_info_find(sp->m_stub, set_pkg_from_svr_type(pkg_head));
+    if (svr_type == NULL) {
+        CPE_ERROR(
+            sp->m_em, "%s: receive response of %d: svr type of %d not exist!",
+            set_logic_sp_name(sp), set_pkg_sn(pkg_head), set_pkg_from_svr_type(pkg_head));
+        return -1;
+    }
 
     require = logic_require_queue_remove_get(sp->m_require_queue, set_pkg_sn(pkg_head));
     if (require == NULL) {
@@ -154,7 +197,14 @@ static int set_logic_sp_incoming_recv(dp_req_t req, void * ctx, error_monitor_t 
         return -1;
     }
 
-    data = logic_require_data_get_or_create(require, dp_req_meta(req), dp_req_size(req));
+    if (set_svr_stub_read_data(sp->m_stub, svr_type, req, &cmd, &data_meta, &data_buf, &data_size) != 0) {
+        CPE_ERROR(
+            sp->m_em, "%s: receive response of %d: read response data fail!",
+            set_logic_sp_name(sp), set_pkg_sn(pkg_head));
+        return -1;
+    }
+
+    data = logic_require_data_get_or_create(require, data_meta, data_size);
     if (data == NULL) {
         CPE_ERROR(
             sp->m_em, "%s: receive response of %d: create data fail!",
@@ -162,7 +212,20 @@ static int set_logic_sp_incoming_recv(dp_req_t req, void * ctx, error_monitor_t 
         logic_require_set_error(require);
         return -1;
     }
-    memcpy(logic_data_data(data), dp_req_data(req), dp_req_size(req));
+    memcpy(logic_data_data(data), data_buf, data_size);
+
+    /*创建携带数据 */
+    data = logic_require_data_get_or_create(require, sp->m_sp_data_meta, sizeof(SET_LOGIC_SP_DATA));
+    if (data == NULL) {
+        CPE_ERROR(
+            sp->m_em, "%s: receive response of %d: create carry data fail!",
+            set_logic_sp_name(sp), set_pkg_sn(pkg_head));
+        logic_require_set_error(require);
+        return -1;
+    }
+    carry_data = (SET_LOGIC_SP_DATA *)logic_data_data(data);
+    carry_data->from_svr_type = set_pkg_from_svr_type(pkg_head);
+    carry_data->from_svr_id = set_pkg_from_svr_id(pkg_head);
 
     logic_require_set_done(require);
     return 0;
@@ -225,7 +288,9 @@ int set_logic_sp_send_pkg(set_logic_sp_t sp, dp_req_t pkg, logic_require_t requi
 
 int set_logic_sp_send_req_data(
     set_logic_sp_t sp, uint16_t to_svr_type, uint16_t to_svr_id,
-    LPDRMETA meta, void const * data, size_t data_size, logic_require_t require)
+    LPDRMETA meta, void const * data, size_t data_size,
+    void const * carry_data, size_t carry_data_size,
+    logic_require_t require)
 {
     int r;
     uint32_t sn = 0;
@@ -238,7 +303,7 @@ int set_logic_sp_send_req_data(
         }
     }
 
-    r = set_svr_stub_send_req_data(sp->m_stub, to_svr_type, to_svr_id, sn, data, data_size, meta);
+    r = set_svr_stub_send_req_data(sp->m_stub, to_svr_type, to_svr_id, sn, data, data_size, meta, carry_data, carry_data_size);
     if (r != 0) {
         CPE_ERROR(sp->m_em, "%s: send_req_data: send data fail!", set_logic_sp_name(sp));
         if (require) {
@@ -250,7 +315,12 @@ int set_logic_sp_send_req_data(
     return r;
 }
 
-int set_logic_sp_send_req_cmd(set_logic_sp_t sp, uint16_t to_svr_type, uint16_t to_svr_id, uint32_t cmd, logic_require_t require) {
+int set_logic_sp_send_req_cmd(
+    set_logic_sp_t sp, uint16_t to_svr_type, uint16_t to_svr_id,
+    uint32_t cmd,
+    void const * carry_data, size_t carry_data_size,
+    logic_require_t require)
+{
     int r;
     uint32_t sn = 0;
 
@@ -262,7 +332,7 @@ int set_logic_sp_send_req_cmd(set_logic_sp_t sp, uint16_t to_svr_type, uint16_t 
         }
     }
 
-    r = set_svr_stub_send_req_cmd(sp->m_stub, to_svr_type, to_svr_id, sn, cmd);
+    r = set_svr_stub_send_req_cmd(sp->m_stub, to_svr_type, to_svr_id, sn, cmd, carry_data, carry_data_size);
     if (r != 0) {
         CPE_ERROR(sp->m_em, "%s: send_req_cmd: send data fail!", set_logic_sp_name(sp));
         if (require) logic_require_queue_remove(sp->m_require_queue, sn);
@@ -270,4 +340,28 @@ int set_logic_sp_send_req_cmd(set_logic_sp_t sp, uint16_t to_svr_type, uint16_t 
     }
 
     return r;
+}
+
+int set_logic_sp_response_from_svr_type(logic_require_t require, uint16_t * svr_type) {
+    logic_data_t data;
+
+    assert(require);
+
+    data = logic_require_data_find(require, "set_logic_sp_data");
+    if (data == NULL) return -1;
+
+    if (svr_type) *svr_type = ((SET_LOGIC_SP_DATA *)logic_data_data(data))->from_svr_type;
+    return 0;
+}
+
+int set_logic_sp_response_from_svr_id(logic_require_t require, uint16_t * svr_id) {
+    logic_data_t data;
+
+    assert(require);
+
+    data = logic_require_data_find(require, "set_logic_sp_data");
+    if (data == NULL) return -1;
+
+    if (svr_id) *svr_id = ((SET_LOGIC_SP_DATA *)logic_data_data(data))->from_svr_id;
+    return 0;
 }

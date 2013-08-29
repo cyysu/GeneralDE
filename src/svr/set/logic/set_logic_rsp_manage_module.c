@@ -1,6 +1,9 @@
 #include <assert.h>
 #include "cpe/pal/pal_external.h"
+#include "cpe/pal/pal_strings.h"
+#include "cpe/utils/string_utils.h"
 #include "cpe/cfg/cfg_read.h"
+#include "cpe/dr/dr_metalib_manage.h"
 #include "gd/app/app_context.h"
 #include "gd/app/app_module.h"
 #include "gd/app/app_library.h"
@@ -9,18 +12,19 @@
 #include "gd/dr_store/dr_store.h"
 #include "gd/dr_store/dr_store_manage.h"
 #include "svr/set/stub/set_svr_stub.h"
+#include "svr/set/stub/set_svr_svr_info.h"
 #include "svr/set/logic/set_logic_rsp_manage.h"
 #include "svr/set/logic/set_logic_rsp.h"
 #include "set_logic_rsp_ops.h"
 
 static int set_logic_rsp_manage_load_commit_dsp(
-    gd_app_context_t app, gd_app_module_t module, set_logic_rsp_manage_t set_logic_rsp_manage, cfg_t cfg)
+    gd_app_context_t app, gd_app_module_t module, set_logic_rsp_manage_t mgr, cfg_t cfg)
 {
     const char * commit_to;
 
     if ((commit_to = cfg_get_string(cfg, "commit-to", NULL))) {
-        set_logic_rsp_manage->m_commit_to = cpe_hs_create(set_logic_rsp_manage->m_alloc, commit_to);
-        if (set_logic_rsp_manage->m_commit_to == NULL) {
+        mgr->m_commit_to = cpe_hs_create(mgr->m_alloc, commit_to);
+        if (mgr->m_commit_to == NULL) {
             CPE_ERROR(gd_app_em(app), "%s: create: set-commit-to fail", gd_app_module_name(module));
             return -1;
         }
@@ -29,13 +33,86 @@ static int set_logic_rsp_manage_load_commit_dsp(
     return 0;
 }
 
+static int set_logic_rsp_manage_load_error_response(
+    gd_app_context_t app, gd_app_module_t module, set_logic_rsp_manage_t mgr, cfg_t cfg)
+{
+    cfg_t error_response_cfg;
+    int cmd;
+    LPDRMETA data_meta;
+    LPDRMETAENTRY req_entry;
+    LPDRMETAENTRY errno_entry;
+    const char * value;
+
+    error_response_cfg = cfg_find_cfg(cfg, "error-response");
+    if (error_response_cfg == NULL) return 0;
+
+    value = cfg_get_string(error_response_cfg, "cmd", NULL);
+    if (value == NULL) {
+        CPE_ERROR(gd_app_em(app), "%s: create: load_error_response: cmd not configured!", gd_app_module_name(module));
+        return -1;
+    }
+
+    if (dr_lib_find_macro_value(&cmd, dr_meta_owner_lib(mgr->m_pkg_meta), value) != 0) {
+        CPE_ERROR(gd_app_em(app), "%s: create: load_error_response: cmd %s not exist in lib!", gd_app_module_name(module), value);
+        return -1;
+    }
+
+    data_meta = set_svr_svr_info_find_data_meta_by_cmd(mgr->m_svr_type, cmd);
+    if (data_meta == NULL) {
+        CPE_ERROR(gd_app_em(app), "%s: create: load_error_response: meta of cmd %d not exsit!", gd_app_module_name(module), cmd);
+        return -1;
+    }
+
+    value = cfg_get_string(error_response_cfg, "req-entry", NULL);
+    if (value == NULL) {
+        CPE_ERROR(gd_app_em(app), "%s: create: load_error_response: entry-req configured!", gd_app_module_name(module));
+        return -1;
+    }
+
+    req_entry = dr_meta_find_entry_by_name(data_meta, value);
+    if (req_entry == NULL) {
+        CPE_ERROR(
+            gd_app_em(app), "%s: create: load_error_response: req entry %s not exist in meta %s!",
+            gd_app_module_name(module), value, dr_meta_name(data_meta));
+        return -1;
+    }
+
+    value = cfg_get_string(error_response_cfg, "errno-entry", NULL);
+    if (value == NULL) {
+        CPE_ERROR(gd_app_em(app), "%s: create: load_error_response: errno-entry configured!", gd_app_module_name(module));
+        return -1;
+    }
+
+    errno_entry = dr_meta_find_entry_by_name(data_meta, value);
+    if (errno_entry == NULL) {
+        CPE_ERROR(
+            gd_app_em(app), "%s: create: load_error_response: errno-entry %s not exist in meta %s!",
+            gd_app_module_name(module), value, dr_meta_name(data_meta));
+        return -1;
+    }
+
+    mgr->m_error_response = mem_alloc(mgr->m_alloc, sizeof(struct set_logic_rsp_error_response) + dr_meta_size(data_meta));
+    if (mgr->m_error_response == NULL) {
+        CPE_ERROR(gd_app_em(app), "%s: create: load_error_response: alloc fail", gd_app_module_name(module));
+        return -1;
+    }
+
+    mgr->m_error_response->m_cmd = cmd;
+    mgr->m_error_response->m_data_meta = data_meta;
+    mgr->m_error_response->m_errno_entry = errno_entry;
+    mgr->m_error_response->m_req_entry = req_entry;
+    bzero(mgr->m_error_response + 1, dr_meta_size(data_meta));
+
+    return 0;
+}
+
 static int set_logic_rsp_manage_load_recv_at(
-    gd_app_context_t app, gd_app_module_t module, set_logic_rsp_manage_t set_logic_rsp_manage, cfg_t cfg)
+    gd_app_context_t app, gd_app_module_t module, set_logic_rsp_manage_t mgr, cfg_t cfg)
 {
     const char * dsp_recv_at;
 
     if ((dsp_recv_at = cfg_get_string(cfg, "recv-at", NULL))) {
-        if (set_logic_rsp_manage_set_recv_at(set_logic_rsp_manage, dsp_recv_at) != 0) {
+        if (set_logic_rsp_manage_set_recv_at(mgr, dsp_recv_at) != 0) {
             CPE_ERROR(gd_app_em(app), "%s: create: set-recv-at fail", gd_app_module_name(module));
             return -1;
         }
@@ -45,7 +122,7 @@ static int set_logic_rsp_manage_load_recv_at(
 }
 
 static int set_logic_rsp_manage_load_queue_infos(
-    gd_app_context_t app, gd_app_module_t module, set_logic_rsp_manage_t set_logic_rsp_manage, cfg_t cfg)
+    gd_app_context_t app, gd_app_module_t module, set_logic_rsp_manage_t mgr, cfg_t cfg)
 {
     struct cfg_it queue_it;
     cfg_t queue_cfg;
@@ -88,7 +165,7 @@ static int set_logic_rsp_manage_load_queue_infos(
         }
 
         queue = set_logic_rsp_queue_info_create(
-            set_logic_rsp_manage, name, scope,
+            mgr, name, scope,
             cfg_get_uint32(queue_cfg, "max-count", 0));
         if (queue == NULL) {
             CPE_ERROR(
@@ -98,30 +175,30 @@ static int set_logic_rsp_manage_load_queue_infos(
         }
 
         if (cfg_get_int32(queue_cfg, "is-default", 0)) {
-            if (set_logic_rsp_manage->m_default_queue_info != NULL) {
+            if (mgr->m_default_queue_info != NULL) {
                 CPE_ERROR(
                     gd_app_em(app), "%s: create: create logic queue %s: default queue info already exist, it is %s!",
-                    gd_app_module_name(module), name, set_logic_rsp_queue_name(set_logic_rsp_manage->m_default_queue_info));
+                    gd_app_module_name(module), name, set_logic_rsp_queue_name(mgr->m_default_queue_info));
                 return -1;
             }
             else {
-                set_logic_rsp_manage->m_default_queue_info = queue;
+                mgr->m_default_queue_info = queue;
             }
         }
 
-        if (set_logic_rsp_manage->m_debug) {
+        if (mgr->m_debug) {
             CPE_INFO(
                 gd_app_em(app), "%s: create: create logic queue %s: scope=%s, max-count=%d!",
                 gd_app_module_name(module), cpe_hs_data(queue->m_name), scope_name, queue->m_max_count);
         }
     }
 
-    if (set_logic_rsp_manage->m_debug) {
+    if (mgr->m_debug) {
         CPE_INFO(
             gd_app_em(app), "%s: create: default queue %s!",
             gd_app_module_name(module), 
-            set_logic_rsp_manage->m_default_queue_info
-            ? cpe_hs_data(set_logic_rsp_manage->m_default_queue_info->m_name)
+            mgr->m_default_queue_info
+            ? cpe_hs_data(mgr->m_default_queue_info->m_name)
             : "none");
     }
 
@@ -130,7 +207,7 @@ static int set_logic_rsp_manage_load_queue_infos(
 
 EXPORT_DIRECTIVE
 int set_logic_rsp_manage_app_init(gd_app_context_t app, gd_app_module_t module, cfg_t cfg) {
-    set_logic_rsp_manage_t set_logic_rsp_manage;
+    set_logic_rsp_manage_t mgr;
     set_logic_rsp_manage_dp_scope_t scope;
     const char * str_scope;
     logic_manage_t logic_mgr;
@@ -139,6 +216,7 @@ int set_logic_rsp_manage_app_init(gd_app_context_t app, gd_app_module_t module, 
     cfg_t child_cfg;
     const char * executor_mgr_name;
     const char * load_from;
+    const char * queue_attr;
 
     str_scope = cfg_get_string(cfg, "scope", "global");
     if (strcmp(str_scope, "global") == 0) {
@@ -191,7 +269,7 @@ int set_logic_rsp_manage_app_init(gd_app_context_t app, gd_app_module_t module, 
         return -1;
     }
 
-    set_logic_rsp_manage = 
+    mgr = 
         set_logic_rsp_manage_create(
             app,
             gd_app_module_name(module),
@@ -200,25 +278,40 @@ int set_logic_rsp_manage_app_init(gd_app_context_t app, gd_app_module_t module, 
             executor_mgr,
             stub,
             NULL);
-    if (set_logic_rsp_manage == NULL) {
+    if (mgr == NULL) {
         return -1;
     }
 
-    set_logic_rsp_manage->m_debug = cfg_get_int32(cfg, "debug", 0);
+    mgr->m_debug = cfg_get_int32(cfg, "debug", 0);
 
-    if (set_logic_rsp_manage_load_commit_dsp(app, module, set_logic_rsp_manage, cfg) != 0) {
-        set_logic_rsp_manage_free(set_logic_rsp_manage);
+    if (set_logic_rsp_manage_load_commit_dsp(app, module, mgr, cfg) != 0) {
+        set_logic_rsp_manage_free(mgr);
         return -1;
     }
 
-    if (set_logic_rsp_manage_load_recv_at(app, module, set_logic_rsp_manage, cfg) != 0) {
-        set_logic_rsp_manage_free(set_logic_rsp_manage);
+    if (set_logic_rsp_manage_load_recv_at(app, module, mgr, cfg) != 0) {
+        set_logic_rsp_manage_free(mgr);
         return -1;
     }
 
-    if (set_logic_rsp_manage_load_queue_infos(app, module, set_logic_rsp_manage, cfg) != 0) {
-        set_logic_rsp_manage_free(set_logic_rsp_manage);
+    if (set_logic_rsp_manage_load_queue_infos(app, module, mgr, cfg) != 0) {
+        set_logic_rsp_manage_free(mgr);
         return -1;
+    }
+
+    if (set_logic_rsp_manage_load_error_response(app, module, mgr, cfg) != 0) {
+        set_logic_rsp_manage_free(mgr);
+        return -1;
+    }
+
+    if ((queue_attr = cfg_get_string(cfg, "queue-attr", NULL))) {
+        assert(mgr->m_queue_attr == NULL);
+        mgr->m_queue_attr = cpe_str_mem_dup(mgr->m_alloc, queue_attr);
+        if (mgr->m_queue_attr == NULL) {
+            CPE_ERROR(gd_app_em(app), "%s: create: set queue-attr %s fail", gd_app_module_name(module), queue_attr);
+            set_logic_rsp_manage_free(mgr);
+            return -1;
+        }
     }
 
     if ((load_from = cfg_get_string(cfg, "rsps-load-from", NULL))) {
@@ -245,7 +338,7 @@ int set_logic_rsp_manage_app_init(gd_app_context_t app, gd_app_module_t module, 
                     gd_app_em(app),
                     "%s: create: respons-load-metalib-store-manage %s not exist",
                     gd_app_module_name(module), dr_store_manage_name ? dr_store_manage_name : "default");
-                set_logic_rsp_manage_free(set_logic_rsp_manage);
+                set_logic_rsp_manage_free(mgr);
                 return -1;
             }
 
@@ -257,18 +350,18 @@ int set_logic_rsp_manage_app_init(gd_app_context_t app, gd_app_module_t module, 
                     gd_app_module_name(module), 
                     rsps_metalib_name,
                     dr_store_manage_name ? dr_store_manage_name : "default");
-                set_logic_rsp_manage_free(set_logic_rsp_manage);
+                set_logic_rsp_manage_free(mgr);
                 return -1;
             }
         }
 
-        if (set_logic_rsp_build(set_logic_rsp_manage, child_cfg, rsps_metalib ? dr_store_lib(rsps_metalib) : NULL, gd_app_em(app)) != 0) {
-            set_logic_rsp_manage_free(set_logic_rsp_manage);
+        if (set_logic_rsp_build(mgr, child_cfg, rsps_metalib ? dr_store_lib(rsps_metalib) : NULL, gd_app_em(app)) != 0) {
+            set_logic_rsp_manage_free(mgr);
             return -1;
         }
     }
 
-    if (set_logic_rsp_manage->m_debug) {
+    if (mgr->m_debug) {
         CPE_INFO(gd_app_em(app), "%s: create: done", gd_app_module_name(module));
     }
 
@@ -277,10 +370,10 @@ int set_logic_rsp_manage_app_init(gd_app_context_t app, gd_app_module_t module, 
 
 EXPORT_DIRECTIVE
 void set_logic_rsp_manage_app_fini(gd_app_context_t app, gd_app_module_t module) {
-    set_logic_rsp_manage_t set_logic_rsp_manage;
+    set_logic_rsp_manage_t mgr;
 
-    set_logic_rsp_manage = set_logic_rsp_manage_find_nc(app, gd_app_module_name(module));
-    if (set_logic_rsp_manage) {
-        set_logic_rsp_manage_free(set_logic_rsp_manage);
+    mgr = set_logic_rsp_manage_find_nc(app, gd_app_module_name(module));
+    if (mgr) {
+        set_logic_rsp_manage_free(mgr);
     }
 }

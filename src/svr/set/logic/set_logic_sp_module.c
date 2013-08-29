@@ -4,6 +4,7 @@
 #include "gd/app/app_context.h"
 #include "gd/app/app_module.h"
 #include "usf/logic/logic_manage.h"
+#include "svr/set/stub/set_svr_stub.h"
 #include "svr/set/logic/set_logic_sp.h"
 #include "set_logic_sp_ops.h"
 
@@ -11,6 +12,7 @@ EXPORT_DIRECTIVE
 int set_logic_sp_app_init(gd_app_context_t app, gd_app_module_t module, cfg_t cfg) {
     set_logic_sp_t sp;
     logic_manage_t logic_manage;
+    set_svr_stub_t stub;
     const char * outgoing_dispatch_to;
     const char * incoming_recv_at;
 
@@ -23,6 +25,14 @@ int set_logic_sp_app_init(gd_app_context_t app, gd_app_module_t module, cfg_t cf
         return -1;
     }
 
+    stub = set_svr_stub_find_nc(app, cfg_get_string(cfg, "set-stub", NULL));
+    if (stub == NULL) {
+        CPE_ERROR(
+            gd_app_em(app),
+            "%s: create: set-svr-stub %s not exist",
+            gd_app_module_name(module), cfg_get_string(cfg, "set-stub", "default"));
+        return -1;
+    }
 
     outgoing_dispatch_to = cfg_get_string(cfg, "outgoing-send-to", NULL);
     if (outgoing_dispatch_to == NULL) {
@@ -38,7 +48,7 @@ int set_logic_sp_app_init(gd_app_context_t app, gd_app_module_t module, cfg_t cf
 
     sp = set_logic_sp_create(
         app, gd_app_module_name(module),
-        logic_manage, gd_app_alloc(app), gd_app_em(app));
+        logic_manage, stub, gd_app_alloc(app), gd_app_em(app));
     if (sp == NULL) return -1;
 
     sp->m_debug = cfg_get_int8(cfg, "debug", sp->m_debug);
