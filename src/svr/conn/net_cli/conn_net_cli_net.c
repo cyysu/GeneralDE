@@ -156,13 +156,9 @@ static void * conn_net_cli_merge_rb(conn_net_cli_t cli) {
 }
 
 static int conn_net_cli_decode_pkg_buf(conn_net_cli_t cli, LPDRMETA meta, void const * data, size_t data_len) {
-    size_t curent_pkg_size = 2048;
+    size_t curent_pkg_size = cli->m_decode_block_size;
     void * buf;
     int decode_size;
-
-    while(curent_pkg_size < data_len) { 
-        curent_pkg_size *= 2;
-    }
 
 RESIZE_AND_TRY_AGAIN:
     if (cli->m_tb) ringbuffer_free(cli->m_ringbuf, cli->m_tb);
@@ -209,6 +205,8 @@ RESIZE_AND_TRY_AGAIN:
             return -1;
         }
     }
+
+    if (curent_pkg_size > cli->m_decode_block_size) cli->m_decode_block_size = curent_pkg_size;
 
     dp_req_set_meta(cli->m_incoming_body, meta);
     dp_req_set_buf(cli->m_incoming_body, buf, curent_pkg_size);
