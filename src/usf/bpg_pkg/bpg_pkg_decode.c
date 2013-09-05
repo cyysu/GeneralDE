@@ -47,7 +47,6 @@ dr_cvt_result_t bpg_pkg_decode_data(dp_req_t body, const void * input, size_t * 
     dr_cvt_result_t r;
     BASEPKG * input_pkg;
     char * input_data;
-    size_t input_data_size;
     BASEPKG * output_pkg;
     char * output_buf;
     size_t output_buf_capacity;
@@ -115,7 +114,6 @@ dr_cvt_result_t bpg_pkg_decode_data(dp_req_t body, const void * input, size_t * 
         }
         
         input_data = (char *)unzip_buf;
-        input_data_size = unzip_size + sizeof(BASEPKG_HEAD);
         input_pkg->head.flags &= ~BASEPKG_HEAD_FLAG_ZIP;
     }
     else {
@@ -128,7 +126,6 @@ dr_cvt_result_t bpg_pkg_decode_data(dp_req_t body, const void * input, size_t * 
         }
 
         input_data = (char *)input;
-        input_data_size = *input_capacity;
     }
         
     input_pkg = (BASEPKG *)input_data;
