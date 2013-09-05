@@ -53,6 +53,7 @@ conn_net_cli_create(
     cli->m_watcher.data = cli;
     cli->m_ev_loop = net_mgr_ev_loop(gd_app_net_mgr(app));
     cli->m_read_block_size = 2048;
+    cli->m_decode_block_size = 2048;
 
     cli->m_fsm_def = conn_net_cli_create_fsm_def(conn_net_cli_name(cli), cli->m_alloc, cli->m_em);
     if (cli->m_fsm_def == NULL) {
@@ -67,7 +68,7 @@ conn_net_cli_create(
         nm_node_free(cli_node);
         return NULL;
     }
-
+    
     if (fsm_machine_monitor_add(&cli->m_fsm, conn_net_cli_monitor_process, cli) != 0) {
         CPE_ERROR(cli->m_em, "%s: add fsm monitor fail!", name);
         fsm_machine_fini(&cli->m_fsm);
@@ -229,7 +230,7 @@ int conn_net_cli_set_ringbuf_size(conn_net_cli_t cli, size_t capacity) {
 int conn_net_cli_set_svr(conn_net_cli_t cli, const char * ip, uint16_t port) {
     int need_start = 0;
 
-    if (conn_net_cli_state(cli) == conn_net_cli_state_disable) {
+    if (conn_net_cli_state(cli) != conn_net_cli_state_disable) {
         conn_net_cli_disable(cli);
         need_start = 1;
     }
