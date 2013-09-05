@@ -2,7 +2,9 @@
 #include "cpe/pal/pal_socket.h"
 #include "cpe/pal/pal_platform.h"
 #include "cpe/pal/pal_string.h"
+#include "cpe/utils/stream_buffer.h"
 #include "cpe/dr/dr_pbuf.h"
+#include "cpe/dr/dr_json.h"
 #include "cpe/dr/dr_data.h"
 #include "cpe/dr/dr_metalib_manage.h"
 #include "cpe/dp/dp_request.h"
@@ -124,6 +126,18 @@ RESIZE_AND_TRY_AGAIN:
         conn_net_cli_start_watch(cli);
     }
 
+    if (cli->m_debug) {
+        struct write_stream_buffer stream = CPE_WRITE_STREAM_BUFFER_INITIALIZER(&cli->m_dump_buffer);
+        mem_buffer_clear_data(&cli->m_dump_buffer);
+        dr_json_print((write_stream_t)&stream, data, data_len, meta, DR_JSON_PRINT_MINIMIZE, NULL);
+        stream_putc((write_stream_t)&stream, 0);
+
+        CPE_INFO(
+            cli->m_em, "%s: %s ==> send one request, sn=%d\n%s",
+            conn_net_cli_name(cli), conn_net_cli_svr_stub_type_name(svr_stub),
+            sn, (char*)mem_buffer_make_continuous(&cli->m_dump_buffer, 0));
+    }
+
     return 0;
 }
 
@@ -194,7 +208,6 @@ int conn_net_cli_send_data(conn_net_cli_t cli, uint16_t to_svr, uint32_t sn, LPD
 int conn_net_cli_send_cmd(conn_net_cli_t cli, uint16_t to_svr, uint32_t sn, uint32_t cmd) {
     dp_req_t pkg;
     conn_net_cli_svr_stub_t svr_stub;
-    conn_net_cli_cmd_info_t cmd_info;
     size_t total_size;
 
     svr_stub = conn_net_cli_svr_stub_find_by_id(cli, to_svr);
