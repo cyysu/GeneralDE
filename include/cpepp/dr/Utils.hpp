@@ -13,6 +13,9 @@ inline Meta const & metaOf(T const * data) { return MetaTraits<T>::META; }
 template<class T>
 size_t calc_dyn_size(size_t record_count) { return MetaTraits<T>::META.calc_dyn_size(record_count); }
 
+template<class T>
+size_t data_size(T const & o) { return MetaTraits<T>::data_size(o); }
+
 template<class T1, typename T2>
 inline void copy_same_entries(T1 & target, T2 const & src, int policy = 0, error_monitor_t em = 0) {
     MetaTraits<T1>::META.copy_same_entries(
@@ -48,6 +51,11 @@ inline bool try_load_from_json(T & data, const char * json, error_monitor_t em =
 template<class T>
 inline void load_from_pbuf(T & data, const void * pbuf, size_t capacity) {
     MetaTraits<T>::META.load_from_pbuf(&data, sizeof(data), pbuf, capacity);
+}
+
+template<class T>
+inline void load_from_pbuf(T & data, size_t data_capacity, const void * pbuf, size_t capacity) {
+    MetaTraits<T>::META.load_from_pbuf(&data, data_capacity, pbuf, capacity);
 }
 
 template<typename T>
