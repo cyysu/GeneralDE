@@ -241,7 +241,6 @@ void * logic_data_record_append_auto_inc(logic_data_t * data) {
 int logic_data_record_remove_by_pos(logic_data_t data, size_t pos) {
     struct dr_meta_dyn_info dyn_info;
     int record_count;
-    int record_capacity;
     size_t record_size;
     char * buf;
     error_monitor_t em = logic_manage_em(logic_data_mgr(data));
@@ -256,7 +255,6 @@ int logic_data_record_remove_by_pos(logic_data_t data, size_t pos) {
         return -1;
     }
 
-    record_capacity = logic_data_record_capacity_i(data, &dyn_info);
     record_count = logic_data_record_count_i(data, &dyn_info);
     record_size = dr_entry_element_size(dyn_info.m_data.m_array.m_array_entry);
 
@@ -289,7 +287,6 @@ int logic_data_record_remove_by_pos(logic_data_t data, size_t pos) {
 int logic_data_record_remove_by_ins(logic_data_t data, void * p) {
     struct dr_meta_dyn_info dyn_info;
     int record_count;
-    int record_capacity;
     size_t record_size;
     char * buf;
     int pos;
@@ -305,7 +302,6 @@ int logic_data_record_remove_by_ins(logic_data_t data, void * p) {
         return -1;
     }
 
-    record_capacity = logic_data_record_capacity_i(data, &dyn_info);
     record_count = logic_data_record_count_i(data, &dyn_info);
     record_size = dr_entry_element_size(dyn_info.m_data.m_array.m_array_entry);
 
