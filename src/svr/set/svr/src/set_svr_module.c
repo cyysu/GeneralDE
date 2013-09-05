@@ -230,22 +230,24 @@ int set_svr_app_init_calc_repository(
     error_monitor_t em, char * buf, size_t buf_capacity)
 {
     struct cpe_str_buf str_buf = CPE_STR_BUF_INIT(buf, buf_capacity);
-    const char * app_root = gd_app_root(app);
-    const char * name_begin = NULL;
-    const char * name_end = NULL;
+    const char * app_bin = gd_app_argv(app)[0];
+    const char * dir_end_1 = NULL;
+    const char * dir_end_2 = NULL;
+    const char * dir_end_3 = NULL;
+    const char * dir_end_4 = NULL;
+    const char * p;
     const char * home;
     size_t home_len;
 
-    if (app_root) {
-        const char * p;
-        for(p = strchr(app_root, '/'); p; p = strchr(p + 1, '/')) {
-            name_begin = name_end;
-            name_end = p + 1;
-        }
+    for(p = strchr(app_bin, '/'); p; p = strchr(p + 1, '/')) {
+        dir_end_1 = dir_end_2;
+        dir_end_2 = dir_end_3;
+        dir_end_3 = dir_end_4;
+        dir_end_4 = p;
     }
 
-    if (name_begin == NULL || name_end == NULL) {
-        CPE_ERROR(em, "set_repository_root: root %s format error!", app_root);
+    if (dir_end_1 == NULL || dir_end_2 == NULL) {
+        CPE_ERROR(em, "set_repository_root: root %s format error!", app_bin);
         return -1;
     }
 
@@ -257,7 +259,7 @@ int set_svr_app_init_calc_repository(
         cpe_str_buf_cat(&str_buf, "/");
     }
     cpe_str_buf_cat(&str_buf, ".");
-    cpe_str_buf_append(&str_buf, name_begin, name_end - name_begin - 1);
+    cpe_str_buf_append(&str_buf, dir_end_1 + 1, dir_end_2 - dir_end_1 - 1);
     cpe_str_buf_cat_printf(&str_buf, "/%s-%d", set_type, set_id);
 
     return cpe_str_buf_is_overflow(&str_buf) ? -1 : 0;
