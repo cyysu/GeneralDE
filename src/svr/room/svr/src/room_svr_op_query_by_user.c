@@ -7,5 +7,5 @@
 #include "svr/set/share/set_pkg.h"
 #include "room_svr_ops.h"
 
-void room_svr_op_query_by_user(room_svr_t svr, dp_req_t agent_pkg) {
+void room_svr_op_query_by_user(room_svr_t svr, dp_req_t pkg_head, dp_req_t pkg_body) {
 }

@@ -6,7 +6,7 @@
 #include "svr/set/share/set_pkg.h"
 #include "room_svr_ops.h"
 
-void room_svr_op_leave(room_svr_t svr, dp_req_t agent_pkg) {
+void room_svr_op_leave(room_svr_t svr, dp_req_t pkg_head, dp_req_t pkg_body) {
     dp_req_t res_pkg;
     SVR_ROOM_REQ_LEAVE * req;
     SVR_ROOM_RES_LEAVE * result;
@@ -15,7 +15,7 @@ void room_svr_op_leave(room_svr_t svr, dp_req_t agent_pkg) {
     uint32_t cur_time = room_svr_cur_time(svr);
     int16_t rv = -1;
 
-    req = &((SVR_ROOM_PKG*)dp_req_data(agent_pkg))->data.svr_room_req_leave;
+    req = &((SVR_ROOM_PKG*)dp_req_data(pkg_body))->data.svr_room_req_leave;
 
     room = room_svr_room_find(svr, req->room_id);
     if (room == NULL) {
@@ -45,7 +45,7 @@ void room_svr_op_leave(room_svr_t svr, dp_req_t agent_pkg) {
         room_svr_room_destory(room);
     }
 
-    res_pkg = room_svr_build_response(svr, agent_pkg, sizeof(SVR_ROOM_PKG));
+    res_pkg = room_svr_build_response(svr, pkg_body, sizeof(SVR_ROOM_PKG));
     if (res_pkg == NULL) return;
     result = &((SVR_ROOM_PKG *)dp_req_data(res_pkg))->data.svr_room_res_leave;
     result->result = 0;
@@ -54,7 +54,7 @@ void room_svr_op_leave(room_svr_t svr, dp_req_t agent_pkg) {
     return;
 
 LEAVE_ROOM_FAIL:
-    res_pkg = room_svr_build_response(svr, agent_pkg, sizeof(SVR_ROOM_PKG));
+    res_pkg = room_svr_build_response(svr, pkg_body, sizeof(SVR_ROOM_PKG));
     if (res_pkg == NULL) return;
     result = &((SVR_ROOM_PKG *)dp_req_data(res_pkg))->data.svr_room_res_leave;
     result->result = rv;
