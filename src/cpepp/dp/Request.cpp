@@ -64,15 +64,6 @@ Request const & Request::child(const char * type) const {
     return *r;
 }
 
-void Request::checkSize(size_t size) const {
-    if (size > this->size()) {
-        ::std::ostringstream os;
-        os << "request have not enough data, require " << size
-           << ", but only have " << this->size() << "!";
-        throw ::std::runtime_error(os.str().c_str());
-    }
-}
-
 Request & Request::_cast(dp_req_t req) {
     if (req == NULL) {
         throw ::std::runtime_error("input req is null");

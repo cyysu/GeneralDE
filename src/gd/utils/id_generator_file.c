@@ -67,7 +67,7 @@ gd_id_file_generator_create(
 
     generator = (gd_id_file_generator_t)nm_node_data(generator_node);
 
-    generator->m_gen.magic = GD_ID_GENERATOR_MAGIC;
+    generator->m_gen.magic = (uint32_t)GD_ID_GENERATOR_MAGIC;
     generator->m_gen.gen_fun = gd_id_file_generator_gen;
     generator->m_gen.app = app;
     generator->m_alloc = alloc ? alloc : gd_app_alloc(app);
