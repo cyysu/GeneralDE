@@ -39,7 +39,7 @@ mongo_id_generator_create(
     generator = (mongo_id_generator_t)nm_node_data(generator_node);
     bzero(generator, sizeof(struct mongo_id_generator));
 
-    generator->m_gen.magic = GD_ID_GENERATOR_MAGIC;
+    generator->m_gen.magic = (uint32_t)GD_ID_GENERATOR_MAGIC;
     generator->m_gen.gen_fun = mongo_id_generator_gen;
     generator->m_gen.app = app;
     generator->m_alloc = alloc;
