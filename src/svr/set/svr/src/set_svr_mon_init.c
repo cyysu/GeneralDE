@@ -10,8 +10,8 @@
 #include "svr/set/share/set_repository.h"
 #include "set_svr_mon_ops.h"
 
+static int set_svr_all_root(const char * app_bin, char * buf, size_t buf_capacity, error_monitor_t em);
 static int set_svr_mon_app_sync_svr(set_svr_mon_app_t mon_app, set_svr_svr_type_t svr_type, uint16_t svr_id);
-static int set_svr_all_root(set_svr_t svr, char * buf, size_t buf_capacity);
 
 int set_svr_app_init_mon(set_svr_mon_t mon) {
     set_svr_t svr = mon->m_svr;
@@ -21,7 +21,7 @@ int set_svr_app_init_mon(set_svr_mon_t mon) {
     char all_root[256];
     char set_id[25];
 
-    if (set_svr_all_root(svr, all_root, sizeof(all_root)) != 0) return -1;
+    if (set_svr_all_root(gd_app_argv(svr->m_app)[0], all_root, sizeof(all_root), svr->m_em) != 0) return -1;
 
     snprintf(name_buf, sizeof(name_buf), "sets.%s", svr->m_set_type);
     snprintf(set_id, sizeof(set_id), "%d", svr->m_set_id);
@@ -112,38 +112,6 @@ int set_svr_app_init_mon(set_svr_mon_t mon) {
 
         CPE_INFO(svr->m_em, "%s: load app: %s", set_svr_name(svr), app_bin);
     }
-
-    return 0;
-}
-
-int set_svr_all_root(set_svr_t svr, char * buf, size_t buf_capacity) {
-    const char * app_root = gd_app_root(svr->m_app);
-    const char * dir_end = NULL;
-    const char * p;
-    int len;
-
-    if (app_root == NULL) {
-        CPE_ERROR(svr->m_em, "%s: get project root fail!", set_svr_name(svr));
-        return -1;
-    }
-
-    for(p = strchr(app_root, '/'); p; p = strchr(p + 1, '/')) {
-        dir_end = p;
-    }
-
-    if (dir_end == NULL) {
-        CPE_ERROR(svr->m_em, "%s: get project root fail, gd_app_root=%s", set_svr_name(svr), app_root);
-        return -1;
-    }
-
-    len = dir_end - app_root;
-    if (len > buf_capacity) {
-        CPE_ERROR(svr->m_em, "%s: get project root overflow!, buf_capacity=%d", set_svr_name(svr), (int)buf_capacity);
-        return -1;
-    }
-
-    memcpy(buf, app_root, len);
-    buf[len] = 0;
 
     return 0;
 }
@@ -249,3 +217,39 @@ static int set_svr_mon_app_sync_svr(set_svr_mon_app_t mon_app, set_svr_svr_type_
 
     return 0;
 }
+
+static int set_svr_all_root(const char * app_bin, char * buf, size_t buf_capacity, error_monitor_t em) {
+    const char * dir_end_1 = NULL;
+    const char * dir_end_2 = NULL;
+    const char * dir_end_3 = NULL;
+    const char * p;
+    int len;
+
+    if (app_bin == NULL) {
+        CPE_ERROR(em, "set_svr: get project root fail!");
+        return -1;
+    }
+
+    for(p = strchr(app_bin, '/'); p; p = strchr(p + 1, '/')) {
+        dir_end_1 = dir_end_2;
+        dir_end_2 = dir_end_3;
+        dir_end_3 = p;
+    }
+
+    if (dir_end_1 == NULL) {
+        CPE_ERROR(em, "set_svr: get project root fail, gd_app_root=%s", app_bin);
+        return -1;
+    }
+
+    len = dir_end_1 - app_bin;
+    if (len > buf_capacity) {
+        CPE_ERROR(em, "set_svr: get project root overflow!, buf_capacity=%d", (int)buf_capacity);
+        return -1;
+    }
+
+    memcpy(buf, app_bin, len);
+    buf[len] = 0;
+
+    return 0;
+}
+

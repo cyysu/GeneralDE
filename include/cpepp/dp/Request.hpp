@@ -2,6 +2,7 @@
 #define GDPP_DP_REQUEST_H
 #include "cpepp/utils/ClassCategory.hpp"
 #include "cpe/dp/dp_request.h"
+#include "cpepp/dr/System.hpp"
 #include "System.hpp"
 
 #ifdef _MSC_VER
@@ -80,13 +81,10 @@ public:
     static void _free(Request * req) { if (req) { dp_req_free(*req); } }
 
     template<typename T>
-    T & as(void) { checkSize(sizeof(T)); return *((T*)dp_req_data(*this)); }
+    T & as(void) { return *((T*)dp_req_data(*this)); }
 
     template<typename T>
-    T const & as(void) const { checkSize(sizeof(T)); return *((T const*)dp_req_data(*this)); }
-
-private:
-    void checkSize(size_t size) const;
+    T const & as(void) const { return *((T const*)dp_req_data(*this)); }
 };
 
 }}
