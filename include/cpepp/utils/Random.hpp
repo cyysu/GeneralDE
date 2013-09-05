@@ -7,6 +7,7 @@ namespace Cpe { namespace Utils {
 
 class Random {
 public:
+    uint32_t generate(void);
     virtual uint32_t generate(uint32_t max) = 0;
     virtual ~Random();
 

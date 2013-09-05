@@ -126,8 +126,7 @@ int cpe_check_and_write_pid(const char * pidfile, error_monitor_t em) {
     /* 先将文件fd清空，然后再向其中写入当前的进程号 */
     ftruncate(fd, 0);
     snprintf(buf, sizeof(buf), "%d", (int)getpid());
-    write(fd, buf, strlen(buf)+1);  
-    close(fd);
+    write(fd, buf, strlen(buf));
     return 0;  
 }
 
