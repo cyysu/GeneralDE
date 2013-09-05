@@ -274,6 +274,30 @@ const char * file_name_no_dir(const char * input) {
     return input;
 }
 
+int file_name_normalize(char * input) {
+    size_t total_len;
+    char * check_begin = NULL; 
+    char * check_end = NULL;
+    char * p;
+
+    total_len = strlen(input);
+
+    for(p = strchr(input, '/'); p; p = strchr(p + 1, '/')) {
+        check_begin = check_end;
+        check_end = p;
+
+        if (check_begin) {
+            
+        }
+    }
+
+    if (check_end) {
+
+    }
+
+    return 0;
+}
+
 const char *
 file_name_base(const char * input, mem_buffer_t tbuf) {
     int len;
