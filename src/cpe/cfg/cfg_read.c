@@ -181,7 +181,10 @@ static cfg_t cfg_do_find_cfg_from_seq(cfg_t cfg, const char * path, const char *
                 cfg_t v_cfg = cfg_find_cfg(c, kvs[i * 2]);
                 const char * value = kvs[i * 2 + 1];
 
-                if (v_cfg == NULL) break;
+                if (v_cfg == NULL) {
+                    match = 0;
+                    break;
+                }
 
                 switch(cfg_type(v_cfg)) {
                 case CPE_CFG_TYPE_INT8:

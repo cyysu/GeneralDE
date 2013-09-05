@@ -4,6 +4,7 @@
 #include "cpe/pal/pal_string.h"
 #include "cpe/pal/pal_strings.h"
 #include "cpe/pal/pal_unistd.h"
+#include "cpe/utils/string_utils.h"
 #include "cpe/cfg/cfg_manage.h"
 #include "cpe/net/net_manage.h"
 #include "cpe/nm/nm_manage.h"
@@ -28,7 +29,7 @@ static int gd_app_parse_args(gd_app_context_t context, int argc, char * argv[]) 
     }
 
     if ((value = gd_app_arg_find(context, "--root"))) {
-        context->m_root = strdup(value);
+        context->m_root = cpe_str_mem_dup(context->m_alloc, value);
     }
 
     return 0;
@@ -152,8 +153,12 @@ void gd_app_context_free(gd_app_context_t context) {
         context->m_cfg = NULL;
     }
 
+    while(context->m_argc > 0) {
+        mem_free(context->m_alloc, context->m_argv[context->m_argc--]);
+    }
+
     if (context->m_root) {
-        free(context->m_root);
+        mem_free(context->m_alloc, context->m_root);
         context->m_root = NULL;
     }
 
@@ -187,7 +192,7 @@ gd_app_context_create_main(mem_allocrator_t alloc, size_t capacity, int argc, ch
     g_main_app_context = gd_app_context_create_i(alloc, capacity, gd_app_default_lib_handler, argc, argv);
 
     if (g_main_app_context->m_root == NULL) {
-        g_main_app_context->m_root = getcwd(NULL, 0);
+        g_main_app_context->m_root = cpe_str_mem_dup(g_main_app_context->m_alloc, getcwd(NULL, 0));
         if(g_main_app_context->m_root == NULL) {
             CPE_INFO(g_main_app_context->m_em, "gd_app_context_create: root dir not exist!");
             /* gd_app_context_free(g_main_app_context); */
@@ -206,7 +211,7 @@ gd_app_context_create_main(mem_allocrator_t alloc, size_t capacity, int argc, ch
 
 static void gd_global_stop_sig_handler(int sig) {
     if (g_main_app_context == NULL) return;
-
+    CPE_INFO(g_main_app_context->m_em, "gd_global_stop_sig_handler: receive sig %d, begin stop!", sig);
     gd_app_notify_stop(g_main_app_context);
 }
 
