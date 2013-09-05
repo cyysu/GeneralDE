@@ -3,6 +3,7 @@
 #include "cpe/pal/pal_stdlib.h"
 #include "cpe/utils/buffer.h"
 #include "cpe/utils/file.h"
+#include "cpe/utils/string_utils.h"
 #include "cpe/cfg/cfg_read.h"
 #include "cpe/cfg/cfg_manage.h"
 #include "gd/app/app_context.h"
@@ -70,7 +71,7 @@ char ** gd_app_argv(gd_app_context_t context) {
 
 int gd_app_add_arg(gd_app_context_t context, char * arg) {
     if (context->m_argc + 1 < GD_APP_MAX_ARGV) {
-        context->m_argv[context->m_argc++] = arg;
+        context->m_argv[context->m_argc++] = cpe_str_mem_dup(context->m_alloc, arg);
         return 0;
     }
     else {
