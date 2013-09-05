@@ -1,9 +1,14 @@
+#include <limits>
 #include <cassert>
 #include "cpepp/utils/Random.hpp"
 
 namespace Cpe { namespace Utils {
 
 Random::~Random() {
+}
+
+uint32_t Random::generate(void) {
+    return generate(::std::numeric_limits<uint32_t>::max());
 }
 
 double Random::generateBetween(double min, double max, int calc_p) {
