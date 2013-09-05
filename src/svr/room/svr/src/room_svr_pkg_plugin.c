@@ -65,3 +65,18 @@ int room_svr_p_notify_room_not_exist(room_svr_t svr, dp_req_t input_pkg, uint64_
 
     return 0;
 }
+
+int room_svr_p_notify_room_message(room_svr_t svr, set_svr_svr_info_t logic_svr, SVR_ROOM_REQ_BROADCAST * msg) {
+    if (set_svr_stub_send_notify_data(
+            svr->m_stub, set_svr_svr_info_svr_type_id(logic_svr), 0,
+            0,
+            msg, 0, svr->m_pkg_meta_req_broadcast,
+            NULL, 0)
+        != 0)
+    {
+        CPE_ERROR(svr->m_em, "%s: plugin_notify_msg to logic svr fail!", room_svr_name(svr));
+        return -1;
+    }
+
+    return 0;
+}

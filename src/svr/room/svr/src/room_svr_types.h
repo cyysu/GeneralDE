@@ -26,7 +26,7 @@ struct room_svr {
     set_svr_stub_t m_stub;
     int m_debug;
 
-    uint32_t m_timeout_span_s;
+    uint32_t m_timeout_span_ms;
     gd_timer_id_t m_check_timer_id;
 
     uint64_t m_nextRoomId;
@@ -46,7 +46,9 @@ struct room_svr {
     aom_obj_mgr_t m_user_data_mgr;
     void * m_user_data_buf;
 
+    LPDRMETA m_pkg_meta_req_broadcast;
     LPDRMETA m_pkg_meta_notify_room_created;
+    LPDRMETA m_pkg_meta_notify_room_destoried;
     LPDRMETA m_pkg_meta_plugin_room_created;
     LPDRMETA m_pkg_meta_plugin_room_not_exist;
 

@@ -1,4 +1,5 @@
 #include <assert.h>
+#include "cpe/pal/pal_stdio.h"
 #include "room_svr_ops.h"
 
 void room_svr_timer(void * ctx, gd_timer_id_t timer_id, void * arg) {
@@ -34,7 +35,7 @@ void room_svr_timer(void * ctx, gd_timer_id_t timer_id, void * arg) {
         TAILQ_FOREACH(user, &room->m_users, m_next) {
             if (user->m_data->user_state != SVR_ROOM_USER_ACTIVE) continue;
 
-            if (user->m_data->user_last_op_time + svr->m_timeout_span_s > cur_time) {
+            if (user->m_data->user_last_op_time + svr->m_timeout_span_ms < cur_time) {
                 room_svr_user_update_state(user, 0, SVR_ROOM_USER_LEAVE);
                 TAILQ_INSERT_TAIL(&leave_user_queue, user, m_next_for_tmp);
             }
@@ -44,6 +45,10 @@ void room_svr_timer(void * ctx, gd_timer_id_t timer_id, void * arg) {
         }
 
         if (active_user_count == 0) {
+            CPE_ERROR(
+                svr->m_em, "%s: timer: room "FMT_UINT64_T" have no active user, destory",
+                room_svr_name(svr), room->m_data->room_id);
+            //if (room->m_logic_svr)
             room_svr_room_destory(room);
         }
         else {

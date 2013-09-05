@@ -61,19 +61,19 @@ uint32_t room_svr_user_hash(room_svr_user_t user);
 int room_svr_user_eq(room_svr_user_t l, room_svr_user_t r);
 
 /*protocol process ops*/
-typedef void (*room_svr_op_t)(room_svr_t svr, dp_req_t pkg);
-void room_svr_op_create(room_svr_t svr, dp_req_t pkg);
-void room_svr_op_delete(room_svr_t svr, dp_req_t pkg);
-void room_svr_op_query_by_type(room_svr_t svr, dp_req_t pkg);
-void room_svr_op_query_by_user(room_svr_t svr, dp_req_t pkg);
-void room_svr_op_join(room_svr_t svr, dp_req_t pkg);
-void room_svr_op_leave(room_svr_t svr, dp_req_t pkg);
-void room_svr_op_broadcast(room_svr_t svr, dp_req_t pkg);
+typedef void (*room_svr_op_t)(room_svr_t svr, dp_req_t pkg_head, dp_req_t pkg_body);
+void room_svr_op_create(room_svr_t svr, dp_req_t pkg_head, dp_req_t pkg_body);
+void room_svr_op_delete(room_svr_t svr, dp_req_t pkg_head, dp_req_t pkg_body);
+void room_svr_op_query_by_type(room_svr_t svr, dp_req_t pkg_head, dp_req_t pkg_body);
+void room_svr_op_query_by_user(room_svr_t svr, dp_req_t pkg_head, dp_req_t pkg_body);
+void room_svr_op_join(room_svr_t svr, dp_req_t pkg_head, dp_req_t pkg_body);
+void room_svr_op_leave(room_svr_t svr, dp_req_t pkg_head, dp_req_t pkg_body);
+void room_svr_op_broadcast(room_svr_t svr, dp_req_t pkg_head, dp_req_t pkg_body);
 
 /*notify pkg ops*/
 void room_svr_room_notify_user_join(room_svr_room_t room, room_svr_user_t user);
 void room_svr_room_notify_user_leave(room_svr_room_t room, room_svr_user_t user, uint32_t reason);
-void room_svr_room_notify_msg(room_svr_room_t room, uint64_t sender, void const * data, uint32_t data_len);
+void room_svr_room_notify_msg(room_svr_room_t room, uint64_t sender, uint32_t data_type, void const * data, uint32_t data_len);
 void room_svr_room_notify_tick(room_svr_room_t room);
 void room_svr_room_notify_room_destoried(room_svr_room_t room, uint8_t reason);
 void room_svr_room_notify_room_created_with_users(room_svr_room_t room);
@@ -82,6 +82,7 @@ void room_svr_room_notify_room_created_with_data(room_svr_room_t room, uint64_t 
 /*plugin pkg ops*/
 int room_svr_p_notify_room_created(room_svr_t svr, set_svr_svr_info_t logic_svr, room_svr_room_t room);
 int room_svr_p_notify_room_not_exist(room_svr_t svr, dp_req_t input_pkg, uint64_t room_id);
-void room_svr_p_op_send_room_data(room_svr_t svr, dp_req_t pkg);
+int room_svr_p_notify_room_message(room_svr_t svr, set_svr_svr_info_t logic_svr, SVR_ROOM_REQ_BROADCAST * msg);
+void room_svr_p_op_send_room_data(room_svr_t svr, dp_req_t pkg_head, dp_req_t pkg_body);
 
 #endif
