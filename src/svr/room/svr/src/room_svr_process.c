@@ -16,7 +16,14 @@ static room_svr_op_t g_svr_ops[] = {
 
 int room_svr_rsp(dp_req_t req, void * ctx, error_monitor_t em) {
     room_svr_t svr = ctx;
+    dp_req_t pkg_head;
     SVR_ROOM_PKG * pkg;
+
+    pkg_head = set_pkg_head_find(req);
+    if (pkg_head == NULL) {
+        CPE_ERROR(svr->m_em, "%s: process: find pkg head fail!", room_svr_name(svr));
+        return -1;
+    }
 
     pkg = dp_req_data(req);
 
@@ -27,7 +34,7 @@ int room_svr_rsp(dp_req_t req, void * ctx, error_monitor_t em) {
         return -1;
     }
     
-    g_svr_ops[pkg->cmd](svr, req);
+    g_svr_ops[pkg->cmd](svr, pkg_head, req);
 
     return 0;
 }

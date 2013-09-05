@@ -27,6 +27,10 @@ struct nm_node_type s_nm_node_type_room_svr = {
     room_svr_clear
 };
 
+#define ROOM_SVR_LOAD_META(__arg, __name) \
+    svr-> __arg  = dr_lib_find_meta_by_name((LPDRMETALIB)g_metalib_svr_room_pro, __name); \
+    assert(svr-> __arg)
+
 room_svr_t
 room_svr_create(
     gd_app_context_t app,
@@ -50,7 +54,7 @@ room_svr_create(
     svr->m_em = em;
     svr->m_stub = stub;
     svr->m_debug = 0;
-    svr->m_timeout_span_s = 5 * 60;
+    svr->m_timeout_span_ms = 5 * 60 * 1000;
     svr->m_check_timer_id = GD_TIMER_ID_INVALID;
     svr->m_outgoing_pkg = NULL;
     svr->m_send_to = NULL;
@@ -59,26 +63,17 @@ room_svr_create(
     svr->m_meta_count = 0;
     svr->m_metas = NULL;
 
-    svr->m_pkg_meta_notify_room_created =
-        dr_lib_find_meta_by_name((LPDRMETALIB)g_metalib_svr_room_pro, "svr_room_notify_room_created");
-    assert(svr->m_pkg_meta_notify_room_created);
+    ROOM_SVR_LOAD_META(m_pkg_meta_req_broadcast, "svr_room_req_broadcast");
+    ROOM_SVR_LOAD_META(m_pkg_meta_notify_room_created, "svr_room_notify_room_created");
+    ROOM_SVR_LOAD_META(m_pkg_meta_notify_room_destoried, "svr_room_notify_room_destory");
+    ROOM_SVR_LOAD_META(m_pkg_meta_plugin_room_created, "svr_room_p_notify_room_created");
+    ROOM_SVR_LOAD_META(m_pkg_meta_plugin_room_not_exist, "svr_room_p_notify_room_not_exist");
 
-    svr->m_pkg_meta_plugin_room_created =
-        dr_lib_find_meta_by_name((LPDRMETALIB)g_metalib_svr_room_pro, "svr_room_p_notify_room_created");
-    assert(svr->m_pkg_meta_plugin_room_created);
-
-    svr->m_pkg_meta_plugin_room_not_exist =
-        dr_lib_find_meta_by_name((LPDRMETALIB)g_metalib_svr_room_pro, "svr_room_p_notify_room_not_exist");
-    assert(svr->m_pkg_meta_plugin_room_not_exist);
-
-    svr->m_room_data_meta =
-        dr_lib_find_meta_by_name((LPDRMETALIB)g_metalib_svr_room_pro, "svr_room_room_record");
-    assert(svr->m_room_data_meta);
+    ROOM_SVR_LOAD_META(m_room_data_meta, "svr_room_room_record");
     svr->m_room_data_mgr = NULL;
     svr->m_room_data_buf = NULL;
 
-    svr->m_user_data_meta = 
-        dr_lib_find_meta_by_name((LPDRMETALIB)g_metalib_svr_room_pro, "svr_room_user_record");
+    ROOM_SVR_LOAD_META(m_user_data_meta, "svr_room_user_record");
     svr->m_user_data_mgr = NULL;
     svr->m_user_data_buf = NULL;
 

@@ -105,24 +105,26 @@ static room_svr_room_t room_svr_op_create_room(room_svr_t svr, SVR_ROOM_REQ_CREA
     return room;
 }
 
-void room_svr_op_create(room_svr_t svr, dp_req_t agent_pkg) {
+void room_svr_op_create(room_svr_t svr, dp_req_t pkg_head, dp_req_t pkg_body) {
     dp_req_t res_pkg;
     SVR_ROOM_REQ_CREATE * req;
     SVR_ROOM_RES_CREATE * result;
     room_svr_room_t room = NULL;
 
-    req = & ((SVR_ROOM_PKG *)dp_req_data(agent_pkg))->data.svr_room_req_create;
+    req = & ((SVR_ROOM_PKG *)dp_req_data(pkg_body))->data.svr_room_req_create;
 
     room = room_svr_op_create_room(svr, req);
     if (room == NULL) goto REQ_CREATE_ROOM_FAIL;
 
-    /*发送成功响应*/
-    res_pkg = room_svr_build_response(svr, agent_pkg, sizeof(SVR_ROOM_PKG));
-    if (res_pkg == NULL) return;
-    result = &((SVR_ROOM_PKG *)dp_req_data(res_pkg))->data.svr_room_res_create;
-    result->result = 0;
-    result->room_id = room->m_data->room_id;
-    room_svr_send_pkg(svr, res_pkg);
+    if (set_pkg_sn(pkg_head)) {
+        /*发送成功响应*/
+        res_pkg = room_svr_build_response(svr, pkg_body, sizeof(SVR_ROOM_PKG));
+        if (res_pkg == NULL) return;
+        result = &((SVR_ROOM_PKG *)dp_req_data(res_pkg))->data.svr_room_res_create;
+        result->result = 0;
+        result->room_id = room->m_data->room_id;
+        room_svr_send_pkg(svr, res_pkg);
+    }
 
     return;
 
@@ -130,7 +132,7 @@ REQ_CREATE_ROOM_FAIL:
     if (room) room_svr_room_destory(room);
 
     /*发送失败响应*/
-    res_pkg = room_svr_build_response(svr, agent_pkg, sizeof(SVR_ROOM_PKG));
+    res_pkg = room_svr_build_response(svr, pkg_body, sizeof(SVR_ROOM_PKG));
     if (res_pkg == NULL) return;
     result = &((SVR_ROOM_PKG *)dp_req_data(res_pkg))->data.svr_room_res_create;
     result->result = -1;

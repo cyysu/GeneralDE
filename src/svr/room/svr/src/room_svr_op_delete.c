@@ -6,13 +6,13 @@
 #include "svr/set/share/set_pkg.h"
 #include "room_svr_ops.h"
 
-void room_svr_op_delete(room_svr_t svr, dp_req_t agent_pkg) {
+void room_svr_op_delete(room_svr_t svr, dp_req_t pkg_head, dp_req_t pkg_body) {
     dp_req_t res_pkg;
     SVR_ROOM_REQ_DELETE * req;
     SVR_ROOM_RES_DELETE * result;
     room_svr_room_t room = NULL;
 
-    req = &((SVR_ROOM_PKG*)dp_req_data(agent_pkg))->data.svr_room_req_delete;
+    req = &((SVR_ROOM_PKG*)dp_req_data(pkg_body))->data.svr_room_req_delete;
 
     room = room_svr_room_find(svr, req->room_id);
     if (room == NULL) {
@@ -23,18 +23,22 @@ void room_svr_op_delete(room_svr_t svr, dp_req_t agent_pkg) {
     room_svr_room_notify_room_destoried(room, SVR_ROOM_ROOM_DESTORY_BY_USER);
     room_svr_room_destory(room);
 
-    res_pkg = room_svr_build_response(svr, agent_pkg, sizeof(SVR_ROOM_PKG));
-    if (res_pkg == NULL) return;
-    result = &((SVR_ROOM_PKG *)dp_req_data(res_pkg))->data.svr_room_res_delete;
-    result->result = 0;
-    room_svr_send_pkg(svr, res_pkg);
+    if (set_pkg_sn(pkg_head) != 0) {
+        res_pkg = room_svr_build_response(svr, pkg_body, sizeof(SVR_ROOM_PKG));
+        if (res_pkg == NULL) return;
+        result = &((SVR_ROOM_PKG *)dp_req_data(res_pkg))->data.svr_room_res_delete;
+        result->result = 0;
+        room_svr_send_pkg(svr, res_pkg);
+    }
 
     return;
 
 DELETE_ROOM_FAIL:
-    res_pkg = room_svr_build_response(svr, agent_pkg, sizeof(SVR_ROOM_PKG));
-    if (res_pkg == NULL) return;
-    result = &((SVR_ROOM_PKG *)dp_req_data(res_pkg))->data.svr_room_res_delete;
-    result->result = -1;
-    room_svr_send_pkg(svr, res_pkg);
+    if (set_pkg_sn(pkg_head) != 0) {
+        res_pkg = room_svr_build_response(svr, pkg_body, sizeof(SVR_ROOM_PKG));
+        if (res_pkg == NULL) return;
+        result = &((SVR_ROOM_PKG *)dp_req_data(res_pkg))->data.svr_room_res_delete;
+        result->result = -1;
+        room_svr_send_pkg(svr, res_pkg);
+    }
 }

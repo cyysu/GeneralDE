@@ -118,9 +118,11 @@ int main(int argc, char * argv[]) {
 
     /*run*/
     struct arg_rex  * run = arg_rex1(NULL, NULL, "run", NULL, 0, NULL);
-    struct arg_str *  run_shm_key = arg_str0(NULL, "shm-key", NULL,    "shm key");
+    struct arg_file * run_pidfile = arg_file1(NULL, "pidfile", NULL, "pid file path");
+    struct arg_file * run_root = arg_file1(NULL, "root", NULL, "root dir");
+    struct arg_int *  run_app_id = arg_int0(NULL, "app-id", NULL,    "app id");
     struct arg_end  * run_end = arg_end(20);
-    void* run_argtable[] = { run, run_shm_key, run_end };
+    void* run_argtable[] = { run, run_pidfile, run_root, run_app_id, run_end };
     int run_nerrors;
 
     /*start service*/
@@ -200,7 +202,7 @@ int main(int argc, char * argv[]) {
             if (shm_dump_output->count) fclose(file);
         }
     }
-    else if (run->count) {
+    else if (run_nerrors == 0) {
         if (cpe_check_and_write_pid(generate_pkd_file(argv[0]), em) != 0) {
             printf("%s is already runing!\n", file_name_no_dir(argv[0]));
             rv = -1;
@@ -214,7 +216,7 @@ int main(int argc, char * argv[]) {
             rv = svr_main(argc, argv, shmkey);
         }
     }
-    else if (start->count) {
+    else if (start_nerrors == 0) {
         cpe_daemonize(em);
 
         if (cpe_check_and_write_pid(generate_pkd_file(argv[0]), em) != 0) {
@@ -230,7 +232,7 @@ int main(int argc, char * argv[]) {
             rv = svr_main(argc, argv, shmkey);
         }
     }
-    else if (stop->count) {
+    else if (stop_nerrors == 0) {
         rv = cpe_kill_by_pidfile(generate_pkd_file(argv[0]), SIGHUP, em);
     }
     else if (common_nerrors == 0) {

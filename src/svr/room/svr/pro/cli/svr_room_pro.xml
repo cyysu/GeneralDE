@@ -74,8 +74,9 @@
     <struct name="svr_room_req_broadcast" version="1">
         <entry name="room_id" type="uint64" id="1"/>
         <entry name="user_id" type="uint64" id="2"/>
-        <entry name="data_len" type="uint32" id="3"/>
-        <entry name="data" type="int8" count="0" refer="data_len" id="4"/>
+        <entry name="data_type" type="uint32" id="3"/>
+        <entry name="data_len" type="uint32" id="4"/>
+        <entry name="data" type="uint8" count="0" refer="data_len" id="5"/>
     </struct>
 
     <!-- 查询指定类型房间列表 -->
@@ -104,8 +105,9 @@
         <entry name="room_id" type="uint64" id="1"/>
         <entry name="user_id" type="uint64" id="2"/>
         <entry name="send_user" type="uint64" id="3"/>
-        <entry name="data_len" type="uint32" id="4"/>
-        <entry name="data" type="int8" count="0" refer="data_len" id="5"/>
+        <entry name="data_type" type="uint32" id="4"/>
+        <entry name="data_len" type="uint32" id="5"/>
+        <entry name="data" type="uint8" count="0" refer="data_len" id="6"/>
     </struct>
 
     <!--     通知匹配成功 -->
@@ -164,7 +166,7 @@
     <struct name="svr_room_notify_room_data" version="1">
         <entry name="room_id" type="uint64" id="1"/>
         <entry name="room_data_len" type="uint32" id="2"/>
-        <entry name="room_data" type="int8" count="0" refer="room_data_len" id="5"/>
+        <entry name="room_data" type="uint8" count="0" refer="room_data_len" id="5"/>
     </struct>
 
     <!--  =========== 给逻辑服务器插件使用的通知和命令 ========== -->
@@ -183,7 +185,7 @@
         <entry name="room_id" type="uint64" id="1"/>
         <entry name="target_user" type="uint64" id="2"/>
         <entry name="room_data_len" type="uint32" id="3"/>
-        <entry name="room_data" type="int8" count="0" refer="room_data_len" id="4"/>
+        <entry name="room_data" type="uint8" count="0" refer="room_data_len" id="4"/>
     </struct>
 
 

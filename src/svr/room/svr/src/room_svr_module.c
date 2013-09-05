@@ -73,7 +73,7 @@ int room_svr_app_init(gd_app_context_t app, gd_app_module_t module, cfg_t cfg) {
         return -1;
     }
 
-    room_svr->m_timeout_span_s = timeout_span_s;
+    room_svr->m_timeout_span_ms = timeout_span_s * 1000;
 
     if (room_svr_meta_room_load(room_svr, cfg_find_cfg(gd_app_cfg(app), "meta.room_def")) != 0) {
         CPE_ERROR(gd_app_em(app), "%s: create: load room_def fail!", gd_app_module_name(module));

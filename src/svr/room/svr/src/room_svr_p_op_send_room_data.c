@@ -6,7 +6,7 @@
 #include "svr/set/share/set_pkg.h"
 #include "room_svr_ops.h"
 
-void room_svr_p_op_send_room_data(room_svr_t svr, dp_req_t pkg_body) {
+void room_svr_p_op_send_room_data(room_svr_t svr, dp_req_t pkg_head, dp_req_t pkg_body) {
     SVR_ROOM_P_REQ_SEND_ROOM_DATA * pkg;
     room_svr_room_t room;
 
