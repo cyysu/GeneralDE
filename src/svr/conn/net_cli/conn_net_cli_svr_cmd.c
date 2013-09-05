@@ -12,7 +12,6 @@ conn_net_cli_cmd_info_create(conn_net_cli_svr_stub_t stub, LPDRMETAENTRY entry) 
     if (svr_cmd == NULL) return NULL;
 
     meta_name = dr_meta_name(dr_entry_ref_meta(entry));
-    printf("xxxx: %s\n", meta_name);
 
     svr_cmd->m_meta_name = meta_name;
     svr_cmd->m_entry = entry;
