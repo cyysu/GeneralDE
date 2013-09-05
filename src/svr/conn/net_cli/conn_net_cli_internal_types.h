@@ -26,6 +26,7 @@ struct conn_net_cli {
     char m_ip[16];
     short m_port;
 
+    uint32_t m_decode_block_size;
     uint32_t m_read_block_size;
     uint32_t m_reconnect_span_ms;
     size_t m_max_pkg_size;

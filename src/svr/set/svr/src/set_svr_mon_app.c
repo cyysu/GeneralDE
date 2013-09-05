@@ -3,6 +3,7 @@
 #include <errno.h>
 #include "cpe/pal/pal_external.h"
 #include "cpe/pal/pal_stdio.h"
+#include "cpe/pal/pal_signal.h"
 #include "cpe/utils/string_utils.h"
 #include "cpe/nm/nm_manage.h"
 #include "cpe/nm/nm_read.h"
@@ -68,6 +69,19 @@ void set_svr_mon_app_free(set_svr_mon_app_t mon_app) {
 
     if (mon->m_debug) {
         CPE_INFO(svr->m_em, "%s: mon app %s: destory", set_svr_name(svr), mon_app->m_bin);
+    }
+
+    if (fsm_machine_curent_state(&mon_app->m_fsm) == set_svr_mon_app_state_runing) {
+        if (kill(mon_app->m_pid, SIGHUP) != 0) {
+            CPE_ERROR(
+                svr->m_em, "%s: mon app %s: send signal %d to %d fail, error=%d (%s)",
+                set_svr_name(svr), mon_app->m_bin, SIGHUP, mon_app->m_pid, errno, strerror(errno));
+        }
+        else {
+            CPE_INFO(
+                svr->m_em, "%s: mon app %s: send signal %d to %d success",
+                set_svr_name(svr), mon_app->m_bin, SIGHUP, mon_app->m_pid);
+        }
     }
 
     fsm_machine_fini(&mon_app->m_fsm);
