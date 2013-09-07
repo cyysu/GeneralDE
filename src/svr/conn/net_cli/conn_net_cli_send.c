@@ -33,6 +33,7 @@ static int conn_net_cli_send_i(conn_net_cli_t cli, conn_net_cli_svr_stub_t svr_s
     ringbuffer_block_t blk;
     SVR_CONN_NET_REQ_HEAD * head;
     void * buf;
+    uint16_t pkg_len;
 
     if (meta && svr_stub->m_pkg_meta && meta != svr_stub->m_pkg_meta) {
         CPE_ERROR(
@@ -67,8 +68,8 @@ RESIZE_AND_TRY_AGAIN:
     assert(buf);
 
     head = buf;
-    head->to_svr = svr_stub->m_svr_type_id;
-    head->sn = sn;
+    CPE_COPY_HTON16(&head->to_svr, &svr_stub->m_svr_type_id);
+    CPE_COPY_HTON32(&head->sn, &sn);
 
     if (data) {
         int encode_size;
@@ -109,15 +110,16 @@ RESIZE_AND_TRY_AGAIN:
             }
         }
         else {
-            head->pkg_len = sizeof(SVR_CONN_NET_REQ_HEAD) + encode_size;
+            pkg_len = sizeof(SVR_CONN_NET_REQ_HEAD) + encode_size;
         }
     }
     else {
-        head->pkg_len = sizeof(SVR_CONN_NET_REQ_HEAD);
+        pkg_len = sizeof(SVR_CONN_NET_REQ_HEAD);
     }
     
+    CPE_COPY_HTON16(&head->pkg_len, &pkg_len);
 
-    ringbuffer_shrink(cli->m_ringbuf, blk, head->pkg_len);
+    ringbuffer_shrink(cli->m_ringbuf, blk, pkg_len);
     conn_net_cli_link_node_w(cli, blk);
 
     if (fsm_machine_curent_state(&cli->m_fsm) == conn_net_cli_state_established) {
