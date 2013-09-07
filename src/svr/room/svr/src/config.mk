@@ -1,7 +1,7 @@
 product:=room_svr_lib
 $(product).type:=cpe-dr lib 
 $(product).depends:=cpe_cfg cpe_dr cpe_dr_data_cfg cpe_dr_data_pbuf cpe_tl cpe_aom cpe_dp cpe_nm \
-                    gd_net gd_app  gd_dr_cvt gd_log \
+                    gd_app  gd_dr_store gd_timer gd_log \
                     set_svr_stub
 
 $(product).c.sources:=$(filter-out %/main.c,$(wildcard $(product-base)/*.c))
@@ -28,7 +28,7 @@ $(eval $(call product-def,$(product)))
 
 product:=room_svr
 $(product).type:=progn
-$(product).depends:=room_svr_lib usf_bpg_net usf_bpg_rsp usf_bpg_bind argtable2
+$(product).depends:=room_svr_lib argtable2
 $(product).c.sources:=$(product-base)/main.c
 $(product).c.flags.ld:=-lm -rdynamic
 $(product).c.export-symbols:=$(patsubst _%,%,$(shell cat $(product-base)/symbols.def))
