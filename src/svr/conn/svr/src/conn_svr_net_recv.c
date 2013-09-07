@@ -188,7 +188,7 @@ static int conn_svr_conn_process_data(conn_svr_t svr, conn_svr_conn_t conn) {
         if (buf == NULL) buf = conn_svr_conn_merge_rb(svr, conn);
         if (buf == NULL) return -1;
 
-        CPE_COPY_HTON16(&pkg_data_len, buf);
+        CPE_COPY_NTOH16(&pkg_data_len, buf);
 
         received_data_len = ringbuffer_data(svr->m_ringbuf, conn->m_rb, pkg_data_len, 0, &buf);
 
@@ -211,8 +211,8 @@ static int conn_svr_conn_process_data(conn_svr_t svr, conn_svr_conn_t conn) {
 
         /*转换成内部的pkg*/
         head = buf;
-        CPE_COPY_HTON16(&to_svr_type, &head->to_svr);
-        CPE_COPY_HTON32(&sn, &head->sn);
+        CPE_COPY_NTOH16(&to_svr_type, &head->to_svr);
+        CPE_COPY_NTOH32(&sn, &head->sn);
 
         if (ss_pkg == NULL) {
             ss_pkg = conn_svr_pkg_buf(svr);
