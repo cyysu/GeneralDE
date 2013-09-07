@@ -16,6 +16,7 @@ int conn_svr_conn_net_send(conn_svr_conn_t conn, uint16_t from_svr_type, int8_t 
     SVR_CONN_NET_RES_HEAD * head;
     void * buf;
     size_t body_len;
+    uint32_t pkg_len;
 
     while(curent_pkg_size < data_len) {
         curent_pkg_size *= 2;
@@ -29,10 +30,10 @@ RESIZE_AND_TRY_AGAIN:
     assert(buf);
 
     head = buf;
-    head->from_svr = from_svr_type;
     head->result = err;
     head->flags = 0;
-    head->sn = sn;
+    CPE_COPY_HTON16(&head->from_svr, &from_svr_type);
+    CPE_COPY_HTON32(&head->sn, &sn);
 
     if (data) {
         int encode_size;
@@ -82,9 +83,11 @@ RESIZE_AND_TRY_AGAIN:
         body_len = 0;
     }
 
-    head->pkg_len = sizeof(SVR_CONN_NET_RES_HEAD) + body_len;
+    pkg_len = sizeof(SVR_CONN_NET_RES_HEAD) + body_len;
+
+    CPE_COPY_HTON16(&head->pkg_len, &pkg_len);
     
-    ringbuffer_shrink(svr->m_ringbuf, blk, head->pkg_len);
+    ringbuffer_shrink(svr->m_ringbuf, blk, pkg_len);
     conn_svr_conn_link_node_w(conn, blk);
 
     ev_io_stop(svr->m_ev_loop, &conn->m_watcher);
