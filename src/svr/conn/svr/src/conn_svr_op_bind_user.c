@@ -16,6 +16,17 @@ void conn_svr_op_bind_user(conn_svr_t svr, dp_req_t agent_pkg) {
         return;
     }
 
+    if (req->user_id) {
+        conn_svr_conn_t old_conn = conn_svr_conn_find_by_user_id(svr, req->user_id);
+        if (old_conn) {
+            CPE_INFO(
+                svr->m_em, "%s: bind_user: conn(conn_id=%d, fd=%d, user_id="FMT_UINT64_T"): close old conn(conn_id=%d, fd=%d, user_id="FMT_UINT64_T")!",
+                conn_svr_name(svr), conn->m_conn_id, conn->m_fd, conn->m_user_id,
+                old_conn->m_conn_id, old_conn->m_fd, old_conn->m_user_id);
+            conn_svr_conn_free(old_conn);
+        }
+    }
+
     if (conn_svr_conn_set_user_id(conn, req->user_id) != 0) {
         CPE_ERROR(
             svr->m_em, "%s: bind_user: conn(conn_id=%d, fd=%d, user_id="FMT_UINT64_T") set user "FMT_UINT64_T" fail!",
