@@ -283,7 +283,7 @@ static dp_req_t set_logic_rsp_commit_build_error_response(
     data_size = dr_meta_size(mgr->m_error_response->m_data_meta);
     data = mgr->m_error_response + 1;
 
-    if (dr_entry_set_from_uint32(data, bpg_private->cmd, mgr->m_error_response->m_req_entry, em) != 0) {
+    if (dr_entry_set_from_uint32(data, mgr->m_error_response->m_cmd, mgr->m_error_response->m_req_entry, em) != 0) {
         CPE_ERROR(em, "%s.%s: gen error response buf: set req fail!", set_logic_rsp_manage_name(rsp->m_mgr), set_logic_rsp_name(rsp));
         return NULL;
     }
