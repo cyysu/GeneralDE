@@ -450,6 +450,12 @@ static int dr_bson_read_i(
                     break;
                 case dr_bson_type_null:
                     break;
+                case dr_bson_type_int32:
+                    dr_bson_read_by_uint32();
+                    break;
+                case dr_bson_type_int64:
+                    dr_bson_read_by_uint64();
+                    break;
                 default:
                     dr_bson_read_type_error();
                 }
