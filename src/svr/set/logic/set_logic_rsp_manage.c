@@ -67,7 +67,6 @@ set_logic_rsp_manage_create(
     mgr->m_em = em;
     mgr->m_flags = 0;
     mgr->m_queue_attr = NULL;
-    mgr->m_error_response = NULL;
 
     mgr->m_svr_type = set_svr_stub_svr_type(stub);
     assert(mgr->m_svr_type);
@@ -173,11 +172,6 @@ static void set_logic_rsp_manage_clear(nm_node_t node) {
     cpe_hash_table_fini(&mgr->m_queue_infos);
 
     mgr->m_dp = NULL;
-
-    if (mgr->m_error_response) {
-        mem_free(mgr->m_alloc, mgr->m_error_response);
-        mgr->m_error_response = NULL;
-    }
 
     if (mgr->m_queue_attr) {
         mem_free(mgr->m_alloc, mgr->m_queue_attr);

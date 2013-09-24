@@ -33,79 +33,6 @@ static int set_logic_rsp_manage_load_commit_dsp(
     return 0;
 }
 
-static int set_logic_rsp_manage_load_error_response(
-    gd_app_context_t app, gd_app_module_t module, set_logic_rsp_manage_t mgr, cfg_t cfg)
-{
-    cfg_t error_response_cfg;
-    int cmd;
-    LPDRMETA data_meta;
-    LPDRMETAENTRY req_entry;
-    LPDRMETAENTRY errno_entry;
-    const char * value;
-
-    error_response_cfg = cfg_find_cfg(cfg, "error-response");
-    if (error_response_cfg == NULL) return 0;
-
-    value = cfg_get_string(error_response_cfg, "cmd", NULL);
-    if (value == NULL) {
-        CPE_ERROR(gd_app_em(app), "%s: create: load_error_response: cmd not configured!", gd_app_module_name(module));
-        return -1;
-    }
-
-    if (dr_lib_find_macro_value(&cmd, dr_meta_owner_lib(mgr->m_pkg_meta), value) != 0) {
-        CPE_ERROR(gd_app_em(app), "%s: create: load_error_response: cmd %s not exist in lib!", gd_app_module_name(module), value);
-        return -1;
-    }
-
-    data_meta = set_svr_svr_info_find_data_meta_by_cmd(mgr->m_svr_type, cmd);
-    if (data_meta == NULL) {
-        CPE_ERROR(gd_app_em(app), "%s: create: load_error_response: meta of cmd %d not exsit!", gd_app_module_name(module), cmd);
-        return -1;
-    }
-
-    value = cfg_get_string(error_response_cfg, "req-entry", NULL);
-    if (value == NULL) {
-        CPE_ERROR(gd_app_em(app), "%s: create: load_error_response: entry-req configured!", gd_app_module_name(module));
-        return -1;
-    }
-
-    req_entry = dr_meta_find_entry_by_name(data_meta, value);
-    if (req_entry == NULL) {
-        CPE_ERROR(
-            gd_app_em(app), "%s: create: load_error_response: req entry %s not exist in meta %s!",
-            gd_app_module_name(module), value, dr_meta_name(data_meta));
-        return -1;
-    }
-
-    value = cfg_get_string(error_response_cfg, "errno-entry", NULL);
-    if (value == NULL) {
-        CPE_ERROR(gd_app_em(app), "%s: create: load_error_response: errno-entry configured!", gd_app_module_name(module));
-        return -1;
-    }
-
-    errno_entry = dr_meta_find_entry_by_name(data_meta, value);
-    if (errno_entry == NULL) {
-        CPE_ERROR(
-            gd_app_em(app), "%s: create: load_error_response: errno-entry %s not exist in meta %s!",
-            gd_app_module_name(module), value, dr_meta_name(data_meta));
-        return -1;
-    }
-
-    mgr->m_error_response = mem_alloc(mgr->m_alloc, sizeof(struct set_logic_rsp_error_response) + dr_meta_size(data_meta));
-    if (mgr->m_error_response == NULL) {
-        CPE_ERROR(gd_app_em(app), "%s: create: load_error_response: alloc fail", gd_app_module_name(module));
-        return -1;
-    }
-
-    mgr->m_error_response->m_cmd = cmd;
-    mgr->m_error_response->m_data_meta = data_meta;
-    mgr->m_error_response->m_errno_entry = errno_entry;
-    mgr->m_error_response->m_req_entry = req_entry;
-    bzero(mgr->m_error_response + 1, dr_meta_size(data_meta));
-
-    return 0;
-}
-
 static int set_logic_rsp_manage_load_recv_at(
     gd_app_context_t app, gd_app_module_t module, set_logic_rsp_manage_t mgr, cfg_t cfg)
 {
@@ -295,11 +222,6 @@ int set_logic_rsp_manage_app_init(gd_app_context_t app, gd_app_module_t module, 
     }
 
     if (set_logic_rsp_manage_load_queue_infos(app, module, mgr, cfg) != 0) {
-        set_logic_rsp_manage_free(mgr);
-        return -1;
-    }
-
-    if (set_logic_rsp_manage_load_error_response(app, module, mgr, cfg) != 0) {
         set_logic_rsp_manage_free(mgr);
         return -1;
     }

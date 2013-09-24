@@ -58,6 +58,11 @@ struct set_svr_svr_info {
     LPDRMETAENTRY m_pkg_cmd_entry;
     LPDRMETAENTRY m_pkg_data_entry;
     LPDRMETA m_carry_meta;
+
+    LPDRMETA m_error_pkg_meta;
+    uint32_t m_error_pkg_cmd;
+    LPDRMETAENTRY m_error_pkg_error_entry;
+
     cpe_hash_string_t m_notify_dispatch_to;
     cpe_hash_string_t m_response_dispatch_to;
     struct cpe_hash_entry m_hh;

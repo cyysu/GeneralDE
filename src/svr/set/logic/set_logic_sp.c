@@ -4,6 +4,7 @@
 #include "cpe/nm/nm_manage.h"
 #include "cpe/nm/nm_read.h"
 #include "cpe/dr/dr_metalib_manage.h"
+#include "cpe/dr/dr_data.h"
 #include "cpe/dp/dp_manage.h"
 #include "cpe/dp/dp_request.h"
 #include "cpe/dp/dp_responser.h"
@@ -54,6 +55,7 @@ set_logic_sp_create(
     mgr->m_stub = stub;
     mgr->m_outgoing_dispatch_to = NULL;
     mgr->m_incoming_recv_at = NULL;
+
     mgr->m_sp_data_meta = dr_lib_find_meta_by_name((LPDRMETALIB)g_metalib_set_logic_data_meta, "set_logic_sp_data");
     assert(mgr->m_sp_data_meta);
 
@@ -204,16 +206,6 @@ static int set_logic_sp_incoming_recv(dp_req_t req, void * ctx, error_monitor_t 
         return -1;
     }
 
-    data = logic_require_data_get_or_create(require, data_meta, data_size);
-    if (data == NULL) {
-        CPE_ERROR(
-            sp->m_em, "%s: receive response of %d: create data fail!",
-            set_logic_sp_name(sp), set_pkg_sn(pkg_head));
-        logic_require_set_error(require);
-        return -1;
-    }
-    memcpy(logic_data_data(data), data_buf, data_size);
-
     /*创建携带数据 */
     data = logic_require_data_get_or_create(require, sp->m_sp_data_meta, sizeof(SET_LOGIC_SP_DATA));
     if (data == NULL) {
@@ -227,7 +219,37 @@ static int set_logic_sp_incoming_recv(dp_req_t req, void * ctx, error_monitor_t 
     carry_data->from_svr_type = set_pkg_from_svr_type(pkg_head);
     carry_data->from_svr_id = set_pkg_from_svr_id(pkg_head);
 
-    logic_require_set_done(require);
+    if (set_svr_svr_info_error_pkg_meta(svr_type) && set_svr_svr_info_error_pkg_cmd(svr_type) == cmd) {
+        LPDRMETAENTRY error_entry = set_svr_svr_info_error_pkg_errno_entry(svr_type);
+        int32_t err = -1;
+        if (dr_entry_try_read_int32(
+                &err, ((const char*)data_buf) + dr_entry_data_start_pos(error_entry, 0),
+                error_entry, sp->m_em)
+            != 0)
+        {
+            CPE_ERROR(
+                sp->m_em, "%s: receive response of %d: read errno from error response fail!",
+                set_logic_sp_name(sp), set_pkg_sn(pkg_head));
+            logic_require_set_error(require);
+        }
+        else {
+            logic_require_set_error_ex(require, err);
+        }
+    }
+    else {
+        data = logic_require_data_get_or_create(require, data_meta, data_size);
+        if (data == NULL) {
+            CPE_ERROR(
+                sp->m_em, "%s: receive response of %d: create data fail!",
+                set_logic_sp_name(sp), set_pkg_sn(pkg_head));
+            logic_require_set_error(require);
+            return -1;
+        }
+        memcpy(logic_data_data(data), data_buf, data_size);
+
+        logic_require_set_done(require);
+    }
+
     return 0;
 }
 

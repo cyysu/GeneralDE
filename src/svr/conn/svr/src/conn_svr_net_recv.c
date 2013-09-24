@@ -47,6 +47,8 @@ void conn_svr_rw_cb(EV_P_ ev_io *w, int revents) {
     conn = w->data;
     svr = conn->m_svr;
 
+    conn_svr_conn_update_op_time(conn);
+
     if (revents & EV_READ) {
         ringbuffer_block_t blk;
         if (conn_svr_conn_alloc(&blk, svr, conn, svr->m_read_block_size) != 0) return;
