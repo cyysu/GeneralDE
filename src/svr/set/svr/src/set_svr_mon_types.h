@@ -43,6 +43,8 @@ struct set_svr_mon_app {
     char ** m_args;
     size_t m_arg_count;
     size_t m_arg_capacity;
+    uint64_t m_rq_size;
+    uint64_t m_wq_size;
 
     struct fsm_machine m_fsm;
     gd_timer_id_t m_fsm_timer_id;

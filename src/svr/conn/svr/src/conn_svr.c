@@ -63,6 +63,8 @@ conn_svr_create(
     svr->m_fd = -1;
     svr->m_check_timer_id = GD_TIMER_ID_INVALID;
 
+    TAILQ_INIT(&svr->m_conns_check);
+
     if (cpe_hash_table_init(
             &svr->m_conns_by_conn_id,
             alloc,
