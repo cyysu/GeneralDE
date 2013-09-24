@@ -32,6 +32,8 @@ void logic_context_errno_set(logic_context_t context, int32_t v);
 size_t logic_context_capacity(logic_context_t context);
 void * logic_context_data(logic_context_t context);
 
+const char * logic_context_state_name(logic_context_state_t state);
+
 void logic_context_set_commit(logic_context_t context, logic_context_commit_fun_t op, void * ctx);
 
 int logic_context_timeout_is_start(logic_context_t context);
