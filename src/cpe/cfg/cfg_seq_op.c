@@ -4,7 +4,7 @@
 #include "cfg_internal_ops.h"
 
 int cfg_seq_count(cfg_t cfg) {
-    return ((struct cfg_seq *)cfg)->m_count;
+    return cfg ? ((struct cfg_seq *)cfg)->m_count : 0;
 }
 
 cfg_t cfg_seq_at(cfg_t cfg, int pos) {
