@@ -416,3 +416,24 @@ void logic_context_enqueue(logic_context_t context, enum logic_context_queue_sta
         break;
     }
 }
+
+const char * logic_context_state_name(logic_context_state_t state) {
+    switch(state) {
+    case logic_context_state_init:
+        return "init";
+    case logic_context_state_waiting:
+        return "waiting";
+    case logic_context_state_idle:
+        return "idle";
+    case logic_context_state_error:
+        return "error";
+    case logic_context_state_done:
+        return "done";
+    case logic_context_state_cancel:
+        return "cancel";
+    case logic_context_state_timeout:
+        return "timeout";
+    default:
+        return "unknown";
+    }
+}
