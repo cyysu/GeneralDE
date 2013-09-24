@@ -362,13 +362,13 @@ static void gd_evt_mgr_dispatch_evt(tl_event_t input, void * context) {
 
     if (dp_dispatch_by_string(gd_evt_target_hs(evt), mgr->m_req, mgr->m_em) != 0) {
         struct write_stream_error stream = CPE_WRITE_STREAM_ERROR_INITIALIZER(mgr->m_em);
-        stream_printf((write_stream_t)&stream, "%s: dispatch success, oid=%s, event=", gd_evt_mgr_name(mgr));
+        stream_printf((write_stream_t)&stream, "%s: dispatch success, event=", gd_evt_mgr_name(mgr));
         gd_evt_dump((write_stream_t)&stream, evt);
     }
     else {
         if (mgr->m_debug) {
             struct write_stream_error stream = CPE_WRITE_STREAM_ERROR_INITIALIZER(mgr->m_em);
-            stream_printf((write_stream_t)&stream, "%s: dispatch success, oid=%s, event=", gd_evt_mgr_name(mgr));
+            stream_printf((write_stream_t)&stream, "%s: dispatch success, event=", gd_evt_mgr_name(mgr));
             gd_evt_dump((write_stream_t)&stream, evt);
         }
     }
