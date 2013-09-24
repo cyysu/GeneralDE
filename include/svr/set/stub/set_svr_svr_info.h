@@ -22,6 +22,10 @@ LPDRMETAENTRY set_svr_svr_info_pkg_cmd_entry(set_svr_svr_info_t svr_info);
 LPDRMETA set_svr_svr_info_carry_meta(set_svr_svr_info_t svr_info);
 LPDRMETA set_svr_svr_info_find_data_meta_by_cmd(set_svr_svr_info_t svr_info, uint32_t cmd);
 
+LPDRMETA set_svr_svr_info_error_pkg_meta(set_svr_svr_info_t svr_info);
+uint32_t set_svr_svr_info_error_pkg_cmd(set_svr_svr_info_t svr_info);
+LPDRMETAENTRY set_svr_svr_info_error_pkg_errno_entry(set_svr_svr_info_t svr_info);
+
 #ifdef __cplusplus
 }
 #endif
