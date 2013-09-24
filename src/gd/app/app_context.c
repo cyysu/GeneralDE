@@ -142,6 +142,7 @@ int gd_app_cfg_reload(gd_app_context_t context) {
     const char * apk_name;
     cpe_unzip_context_t zip_context;
     cpe_unzip_dir_t zip_dir;
+    cpe_unzip_file_t zip_file;
 
     apk_name = android_current_apk();
     if (strcmp(apk_name, "") == 0) {
@@ -155,26 +156,38 @@ int gd_app_cfg_reload(gd_app_context_t context) {
         return -1;
     }
 
-    zip_dir = cpe_unzip_dir_find(zip_context, "assets/etc", context->m_em);
-    if (zip_dir == NULL) {
+    if ((zip_file = cpe_unzip_file_find(zip_context, "assets/etc.yml", context->m_em))) {
+        rv = cfg_read_zip_file(
+            context->m_cfg,
+            zip_file,
+            cfg_merge_use_new,
+            context->m_em);
+
+        if (rv == 0) {
+            if (context->m_debug) {
+                CPE_INFO(context->m_em, "load config from %s:assets/etc.yml success!", apk_name);
+            }
+        }
+    }
+    else if ((zip_dir = cpe_unzip_dir_find(zip_context, "assets/etc", context->m_em))) {
+        rv = cfg_read_zip_dir(
+            context->m_cfg,
+            zip_dir,
+            cfg_merge_use_new,
+            context->m_em,
+            context->m_alloc);
+
+        if (rv == 0) {
+            if (context->m_debug) {
+                CPE_INFO(context->m_em, "load config from %s:assets/etc success!", apk_name);
+            }
+        }
+    }
+    else {
         if (context->m_debug) {
             CPE_INFO(context->m_em, "load config from %s:assets/etc: dir not exist, skip!", apk_name);
         }
-        cpe_unzip_context_free(zip_context);
-        return 0;
-    }
-
-    rv = cfg_read_zip_dir(
-        context->m_cfg,
-        zip_dir,
-        cfg_merge_use_new,
-        context->m_em,
-        context->m_alloc);
-
-    if (rv == 0) {
-        if (context->m_debug) {
-            CPE_INFO(context->m_em, "load config from %s:assets/etc success!", apk_name);
-        }
+        rv = 0;
     }
 
     cpe_unzip_context_free(zip_context);
