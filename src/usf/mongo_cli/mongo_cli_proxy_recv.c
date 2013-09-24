@@ -40,9 +40,8 @@ static int mongo_cli_proxy_recv_build_results(
 
 static int mongo_cli_proxy_recv_build_result_from_it(mongo_cli_proxy_t proxy, bson_iterator * bson_it, logic_data_t * result_data, LPDRMETA result_meta) {
     void * result;
-    int32_t len;
-    const char * value;
     char type = bson_iterator_type(bson_it);
+    bson data;
 
     if (type != BSON_OBJECT) {
         CPE_ERROR(proxy->m_em, "%s: recv_response: find_and_modify: not support bson type %d!", mongo_cli_proxy_name(proxy), type);
@@ -57,11 +56,10 @@ static int mongo_cli_proxy_recv_build_result_from_it(mongo_cli_proxy_t proxy, bs
         return -1;
     }
 
-    value = bson_iterator_value(bson_it);
-    CPE_COPY_HTON32(&len, value);
+    bson_iterator_subobject(bson_it, &data);
 
-    if (dr_bson_read(result, dr_meta_size(result_meta), value, len, result_meta, proxy->m_em) < 0) {
-        CPE_ERROR(proxy->m_em, "%s: recv_response: bson read fail, len=%d!", mongo_cli_proxy_name(proxy), len);
+    if (dr_bson_read(result, dr_meta_size(result_meta), bson_data(&data), bson_size(&data), result_meta, proxy->m_em) < 0) {
+        CPE_ERROR(proxy->m_em, "%s: recv_response: bson read fail, len=%d!", mongo_cli_proxy_name(proxy), (int)bson_size(&data));
         return -1;
     }
 
@@ -72,9 +70,11 @@ static int mongo_cli_proxy_recv_process_find_and_modify(
     mongo_cli_proxy_t proxy, mongo_pkg_t pkg, logic_require_t require, logic_data_t * result_data, LPDRMETA result_meta)
 {
     bson_iterator bson_it;
+    logic_data_t last_error_data;
+    MONGO_LASTERROR * last_error;
 
     if (mongo_pkg_find(&bson_it, pkg, 0, "ok") != 0) {
-        if (mongo_pkg_find(&bson_it, pkg, 0, "code") != 0) {
+        if (mongo_pkg_find(&bson_it, pkg, 0, "code") == 0) {
             int32_t err = (int32_t)bson_iterator_int(&bson_it);
             if (proxy->m_debug) {
                 CPE_INFO(proxy->m_em, "%s: recv_response: find_and_modify: error: %d!", mongo_cli_proxy_name(proxy), err);
@@ -91,6 +91,7 @@ static int mongo_cli_proxy_recv_process_find_and_modify(
         }
     }
 
+    /*读取数据 */
     if (mongo_pkg_find(&bson_it, pkg, 0, "value") != 0) {
         CPE_ERROR(proxy->m_em, "%s: recv_response: find_and_modify: find value fail!", mongo_cli_proxy_name(proxy));
         logic_require_error(require);
@@ -124,6 +125,26 @@ static int mongo_cli_proxy_recv_process_find_and_modify(
             mongo_cli_proxy_name(proxy), bson_iterator_type(&bson_it));
         logic_require_error(require);
         return -1;
+    }
+
+    /*构造LAST_ERROR */
+    last_error_data = logic_require_data_get_or_create(require, proxy->m_meta_lasterror, sizeof(MONGO_LASTERROR));
+    if (last_error_data == NULL) {
+        CPE_ERROR(proxy->m_em, "%s: recv_response: find_and_modify: create lastErrorObject data fail!", mongo_cli_proxy_name(proxy));
+        logic_require_error(require);
+        return -1;
+    }
+    last_error = logic_data_data(last_error_data);
+    bzero(last_error, sizeof(MONGO_LASTERROR));
+
+    if (mongo_pkg_find(&bson_it, pkg, 0, "lastErrorObject") == 0) {
+        bson data;
+        bson_iterator_subobject(&bson_it, &data);
+        if (dr_bson_read(last_error, sizeof(MONGO_LASTERROR), bson_data(&data), bson_size(&data), proxy->m_meta_lasterror, proxy->m_em) < 0) {
+            CPE_ERROR(proxy->m_em, "%s: recv_response: bson read lastErrorObject fail!", mongo_cli_proxy_name(proxy));
+            logic_require_error(require);
+            return -1;
+        }
     }
 
     logic_require_set_done(require);
@@ -209,14 +230,40 @@ int mongo_cli_proxy_recv(dp_req_t req, void * ctx, error_monitor_t em) {
             return mongo_cli_proxy_recv_process_find_and_modify(proxy, pkg, require, &result_data, result_meta);
         }
         else {
+            bson_iterator bson_err;
+            bson_iterator bson_code;
+
+            if (result_meta == proxy->m_meta_lasterror) {
+                return mongo_cli_proxy_recv_process_find_last_error(proxy, pkg, require, result_data);
+            }
+
+            if (mongo_pkg_find(&bson_err, pkg, 0, "$err") == 0) {
+                if (mongo_pkg_find(&bson_code, pkg, 0, "code") == 0) {
+                    int32_t err = (int32_t)bson_iterator_int(&bson_code);
+                    if (proxy->m_debug) {
+                        CPE_INFO(
+                            proxy->m_em, "%s: recv_response: query: error: %s, (code=%d)!",
+                            mongo_cli_proxy_name(proxy), bson_iterator_string(&bson_err), err);
+                    }
+                    logic_require_set_error_ex(require, err);
+                    return -1;
+                }
+                else {
+                    if (proxy->m_debug) {
+                        CPE_INFO(
+                            proxy->m_em, "%s: recv_response: query: error: %s, (code=?)!",
+                            mongo_cli_proxy_name(proxy), bson_iterator_string(&bson_err));
+                    }
+                    logic_require_set_error(require);
+                    return -1;
+                }
+            }
+
             if (mongo_cli_proxy_recv_build_results(proxy, pkg, &result_data, result_meta) != 0) {
                 logic_require_set_error(require);
                 return -1;
             }
 
-            if (result_meta == proxy->m_meta_lasterror) {
-                return mongo_cli_proxy_recv_process_find_last_error(proxy, pkg, require, result_data);
-            }
         }
     }
 
