@@ -6,3 +6,4 @@ t/3rdTools/zmq
 t/svr/usf
 t/svr/room
 t/svr/match
+t/svr/payment
