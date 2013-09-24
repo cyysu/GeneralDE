@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="GBK" standalone="yes"?>
+<metalib tagsetversion="1" name="" version="1">
+    <include name="svr_payment_data" file="svr_payment_data.xml"/>
+
+    <struct name="svr_payment_recharge_data_gift" version="1">
+        <entry name="moneies" type="svr_payment_money_group" id="1"/>
+        <entry name="acitvity_id" type="uint64" id="2"/>
+        <entry name="gift_id" type="uint64" id="3"/>
+    </struct>
+
+</metalib>

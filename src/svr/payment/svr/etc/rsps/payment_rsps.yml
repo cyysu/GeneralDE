@@ -1,0 +1,14 @@
+- name: payment_get_balance
+  respons-to: SVR_PAYMENT_CMD_REQ_GET_BALANCE
+  operations:
+    - payment_op_get_balance
+
+- name: payment_pay
+  respons-to: SVR_PAYMENT_CMD_REQ_PAY
+  operations:
+    - payment_op_pay
+
+- name: payment_recharge
+  respons-to: SVR_PAYMENT_CMD_REQ_RECHARGE
+  operations:
+    - payment_op_recharge
