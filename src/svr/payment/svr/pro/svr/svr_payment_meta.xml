@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<metalib tagsetversion="1" name="" version="1">
+    <include name="svr_payment_data" file="svr_payment_data.xml"/>
+
+    <struct name="bag_info" version="1">
+        <entry name="bag_id" type="uint16" id="1"/>
+        <entry name="money_type_count" type="uint8" id="2"/>
+    </struct>
+
+    <struct name="product_info" version="1">
+        <entry name="product_id" type="string" size="128" id="1"/>
+        <entry name="support_money_count" type="uint16" id="2"/>
+        <entry name="support_moneies" type="svr_payment_money" count="PAYMENT_MONEY_TYPE_COUNT" refer="support_money_count" id="3"/>
+    </struct>
+
+</metalib>
