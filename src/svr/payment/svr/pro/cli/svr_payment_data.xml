@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<metalib tagsetversion="1" name="" version="1">
+
+    <macro name="PAYMENT_MONEY_TYPE_MIN" value="1"/>
+    <macro name="PAYMENT_MONEY_TYPE_MAX" value="3"/>
+    <macro name="PAYMENT_MONEY_TYPE_COUNT" value="3"/>
+
+    <struct name="svr_payment_money" version="1">
+        <entry name="type" type="uint8" id="1"/>
+        <entry name="count" type="uint64" id="2"/>
+    </struct>
+
+    <struct name="svr_payment_money_group" version="1">
+        <entry name="count" type="uint8" id="3"/>
+        <entry name="datas" type="svr_payment_money" count="PAYMENT_MONEY_TYPE_COUNT" refer="count" id="2"/>
+    </struct>
+
+</metalib>
