@@ -21,6 +21,7 @@ conn_svr_conn_create(conn_svr_t svr, int fd, uint32_t conn_id) {
     conn->m_auth = 0;
     conn->m_rb = NULL;
     conn->m_wb = NULL;
+    conn->m_last_op_time = conn_svr_cur_time(svr);
 
     cpe_hash_entry_init(&conn->m_hh_for_conn_id);
     if (cpe_hash_table_insert_unique(&svr->m_conns_by_conn_id, conn) != 0) {
@@ -39,6 +40,8 @@ conn_svr_conn_create(conn_svr_t svr, int fd, uint32_t conn_id) {
 
     conn->m_watcher.data = conn;
     conn_svr_conn_start_watch(conn);
+
+    TAILQ_INSERT_TAIL(&svr->m_conns_check, conn, m_next_for_check);
 
     return conn;
 }
@@ -66,6 +69,8 @@ void conn_svr_conn_free(conn_svr_conn_t conn) {
         conn->m_wb = NULL;
     }
 
+    TAILQ_REMOVE(&svr->m_conns_check, conn, m_next_for_check);
+
     if (conn->m_user_id) {
         cpe_hash_table_remove_by_ins(&svr->m_conns_by_user_id, conn);
     }
@@ -86,6 +91,14 @@ void conn_svr_conn_free_all(conn_svr_t svr) {
         conn_svr_conn_free(conn);
         conn = next;
     }
+}
+
+void conn_svr_conn_update_op_time(conn_svr_conn_t conn) {
+    conn_svr_t svr = conn->m_svr;
+
+    TAILQ_REMOVE(&svr->m_conns_check, conn, m_next_for_check);
+    conn->m_last_op_time = conn_svr_cur_time(svr);
+    TAILQ_INSERT_TAIL(&svr->m_conns_check, conn, m_next_for_check);
 }
 
 int conn_svr_conn_set_user_id(conn_svr_conn_t conn, uint64_t user_id) {

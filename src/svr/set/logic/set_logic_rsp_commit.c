@@ -54,6 +54,10 @@ void set_logic_rsp_commit(logic_context_t op_context, void * user_data) {
         return;
     }
 
+    if (logic_context_errno(op_context) != 0 && set_svr_svr_info_error_pkg_meta(rsp_mgr->m_svr_type)) {
+        goto SEND_ERROR_RESPONSE;
+    }
+
     response_buf = set_logic_rsp_commit_build_response(set_logic_rsp, op_context, bpg_private, em);
     if (response_buf == NULL) {
         goto SEND_ERROR_RESPONSE;
@@ -267,38 +271,49 @@ static dp_req_t set_logic_rsp_commit_build_error_response(
 {
     set_logic_rsp_manage_t mgr;
     dp_req_t response_buf;
-    void * data;
+    char data[128];
     size_t data_size;
     int err;
+    LPDRMETA error_pkg_meta;
+    LPDRMETAENTRY error_entry;
 
     mgr = rsp->m_mgr;
 
-    if (mgr->m_error_response == NULL) {
+    error_pkg_meta = set_svr_svr_info_error_pkg_meta(mgr->m_svr_type);
+    if (error_pkg_meta == NULL) {
         CPE_ERROR(
-            em, "%s.%s: gen error response buf: no error info!",
+            em, "%s.%s: gen error response buf: no error pkg meta!",
             set_logic_rsp_manage_name(rsp->m_mgr), set_logic_rsp_name(rsp));
         return NULL;
     }
 
-    data_size = dr_meta_size(mgr->m_error_response->m_data_meta);
-    data = mgr->m_error_response + 1;
+    error_entry = set_svr_svr_info_error_pkg_errno_entry(mgr->m_svr_type);
+    if (error_pkg_meta == NULL) {
+        CPE_ERROR(
+            em, "%s.%s: gen error response buf: no error entry!",
+            set_logic_rsp_manage_name(rsp->m_mgr), set_logic_rsp_name(rsp));
+        return NULL;
+    }
 
-    if (dr_entry_set_from_uint32(data, mgr->m_error_response->m_cmd, mgr->m_error_response->m_req_entry, em) != 0) {
-        CPE_ERROR(em, "%s.%s: gen error response buf: set req fail!", set_logic_rsp_manage_name(rsp->m_mgr), set_logic_rsp_name(rsp));
+    data_size = dr_meta_size(error_pkg_meta);
+    if (data_size > sizeof(data)) {
+        CPE_ERROR(
+            em, "%s.%s: gen error response buf: size of %s overflow, (size=%d)!",
+            set_logic_rsp_manage_name(rsp->m_mgr), set_logic_rsp_name(rsp), dr_meta_name(error_pkg_meta), (int)data_size);
         return NULL;
     }
 
     err = logic_context_errno(op_context);
     if (err == 0) err = -1;
-    if (dr_entry_set_from_int32(data, err, mgr->m_error_response->m_errno_entry, em) != 0) {
+    if (dr_entry_set_from_int32(((char*)data) + dr_entry_data_start_pos(error_entry, 0), err, error_entry, em) != 0) {
         CPE_ERROR(em, "%s.%s: gen error response buf: set errno fail!", set_logic_rsp_manage_name(rsp->m_mgr), set_logic_rsp_name(rsp));
         return NULL;
     }
 
     response_buf = 
         set_logic_rsp_commit_build_response_body(
-            rsp, op_context, bpg_private->response,
-            mgr->m_error_response->m_data_meta, data, data_size, em);
+            rsp, op_context, set_svr_svr_info_error_pkg_cmd(mgr->m_svr_type),
+            error_pkg_meta, data, data_size, em);
     if (response_buf == NULL) return NULL;
 
     if (set_logic_rsp_commit_build_response_head(rsp, op_context, response_buf, bpg_private, em) != 0) return NULL;
