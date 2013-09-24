@@ -5,3 +5,4 @@ t/3rdTools/yaml
 t/support/dr2
 t/3rdTools/libev
 t/3rdTools/log4c
+t/3rdTools/curl
