@@ -11,6 +11,10 @@ public:
 
     virtual void onStateUpdate(NetClient & cli) = 0;
 
+protected:
+    NetClient & netClient(void) { return m_cli; }
+    NetClient const & netClient(void) const { return m_cli; }
+
 private:
     NetClient & m_cli;
 };

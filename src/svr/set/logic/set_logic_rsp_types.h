@@ -39,7 +39,6 @@ struct set_logic_rsp_manage {
     dp_req_t m_rsp_buf;
 
     char * m_queue_attr;
-    struct set_logic_rsp_error_response * m_error_response;
 
     struct set_logic_rsp_queue_info * m_default_queue_info;
     struct cpe_hash_table m_queue_infos;

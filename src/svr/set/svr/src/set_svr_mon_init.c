@@ -32,6 +32,10 @@ int set_svr_app_init_mon(set_svr_mon_t mon) {
         const char * bin = cfg_get_string(mon_app_cfg, "bin", NULL);
         const char * svr_type_name = cfg_get_string(mon_app_cfg, "svr-type", NULL);
         struct cfg_it arg_it;
+        const char * str_rq_size;
+        uint64_t rq_size;
+        const char * str_wq_size;
+        uint64_t wq_size;
         cfg_t arg_cfg;
         char app_root[256];
         char app_bin[256];
@@ -76,7 +80,27 @@ int set_svr_app_init_mon(set_svr_mon_t mon) {
 
         snprintf(pidfile, sizeof(pidfile), "%s/%s.pid", svr->m_repository_root, base);
 
-        mon_app = set_svr_mon_app_create(mon, svr_type, app_bin, pidfile);
+        if ((str_rq_size = cfg_get_string(mon_app_cfg, "rq-size", NULL)) == NULL) {
+            CPE_ERROR(svr->m_em, "%s: load app: bin %s rq-size not configured!", set_svr_name(svr), app_bin);
+            return -1;
+        }
+
+        if (cpe_str_parse_byte_size(&rq_size, str_rq_size) != 0) {
+            CPE_ERROR(svr->m_em, "%s: load app: bin %s rq-size %s format error!", set_svr_name(svr), app_bin, str_rq_size);
+            return -1;
+        }
+
+        if ((str_wq_size = cfg_get_string(mon_app_cfg, "wq-size", NULL)) == NULL) {
+            CPE_ERROR(svr->m_em, "%s: load app: bin %s wq-size not configured!", set_svr_name(svr), app_bin);
+            return -1;
+        }
+
+        if (cpe_str_parse_byte_size(&wq_size, str_wq_size) != 0) {
+            CPE_ERROR(svr->m_em, "%s: load app: bin %s wq-size %s format error!", set_svr_name(svr), app_bin, str_wq_size);
+            return -1;
+        }
+
+        mon_app = set_svr_mon_app_create(mon, svr_type, app_bin, pidfile, rq_size, wq_size);
         if (mon_app == NULL) return -1;
 
         if (set_svr_mon_app_add_arg(mon_app, app_bin) != 0) {
@@ -122,10 +146,6 @@ static int set_svr_mon_app_sync_svr(set_svr_mon_app_t mon_app, set_svr_svr_type_
     set_svr_svr_t svr_svr;
     int shmid;
     cfg_t svr_cfg;
-    const char * str_rq_size;
-    uint64_t rq_size;
-    const char * str_wq_size;
-    uint64_t wq_size;
 
     svr_svr = set_svr_svr_find(svr, svr_type->m_svr_type_id, svr_id);
     if (svr_svr) {
@@ -156,34 +176,6 @@ static int set_svr_mon_app_sync_svr(set_svr_mon_app_t mon_app, set_svr_svr_type_
         return -1;
     }
 
-    if ((str_rq_size = cfg_get_string(svr_cfg, "rq-size", NULL)) == NULL) {
-        CPE_ERROR(
-            svr->m_em, "%s: on find svr %s.%d: rq-size not configured!",
-            set_svr_name(svr), svr_type->m_svr_type_name, svr_id);
-        return -1;
-    }
-
-    if (cpe_str_parse_byte_size(&rq_size, str_rq_size) != 0) {
-        CPE_ERROR(
-            svr->m_em, "%s: on find svr %s.%d: rq-size %s format error!",
-            set_svr_name(svr), svr_type->m_svr_type_name, svr_id, str_rq_size);
-        return -1;
-    }
-
-    if ((str_wq_size = cfg_get_string(svr_cfg, "wq-size", NULL)) == NULL) {
-        CPE_ERROR(
-            svr->m_em, "%s: on find svr %s.%d: wq-size not configured!",
-            set_svr_name(svr), svr_type->m_svr_type_name, svr_id);
-        return -1;
-    }
-
-    if (cpe_str_parse_byte_size(&wq_size, str_wq_size) != 0) {
-        CPE_ERROR(
-            svr->m_em, "%s: on find svr %s.%d: wq-size %s format error!",
-            set_svr_name(svr), svr_type->m_svr_type_name, svr_id, str_wq_size);
-        return -1;
-    }
-
     shmid = cpe_shm_key_gen(mon_app->m_pidfile, 'a');
     if (shmid == -1) {
         CPE_ERROR(
@@ -200,7 +192,7 @@ static int set_svr_mon_app_sync_svr(set_svr_mon_app_t mon_app, set_svr_svr_type_
         return -1;
     }
 
-    svr_svr->m_chanel = set_chanel_shm_init(shmid, wq_size, rq_size, svr->m_em);
+    svr_svr->m_chanel = set_chanel_shm_init(shmid, mon_app->m_wq_size, mon_app->m_rq_size, svr->m_em);
     if (svr_svr->m_chanel == NULL) {
         CPE_ERROR(
             svr->m_em, "%s: on find svr %s.%d: attach chanel fail!",
