@@ -41,6 +41,7 @@ conn_svr_conn_t conn_svr_conn_find_by_conn_id(conn_svr_t svr, uint32_t conn_id);
 conn_svr_conn_t conn_svr_conn_find_by_user_id(conn_svr_t svr, uint64_t user_id);
 void conn_svr_conn_link_node_r(conn_svr_conn_t conn, ringbuffer_block_t blk);
 void conn_svr_conn_link_node_w(conn_svr_conn_t conn, ringbuffer_block_t blk);
+void conn_svr_conn_update_op_time(conn_svr_conn_t conn);
 
 uint32_t conn_svr_conn_conn_id_hash(conn_svr_conn_t conn);
 int conn_svr_conn_conn_id_eq(conn_svr_conn_t l, conn_svr_conn_t r);
