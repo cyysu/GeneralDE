@@ -12,7 +12,10 @@
 #include "set_svr_mon_ops.h"
 
 set_svr_mon_app_t
-set_svr_mon_app_create(set_svr_mon_t mon, set_svr_svr_type_t svr_type, const char * bin, const char * pidfile) {
+set_svr_mon_app_create(
+    set_svr_mon_t mon, set_svr_svr_type_t svr_type, const char * bin, const char * pidfile,
+    uint64_t rq_size, uint64_t wq_size)
+{
     set_svr_t svr = mon->m_svr;
     set_svr_mon_app_t mon_app;
 
@@ -45,6 +48,8 @@ set_svr_mon_app_create(set_svr_mon_t mon, set_svr_svr_type_t svr_type, const cha
     mon_app->m_args = NULL;
     mon_app->m_arg_count = 0;
     mon_app->m_arg_capacity = 0;
+    mon_app->m_rq_size = rq_size;
+    mon_app->m_wq_size = wq_size;
 
     if (fsm_machine_init(&mon_app->m_fsm, mon->m_fsm_def, "disable", mon_app, mon->m_debug) != 0) {
         CPE_ERROR(svr->m_em, "%s: mon_app: init fsm fail!", set_svr_name(svr));
