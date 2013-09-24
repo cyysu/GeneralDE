@@ -29,6 +29,8 @@ void logic_require_timeout_stop(logic_require_t require);
 logic_require_state_t
 logic_require_state(logic_require_t require);
 
+const char * logic_require_state_name(logic_require_state_t state);
+
 logic_stack_node_t logic_require_stack(logic_require_t require);
 void logic_require_disconnect_to_stack(logic_require_t require);
 
