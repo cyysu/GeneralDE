@@ -304,3 +304,22 @@ uint32_t logic_require_hash(const struct logic_require * require) {
 int logic_require_cmp(const struct logic_require * l, const struct logic_require * r) {
     return l->m_id == r->m_id;
 }
+
+const char * logic_require_state_name(logic_require_state_t state) {
+    switch(state) {
+    case logic_require_state_waiting:
+        return "waiting";
+    case logic_require_state_canceling:
+        return "canceling";
+    case logic_require_state_error:
+        return "error";
+    case logic_require_state_done:
+        return "done";
+    case logic_require_state_canceled:
+        return "canceled";
+    case logic_require_state_timeout:
+        return "timeout";
+    default:
+        return "unknown";
+    }
+}
