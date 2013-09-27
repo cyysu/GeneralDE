@@ -340,7 +340,7 @@ static int set_svr_router_conn_established_process_data(set_svr_router_conn_t co
                 dp_req_dump(body, &svr->m_dump_buffer_body));
         }
 
-        rv = set_chanel_r_write(to_svr->m_chanel, body, NULL);
+        rv = set_chanel_r_write(to_svr->m_chanel, body, NULL, svr->m_em);
         if (rv != 0) {
             CPE_ERROR(
                 svr->m_em, "%s: conn %d: router %d-%d.%d: write to chanel fail, error=%d (%s)!",
