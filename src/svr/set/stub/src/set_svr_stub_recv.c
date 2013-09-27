@@ -39,7 +39,7 @@ ptr_int_t set_svr_stub_tick(void * ctx, ptr_int_t arg) {
             if (body == NULL) break;
         }
 
-        rv = set_chanel_r_peak(stub->m_chanel, body);
+        rv = set_chanel_r_peak(stub->m_chanel, body, stub->m_em);
         if (rv != 0) {
             if (rv == set_chanel_error_chanel_empty) break;
 
@@ -195,7 +195,7 @@ ptr_int_t set_svr_stub_tick(void * ctx, ptr_int_t arg) {
         }
 
     NEXT_PKG:
-        rv = set_chanel_r_erase(stub->m_chanel);
+        rv = set_chanel_r_erase(stub->m_chanel, stub->m_em);
     }
 
     return process_count;
