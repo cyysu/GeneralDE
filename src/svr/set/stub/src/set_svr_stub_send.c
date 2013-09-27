@@ -100,7 +100,7 @@ int set_svr_stub_send_pkg(set_svr_stub_t stub, dp_req_t body) {
         dp_req_set_meta(body, pkg_meta);
     }
 
-    if ((rv = set_chanel_w_write(stub->m_chanel, body, &send_size)) != 0) {
+    if ((rv = set_chanel_w_write(stub->m_chanel, body, &send_size, stub->m_em)) != 0) {
         if (set_pkg_pack_state(head) == set_pkg_packed) {
             CPE_ERROR(
                 stub->m_em, "%s: svr %s.%d: ==> send one pkg to %d.%d: send fail, error=%d (%s)!\nhead: %s\ncarry: %s\nbody: [packed %d bytes]",
