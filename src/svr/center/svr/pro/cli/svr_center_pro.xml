@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="GBK" standalone="yes"?>
+<metalib tagsetversion="1" name="" version="1">
+    <include name="svr_center_data" file="svr_center_data.xml"/>
+
+    <!-- 协议定义 -->
+    <macrosgroup name="SVR_CENTER_ERROR_NO">
+        <macro name="SVR_CENTER_ERROR_INTERNAL" value="-1"/>
+        <macro name="SVR_CENTER_ERROR_SVR_TYPE_NOT_EXIST" value="1"/>
+        <macro name="SVR_CENTER_ERROR_TOO_MANY_SVR_TYPES" value="2"/>
+    </macrosgroup>
+
+    <!-- 注册或者握手协议 -->
+    <struct name="svr_center_svr_runing" version="1">
+        <entry name="id" type="svr_center_svr_id" id="1"/>
+        <entry name="port" type="uint16" id="2"/>
+    </struct>
+
+    <struct name="svr_center_req_join" version="1">
+        <entry name="count" type="uint16" id="2"/>
+        <entry name="data" type="svr_center_svr_runing" count="0" refer="count" id="3"/>
+    </struct>
+
+    <struct name="svr_center_res_join" version="1">
+        <entry name="result" type="int8" id="1"/>
+    </struct>
+
+    <!-- 查询指定类型服务器列表 -->
+    <struct name="svr_center_req_query_svr_by_type" version="1">
+        <entry name="count" type="uint16" id="1"/>
+        <entry name="types" type="uint16" id="2" count="0" refer="count"/>
+    </struct>
+
+    <struct name="svr_center_res_query_svr_by_type" version="1">
+        <entry name="count" type="uint16" id="1"/>
+        <entry name="data" type="svr_center_svr_info" count="0" refer="count" id="2"/>
+    </struct>
+
+    <!-- 整体协议定义 -->
+    <macrosgroup name="SVR_CENTER_CMD_ID">
+        <macro name="SVR_CENTER_CMD_REQ_JOIN" value="1"/>
+        <macro name="SVR_CENTER_CMD_RES_JOIN" value="2"/>
+
+        <macro name="SVR_CENTER_CMD_REQ_QUERY_SVR_BY_TYPE" value="3"/>
+        <macro name="SVR_CENTER_CMD_RES_QUERY_SVR_BY_TYPE" value="4"/>
+
+    </macrosgroup>
+
+    <union name="svr_center_pkg_data" version="1" desc="">
+        <entry name="svr_center_req_join" type="svr_center_req_join" id="SVR_CENTER_CMD_REQ_JOIN"/>
+        <entry name="svr_center_res_join" type="svr_center_res_join" id="SVR_CENTER_CMD_RES_JOIN"/>
+
+        <entry name="svr_center_req_query_svr_by_type" type="svr_center_req_query_svr_by_type" id="SVR_CENTER_CMD_REQ_QUERY_SVR_BY_TYPE"/>
+        <entry name="svr_center_res_query_svr_by_type" type="svr_center_res_query_svr_by_type" id="SVR_CENTER_CMD_RES_QUERY_SVR_BY_TYPE"/>
+    </union>
+
+    <struct name="svr_center_pkg" version="1">
+        <entry name="cmd" type="uint32" id="1"/>
+        <entry name="data" type="svr_center_pkg_data" id="3" select="cmd"/>
+    </struct>
+
+</metalib>
