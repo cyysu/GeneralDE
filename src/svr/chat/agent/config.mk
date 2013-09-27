@@ -1,7 +1,7 @@
 product:=chat_agent
 $(product).type:=cpe-dr lib
 $(product).depends:=cpepp_cfg
-$(product).c.sources:=$(wildcard $(product-base)/*.cpp)
+$(product).c.sources:=$(wildcard $(product-base)/*.c)
 $(product).product.c.flags.ld:=-rdynamic
 $(product).product.c.output-includes:=share
 $(product).include:=
