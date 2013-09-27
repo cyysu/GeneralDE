@@ -67,7 +67,7 @@ ptr_int_t set_svr_dispatch_tick(void * ctx, ptr_int_t arg) {
             continue;
         }
 
-        rv = set_chanel_w_peak(local_svr->m_chanel, body);
+        rv = set_chanel_w_peak(local_svr->m_chanel, body, svr->m_em);
         if (rv != 0) {
             if (rv == set_chanel_error_chanel_empty) continue;
 
@@ -83,11 +83,11 @@ ptr_int_t set_svr_dispatch_tick(void * ctx, ptr_int_t arg) {
             CPE_ERROR(
                 svr->m_em, "%s: dispatch: svr %s.%d: peak pkg fail!",
                 set_svr_name(svr), local_svr->m_svr_type->m_svr_type_name, local_svr->m_svr_id);
-            set_chanel_w_erase(local_svr->m_chanel);
+            set_chanel_w_erase(local_svr->m_chanel, svr->m_em);
             continue;
         }
 
-        set_chanel_w_erase(local_svr->m_chanel);
+        set_chanel_w_erase(local_svr->m_chanel, svr->m_em);
     }
 
     if (svr->m_debug >= 3) {
@@ -171,7 +171,7 @@ static int set_svr_dispatch_send_pkg(set_svr_t svr, set_svr_svr_t local_svr, dp_
             return -1;
         }
 
-        rv = set_chanel_r_write(to_svr->m_chanel, body, &write_size);
+        rv = set_chanel_r_write(to_svr->m_chanel, body, &write_size, svr->m_em);
         if (rv != 0) {
             CPE_ERROR(
                 svr->m_em, "%s: dispatch: svr %s.%d: write to chanel of svr %s.%d fail, error=%d (%s)!",
