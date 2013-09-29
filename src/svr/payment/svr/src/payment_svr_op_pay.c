@@ -128,6 +128,19 @@ payment_svr_op_pay_on_db_update(
         return logic_op_exec_result_false;
     }
 
+    if (mongo_cli_result_n(update_result) > 1) {
+        APP_CTX_ERROR(
+            logic_context_app(ctx), "%s: pay: on_db_update:: update %d records !!!",
+            payment_svr_name(svr), mongo_cli_result_n(update_result));
+        logic_context_errno_set(ctx, SVR_PAYMENT_ERRNO_INTERNAL);
+        return logic_op_exec_result_false;
+    }
+
+    if (payment_svr_db_build_balance(svr, bag_info, require, &res->balance) != 0) {
+        logic_context_errno_set(ctx, SVR_PAYMENT_ERRNO_INTERNAL);
+        return logic_op_exec_result_false;
+    }
+
     if (mongo_cli_result_n(update_result) == 1) { /*老用户更新成功，查询回数据 */
         PAYMENT_BILL_DATA bill_data;
 
@@ -140,20 +153,9 @@ payment_svr_op_pay_on_db_update(
 
         payment_svr_db_add_bill(svr, bag_info, req->user_id, &bill_data, &res->balance);
     }
-    else if (mongo_cli_result_n(update_result) == 0) { /*没有符合条件的记录，应该是金币不足导致 */
+    else {/*没有符合条件的记录，应该是金币不足导致 */
+        assert(mongo_cli_result_n(update_result) == 0);
         res->result = SVR_PAYMENT_ERRNO_NOT_ENOUTH_MONEY;
-    }
-    else {
-        APP_CTX_ERROR(
-            logic_context_app(ctx), "%s: pay: on_db_update:: update %d records !!!",
-            payment_svr_name(svr), mongo_cli_result_n(update_result));
-        logic_context_errno_set(ctx, SVR_PAYMENT_ERRNO_INTERNAL);
-        return logic_op_exec_result_false;
-    }
-
-    if (payment_svr_db_build_balance(svr, bag_info, require, &res->balance) != 0) {
-        logic_context_errno_set(ctx, SVR_PAYMENT_ERRNO_INTERNAL);
-        return logic_op_exec_result_false;
     }
 
     return logic_op_exec_result_true;
