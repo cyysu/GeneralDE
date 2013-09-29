@@ -9,7 +9,7 @@
 #include "protocol/svr/set/set_share_chanel.h"
 #include "protocol/svr/set/set_share_pkg.h"
 
-#define SET_CHANEL_DEBUG
+//#define SET_CHANEL_DEBUG
 #define SET_SHARE_SAVE_HEAD_SIZE (sizeof(uint32_t) + sizeof(SET_PKG_HEAD) + 1) /*长度计数以及一个协议头*/
 
 static void set_chanel_pipe_save_ignore_pkg(void * buf, size_t capacity);
