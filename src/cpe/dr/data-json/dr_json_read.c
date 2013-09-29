@@ -76,7 +76,7 @@ static char * dr_json_parse_get_write_pos(
     if (ctx->m_output_buf) {
         if (total_size > ctx->m_output_capacity) return NULL;
 
-        if (total_size > ctx->m_size) ctx->m_size = total_size;
+        if (total_size > (size_t)ctx->m_size) ctx->m_size = (int)total_size;
 
         return ctx->m_output_buf + start;
     }
