@@ -19,6 +19,8 @@ include $(CPDE_BUILD_DETAIL_DIR)/change-root.mk
 include $(wildcard $(CPDE_BUILD_DETAIL_DIR)/dev-env-*.mk)
 
 include $(CPDE_BUILD_DETAIL_DIR)/defaults.mk
+include $(wildcard $(CPDE_BUILD_DETAIL_DIR)/support-*.mk)
+include $(CPDE_BUILD_DETAIL_DIR)/post-commands.mk
 include $(CPDE_BUILD_DETAIL_DIR)/product-def.mk
 include $(wildcard $(CPDE_BUILD_DETAIL_DIR)/product-def-*.mk)
 include $(CPDE_BUILD_DETAIL_DIR)/gtest-def.mk
@@ -31,7 +33,11 @@ include $(addsuffix /config.mk,$(modules))
 
 include $(CPDE_BUILD_DETAIL_DIR)/domain-auto-def.mk
 
--include $(foreach p,$(project_repository), $(r.$p.makefile.include))
+ifneq ($(CPE_NO_DEP),1)
+-include $(foreach d,$(using-domain-list),\
+	$(foreach p,$($(d).product-list), $(r.$p.$d.makefile.include)))
+endif
+
+$(eval $(call post-commands-execute))
 
 include $(CPDE_BUILD_DETAIL_DIR)/create-dirs.mk
-

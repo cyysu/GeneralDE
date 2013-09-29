@@ -12,16 +12,16 @@ $1.ut: $(if $(filter 0,$($1.ut)) \
 endef
 
 define domain-auto-def-product
-$(foreach p,$(call product-gen-depend-list,$($1.product-list)), \
+$(foreach p,$(call product-gen-depend-list,$($1.env),$($1.product-list) $($1.addition-product-list)) $($1.addition-product-list), \
 	$(if $(filter $p,$($1.product-list)) \
-        ,\
+        , \
         , $(eval $(call product-def-for-domain,$p,$1))) \
     )
 
 $(if $(filter 0,$($1.ut)) \
     , \
     , $(foreach p, $(foreach u,$($1.product-list), $($(u).ut)) \
-                   $(call product-gen-depend-list,$(foreach u,$($1.product-list), $($(u).ut))) \
+                   $(call product-gen-depend-list,$($1.env),$(foreach u,$($1.product-list), $($(u).ut))) \
         , $(if $(filter $p,$($1.product-list)) \
                , \
                , $(eval $(call product-def-for-domain,$p,$1)))))
@@ -31,8 +31,6 @@ endef
 domain-target-product-dep-def=\
 $(if $(r.$1.depends),$(if $(r.$1.$2.product),\
 $(addprefix $(CPDE_OUTPUT_ROOT)/,$(r.$1.$2.product)): $(foreach p,$(r.$1.depends),$(addprefix $(CPDE_OUTPUT_ROOT)/,$(r.$p.$2.product)))))
-
-using-domain-list?=$(sort $(domain-list) tools)
 
 $(foreach domain,$(using-domain-list),\
     $(eval $(call domain-auto-def-product,$(domain))) \
