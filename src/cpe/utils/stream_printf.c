@@ -119,7 +119,7 @@ static void forcdecpt(char *buffer) {
     }
 
     if (*buffer) {
-        int n = strlen(buffer);
+        int n = (int)strlen(buffer);
         while (n > 0) {
             buffer[n + 1] = buffer[n];
             n--;
