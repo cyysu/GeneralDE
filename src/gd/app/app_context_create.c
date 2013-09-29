@@ -192,7 +192,8 @@ gd_app_context_create_main(mem_allocrator_t alloc, size_t capacity, int argc, ch
     g_main_app_context = gd_app_context_create_i(alloc, capacity, gd_app_default_lib_handler, argc, argv);
 
     if (g_main_app_context->m_root == NULL) {
-        g_main_app_context->m_root = cpe_str_mem_dup(g_main_app_context->m_alloc, getcwd(NULL, 0));
+        const char * d = getcwd(NULL, 0);
+        g_main_app_context->m_root = d ? cpe_str_mem_dup(g_main_app_context->m_alloc, d) : NULL;
         if(g_main_app_context->m_root == NULL) {
             CPE_INFO(g_main_app_context->m_em, "gd_app_context_create: root dir not exist!");
             /* gd_app_context_free(g_main_app_context); */
