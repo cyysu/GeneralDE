@@ -18,6 +18,10 @@ int payment_svr_db_send_query_money(payment_svr_t svr, BAG_INFO * bag_info, logi
         return -1;
     }
 
+    mongo_pkg_init(db_pkg);
+    mongo_pkg_set_collection(db_pkg, "payment_data");
+    mongo_pkg_set_op(db_pkg, mongo_db_op_query);
+
     pkg_r = 0;
 
     pkg_r |= mongo_pkg_doc_open(db_pkg);
