@@ -77,7 +77,7 @@ static void dr_print_print_string(yajl_gen g, int typeId, size_t bufLen, const v
         int len = dr_ctype_print_to_stream((write_stream_t)&bufS, data, typeId, em);
 
         if (len >= 0) {
-            if (len >= sizeof(buf)) len = sizeof(buf) - 1;
+            if (len >= (int)sizeof(buf)) len = (int)sizeof(buf) - 1;
 
             buf[len] = 0;
             JSON_PRINT_CHECK_GEN_RESULT(yajl_gen_string(g, (const unsigned char *)buf, len));
