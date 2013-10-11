@@ -17,13 +17,17 @@ my $outputFile;
 my @metaLibDirs;
 my $metaLibFile;
 my $metaName;
+my $startLine;
 
 GetOptions("input-file=s" => \$inputFile,
            "input-sheet=s" => \$inputSheet,
            "output=s"   => \$outputFile,
            "meta-lib-dirs=s" => \@metaLibDirs,
            "meta-lib=s" => \$metaLibFile,
-           "meta-name=s" => \$metaName);
+           "meta-name=s" => \$metaName,
+           "start-line=i" => \$startLine);
+
+$startLine = 1 if ! defined $startLine;
 
 $inputSheet = decode("utf8", $inputSheet);
 $inputFile = decode("utf8", $inputFile);
@@ -553,7 +557,7 @@ sub is_role_all_empty {
   return 1;
 }
 
-foreach my $rowPos ( $row_min + 1 .. $row_max ) {
+foreach my $rowPos ( $row_min + $startLine .. $row_max ) {
   my %row;
 
   last if is_role_all_empty($rowPos);
