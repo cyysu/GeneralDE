@@ -73,6 +73,12 @@ payment_svr_create(
     svr->m_db = db;
     svr->m_debug = 0;
 
+    svr->m_bag_info_count = 0;
+    svr->m_bag_infos = NULL;
+
+    svr->m_product_info_count = 0;
+    svr->m_product_infos = NULL;
+
     svr->m_iap_svr_type = 0;
     svr->m_iap_meta_req_validate = NULL;
 
