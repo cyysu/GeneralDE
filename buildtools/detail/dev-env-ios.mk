@@ -105,7 +105,8 @@ ios.GCC = $(call $(IOS_PLATFORM_NAME).compiler,gcc)
 ios.CXX = $(call $(IOS_PLATFORM_NAME).compiler,g++)
 ios.CC = $(ios.GCC)
 ios.LD = $(ios.CC)
-ios.AR = $(IOS_PLATFORM_BIN_PATH)/ar
+ios.AR = $(word 1, $(wildcard $(IOS_PLATFORM_BIN_PATH)/ar)  \
+                   $(wildcard $(IOS_XCODE_ROOT)/Toolchains/XcodeDefault.xctoolchain/usr/bin/ar))
 ios.STRIP = $(IOS_PLATFORM_BIN_PATH)/strip
 ios.OBJCOPY = $(IOS_PLATFORM_BIN_PATH)/objcopy
 ios.IBTOOL = ibtool
