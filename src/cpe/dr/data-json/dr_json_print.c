@@ -285,6 +285,19 @@ void dr_json_print_i(
     //yajl_gen_map_close(g);
 }
 
+struct dr_json_print_ctx {
+    write_stream_t m_output;
+    int m_total_size;
+};
+
+static int dr_json_do_print(struct dr_json_print_ctx * ctx, const void * buf, size_t size) {
+    int r = stream_write(ctx->m_output, buf, size);
+    if (r > 0) {
+        ctx->m_total_size += r;
+    }
+    return r;
+}
+
 int dr_json_print(
     write_stream_t output,
     const void * input,
@@ -294,6 +307,7 @@ int dr_json_print(
     error_monitor_t em)
 {
     int ret = 0;
+    struct dr_json_print_ctx print_ctx = { output, 0 };
     yajl_gen g;
 
     if (output == NULL || input == NULL || meta == NULL) {
@@ -309,7 +323,7 @@ int dr_json_print(
 
     yajl_gen_config(g, yajl_gen_beautify, flag & DR_JSON_PRINT_MINIMIZE ? 0 : 1);
     //yajl_gen_config(g, yajl_gen_validate_utf8, flag & DR_JSON_PRINT_VALIDATE_UTF8 ? 1 : 0);
-    yajl_gen_config(g, yajl_gen_print_callback, stream_write, output);
+    yajl_gen_config(g, yajl_gen_print_callback, dr_json_do_print, &print_ctx);
 
 
     if (em) {
@@ -324,7 +338,7 @@ int dr_json_print(
 
     yajl_gen_free(g);    
 
-    return ret;
+    return ret == 0 ? print_ctx.m_total_size : ret;
 }
 
 void dr_json_print_array_i(
@@ -358,6 +372,7 @@ int dr_json_print_array(
     error_monitor_t em)
 {
     int ret = 0;
+    struct dr_json_print_ctx print_ctx = { output, 0 };
     yajl_gen g;
 
     if (output == NULL || input == NULL || meta == NULL) {
@@ -373,7 +388,7 @@ int dr_json_print_array(
 
     yajl_gen_config(g, yajl_gen_beautify, flag & DR_JSON_PRINT_MINIMIZE ? 0 : 1);
     //yajl_gen_config(g, yajl_gen_validate_utf8, flag & DR_JSON_PRINT_VALIDATE_UTF8 ? 1 : 0);
-    yajl_gen_config(g, yajl_gen_print_callback, stream_write, output);
+    yajl_gen_config(g, yajl_gen_print_callback, dr_json_do_print, &print_ctx);
 
 
     if (em) {
@@ -388,5 +403,5 @@ int dr_json_print_array(
 
     yajl_gen_free(g);    
 
-    return ret;
+    return ret == 0 ? print_ctx.m_total_size : ret;
 }
