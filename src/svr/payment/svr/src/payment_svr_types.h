@@ -40,8 +40,6 @@ struct payment_svr {
     uint32_t m_product_info_count;
     PRODUCT_INFO * m_product_infos;
 
-    mongo_pkg_t m_mongo_pkg;
-
     /*for iap svr*/
     uint16_t m_iap_svr_type;
     LPDRMETA m_iap_meta_req_validate;
