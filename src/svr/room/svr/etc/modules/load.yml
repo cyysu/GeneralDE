@@ -4,7 +4,7 @@
     bufsize: 4kb
 
   rollingpolicies:
-    - dev: { type: sizewin, maxsize: 500mb, maxnum: 1 }
+    - dev: { type: sizewin, maxsize: 500mb, maxnum: 10 }
 
   layouts:
     - default: { type: dated }
