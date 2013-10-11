@@ -111,6 +111,12 @@ int set_svr_app_init_mon(set_svr_mon_t mon) {
         cfg_it_init(&arg_it, cfg_find_cfg(mon_app_cfg, "args"));
         while((arg_cfg = cfg_it_next(&arg_it))) {
             const char * arg_value = cfg_as_string(arg_cfg, NULL);
+            if (arg_value == NULL) {
+                CPE_ERROR(
+                    svr->m_em, "%s: load app: bin %s arg not string",
+                    set_svr_name(svr), app_bin);
+                return -1;
+            }
 
             if (set_svr_mon_app_add_arg(mon_app, arg_value) != 0) {
                 CPE_ERROR(
