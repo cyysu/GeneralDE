@@ -38,6 +38,10 @@ conn_net_cli_svr_stub_create(conn_net_cli_t cli, const char * svr_type_name, uin
     svr->m_pkg_cmd_entry = NULL;
     svr->m_pkg_data_entry = NULL;
 
+    svr->m_error_pkg_meta = NULL;
+    svr->m_error_pkg_cmd = 0;
+    svr->m_error_pkg_error_entry = NULL;
+
     svr->m_response_dispatch_to = NULL;
     svr->m_notify_dispatch_to = NULL;
     svr->m_outgoing_recv_at = NULL;
@@ -199,6 +203,18 @@ LPDRMETA conn_net_cli_svr_stub_find_data_meta_by_cmd(conn_net_cli_svr_stub_t svr
     if (data_entry == NULL) return NULL;
 
     return dr_entry_ref_meta(data_entry);
+}
+
+LPDRMETA conn_net_cli_svr_stub_error_pkg_meta(conn_net_cli_svr_stub_t svr_info) {
+    return svr_info->m_error_pkg_meta;
+}
+
+uint32_t conn_net_cli_svr_stub_error_pkg_cmd(conn_net_cli_svr_stub_t svr_info) {
+    return svr_info->m_error_pkg_cmd;
+}
+
+LPDRMETAENTRY conn_net_cli_svr_stub_error_pkg_errno_entry(conn_net_cli_svr_stub_t svr_info) {
+    return svr_info->m_error_pkg_error_entry;
 }
 
 uint32_t conn_net_cli_svr_stub_hash(conn_net_cli_svr_stub_t svr) {

@@ -11,6 +11,9 @@
 #include "svr/conn/net_cli/conn_net_cli_svr_stub.h"
 #include "conn_net_cli_internal_ops.h"
 
+static int conn_net_cli_load_svr_stub_error_info(
+    conn_net_cli_t cli, conn_net_cli_svr_stub_t svr_info, const char * svr_type_name, const char * str_error_pkg);
+
 static int conn_net_cli_app_load_svr_stubs(conn_net_cli_t conn_net_cli, cfg_t cfg) {
     struct cfg_it childs;
     cfg_t child_cfg;
@@ -33,6 +36,7 @@ static int conn_net_cli_app_load_svr_stubs(conn_net_cli_t conn_net_cli, cfg_t cf
         const char * outgoing_recv_at;
         const char * str_pkg_meta;
         const char * svr_pkg_data_entry;
+        const char * svr_pkg_error_info;
         dr_store_t store;
         char const * sep;
         char lib_name[64];
@@ -140,6 +144,15 @@ static int conn_net_cli_app_load_svr_stubs(conn_net_cli_t conn_net_cli, cfg_t cf
                         conn_net_cli_name(conn_net_cli), svr_type_name, dr_entry_name(cmd_entry));
                     return -1;
                 }
+            }
+        }
+
+        if ((svr_pkg_error_info = cfg_get_string(child_cfg, "pkg-meta-error", NULL))) {
+            if (conn_net_cli_load_svr_stub_error_info(conn_net_cli, svr_stub, svr_type_name, svr_pkg_error_info) != 0) {
+                CPE_ERROR(
+                    conn_net_cli->m_em, "%s: create: load svrs: svr %s: load pkg-meta-error %s fail!",
+                    conn_net_cli_name(conn_net_cli), svr_type_name, svr_pkg_error_info);
+                return -1;
             }
         }
 
@@ -272,3 +285,66 @@ void conn_net_cli_app_fini(gd_app_context_t app, gd_app_module_t module) {
         conn_net_cli_free(conn_net_cli);
     }
 }
+
+static int conn_net_cli_load_svr_stub_error_info(
+    conn_net_cli_t cli, conn_net_cli_svr_stub_t svr_info, const char * svr_type_name, const char * str_error_pkg)
+{
+    LPDRMETA data_meta;
+    char err_pkg_meta[64];
+    char * err_entry_name;
+    int i;
+
+    if (svr_info->m_pkg_data_entry == NULL) {
+        CPE_ERROR(
+            cli->m_em, "%s: %s: pkg-meta-error configured, but no data entry!!",
+            conn_net_cli_name(cli), svr_type_name);
+        return -1;
+    }
+
+    data_meta = dr_entry_ref_meta(svr_info->m_pkg_data_entry);
+    if (data_meta == NULL) {
+        CPE_ERROR(
+            cli->m_em, "%s: %s: pkg-meta-error configured, but no data entry!!",
+            conn_net_cli_name(cli), svr_type_name);
+        return -1;
+    }
+
+    err_entry_name = strchr(str_error_pkg, '.');
+    if (err_entry_name == NULL) {
+        CPE_ERROR(
+            cli->m_em, "%s: %s: pkg-meta-error %s format error or overflow!",
+            conn_net_cli_name(cli), svr_type_name, str_error_pkg);
+        return -1;
+    }
+    memcpy(err_pkg_meta, str_error_pkg, err_entry_name - str_error_pkg);
+    err_pkg_meta[err_entry_name - str_error_pkg] = 0;
+    err_entry_name += 1;
+
+    for(i = 0; i < dr_meta_entry_num(data_meta); ++i) {
+        LPDRMETAENTRY entry = dr_meta_entry_at(data_meta, i);
+        LPDRMETA entry_meta = dr_entry_ref_meta(entry);
+        if (entry_meta && strcmp(dr_meta_name(entry_meta), err_pkg_meta) == 0) {
+            svr_info->m_error_pkg_meta = entry_meta;
+            svr_info->m_error_pkg_cmd = dr_entry_id(entry);
+            break;
+        }
+    }
+
+    if (svr_info->m_error_pkg_meta == NULL) {
+        CPE_ERROR(
+            cli->m_em, "%s: %s: pkg-meta-error %s not entry of %s",
+            conn_net_cli_name(cli), svr_type_name, err_pkg_meta, dr_meta_name(data_meta));
+        return -1;
+    }
+
+    svr_info->m_error_pkg_error_entry = dr_meta_find_entry_by_name(svr_info->m_error_pkg_meta, err_entry_name);
+    if (svr_info->m_error_pkg_error_entry == NULL) {
+        CPE_ERROR(
+            cli->m_em, "%s: %s: pkg-meta-error %s no error entry %s",
+            conn_net_cli_name(cli), svr_type_name, err_pkg_meta, err_entry_name);
+        return -1;
+    }
+
+    return 0; 
+}
+

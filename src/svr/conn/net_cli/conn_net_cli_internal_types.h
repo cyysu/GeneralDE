@@ -77,6 +77,10 @@ struct conn_net_cli_svr_stub {
     LPDRMETAENTRY m_pkg_cmd_entry;
     LPDRMETAENTRY m_pkg_data_entry;
 
+    LPDRMETA m_error_pkg_meta;
+    uint32_t m_error_pkg_cmd;
+    LPDRMETAENTRY m_error_pkg_error_entry;
+
     cpe_hash_string_t m_response_dispatch_to;
     cpe_hash_string_t m_notify_dispatch_to;
     dp_rsp_t m_outgoing_recv_at;
