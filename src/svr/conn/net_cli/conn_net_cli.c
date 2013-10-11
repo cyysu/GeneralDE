@@ -458,7 +458,6 @@ int conn_net_cli_read_data(
     return 0;
 }
 
-
 struct nm_node_type s_nm_node_type_conn_net_cli = {
     "svr_conn_net_cli",
     conn_net_cli_clear
