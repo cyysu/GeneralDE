@@ -88,7 +88,7 @@ static void net_trans_manage_clear(nm_node_t node) {
 
     if (mgr->m_multi_handle) {
         curl_multi_cleanup(mgr->m_multi_handle);
-        assert(mgr->m_multi_handle == NULL);
+        mgr->m_multi_handle = NULL;
     }
 
     cpe_hash_table_fini(&mgr->m_groups);
