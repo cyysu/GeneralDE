@@ -23,6 +23,10 @@ int conn_net_cli_svr_stub_set_outgoing_recv_at(conn_net_cli_svr_stub_t svr, cons
 
 LPDRMETA conn_net_cli_svr_stub_find_data_meta_by_cmd(conn_net_cli_svr_stub_t svr_info, uint32_t cmd);
 
+LPDRMETA conn_net_cli_svr_stub_error_pkg_meta(conn_net_cli_svr_stub_t svr_info);
+uint32_t conn_net_cli_svr_stub_error_pkg_cmd(conn_net_cli_svr_stub_t svr_info);
+LPDRMETAENTRY conn_net_cli_svr_stub_error_pkg_errno_entry(conn_net_cli_svr_stub_t svr_info);
+
 #ifdef __cplusplus
 }
 #endif
