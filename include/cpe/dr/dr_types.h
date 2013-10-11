@@ -33,6 +33,7 @@ enum dr_code_error {
     dr_code_error_format_error = -1
     , dr_code_error_not_enough_input = -2
     , dr_code_error_not_enough_output = -3
+    , dr_code_error_internal = -4
 };
 
 typedef struct dr_meta_dyn_info {
