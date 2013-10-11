@@ -1,7 +1,7 @@
 product-support-types+=lib progn
 product-def-c-env-items:= c.flags.cpp c.flags.ld c.sources c.includes \
                           product.c.includes product.c.flags.ld product.c.defs product.c.ldpathes product.c.libraries \
-                          product.c.flags.warning
+                          product.c.flags.warning product.c.frameworks
 
 product-def-all-items+= c.libraries c.frameworks c.ldpathes c.linker c.export-symbols \
                         c.flags.lan.all c.flags.lan c.flags.lan.c c.flags.lan.cc c.flags.lan.m c.flags.lan.mm c.lib.type c.env-includes c.env-libraries\
@@ -42,9 +42,15 @@ c-generate-depend-ld-flags=$(call $($2.env).export-symbols,$(r.$1.c.export-symbo
                                                                $(call product-gen-depend-value-list,$1,$($2.env),\
                                                                       $(call c-generate-env-arg-name-list,$2,product.c.env-libraries)))\
                                                         , $($($2.env).lib.$(lib)))) \
-                           $(addprefix -framework ,\
-								 $(sort $(r.$1.c.frameworks) $(r.$1.product.c.frameworks) \
-									$(call product-gen-depend-value-list,$1,$($2.env),product.c.frameworks))) \
+                            $(addprefix -framework ,\
+								 $(sort \
+                                    $(r.$1.c.frameworks) \
+                                    $(r.$1.$($2.env).c.frameworks) \
+                                    $(r.$1.product.c.frameworks) \
+                                    $(r.$1.$($2.env).product.c.frameworks) \
+									$(call product-gen-depend-value-list,$1,$($2.env),product.c.frameworks) \
+                                    $(call product-gen-depend-value-list,$1,$($2.env),$($2.env).product.c.frameworks) \
+                                 )) \
                            $(call revert-list,$(call product-gen-depend-value-list,$1,$($2.env), \
                                         $(call c-generate-env-arg-name-list,$2,product.c.flags.ld))) \
                            $(if $(filter 1,$(GCOV)), -fprofile-arcs -ftest-coverage ) \
@@ -69,8 +75,14 @@ c-generate-depend-cpp-flags=$(addprefix -I$(CPDE_ROOT)/,\
                                  $(addprefix -I$(call c-source-dir-to-binary-dir,$(r.$(oi).base),$2)/,$(r.$(oi).product.c.output-includes))) \
                             $(addprefix -I$(call c-source-dir-to-binary-dir,$(r.$1.base),$2)/,$(r.$1.c.output-includes) $(r.$1.product.c.output-includes)) \
                             $(addprefix -F,\
-								 $(sort $(r.$1.c.frameworks) $(r.$1.product.c.frameworks) \
-									$(call product-gen-depend-value-list,$1,$($2.env),product.c.frameworks))) \
+								 $(sort \
+                                    $(r.$1.c.frameworks) \
+                                    $(r.$1.$($2.env).c.frameworks) \
+                                    $(r.$1.product.c.frameworks) \
+                                    $(r.$1.$($2.env).product.c.frameworks) \
+									$(call product-gen-depend-value-list,$1,$($2.env),product.c.frameworks) \
+                                    $(call product-gen-depend-value-list,$1,$($2.env),$($2.env).product.c.frameworks) \
+                                 )) \
                            $(addprefix -D,$(sort $(call product-gen-depend-value-list,$1,$($2.env),product.c.defs))) \
                            $(addprefix -D,$(sort $(call product-gen-depend-value-list,$1,$($2.env),$($2.env).product.c.defs))) \
                            $(addprefix -D,$(sort $(call product-gen-depend-value-list,$($2.env),$1,$2.product.c.defs))) \
