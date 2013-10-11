@@ -62,12 +62,6 @@ int set_svr_stub_app_init(gd_app_context_t app, gd_app_module_t module, cfg_t cf
         return -1;
     }
 
-    outgoing_recv_at = cfg_get_string(cfg, "outgoing-recv-at", NULL);
-    if (outgoing_recv_at == NULL) {
-        CPE_ERROR(gd_app_em(app), "%s: create: outgoing-recv-at not configured!", gd_app_module_name(module));
-        return -1;
-    }
-
     svr_type_name = cfg_get_string(cfg, "svr-type", NULL);
     if (svr_type_name == NULL) {
         CPE_ERROR(gd_app_em(app), "%s: create: svr-type not configured!", gd_app_module_name(module));
@@ -175,12 +169,14 @@ int set_svr_stub_app_init(gd_app_context_t app, gd_app_module_t module, cfg_t cf
         }
     }
 
-    if (set_svr_stub_set_outgoing_recv_at(svr, outgoing_recv_at) != 0) {
-        CPE_ERROR(
-            gd_app_em(app), "%s: create: set outgoing-recv-at %s fail!",
-            gd_app_module_name(module), outgoing_recv_at);
-        set_svr_stub_free(svr);
-        return -1;
+    if ((outgoing_recv_at = cfg_get_string(cfg, "outgoing-recv-at", NULL))) {
+        if (set_svr_stub_set_outgoing_recv_at(svr, outgoing_recv_at) != 0) {
+            CPE_ERROR(
+                gd_app_em(app), "%s: create: set outgoing-recv-at %s fail!",
+                gd_app_module_name(module), outgoing_recv_at);
+            set_svr_stub_free(svr);
+            return -1;
+        }
     }
 
     if (svr->m_debug) {
