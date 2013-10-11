@@ -69,6 +69,8 @@ void room_svr_room_free_all(room_svr_t svr) {
 void room_svr_room_destory(room_svr_room_t room) {
     room_svr_t svr = room->m_svr;
 
+    TAILQ_REMOVE(&svr->m_room_check_queue, room, m_next_for_check);
+
     while(!TAILQ_EMPTY(&room->m_users)) {
         room_svr_user_destory(TAILQ_FIRST(&room->m_users));
     }
