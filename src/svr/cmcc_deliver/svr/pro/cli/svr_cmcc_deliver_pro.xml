@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="GBK" standalone="yes"?>
+<metalib tagsetversion="1" name="" version="1">
+    <!--  ============ 协议定义 ========== -->
+
+    <!--    发货请求 -->
+    <struct name="svr_cmcc_deliver_req_deliver" version="1">
+        <entry name="userId" type="string" size="64" id="1"/>
+        <entry name="cpServiceId" type="string" size="64" id="2"/>
+        <entry name="consumeCode" type="int32" id="3"/>
+        <entry name="cpParam" type="string" size="64" id="4"/>
+        <entry name="hRet" type="int32" id="5"/>
+        <entry name="status" type="int32" id="6"/>
+        <entry name="versionId" type="int16" id="7"/>
+        <entry name="transIDO" type="string" size="18" id="8"/>
+    </struct>
+
+    <struct name="svr_cmcc_deliver_res_deliver" version="1">
+        <entry name="transIDO" type="string" size="18" id="1"/>
+        <entry name="hRet" type="int32" id="2"/>
+    </struct>
+
+    <!--    错误响应 -->
+    <struct name="svr_cmcc_deliver_res_error" version="1">
+        <entry name="error" type="int16" id="1"/>
+    </struct>
+
+    <!--  =========== 整体协议定义 ========== -->
+    <macrosgroup name="SVR_CMCC_DELIVER_CMD_ID">
+        <macro name="SVR_CMCC_DELIVER_CMD_REQ_DELIVER" value="1"/>
+        <macro name="SVR_CMCC_DELIVER_CMD_RES_DELIVER" value="2"/>
+        <macro name="SVR_CMCC_DELIVER_CMD_RES_ERROR" value="3"/>
+    </macrosgroup>
+
+    <union name="svr_cmcc_deliver_pkg_data" version="1" desc="">
+        <entry name="svr_cmcc_deliver_req_deliver" type="svr_cmcc_deliver_req_deliver" id="SVR_CMCC_DELIVER_CMD_REQ_DELIVER"/>
+        <entry name="svr_cmcc_deliver_res_deliver" type="svr_cmcc_deliver_res_deliver" id="SVR_CMCC_DELIVER_CMD_RES_DELIVER"/>
+
+        <entry name="svr_cmcc_deliver_res_error" type="svr_cmcc_deliver_res_error" id="SVR_CMCC_DELIVER_CMD_RES_ERROR"/>
+    </union>
+
+    <struct name="svr_cmcc_deliver_pkg" version="1">
+        <entry name="cmd" type="uint32" id="1"/>
+        <entry name="data" type="svr_cmcc_deliver_pkg_data" id="3" select="cmd"/>
+    </struct>
+
+</metalib>
