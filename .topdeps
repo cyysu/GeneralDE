@@ -7,3 +7,4 @@ t/svr/usf
 t/svr/room
 t/svr/match
 t/svr/payment
+t/svr/cmcc
