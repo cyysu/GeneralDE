@@ -1,0 +1,49 @@
+- name: log_context
+  config:
+    nocleanup: 0
+    bufsize: 4kb
+
+  rollingpolicies:
+    - dev: { type: sizewin, maxsize: 500mb, maxnum: 1 }
+
+  layouts:
+    - default: { type: dated }
+
+  appenders:
+    - dev: { type: rollingfile, policy: dev, layout: default }
+    - deploment: { type: rollingfile, policy: dev, layout: default }
+    - syslog: { type: syslog, layout: default }
+    - stdout: { type: stream, layout: default }
+    - stderr: { type: stream, layout: default }
+
+  categories:
+    - default: { appender: dev }
+
+  debug: 1
+
+- name: app_setup
+  debug-app: 0
+  debug-net: 0
+  tickers: [ tl, net ]
+
+- name: app_tick_runner
+
+- name: gd_timer_mgr
+
+- name: dr_store_manage
+
+- name: svr_cmcc_deliver_lib
+  type: dr_store_loader
+  load-from-symbol: g_metalib_svr_cmcc_deliver_pro
+
+- name: set_svr_stub
+  svr-type: svr_cmcc_deliver
+  request-send-to: process-cmcc_deliver-incoming
+  outgoing-recv-at: process-cmcc_deliver-outgoing
+  debug: 1
+
+- name: cmcc_deliver_svr
+  send-to: process-cmcc_deliver-outgoing
+  request-recv-at: process-cmcc_deliver-incoming
+
+# -*- coding: utf-8 -*-
