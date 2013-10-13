@@ -195,7 +195,7 @@ static void dr_json_do_parse_from_string(
     elementSize = dr_entry_element_size(parseType->m_entry);
 
     startPos = dr_json_do_parse_calc_start_pos(c, parseType);
-    if (startPos < -1) return;
+    if (startPos < 0) return;
 
     writePos = dr_json_parse_get_write_pos(c, parseType, dr_entry_name(parseType->m_entry), startPos, elementSize);
     if (writePos == NULL) return;
