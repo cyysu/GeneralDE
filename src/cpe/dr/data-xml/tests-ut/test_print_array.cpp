@@ -17,8 +17,9 @@ TEST_F(PrintTest, array_basic) {
     } input = { 2, {12, 13, 14}  };
 #pragma pack(pop)
 
-    EXPECT_EQ(26, print(&input, sizeof(input), "S2"));
-    EXPECT_STREQ("{\"count\":2,\"data\":[12,13]}", result());
+    EXPECT_GT(print(&input, sizeof(input), "S2"), 0);
+    EXPECT_STREQ("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+                 "<S2><count>2</count><data>12</data><data>13</data></S2>\n", result());
 }
 
 TEST_F(PrintTest, array_struct_basic) {
@@ -45,6 +46,7 @@ TEST_F(PrintTest, array_struct_basic) {
     } input = { 2, { {12}, {13}, {14} }  };
 #pragma pack(pop)
 
-    EXPECT_EQ(40, print(&input, sizeof(input), "S2"));
-    EXPECT_STREQ("{\"count\":2,\"data\":[{\"a1\":12},{\"a1\":13}]}", result());
+    EXPECT_GT(print(&input, sizeof(input), "S2"), 0);
+    EXPECT_STREQ("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+                 "<S2><count>2</count><data><a1>12</a1></data><data><a1>13</a1></data></S2>\n", result());
 }
