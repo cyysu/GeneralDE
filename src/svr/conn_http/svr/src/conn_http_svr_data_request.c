@@ -1,4 +1,5 @@
 #include <assert.h>
+#include "cpe/pal/pal_stdio.h"
 #include "cpe/dr/dr_metalib_manage.h"
 #include "svr/set/share/set_pkg.h"
 #include "svr/set/stub/set_svr_stub.h"
