@@ -16,7 +16,7 @@ typedef struct gd_id_generator {
 
 typedef struct gd_id_file_generator * gd_id_file_generator_t;
 
-#define GD_ID_GENERATOR_MAGIC ((uint32_t)0xdF34DF34DF34DF34)
+#define GD_ID_GENERATOR_MAGIC ((uint32_t)0xdF34DF34)
 
 #define gd_id_hash(value) ((uint32_t)(((value >> 32) & 0xFFFF) | (value & 0xFFFFFFFF)))
 
