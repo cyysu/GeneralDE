@@ -207,6 +207,9 @@ static int conn_http_svr_app_init_load_services(conn_http_svr_t svr, cfg_t cfg) 
         if (strcmp(str_formator, "json") == 0) {
             formator = &g_conn_http_formator_json;
         }
+        else if (strcmp(str_formator, "xml") == 0) {
+            formator = &g_conn_http_formator_xml;
+        }
         else {
             CPE_ERROR(
                 svr->m_em, "%s: create: load service %s: formator %s not exist",
