@@ -108,7 +108,7 @@ static void apple_iap_svr_request_validate_commit(net_trans_task_t task, void * 
         CPE_ERROR(
             svr->m_em, "%s: validate %s: parse response fail\n%s!",
             apple_iap_svr_name(svr), task_data->m_receipt,
-            mem_buffer_make_continuous(net_trans_task_buffer(task), 0));
+            (const char *)mem_buffer_make_continuous(net_trans_task_buffer(task), 0));
 
         apple_iap_svr_request_validate_send_error_response(
             svr, task_data->m_receipt, -1,
@@ -121,7 +121,7 @@ static void apple_iap_svr_request_validate_commit(net_trans_task_t task, void * 
         CPE_INFO(
             svr->m_em, "%s: validate %s: receive response\n%s!",
             apple_iap_svr_name(svr), task_data->m_receipt,
-            mem_buffer_make_continuous(net_trans_task_buffer(task), 0));
+            (const char *)mem_buffer_make_continuous(net_trans_task_buffer(task), 0));
     }
 
     if (set_svr_stub_send_response_data(
