@@ -23,6 +23,7 @@ TEST_F(PrintTest, print_struct) {
 #pragma pack(pop)
 
     EXPECT_GT(print(&input, sizeof(input), "S2"), 0);
-    EXPECT_STREQ("{\"m_s\":{\"a1\":12},\"a2\":14}", result());
+    EXPECT_STREQ("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+                 "<S2><m_s><a1>12</a1></m_s><a2>14</a2></S2>\n", result());
 }
 

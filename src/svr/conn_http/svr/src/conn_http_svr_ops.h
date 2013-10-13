@@ -69,6 +69,7 @@ void conn_http_request_link_node_w(conn_http_request_t request, ringbuffer_block
 
 /*formators*/
 extern struct conn_http_formator g_conn_http_formator_json;
+extern struct conn_http_formator g_conn_http_formator_xml;
 
 /*conn_http ss ops*/
 /*void conn_http_svr_op_response(conn_http_svr_t svr, dp_req_t pkg_body, dp_req_t pkg_head); */
