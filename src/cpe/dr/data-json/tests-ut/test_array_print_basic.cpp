@@ -18,6 +18,6 @@ TEST_F(PrintTest, array_print_basic) {
         , { 3, {12, 13, 14}  }
     };
 
-    EXPECT_EQ(0, print_array(&input, sizeof(input), "S2"));
+    EXPECT_EQ(58, print_array(&input, sizeof(input), "S2"));
     EXPECT_STREQ("[{\"count\":2,\"data\":[12,13]},{\"count\":3,\"data\":[12,13,14]}]", result());
 }
