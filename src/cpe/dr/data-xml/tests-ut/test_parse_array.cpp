@@ -17,7 +17,7 @@ TEST_F(ParseTest, array_basic) {
     EXPECT_TRUE(t_em_no_error());
 
     EXPECT_EQ(
-        metaSize("S2"), read("{ \"count\": 2, \"data\" : [ 12 , 14 ], \"last\": 33 }", "S2"));
+        metaSize("S2"), read("<Data><count>2</count><data>12</data><data>14</data><last>33</last></Data>", "S2"));
 
     ASSERT_TRUE(result());
 
@@ -42,7 +42,7 @@ TEST_F(ParseTest, array_basic_not_at_start) {
     EXPECT_TRUE(t_em_no_error());
 
     EXPECT_EQ(
-        metaSize("S2"), read("{ \"count\": 2, \"data\" : [ 12 , 14 ], \"last\": 33 }", "S2"));
+        metaSize("S2"), read("<Data><count>2</count><data>12</data><data>14</data><last>33</last></Data>", "S2"));
 
     ASSERT_TRUE(result());
 
@@ -64,7 +64,7 @@ TEST_F(ParseTest, array_auto_count) {
 
     EXPECT_TRUE(t_em_no_error());
 
-    EXPECT_EQ(metaSize("S2"), read("{ \"data\" : [ 12, 14 ] }", "S2"));
+    EXPECT_EQ(metaSize("S2"), read("<Data><data>12</data><data>14</data></Data>", "S2"));
 
     ASSERT_TRUE(result());
 
@@ -84,7 +84,7 @@ TEST_F(ParseTest, array_overflow) {
 
     EXPECT_TRUE(t_em_no_error());
 
-    EXPECT_EQ(-1, read("{ \"data\" : [ 12 , 14, 16 ], \"last\": 33 }", "S2"));
+    EXPECT_EQ(-1, read("<Data><data>12</data><data>14</data><data>16</data><last>33</last></Data>", "S2"));
 
     ASSERT_TRUE(result());
 
@@ -110,7 +110,7 @@ TEST_F(ParseTest, array_struct_basic) {
 
     EXPECT_TRUE(t_em_no_error());
 
-    ASSERT_EQ(metaSize("S2"), read("{ \"count\": 2, \"data\" : [ { \"a1\" : 12 }, {\"a1\" : 14 } ], \"last\": 33 }" , "S2"));
+    ASSERT_EQ(metaSize("S2"), read("<Data><count>2</count><data><a1>12</a1></data><data><a1>14</a1></data><last>33</last></Data>" , "S2"));
 
     ASSERT_TRUE(result());
 
@@ -135,7 +135,7 @@ TEST_F(ParseTest, array_struct_auto_count) {
 
     EXPECT_TRUE(t_em_no_error());
 
-    ASSERT_EQ(metaSize("S2"), read("{ \"data\" : [ { \"a1\" : 12 }, {\"a1\" : 14 } ], \"last\": 33 }" , "S2"));
+    ASSERT_EQ(metaSize("S2"), read("<Data><data><a1>12</a1></data><data><a1>14</a1></data><last>33</last></Data>" , "S2"));
 
     ASSERT_TRUE(result());
 
@@ -151,25 +151,4 @@ TEST_F(ParseTest, no_start) {
         "</metalib>"
         );
     ASSERT_EQ(dr_code_error_format_error, read("\"a1\" : \"abcde\"", "S"));
-}
-
-TEST_F(ParseTest, array_root) {
-    installMeta(
-        "<metalib tagsetversion='1' name='net'  version='1'>"
-        "    <struct name='S' version='1' align='1'>"
-        "	     <entry name='data' type='uint16'/>"
-        "    </struct>"
-        "</metalib>"
-        );
-
-    EXPECT_TRUE(t_em_no_error());
-
-    EXPECT_EQ(
-        2 * metaSize("S"),
-        read("[ { \"data\" : 3 } , { \"data\" : 4 } " , "S"));
-
-    ASSERT_TRUE(result());
-
-    EXPECT_EQ(3, dr_ctype_read_int16(result(), CPE_DR_TYPE_INT16));
-    EXPECT_EQ(4, dr_ctype_read_int16(result(2), CPE_DR_TYPE_INT16));
 }
