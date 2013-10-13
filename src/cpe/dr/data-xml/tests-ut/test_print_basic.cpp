@@ -13,9 +13,10 @@
     struct {                                                            \
         __type a1;                                                      \
     } input = { __input };                                              \
-                                                                        \
+    t_em_set_print();                                                   \
     EXPECT_GT(print(&input, sizeof(input), "S"), 0);                    \
-    EXPECT_STREQ("{\"a1\":" __expect "}", result());                    \
+    EXPECT_STREQ("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"         \
+                 "<S><a1>" __expect "</a1></S>\n", result());           \
 }
 
 DEF_PRINT_TYPED_TEST(int8, int8_t, 12, "12")
@@ -41,6 +42,7 @@ TEST_F(PrintTest, print_string) {
     } input = { "abcd"  };
 
     EXPECT_GT(print(&input, sizeof(input), "S"), 0);
-    EXPECT_STREQ("{\"a1\":\"abcd\"}", result());
+    EXPECT_STREQ("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+                 "<S><a1>abcd</a1></S>\n", result());
 }
 
