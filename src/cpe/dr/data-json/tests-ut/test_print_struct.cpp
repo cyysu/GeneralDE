@@ -22,7 +22,7 @@ TEST_F(PrintTest, print_struct) {
     } input = { { 12 }, 14  };
 #pragma pack(pop)
 
-    EXPECT_EQ(0, print(&input, sizeof(input), "S2"));
+    EXPECT_GT(print(&input, sizeof(input), "S2"), 0);
     EXPECT_STREQ("{\"m_s\":{\"a1\":12},\"a2\":14}", result());
 }
 

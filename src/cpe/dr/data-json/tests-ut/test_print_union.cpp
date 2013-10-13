@@ -24,7 +24,7 @@ TEST_F(PrintTest, print_union_no_selector) {
     } input = { { 13 }, 14  };
 #pragma pack(pop)
 
-    EXPECT_EQ(0, print(&input, sizeof(input), "S2"));
+    EXPECT_EQ(33, print(&input, sizeof(input), "S2"));
     EXPECT_STREQ("{\"m_s\":{\"a1\":13,\"a2\":13},\"a2\":14}", result());
 }
 
@@ -54,7 +54,7 @@ TEST_F(PrintTest, print_union_with_selector) {
     } input = { 1, { 13 }, 14  };
 #pragma pack(pop)
 
-    EXPECT_EQ(0, print(&input, sizeof(input), "S2"));
+    EXPECT_EQ(34, print(&input, sizeof(input), "S2"));
     EXPECT_STREQ("{\"type\":1,\"m_s\":{\"a1\":13},\"a2\":14}", result());
 }
 
@@ -88,6 +88,6 @@ TEST_F(PrintTest, print_union_with_selector_in_sub) {
 #pragma pack(pop)
 
     t_em_set_print();
-    EXPECT_EQ(0, print(&input, sizeof(input), "S2"));
+    EXPECT_EQ(40, print(&input, sizeof(input), "S2"));
     EXPECT_STREQ("{\"type\":{\"v\":1},\"m_s\":{\"a1\":13},\"a2\":14}", result());
 }

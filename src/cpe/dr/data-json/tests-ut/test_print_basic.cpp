@@ -14,7 +14,7 @@
         __type a1;                                                      \
     } input = { __input };                                              \
                                                                         \
-    EXPECT_EQ(0, print(&input, sizeof(input), "S"));                    \
+    EXPECT_GT(print(&input, sizeof(input), "S"), 0);                    \
     EXPECT_STREQ("{\"a1\":" __expect "}", result());                    \
 }
 
@@ -40,7 +40,7 @@ TEST_F(PrintTest, print_string) {
         char a1[5];
     } input = { "abcd"  };
 
-    EXPECT_EQ(0, print(&input, sizeof(input), "S"));
+    EXPECT_GT(print(&input, sizeof(input), "S"), 0);
     EXPECT_STREQ("{\"a1\":\"abcd\"}", result());
 }
 

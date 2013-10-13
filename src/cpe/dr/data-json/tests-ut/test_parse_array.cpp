@@ -150,7 +150,7 @@ TEST_F(ParseTest, no_start) {
         "    </struct>"
         "</metalib>"
         );
-    ASSERT_EQ(0, read("\"a1\" : \"abcde\"", "S"));
+    ASSERT_EQ(dr_code_error_format_error, read("\"a1\" : \"abcde\"", "S"));
 }
 
 TEST_F(ParseTest, array_root) {
