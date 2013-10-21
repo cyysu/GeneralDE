@@ -37,6 +37,11 @@
         <entry name="friends" type="uint64" count="0" refer="friend_count" id="3"/>
     </struct>
 
+    <!-- 错误响应 -->
+    <struct name="svr_friend_res_error" version="1">
+        <entry name="error" type="int16" id="1"/>
+    </struct>
+
     <!-- 整体协议定义 -->
     <macrosgroup name="SVR_FRIEND_CMD_ID">
         <macro name="SVR_FRIEND_CMD_REQ_QUERY" value="1"/>
@@ -51,6 +56,7 @@
         <macro name="SVR_FRIEND_CMD_REQ_SYNC" value="7"/>
         <macro name="SVR_FRIEND_CMD_RES_SYNC" value="8"/>
 
+        <macro name="SVR_FRIEND_CMD_RES_ERROR" value="9"/>
     </macrosgroup>
 
     <union name="svr_friend_pkg_data" version="1" desc="">
@@ -62,6 +68,13 @@
         <entry name="svr_friend_req_remove" type="svr_friend_req_remove" id="SVR_FRIEND_CMD_REQ_REMOVE"/>
 
         <entry name="svr_friend_req_sync" type="svr_friend_req_sync" id="SVR_FRIEND_CMD_REQ_SYNC"/>
+
+        <entry name="svr_friend_res_error" type="svr_friend_res_error" id="SVR_FRIEND_CMD_RES_ERROR"/>
     </union>
+
+    <struct name="svr_friend_pkg" version="1">
+        <entry name="cmd" type="uint32" id="1"/>
+        <entry name="data" type="svr_friend_pkg_data" id="2" select="cmd"/>
+    </struct>
 
 </metalib>
