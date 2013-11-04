@@ -1,4 +1,4 @@
 From: wangjian1009 <wangjian1009@gmail.coom>
-Subject: [PATCH] t/svr/env
+Subject: [PATCH] t/svr/rank_f
 
-服务通讯框架
+好友排行服务
