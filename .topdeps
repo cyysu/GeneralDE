@@ -9,3 +9,4 @@ t/svr/match
 t/svr/payment
 t/svr/cmcc
 t/svr/dblog
+t/svr/rank_f
