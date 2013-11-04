@@ -2,6 +2,7 @@
 #include "cpe/pal/pal_external.h"
 #include "cpe/pal/pal_stdio.h"
 #include "cpe/pal/pal_shm.h"
+#include "cpe/dr/dr_data.h"
 #include "cpe/dp/dp_manage.h"
 #include "cpe/dp/dp_request.h"
 #include "cpe/dp/dp_responser.h"
@@ -31,6 +32,9 @@ struct logic_op_register_def g_friend_ops[] = {
     { "friend_op_query", 
       friend_svr_op_query_send,
       friend_svr_op_query_recv }
+    , { "friend_op_query_data", 
+      friend_svr_op_query_data_send,
+      friend_svr_op_query_data_recv }
     , { "friend_op_add", 
       friend_svr_op_add_send,
       friend_svr_op_add_recv }
@@ -76,11 +80,32 @@ friend_svr_create(
     svr->m_db = db;
     svr->m_debug = 0;
 
+    mem_buffer_init(&svr->m_record_metalib, alloc);
+    svr->m_record_meta = NULL;
+    svr->m_record_size = 0;
+    svr->m_record_id_entry = NULL;
+    svr->m_record_id_start_pos = 0;
+    svr->m_record_id_capacity = 0;
+    svr->m_record_uid_entry = NULL;
+    svr->m_record_uid_start_pos = 0;
+    svr->m_record_fuid_entry = NULL;
+    svr->m_record_fuid_start_pos = 0;
+    svr->m_record_list_meta = NULL;
+    svr->m_record_data_start_pos = 0;
+    svr->m_record_list_count_entry = NULL;
+    svr->m_record_list_data_entry = NULL;
+
+    svr->m_data_meta = NULL;
+    svr->m_data_fuid_entry = NULL;
+    svr->m_data_fuid_start_pos = 0;
+    svr->m_data_size = 0;
+
     FRIEND_SVR_LOAD_META(m_meta_res_query, "svr_friend_res_query");
 
     svr->m_op_register = logic_op_register_create(app, NULL, alloc, em);
     if (svr->m_op_register == NULL) {
         CPE_ERROR(em, "%s: create: create op_register fail!", name);
+        mem_buffer_clear(&svr->m_record_metalib);
         nm_node_free(svr_node);
         return NULL;
     }
@@ -92,6 +117,7 @@ friend_svr_create(
             svr) != 0)
     {
         CPE_ERROR(em, "%s: create: register friend ops fail!", name);
+        mem_buffer_clear(&svr->m_record_metalib);
         logic_op_register_free(svr->m_op_register);
         nm_node_free(svr_node);
         return NULL;
@@ -110,6 +136,8 @@ static void friend_svr_clear(nm_node_t node) {
         logic_op_register_free(svr->m_op_register);
         svr->m_op_register = NULL;
     }
+
+    mem_buffer_clear(&svr->m_record_metalib);
 }
 
 void friend_svr_free(friend_svr_t svr) {
@@ -154,4 +182,36 @@ friend_svr_name_hs(friend_svr_t svr) {
 
 uint32_t friend_svr_cur_time(friend_svr_t svr) {
     return tl_manage_time_sec(gd_app_tl_mgr(svr->m_app));
+}
+
+int friend_svr_set_record_id(friend_svr_t svr, void * record) {
+    uint64_t uid;
+    uint64_t fuid;
+
+    if (dr_entry_try_read_uint64(&uid, ((char *)record) + svr->m_record_uid_start_pos, svr->m_record_uid_entry, svr->m_em) != 0) {
+        CPE_ERROR(svr->m_em, "%s: set_record_id: read uid fail!", friend_svr_name(svr));
+        return -1;
+    }
+
+    if (dr_entry_try_read_uint64(&fuid, ((char *)record) + svr->m_record_fuid_start_pos, svr->m_record_fuid_entry, svr->m_em) != 0) {
+        CPE_ERROR(svr->m_em, "%s: set_record_id: read fuid fail!", friend_svr_name(svr));
+        return -1;
+    }
+
+    if (uid == 0) {
+        CPE_ERROR(svr->m_em, "%s: set_record_id: uid is 0!", friend_svr_name(svr));
+        return -1;
+    }
+
+    if (fuid == 0) {
+        CPE_ERROR(svr->m_em, "%s: set_record_id: fuid is 0!", friend_svr_name(svr));
+        return -1;
+    }
+
+    snprintf(
+        ((char *)record) + svr->m_record_id_start_pos,
+        svr->m_record_id_capacity,
+        FMT_UINT64_T"-"FMT_UINT64_T, uid, fuid);
+
+    return 0;
 }

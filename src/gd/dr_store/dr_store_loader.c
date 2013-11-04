@@ -375,7 +375,7 @@ int dr_store_loader_app_init(gd_app_context_t app, gd_app_module_t module, cfg_t
 
         stream_printf((write_stream_t)&stream, "*** dump meta lib of %s ***\n", gd_app_module_name(module));
 
-        dr_lib_dump((write_stream_t)&stream, dr_store_lib(store), 4);
+        dr_lib_print((write_stream_t)&stream, dr_store_lib(store), 4);
 
         stream_do_flush_to_error((write_stream_t)&stream);
     }

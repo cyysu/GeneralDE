@@ -51,20 +51,16 @@ MAC_PLATFORM_VERSION?=$(word 1,$(foreach v,$(MAC_PLATFORM_VERSION_LIST),$(if $(w
 
 MAC_PLATFORM_BIN_PATH:=$(MAC_XCODE_ROOT)/Toolchains/XcodeDefault.xctoolchain/usr/bin
 
-MacOSX.compiler ?= $(if $(filter gcc,$1),clang,$(if $(filter g++,$1),clang++,$1))
+MacOSX.compiler ?= $(MAC_PLATFORM_BIN_PATH)/$(if $(filter gcc,$1),clang,$(if $(filter g++,$1),clang++,$1))
 
 #MacOSX.CPPFLAGS ?= 
 
 MacOSX.CFLAGS ?= \
                    -std=c99 \
                    -fexceptions \
-                   -mmacosx-version-min=$(MAC_PLATFORM_VERSION) \
-                   -gdwarf-2 \
 
 MacOSX.CXXFLAGS ?= \
                    -fexceptions \
-                   -mmacosx-version-min=$(MAC_PLATFORM_VERSION) \
-                   -gdwarf-2 \
 
 MacOSX.MFLAGS ?= \
                    $(MacOSX.CFLAGS) \
@@ -91,8 +87,8 @@ MacOSX.LDFLAGS ?=  -mmacosx-version-min=$(MAC_PLATFORM_VERSION) \
 
 MAC_SDK_PREFIX:=$(call mac_platform_sdk_patk,$(MAC_PLATFORM_VERSION))
 
-mac.GCC = $(MAC_PLATFORM_BIN_PATH)/$(call $(MAC_PLATFORM_NAME).compiler,gcc)
-mac.CXX = $(MAC_PLATFORM_BIN_PATH)/$(call $(MAC_PLATFORM_NAME).compiler,g++)
+mac.GCC ?= $(call $(MAC_PLATFORM_NAME).compiler,gcc)
+mac.CXX ?= $(call $(MAC_PLATFORM_NAME).compiler,g++)
 mac.CC = $(mac.GCC)
 mac.LD = $(mac.CC)
 mac.AR = $(MAC_PLATFORM_BIN_PATH)/ar

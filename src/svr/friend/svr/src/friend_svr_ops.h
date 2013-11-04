@@ -23,11 +23,23 @@ friend_svr_t friend_svr_find(gd_app_context_t app, cpe_hash_string_t name);
 friend_svr_t friend_svr_find_nc(gd_app_context_t app, const char * name);
 const char * friend_svr_name(friend_svr_t svr);
 
+int friend_svr_set_record_id(friend_svr_t svr, void * record);
+
+/*db ops*/
+int friend_svr_db_send_query(friend_svr_t svr, logic_require_t require, uint64_t user_id);
+int friend_svr_db_send_insert(friend_svr_t svr, logic_require_t require, void const * record);
+int friend_svr_db_send_remove(friend_svr_t svr, logic_require_t require, uint64_t uid, uint64_t fuid);
+
 /*ops*/
 logic_op_exec_result_t
 friend_svr_op_query_send(logic_context_t ctx, logic_stack_node_t stack, void * user_data, cfg_t cfg);
 logic_op_exec_result_t
 friend_svr_op_query_recv(logic_context_t ctx, logic_stack_node_t stack, logic_require_t require, void * user_data, cfg_t cfg);
+
+logic_op_exec_result_t
+friend_svr_op_query_data_send(logic_context_t ctx, logic_stack_node_t stack, void * user_data, cfg_t cfg);
+logic_op_exec_result_t
+friend_svr_op_query_data_recv(logic_context_t ctx, logic_stack_node_t stack, logic_require_t require, void * user_data, cfg_t cfg);
 
 logic_op_exec_result_t
 friend_svr_op_add_send(logic_context_t ctx, logic_stack_node_t stack, void * user_data, cfg_t cfg);
