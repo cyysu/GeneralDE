@@ -1,5 +1,6 @@
 #ifndef CPE_DR_METALIB_MANAGE_H
 #define CPE_DR_METALIB_MANAGE_H
+#include "cpe/utils/buffer.h"
 #include "cpe/utils/stream.h"
 #include "cpe/dr/dr_types.h"
 #include "cpe/dr/dr_external.h"
@@ -34,6 +35,7 @@ LPDRMETAENTRY dr_meta_find_entry_by_name(LPDRMETA meta, const char* name);
 LPDRMETAENTRY dr_meta_find_entry_by_id(LPDRMETA meta, int id);
 LPDRMETAENTRY dr_meta_find_entry_by_path(LPDRMETA meta, const char* entryPath);
 LPDRMETAENTRY dr_meta_find_entry_by_path_ex(LPDRMETA meta, const char* entryPath, int * off);
+LPDRMETAENTRY dr_meta_lsearch_entry_by_type_name(LPDRMETA meta, const char * type_name);
 LPDRMETALIB dr_meta_owner_lib(LPDRMETA meta);
 
 int dr_meta_find_dyn_info(LPDRMETA meta, dr_meta_dyn_info_t array_info);
@@ -97,7 +99,8 @@ const char* dr_macrosgroup_name(LPDRMACROSGROUP macroGroup);
 int dr_macrosgroup_macro_num(LPDRMACROSGROUP macroGroup);
 LPDRMACRO dr_macrosgroup_macro_at(LPDRMETALIB metaLib, LPDRMACROSGROUP macroGroup, int idx);
 
-void dr_lib_dump(write_stream_t stream, LPDRMETALIB metaLib, int ident);
+void dr_lib_print(write_stream_t stream, LPDRMETALIB metaLib, int ident);
+const char * dr_lib_dump(mem_buffer_t buffer, LPDRMETALIB metaLib, int ident);
 
 #ifdef __cplusplus
 }
