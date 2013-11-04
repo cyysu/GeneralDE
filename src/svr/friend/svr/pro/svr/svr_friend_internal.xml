@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="GBK" standalone="yes"?>
+<metalib tagsetversion="1" name="" version="1">
+    <include name="svr_friend_pro" file="svr_friend_pro.xml"/>
+
+    <struct name="svr_friend_record" version="1">
+        <entry name="_id" type="string" size="64"/>
+        <entry name="user_id" type="uint64"/>
+    </struct>
+
+</metalib>
