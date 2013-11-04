@@ -38,7 +38,7 @@ static void cpe_dr_generate_h_macros(write_stream_t stream, dr_metalib_source_t 
     stream_printf(stream, "\n");
 }
 
-static void cpe_dr_generate_h_print_type(write_stream_t stream, LPDRMETAENTRY entry) {
+static void cpe_dr_generate_h_print_type(write_stream_t stream, LPDRMETAENTRY entry, const char * name) {
     switch(dr_entry_type(entry)) {
     case CPE_DR_TYPE_UNION:
     case CPE_DR_TYPE_STRUCT: {
@@ -46,30 +46,31 @@ static void cpe_dr_generate_h_print_type(write_stream_t stream, LPDRMETAENTRY en
         ref_meta = dr_entry_ref_meta(entry);
         assert(ref_meta);
         stream_toupper(stream, dr_meta_name(ref_meta));
+        stream_printf(stream, " %s", name);
         break;
     }
     case CPE_DR_TYPE_STRING: {
-        stream_printf(stream, "char *");
+        stream_printf(stream, "char %s[%d]", name, dr_entry_size(entry));
         break;
     }
     case CPE_DR_TYPE_CHAR: {
-        stream_printf(stream, "char");
+        stream_printf(stream, "char %s", name);
         break;
     }
     case CPE_DR_TYPE_UCHAR: {
-        stream_printf(stream, "unsigned char");
+        stream_printf(stream, "unsigned char %s", name);
         break;
     }
     case CPE_DR_TYPE_FLOAT: {
-        stream_printf(stream, "float");
+        stream_printf(stream, "float %s", name);
         break;
     }
     case CPE_DR_TYPE_DOUBLE: {
-        stream_printf(stream, "double");
+        stream_printf(stream, "double %s", name);
         break;
     }
     default:
-        stream_printf(stream, "%s_t", dr_entry_type_name(entry));
+        stream_printf(stream, "%s_t %s", dr_entry_type_name(entry), name);
         break;
     }
 }
@@ -117,39 +118,71 @@ static void cpe_dr_generate_h_metas(write_stream_t stream, dr_metalib_source_t s
 
                 stream_toupper(stream, dr_meta_name(ref_meta));
                 stream_printf(stream, " %s", dr_entry_name(entry));
+
+                if (dr_entry_array_count(entry) != 1) {
+                    stream_printf(stream, "[%d]", dr_entry_array_count(entry) < 1 ? 1 : dr_entry_array_count(entry));
+                }
+
                 break;
             }
             case CPE_DR_TYPE_STRING: {
                 size_t array_count = dr_entry_array_count(entry);
                 size_t element_size = dr_entry_size(entry);
-                if (array_count > 1) element_size = element_size / array_count;
-                stream_printf(stream, "char %s[%d]", dr_entry_name(entry), (int)element_size);
+                if (array_count != 1) {
+                    if (array_count > 1) element_size = element_size / array_count;
+                    stream_printf(stream, "char %s[%d][%d]", dr_entry_name(entry), array_count < 1 ? 1 : array_count, (int)element_size);
+                }
+                else {
+                    stream_printf(stream, "char %s[%d]", dr_entry_name(entry), (int)element_size);
+                }
+
                 break;
             }
             case CPE_DR_TYPE_CHAR: {
                 stream_printf(stream, "char %s", dr_entry_name(entry));
+
+                if (dr_entry_array_count(entry) != 1) {
+                    stream_printf(stream, "[%d]", dr_entry_array_count(entry) < 1 ? 1 : dr_entry_array_count(entry));
+                }
+
                 break;
             }
             case CPE_DR_TYPE_UCHAR: {
                 stream_printf(stream, "unsigned char %s", dr_entry_name(entry));
+
+                if (dr_entry_array_count(entry) != 1) {
+                    stream_printf(stream, "[%d]", dr_entry_array_count(entry) < 1 ? 1 : dr_entry_array_count(entry));
+                }
+
                 break;
             }
             case CPE_DR_TYPE_FLOAT: {
                 stream_printf(stream, "float %s", dr_entry_name(entry));
+
+                if (dr_entry_array_count(entry) != 1) {
+                    stream_printf(stream, "[%d]", dr_entry_array_count(entry) < 1 ? 1 : dr_entry_array_count(entry));
+                }
+
                 break;
             }
             case CPE_DR_TYPE_DOUBLE: {
                 stream_printf(stream, "double %s", dr_entry_name(entry));
+
+                if (dr_entry_array_count(entry) != 1) {
+                    stream_printf(stream, "[%d]", dr_entry_array_count(entry) < 1 ? 1 : dr_entry_array_count(entry));
+                }
+
                 break;
             }
             default: {
                 stream_printf(stream, "%s_t %s", dr_type_name(dr_entry_type(entry)), dr_entry_name(entry));
+
+                if (dr_entry_array_count(entry) != 1) {
+                    stream_printf(stream, "[%d]", dr_entry_array_count(entry) < 1 ? 1 : dr_entry_array_count(entry));
+                }
+
                 break;
             }
-            }
-
-            if (dr_entry_array_count(entry) != 1) {
-                stream_printf(stream, "[%d]", dr_entry_array_count(entry) < 1 ? 1 : dr_entry_array_count(entry));
             }
 
             stream_printf(stream, ";");
@@ -219,8 +252,8 @@ static void cpe_dr_generate_h_traits(write_stream_t stream, dr_metalib_source_t 
             assert(dyn_info.m_data.m_array.m_array_entry);
 
             stream_printf(stream, "    typedef ");
-            cpe_dr_generate_h_print_type(stream, dyn_info.m_data.m_array.m_array_entry);
-            stream_printf(stream, " dyn_element_type;\n");
+            cpe_dr_generate_h_print_type(stream, dyn_info.m_data.m_array.m_array_entry, "dyn_element_type");
+            stream_printf(stream, ";\n");
 
             stream_printf(stream, "    static const int dyn_data_start_pos = %d;\n", dyn_info.m_data.m_array.m_array_start);
             stream_printf(stream, "    static const int dyn_count = %d;\n", dr_entry_array_count(dyn_info.m_data.m_array.m_array_entry));
@@ -229,8 +262,8 @@ static void cpe_dr_generate_h_traits(write_stream_t stream, dr_metalib_source_t 
                 char buf[256];
 
                 stream_printf(stream, "    typedef ");
-                cpe_dr_generate_h_print_type(stream, dyn_info.m_data.m_array.m_refer_entry);
-                stream_printf(stream, " dyn_size_type;\n");
+                cpe_dr_generate_h_print_type(stream, dyn_info.m_data.m_array.m_refer_entry, "dyn_size_type");
+                stream_printf(stream, ";\n");
 
                 stream_printf(stream, "    static const int dyn_refer_start_pos = %d;\n", dyn_info.m_data.m_array.m_refer_start);
 
