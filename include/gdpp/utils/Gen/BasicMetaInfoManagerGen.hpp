@@ -87,14 +87,51 @@ protected:
 
     ::std::pair<ElementT const *, ElementT const *>
     find_range(ElementT const & key) const {
-        typename ElementContainer::const_iterator begin = 
-            ::std::lower_bound(m_elements.begin(), m_elements.end(), key, Compare());
-        typename ElementContainer::const_iterator end = 
-            ::std::upper_bound(m_elements.begin(), m_elements.end(), key, Compare());
-
-        return ::std::pair<ElementT const *, ElementT const *>(&*begin, &*end);
+        if (m_elements.empty()) {
+            return  ::std::pair<ElementT const *, ElementT const *>(NULL, NULL);
+        }
+        else {
+            ElementT const * all_begin = &m_elements[0];
+            ElementT const * all_end = all_begin + m_elements.size();
+            return ::std::pair<ElementT const *, ElementT const *>(
+                ::std::lower_bound(all_begin, all_end, key, Compare()),
+                ::std::upper_bound(all_begin, all_end, key, Compare()));
+        }
     }
 
+    template<typename RangeT>
+    RangeT find_range(ElementT const & key) const {
+        if (m_elements.empty()) {
+            RangeT r = { NULL, NULL };
+            return r;
+        }
+        else {
+            ElementT const * all_begin = &m_elements[0];
+            ElementT const * all_end = all_begin + m_elements.size();
+            RangeT r = {
+                ::std::lower_bound(all_begin, all_end, key, Compare()),
+                ::std::upper_bound(all_begin, all_end, key, Compare())
+            };
+            return r;
+		}
+    }
+
+    template<typename RangeT, typename CmpT>
+    RangeT find_range(ElementT const & key) const {
+        if (m_elements.empty()) {
+            RangeT r = { NULL, NULL };
+            return r;
+        }
+        else {
+            ElementT const * all_begin = &m_elements[0];
+            ElementT const * all_end = all_begin + m_elements.size();
+            RangeT r = {
+                ::std::lower_bound(all_begin, all_end, key, CmpT()),
+                ::std::upper_bound(all_begin, all_end, key, CmpT())
+            };
+            return r;
+        }
+    }
 
     ElementT const * find_first(ElementT const & key) const {
         typename ElementContainer::const_iterator pos = 
