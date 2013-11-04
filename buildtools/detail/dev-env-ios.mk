@@ -54,13 +54,9 @@ iPhoneSimulator.CPPFLAGS ?= \
 iPhoneSimulator.CFLAGS ?= \
                    -std=c99 \
                    -fexceptions \
-                   -mmacosx-version-min=10.6 \
-                   -gdwarf-2 \
 
 iPhoneSimulator.CXXFLAGS ?= \
                    -fexceptions \
-                   -mmacosx-version-min=10.6 \
-                   -gdwarf-2 \
 
 iPhoneSimulator.MFLAGS ?= \
                    $(iPhoneSimulator.CFLAGS) \
