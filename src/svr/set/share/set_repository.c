@@ -62,7 +62,7 @@ TRY_AGAIN:
     }
 
     chanel = shmat(h, NULL, 0);
-    if (chanel == NULL) {
+    if (chanel == NULL || ((int)chanel) == -1) {
         CPE_ERROR(em, "set_chanel_shm_init: attach shm (id=%d) fail, errno=%d (%s)\n", shmid, errno, strerror(errno));
         return NULL;
     }
@@ -82,6 +82,11 @@ TRY_AGAIN:
     else {
         if (chanel->r.capacity != r_capacity || chanel->w.capacity != w_capacity) {
             CPE_ERROR(em, "set_chanel_shm_init: shm capacity mismatch, delete!\n");
+
+            if (shmdt(chanel) != 0) {
+                CPE_ERROR(em, "set_chanel_shm_init: detach shm %p (id=%d) fail, errno=%d (%s)\n", chanel, shmid, errno, strerror(errno));
+                return NULL;
+            }
 
             if (shmctl(h, IPC_RMID, NULL) == -1) {
                 CPE_ERROR(em, "set_chanel_shm_init: remove shm (id=%d) fail, errno=%d (%s)\n", shmid, errno, strerror(errno));
