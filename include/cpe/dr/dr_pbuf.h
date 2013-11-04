@@ -14,6 +14,7 @@ int dr_pbuf_read(
     size_t capacity,
     const void * input,
     size_t input_capacity,
+    size_t * input_used,
     LPDRMETA meta,
     error_monitor_t em);
 
@@ -21,18 +22,11 @@ int dr_pbuf_read_to_buffer(
     struct mem_buffer * result, 
     const void * input,
     size_t input_capacity,
+    size_t * input_used,
     LPDRMETA meta,
     error_monitor_t em);
 
 int dr_pbuf_write(
-    void * output,
-    size_t output_capacity,
-    const void * input,
-    size_t input_capacity,
-    LPDRMETA meta,
-    error_monitor_t em);
-
-int dr_pbuf_write_array(
     void * output,
     size_t output_capacity,
     const void * input,

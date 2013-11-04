@@ -43,7 +43,7 @@ dr_cvt_fun_pbuf_decode(
 {
     int r;
 
-    r = dr_pbuf_read(output, *output_capacity, input, *input_capacity, meta, em);
+    r = dr_pbuf_read(output, *output_capacity, input, *input_capacity, NULL, meta, em);
     if (r < 0) {
         CPE_ERROR(
             em, "decode %s: pbuf: fail, input buf "FMT_SIZE_T", output buf "FMT_SIZE_T,
