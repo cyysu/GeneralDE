@@ -8,3 +8,4 @@ t/svr/room
 t/svr/match
 t/svr/payment
 t/svr/cmcc
+t/svr/dblog
