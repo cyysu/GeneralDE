@@ -407,7 +407,7 @@ static int set_chanel_pipe_save_pkg(dp_req_t body, dp_req_t head, dp_req_t carry
         decode_size = 
             dr_pbuf_read(
                 buf + head_size, body_capacity,
-                dp_req_data(body), dp_req_size(body), dp_req_meta(body), NULL);
+                dp_req_data(body), dp_req_size(body), NULL, dp_req_meta(body), NULL);
         if (decode_size < 0) {
             if (decode_size == dr_code_error_not_enough_output) {
                 return set_chanel_error_chanel_full;
