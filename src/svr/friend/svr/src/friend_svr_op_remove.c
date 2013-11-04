@@ -13,6 +13,31 @@ logic_op_exec_result_t
 friend_svr_op_remove_send(
     logic_context_t ctx, logic_stack_node_t stack, void * user_data, cfg_t cfg)
 {
+    friend_svr_t svr = user_data;
+    logic_require_t require;
+    logic_data_t req_data;
+    SVR_FRIEND_REQ_REMOVE const * req;
+
+    req_data = logic_context_data_find(ctx, "svr_friend_req_remove");
+    if (req_data == NULL) {
+        APP_CTX_ERROR(logic_context_app(ctx), "%s: remove: get request fail!", friend_svr_name(svr));
+        logic_context_errno_set(ctx, SVR_FRIEND_ERRNO_INTERNAL);
+        return logic_op_exec_result_false;
+    }
+    req = logic_data_data(req_data);
+
+    require = logic_require_create(stack, "remove");
+    if (require == NULL) {
+        APP_CTX_ERROR(logic_context_app(ctx), "%s: remove: create logic require fail!", friend_svr_name(svr));
+        logic_context_errno_set(ctx, SVR_FRIEND_ERRNO_INTERNAL);
+        return logic_op_exec_result_false;
+    }
+
+    if (friend_svr_db_send_remove(svr, require, req->user_id, req->friend_id) != 0) {
+        logic_context_errno_set(ctx, SVR_FRIEND_ERRNO_INTERNAL);
+        return logic_op_exec_result_false;
+    }
+    
     return logic_op_exec_result_true;
 }
 
@@ -21,5 +46,24 @@ friend_svr_op_remove_recv(
     logic_context_t ctx, logic_stack_node_t stack, logic_require_t require,
     void * user_data, cfg_t cfg)
 {
+    friend_svr_t svr = user_data;
+
+    if (logic_require_state(require) != logic_require_state_done) {
+        if (logic_require_state(require) != logic_require_state_error) {
+            APP_CTX_ERROR(
+                logic_context_app(ctx), "%s: remove: db request error, errno=%d!",
+                friend_svr_name(svr), logic_require_error(require));
+            logic_context_errno_set(ctx, SVR_FRIEND_ERRNO_DB);
+            return logic_op_exec_result_false;
+        }
+        else {
+            APP_CTX_ERROR(
+                logic_context_app(ctx), "%s: remove: db request state error, state=%s!",
+                friend_svr_name(svr), logic_require_state_name(logic_require_state(require)));
+            logic_context_errno_set(ctx, SVR_FRIEND_ERRNO_INTERNAL);
+            return logic_op_exec_result_false;
+        }
+    }
+
     return logic_op_exec_result_true;
 }

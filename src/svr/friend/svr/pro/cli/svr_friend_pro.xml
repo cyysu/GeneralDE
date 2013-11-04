@@ -1,38 +1,61 @@
 <?xml version="1.0" encoding="GBK" standalone="yes"?>
 <metalib tagsetversion="1" name="" version="1">
 
+    <!--  ============ 错误码定义 ======== -->
+    <macrosgroup name="svr_friend_error">
+        <macro name="SVR_FRIEND_ERRNO_SUCCESS" value="0"/>
+        <macro name="SVR_FRIEND_ERRNO_INTERNAL" value="-1"/>
+        <macro name="SVR_FRIEND_ERRNO_DB" value="-2"/>
+    </macrosgroup>
+
     <!-- 协议定义 -->
 
     <!-- 查询好友 -->
     <struct name="svr_friend_req_query" version="1">
-        <entry name="gid" type="uint64" id="1"/>
+        <entry name="user_id" type="uint64" id="1"/>
         <entry name="start_pos" type="uint32" id="2"/>
         <entry name="require_count" type="uint32" id="3"/>
     </struct>
 
     <struct name="svr_friend_res_query" version="1">
-        <entry name="gid" type="uint64" id="1"/>
+        <entry name="user_id" type="uint64" id="1"/>
         <entry name="start_pos" type="uint32" id="2"/>
-        <entry name="have_next" type="uint8" id="3"/>
+        <entry name="total_count" type="uint16" id="3"/>
         <entry name="friend_count" type="uint16" id="4"/>
         <entry name="friends" type="uint64" count="0" refer="friend_count" id="5"/>
     </struct>
 
+    <!-- 查询好友数据 -->
+    <struct name="svr_friend_req_query_data" version="1">
+        <entry name="user_id" type="uint64" id="1"/>
+        <entry name="start_pos" type="uint32" id="2"/>
+        <entry name="require_count" type="uint32" id="3"/>
+    </struct>
+
+    <struct name="svr_friend_res_query_data" version="1">
+        <entry name="user_id" type="uint64" id="1"/>
+        <entry name="start_pos" type="uint32" id="2"/>
+        <entry name="total_count" type="uint16" id="3"/>
+        <entry name="data_len" type="uint16" id="4"/>
+        <entry name="data" type="uint8" count="0" refer="data_len" id="5"/>
+    </struct>
+
     <!-- 新增好友 -->
     <struct name="svr_friend_req_add" version="1">
-        <entry name="gid" type="uint64" id="1"/>
-        <entry name="friend_gid" type="uint64" id="2"/>
+        <entry name="user_id" type="uint64" id="1"/>
+        <entry name="data_len" type="uint32" id="3"/>
+        <entry name="data" type="uint8" count="0" refer="data_len" id="4"/>
     </struct>
 
     <!-- 删除好友 -->
     <struct name="svr_friend_req_remove" version="1">
-        <entry name="gid" type="uint64" id="1"/>
-        <entry name="friend_gid" type="uint64" id="2"/>
+        <entry name="user_id" type="uint64" id="1"/>
+        <entry name="friend_id" type="uint64" id="2"/>
     </struct>
 
     <!-- 根据帐号列表同步好友 -->
     <struct name="svr_friend_req_sync" version="1">
-        <entry name="gid" type="uint64" id="1"/>
+        <entry name="user_id" type="uint64" id="1"/>
         <entry name="friend_count" type="uint16" id="2"/>
         <entry name="friends" type="uint64" count="0" refer="friend_count" id="3"/>
     </struct>
@@ -47,21 +70,27 @@
         <macro name="SVR_FRIEND_CMD_REQ_QUERY" value="1"/>
         <macro name="SVR_FRIEND_CMD_RES_QUERY" value="2"/>
 
-        <macro name="SVR_FRIEND_CMD_REQ_ADD" value="3"/>
-        <macro name="SVR_FRIEND_CMD_RES_ADD" value="4"/>
+        <macro name="SVR_FRIEND_CMD_REQ_QUERY_DATA" value="3"/>
+        <macro name="SVR_FRIEND_CMD_RES_QUERY_DATA" value="4"/>
 
-        <macro name="SVR_FRIEND_CMD_REQ_REMOVE" value="5"/>
-        <macro name="SVR_FRIEND_CMD_RES_REMOVE" value="6"/>
+        <macro name="SVR_FRIEND_CMD_REQ_ADD" value="5"/>
+        <macro name="SVR_FRIEND_CMD_RES_ADD" value="6"/>
 
-        <macro name="SVR_FRIEND_CMD_REQ_SYNC" value="7"/>
-        <macro name="SVR_FRIEND_CMD_RES_SYNC" value="8"/>
+        <macro name="SVR_FRIEND_CMD_REQ_REMOVE" value="7"/>
+        <macro name="SVR_FRIEND_CMD_RES_REMOVE" value="8"/>
 
-        <macro name="SVR_FRIEND_CMD_RES_ERROR" value="9"/>
+        <macro name="SVR_FRIEND_CMD_REQ_SYNC" value="9"/>
+        <macro name="SVR_FRIEND_CMD_RES_SYNC" value="10"/>
+
+        <macro name="SVR_FRIEND_CMD_RES_ERROR" value="11"/>
     </macrosgroup>
 
     <union name="svr_friend_pkg_data" version="1" desc="">
         <entry name="svr_friend_req_query" type="svr_friend_req_query" id="SVR_FRIEND_CMD_REQ_QUERY"/>
         <entry name="svr_friend_res_query" type="svr_friend_res_query" id="SVR_FRIEND_CMD_RES_QUERY"/>
+
+        <entry name="svr_friend_req_query_data" type="svr_friend_req_query_data" id="SVR_FRIEND_CMD_REQ_QUERY_DATA"/>
+        <entry name="svr_friend_res_query_data" type="svr_friend_res_query_data" id="SVR_FRIEND_CMD_RES_QUERY_DATA"/>
 
         <entry name="svr_friend_req_add" type="svr_friend_req_add" id="SVR_FRIEND_CMD_REQ_ADD"/>
 

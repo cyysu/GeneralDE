@@ -40,11 +40,9 @@
 
 - name: dr_store_manage
 
-- include: metalibs
-
-- name: svr_friend_lib
+- name: svr_account_lib
   type: dr_store_loader
-  load-from-symbol: g_metalib_svr_friend_pro
+  load-from-symbol: g_metalib_svr_account_pro
 
 - name: db-connection
   type: mongo_driver
@@ -61,7 +59,7 @@
   mongo-driver: db-connection
   incoming-recv-at: db-client-process
   outgoing-send-to: db-connection-send
-  dft-db: friend
+  dft-db: account
   buf-size: 4096000
   debug: 0
 
@@ -69,27 +67,27 @@
   type: mongo_id_generator
   mongo-cli: db-client
   ids:
-    - { name: friend_id, start: 1024, inc: 1024 }
+    - { name: account_id, start: 1024, inc: 1024 }
 
 - name: mongo_id_reserve
   id-generator: id-generator
 
-- name: friend-executor-manage
+- name: account-executor-manage
   type: logic_executor_mgr
 
 - name: set_svr_stub
-  svr-type: svr_friend
-  request-send-to: process-friend-incoming
+  svr-type: svr_account
+  request-send-to: process-account-incoming
   response-send-to: process-response
   outgoing-recv-at: process-outgoing
   debug: 1
 
-- name: friend-rsp-manager
+- name: account-rsp-manager
   type: set_logic_rsp_manage
   #queue-attr: conn_svr_conn_info.user_id
-  executor-manage:  friend-executor-manage
+  executor-manage:  account-executor-manage
   commit-to: process-outgoing
-  recv-at: process-friend-incoming
+  recv-at: process-account-incoming
   debug: 2
 
 - name: set_logic_sp
@@ -97,8 +95,8 @@
   incoming-recv-at: process-response
   debug: 1
 
-- name: friend_svr
-  rsp-manage: friend-rsp-manager
+- name: account_svr
+  rsp-manage: account-rsp-manager
   db: db-client
 
 # -*- coding: utf-8 -*-

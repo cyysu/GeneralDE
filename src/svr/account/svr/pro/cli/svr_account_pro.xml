@@ -43,6 +43,11 @@
         <entry name="gid" type="uint64" id="1"/>
     </struct>
 
+    <!-- 错误响应 -->
+    <struct name="svr_account_res_error" version="1">
+        <entry name="error" type="int16" id="1"/>
+    </struct>
+
     <!-- 整体协议定义 -->
     <macrosgroup name="SVR_ACCOUNT_CMD_ID">
         <macro name="SVR_ACCOUNT_CMD_REQ_BIND" value="1"/>
@@ -56,6 +61,8 @@
 
         <macro name="SVR_ACCOUNT_CMD_REQ_FIND_BY_GID" value="5"/>
         <macro name="SVR_ACCOUNT_CMD_RES_FIND_BY_GID" value="6"/>
+
+        <macro name="SVR_ACCOUNT_CMD_RES_ERROR" value="9"/>
     </macrosgroup>
 
     <union name="svr_account_pkg_data" version="1" desc="">
@@ -65,6 +72,8 @@
         <entry name="svr_account_req_find_by_logic_id" type="svr_account_req_find_by_logic_id" id="SVR_ACCOUNT_CMD_REQ_FIND_BY_LOGIC_ID"/>
 
         <entry name="svr_account_req_find_by_gid" type="svr_account_req_find_by_gid" id="SVR_ACCOUNT_CMD_REQ_FIND_BY_GID"/>
+
+        <entry name="svr_account_res_error" type="svr_account_res_error" id="SVR_ACCOUNT_CMD_RES_ERROR"/>
     </union>
 
 </metalib>
