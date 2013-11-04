@@ -263,6 +263,7 @@ static int dr_pbuf_read_i(
     struct mem_buffer * result_buf, 
     const void * input,
     size_t input_capacity,
+    size_t * input_used,
     LPDRMETA meta,
     error_monitor_t em)
 {
@@ -540,6 +541,9 @@ static int dr_pbuf_read_i(
             }
         }
 
+        if (stackPos == 0 && input_used) {
+        }
+
         --stackPos;
     }
 
@@ -551,6 +555,7 @@ int dr_pbuf_read(
     size_t output_capacity,
     const void * input,
     size_t input_capacity,
+    size_t * input_used,
     LPDRMETA meta,
     error_monitor_t em)
 {
@@ -559,12 +564,12 @@ int dr_pbuf_read(
 
     if (em) {
         CPE_DEF_ERROR_MONITOR_ADD(logError, em, cpe_error_save_last_errno, &ret);
-        size = dr_pbuf_read_i(output, output_capacity, NULL, input, input_capacity, meta, em);
+        size = dr_pbuf_read_i(output, output_capacity, NULL, input, input_capacity, input_used, meta, em);
         CPE_DEF_ERROR_MONITOR_REMOVE(logError, em);
     }
     else {
         CPE_DEF_ERROR_MONITOR(logError, cpe_error_save_last_errno, &ret);
-        size = dr_pbuf_read_i(output, output_capacity, NULL, input, input_capacity, meta, &logError);
+        size = dr_pbuf_read_i(output, output_capacity, NULL, input, input_capacity, input_used, meta, &logError);
     }
 
     return ret == 0 ? size : ret;
@@ -574,6 +579,7 @@ int dr_pbuf_read_to_buffer(
     struct mem_buffer * result, 
     const void * input,
     size_t input_capacity,
+    size_t * input_used,
     LPDRMETA meta,
     error_monitor_t em)
 {
@@ -582,12 +588,12 @@ int dr_pbuf_read_to_buffer(
 
     if (em) {
         CPE_DEF_ERROR_MONITOR_ADD(logError, em, cpe_error_save_last_errno, &ret);
-        size = dr_pbuf_read_i(NULL, 0, result, input, input_capacity, meta, em);
+        size = dr_pbuf_read_i(NULL, 0, result, input, input_capacity, input_used, meta, em);
         CPE_DEF_ERROR_MONITOR_REMOVE(logError, em);
     }
     else {
         CPE_DEF_ERROR_MONITOR(logError, cpe_error_save_last_errno, &ret);
-        size = dr_pbuf_read_i(NULL, 0, result, input, input_capacity, meta, &logError);
+        size = dr_pbuf_read_i(NULL, 0, result, input, input_capacity, input_used, meta, &logError);
     }
 
     return ret == 0 ? size : ret;
