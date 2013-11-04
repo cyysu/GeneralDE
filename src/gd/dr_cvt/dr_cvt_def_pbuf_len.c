@@ -79,7 +79,7 @@ dr_cvt_fun_pbuf_len_decode(
     if ((data_size + size_size) > *input_capacity) return dr_cvt_result_not_enough_input;
     *input_capacity = data_size + size_size;
 
-    r = dr_pbuf_read(output, *output_capacity, (const char *)input + size_size, data_size, meta, em);
+    r = dr_pbuf_read(output, *output_capacity, (const char *)input + size_size, data_size, NULL, meta, em);
     if (r < 0) {
         CPE_ERROR(
             em, "decode %s: pbuf-len: fail, data size %d, output buf "FMT_SIZE_T,
