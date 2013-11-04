@@ -164,13 +164,13 @@ bool Meta::try_load_from_json(void * data, size_t capacity, const char * json, e
 
 void Meta::load_from_pbuf(void * data, size_t capacity, const void * pbuf, size_t pbuf_size) const {
     Utils::ErrorCollector ec;
-    if (dr_pbuf_read(data, capacity, pbuf, pbuf_size, *this, ec) <= 0) {
+    if (dr_pbuf_read(data, capacity, pbuf, pbuf_size, NULL, *this, ec) <= 0) {
         ec.checkThrowWithMsg< ::std::runtime_error>();
     }
 }
 
 bool Meta::try_load_from_pbuf(void * data, size_t capacity, const void * pbuf, size_t pbuf_size, error_monitor_t em) const {
-    if (dr_pbuf_read(data, capacity, pbuf, pbuf_size, *this, em) <= 0) {
+    if (dr_pbuf_read(data, capacity, pbuf, pbuf_size, NULL, *this, em) <= 0) {
         bzero(data, capacity);
         return false;
     }

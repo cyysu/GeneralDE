@@ -361,6 +361,16 @@ LPDRMETAENTRY dr_meta_find_entry_by_path(LPDRMETA meta, const char* entryPath) {
     return dr_meta_find_entry_by_path_ex(meta, entryPath, NULL);
 }
 
+LPDRMETAENTRY dr_meta_lsearch_entry_by_type_name(LPDRMETA meta, const char * type_name) {
+    size_t i, count;
+    for(i = 0, count = dr_meta_entry_num(meta); i < count; ++i) {
+        LPDRMETAENTRY entry = dr_meta_entry_at(meta, i);
+        if (strcmp(dr_entry_type_name(entry), type_name) == 0) return entry;
+    }
+
+    return NULL;
+}
+
 static LPDRMETAENTRY dr_meta_find_entry_by_name_len(LPDRMETA meta, const char * entry_name, size_t entry_name_len) {
     int i;
     LPDRMETAENTRY entry_base = (LPDRMETAENTRY)(meta + 1);
