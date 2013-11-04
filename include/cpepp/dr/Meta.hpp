@@ -52,6 +52,8 @@ public:
     Entry const * findEntryByPath(const char * path) const { return (Entry const*)dr_meta_find_entry_by_path(*this, path); }
     Entry const & entryByPath(const char * path) const;
 
+    Entry const * lsearchEntryByType(const char * type_name) const { return (Entry const*)dr_meta_lsearch_entry_by_type_name(*this, type_name); }
+
     void dump_data(write_stream_t stream, const void * data, size_t capacity) const;
     const char * dump_data(mem_buffer_t buffer, const void * data, size_t capacity) const;
 
