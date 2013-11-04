@@ -1,0 +1,46 @@
+- name: log_context
+  config:
+    nocleanup: 0
+    bufsize: 4kb
+
+  rollingpolicies:
+    - dev: { type: sizewin, maxsize: 500mb, maxnum: 1 }
+
+  layouts:
+    - default: { type: dated }
+
+  appenders:
+    - dev: { type: rollingfile, policy: dev, layout: default }
+    - deploment: { type: rollingfile, policy: dev, layout: default }
+    - syslog: { type: syslog, layout: default }
+    - stdout: { type: stream, layout: default }
+    - stderr: { type: stream, layout: default }
+
+  categories:
+    - default: { appender: dev }
+
+  debug: 1
+
+- name: app_setup
+  debug-app: 0
+  debug-net: 0
+  tickers: [ tl, net ]
+
+- name: app_tick_runner
+
+- name: gd_timer_mgr
+
+- name: dr_store_manage
+
+- name: set_svr_stub
+  svr-type: svr_dblog
+  #request-send-to: process-dblog-incoming
+  #response-send-to: process-response
+  #outgoing-recv-at: process-outgoing
+  debug: 1
+
+- name: dblog_svr
+  rsp-manage: dblog-rsp-manager
+  debug: 1
+
+# -*- coding: utf-8 -*-
