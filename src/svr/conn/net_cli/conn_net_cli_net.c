@@ -177,7 +177,7 @@ RESIZE_AND_TRY_AGAIN:
     assert(buf);
     bzero(buf, curent_pkg_size);
 
-    decode_size = dr_pbuf_read(buf, curent_pkg_size, data, data_len, meta, cli->m_em);
+    decode_size = dr_pbuf_read(buf, curent_pkg_size, data, data_len, NULL, meta, cli->m_em);
     if (decode_size < 0) {
         if (decode_size == dr_code_error_not_enough_output) {
             if (curent_pkg_size < cli->m_max_pkg_size) {
