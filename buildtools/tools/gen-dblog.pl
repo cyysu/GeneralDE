@@ -10,13 +10,15 @@ my $inputFile;
 my $outputH;
 my $outputC;
 my $prefix;
-my @categories;
+my $metalib;
+my @meta_headers;
 
 GetOptions("input-file=s" => \$inputFile,
            "output-h=s"   => \$outputH,
            "output-c=s"   => \$outputC,
            "prefix=s" => \$prefix,
-           "category=s" => \@categories);
+           "metalib=s" => \$metalib,
+           "meta-h=s" => \@meta_headers);
 
 $inputFile = decode("utf8", $inputFile);
 $outputH = decode("utf8", $outputH);
@@ -31,22 +33,6 @@ sub entry_is_auto_gen {
   return 0;
 }
 
-sub generate_c_entry_to_string_datetime_def {
-  (my $meta_name, my $meta, my $entry_name, my $entry, my $output) = @_;
-
-  print $output "    struct tm tm_" . $entry_name . ";\n";
-  print $output "    char buf_" . $entry_name . "[60];\n";
-  print $output "\n";
-}
-
-sub generate_c_entry_to_string_datetime_init {
-  (my $meta_name, my $meta, my $entry_name, my $entry, my $output) = @_;
-
-  print $output "    localtime_r(&" . $entry_name . ", &tm_". $entry_name . ");\n";
-  print $output "    strftime(buf_" . $entry_name . ",sizeof(buf_" . $entry_name . "),\"%Y-%m-%d %T\",&tm_" . $entry_name . ");\n";
-  print $output "\n";
-}
-
 my $type_info_def = { int8 => { formator => "\"FMT_INT8_T\"", type => "int8_t" }
                , uint8 => { formator => "\"FMT_UINT8_T\"", type => "uint8_t" }
                , int16 => { formator => "\"FMT_INT16_T\"", type => "int16_t" }
@@ -56,9 +42,7 @@ my $type_info_def = { int8 => { formator => "\"FMT_INT8_T\"", type => "int8_t" }
                , int64 => { formator => "\"FMT_INT64_T\"", type => "int64_t" }
                , uint64 => { formator => "\"FMT_UINT64_T\"", type => "uint64_t" }
                , string => { formator => "\%s", type => "const char *" }
-               , datetime => { formator => "\%s", type => "time_t"
-                               , "to-string-init" => \&generate_c_entry_to_string_datetime_init
-                               , "to-string-def" => \&generate_c_entry_to_string_datetime_def }
+               , datetime => { formator => "\%s", type => "time_t"}
 };
 
 my $xml_lib_source = XMLin($inputFile, KeyAttr => {struct => 'name', union => 'name'}, ForceArray => [ 'struct', 'union' ]);
@@ -79,22 +63,11 @@ sub generate_h_entry {
 sub generate_c_entry_formator {
   (my $meta_name, my $meta, my $entry_name, my $entry, my $output) = @_;
 
-  if (defined $entry->{desc} and $entry->{desc} =~ m/^-.*/) {
-    print $output "|0";
-  }
-  elsif (defined $entry->{desc} and $entry->{desc} =~ m/^\@(.+)\|.*/) {
-    my $type_info = $type_info_def->{$entry->{type}};
-
-    print $output "|0" if not defined $type_info;
-
-    print $output "|$type_info->{formator}";
+  if ($entry->{type} eq "string") {
+    print $output "    strncpy(data." . $entry_name . ", " . $entry_name . ", sizeof(data." . $entry_name . "));\n";
   }
   else {
-    my $type_info = $type_info_def->{$entry->{type}};
-
-    print $output "|0" if not defined $type_info;
-
-    print $output "|$type_info->{formator}";
+    print $output "    data." . $entry_name . " = " . $entry_name . ";\n";
   }
 }
 
@@ -130,39 +103,6 @@ sub generate_c_entry_arg {
   }
 }
 
-sub generate_c_entry_buf_def {
-  (my $meta_name, my $meta, my $entry_name, my $entry, my $output) = @_;
-
-  return if defined $entry->{desc} and $entry->{desc} =~ m/^-.*/;
-
-  my $type_info = $type_info_def->{$entry->{type}};
-  return if not defined $type_info;
-
-  my $fun = $type_info->{"to-string-def"};
-  return if not defined $fun;
-
-  $fun->($meta_name, $meta, $entry_name, $entry, $output);
-}
-
-sub generate_c_entry_buf_init {
-  (my $meta_name, my $meta, my $entry_name, my $entry, my $output) = @_;
-
-  if (defined $entry->{desc} and $entry->{desc} =~ m/^-.*/) {
-  }
-  elsif (defined $entry->{desc} and $entry->{desc} =~ m/^\@(.+)\|.*/) {
-    my $ref_arg = $1;
-  }
-  else {
-    my $type_info = $type_info_def->{$entry->{type}};
-    return if not defined $type_info;
-
-    my $fun = $type_info->{"to-string-init"};
-    return if not defined $fun;
-
-    $fun->($meta_name, $meta, $entry_name, $entry, $output);
-  }
-}
-
 sub foreach_entry {
   (my $meta_name, my $output, my $fun) = @_;
 
@@ -182,8 +122,8 @@ sub foreach_entry {
 sub generate_h {
   my $output = shift;
 
-  print $output "#ifndef _STRUCT_LOG_". $prefix . "_H_INCLEDE_\n";
-  print $output "#define _STRUCT_LOG_" . $prefix . "_H_INCLEDE_\n";
+  print $output "#ifndef _DBLOG_". $prefix . "_H_INCLEDE_\n";
+  print $output "#define _DBLOG_" . $prefix . "_H_INCLEDE_\n";
   print $output "#include \"cpe/pal/pal_time.h\"\n";
   print $output "#include \"gd/app/app_types.h\"\n";
   print $output "\n";
@@ -213,11 +153,21 @@ sub generate_h {
 }
 
 sub generate_c {
-  (my $output, my $categories) = @_;
+  (my $output) = @_;
 
+  print $output "#include <assert.h>\n";
   print $output "#include \"cpe/pal/pal_stdio.h\"\n";
   print $output "#include \"cpe/pal/pal_time.h\"\n";
+  print $output "#include \"cpe/dr/dr_metalib_manage.h\"\n";
   print $output "#include \"gd/app/app_context.h\"\n";
+  print $output "#include \"svr/dblog/agent/dblog_agent.h\"\n";
+  foreach my $meta_header ( @meta_headers ) {
+    print $output "#include \"" . $meta_header . "\"\n";
+  }
+  print $output "\n";
+
+  print $output "extern char " . $metalib . "[];\n";
+  print $output "\n";
 
   if (exists $xml_lib_source->{struct}) {
     foreach my $meta_name ( keys %{$xml_lib_source->{struct}} ) {
@@ -226,24 +176,23 @@ sub generate_c {
       print $output ")\n";
       print $output "{\n";
 
-      foreach_entry($meta_name, $output, \&generate_c_entry_buf_def);
-      foreach_entry($meta_name, $output, \&generate_c_entry_buf_init);
+      print $output "    static LPDRMETA data_meta = NULL;\n";
+      print $output "    dblog_agent_t dblog;\n";
+      print $output "    " . uc($meta_name) . " data;\n";
+      print $output "    \n";
+      print $output "    if (data_meta == NULL) {\n";
+      print $output "        data_meta = dr_lib_find_meta_by_name((LPDRMETALIB)" . $metalib . ", \"" . $meta_name . "\");\n";
+      print $output "        assert(data_meta);\n";
+      print $output "    }\n";
+      print $output "    \n";
+      print $output "    dblog= dblog_agent_find(app, NULL);\n";
+      print $output "    if (dblog == NULL) return;\n";
+      print $output "    \n";
 
-      foreach my $category (@{ $categories }) {
-        print $output "    CPE_INFO(\n";
-        print $output "        gd_app_named_em(app, \"$category\"),\n";
-        print $output "        \"$meta_name";
+      foreach_entry($meta_name, $output, \&generate_c_entry_formator);
 
-
-        foreach_entry($meta_name, $output, \&generate_c_entry_formator);
-        print $output "\"\n";
-
-
-        foreach_entry($meta_name, $output, \&generate_c_entry_arg);
-
-        print $output "    );\n";
-        print $output "\n";
-      }
+      print $output "    \n";
+      print $output "    dblog_agent_log(dblog, &data, sizeof(data), data_meta);\n";
 
       print $output "}\n";
     }
@@ -256,6 +205,6 @@ generate_h($output_h);
 close($output_h);
 
 open(my $output_c, '>::encoding(utf8)', $outputC) or die "open output file $outputH fail $!";
-generate_c($output_c, \@categories);
+generate_c($output_c);
 close($output_c);
 

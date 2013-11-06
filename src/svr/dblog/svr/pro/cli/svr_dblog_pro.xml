@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="GBK" standalone="yes"?>
+<metalib tagsetversion="1" name="" version="1">
+    <macro name="SVR_ACCOUNT_MAX_LEN" value="128"/>
+
+    <struct name="svr_dblog_req_log" version="1">
+        <entry name="struct_id" type="uint16" id="1"/>
+        <entry name="data_len" type="uint16" id="2"/>
+        <entry name="data" type="uint8" count="0" refer="data_len" id="3"/>
+    </struct>
+
+    <!-- 整体协议定义 -->
+    <macrosgroup name="SVR_DBLOG_CMD_ID">
+        <macro name="SVR_DBLOG_CMD_REQ_LOG" value="1"/>
+    </macrosgroup>
+
+    <union name="svr_dblog_pkg_data" version="1" desc="">
+        <entry name="svr_dblog_req_log" type="svr_dblog_req_log" id="SVR_DBLOG_CMD_REQ_LOG"/>
+    </union>
+
+</metalib>
