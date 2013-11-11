@@ -1,3 +1,4 @@
+#include <limits>
 #include <stdexcept>
 #include "cpe/utils/stream_mem.h"
 #include "cpepp/cfg/Tree.hpp"

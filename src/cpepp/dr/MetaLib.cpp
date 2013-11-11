@@ -1,3 +1,4 @@
+#include <limits>
 #include <stdexcept>
 #include <sstream>
 #include "cpepp/utils/MemBuffer.hpp"
