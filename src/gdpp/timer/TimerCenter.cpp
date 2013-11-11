@@ -1,3 +1,4 @@
+#include <limits>
 #include "cpepp/utils/ErrorCollector.hpp"
 #include "gdpp/app/Log.hpp"
 #include "gdpp/timer/TimerCenter.hpp"

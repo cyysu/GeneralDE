@@ -1,3 +1,4 @@
+#include <limits>
 #include "gd/app/app_basic.h"
 #include "gdpp/app/Log.hpp"
 #include "gdpp/app/Application.hpp"
