@@ -1,3 +1,4 @@
+#include <limits>
 #include "cpepp/nm/Manager.hpp"
 #include "gdpp/app/Log.hpp"
 #include "gdpp/app/Application.hpp"

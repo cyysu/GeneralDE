@@ -1,3 +1,4 @@
+#include <limits>
 #include <sstream>
 #include "cpe/utils/string_utils.h"
 #include "cpepp/utils/ErrorCollector.hpp"
