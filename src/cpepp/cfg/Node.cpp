@@ -1,3 +1,4 @@
+#include <limits>
 #include "cpepp/utils/ErrorCollector.hpp"
 #include "cpepp/dr/Exceptions.hpp"
 #include "cpepp/cfg/Node.hpp"

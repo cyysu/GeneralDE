@@ -23,7 +23,7 @@ pom_grp_meta_create(
     buf = mem_alloc(alloc, name_len + sizeof(struct pom_grp_meta));
     if (buf == NULL) return NULL;
 
-    memcpy(buf, name, name_len);
+    strncpy(buf, name, name_len);
 
     meta = (pom_grp_meta_t)(buf + name_len);
     meta->m_alloc = alloc;
