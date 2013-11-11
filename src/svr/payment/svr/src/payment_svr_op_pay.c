@@ -148,7 +148,7 @@ payment_svr_op_pay_on_db_update(
 
         bzero(&bill_data, sizeof(bill_data));
         bill_data.way = payment_bill_way_out;
-        memcpy(&bill_data.money, &req->pay, sizeof(bill_data.money));
+        bill_data.money = req->pay;
         bill_data.product_id = req->product_id;
 
         payment_svr_db_add_bill(svr, bag_info, req->user_id, &bill_data, &res->balance);

@@ -207,7 +207,7 @@ int payment_svr_op_validate_money_types(payment_svr_t svr, BAG_INFO * bag_info, 
         SVR_PAYMENT_MONEY const * money = moneies->datas + i;
         
         if (money->type < PAYMENT_MONEY_TYPE_MIN
-            || money->type > PAYMENT_MONEY_TYPE_MAX
+            || money->type >= PAYMENT_MONEY_TYPE_MAX
             || (money->type - PAYMENT_MONEY_TYPE_MIN) >= bag_info->money_type_count)
         {
             CPE_ERROR(svr->m_em, "%s: validate_money_types: money type %d error!", payment_svr_name(svr), money->type);

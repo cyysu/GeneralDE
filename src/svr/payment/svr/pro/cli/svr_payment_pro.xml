@@ -102,7 +102,7 @@
 
     <struct name="svr_payment_pkg" version="1">
         <entry name="cmd" type="uint32" id="1"/>
-        <entry name="data" type="svr_payment_pkg_data" id="3" select="cmd"/>
+        <entry name="data" type="svr_payment_pkg_data" id="2" select="cmd"/>
     </struct>
 
 </metalib>

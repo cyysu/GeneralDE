@@ -19,7 +19,7 @@
     <macro name="PAYMENT_IAP_RECEIPT_LEN" value="128"/>
 
     <struct name="svr_payment_recharge_data_iap" version="1">
-        <entry name="receipt"     type="string"  size="PAYMENT_IAP_RECEIPT_LEN"/>
+        <entry name="receipt" type="string" size="PAYMENT_IAP_RECEIPT_LEN" id="1"/>
     </struct>
 
 </metalib>
