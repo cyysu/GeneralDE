@@ -28,7 +28,7 @@ set_logic_rsp_t set_logic_rsp_create(set_logic_rsp_manage_t mgr, const char * na
         return NULL;
     }
 
-    memcpy(buf, name, name_len);
+    strncpy(buf, name, name_len);
 
     rsp = (set_logic_rsp_t)(buf + name_len);
     rsp->m_mgr = mgr;
