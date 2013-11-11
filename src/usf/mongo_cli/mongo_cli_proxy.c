@@ -81,6 +81,8 @@ static void mongo_cli_proxy_clear(nm_node_t node) {
     proxy = (mongo_cli_proxy_t)nm_node_data(node);
 
     logic_require_queue_free(proxy->m_require_queue);
+
+    if (proxy->m_outgoing_send_to) mem_free(proxy->m_alloc, proxy->m_outgoing_send_to);
 }
 
 void mongo_cli_proxy_free(mongo_cli_proxy_t proxy) {
