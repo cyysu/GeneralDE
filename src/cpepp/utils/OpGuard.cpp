@@ -1,3 +1,4 @@
+#include <limits>
 #include "cpepp/utils/OpGuard.hpp"
 
 namespace Cpe { namespace Utils {
