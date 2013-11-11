@@ -1,3 +1,4 @@
+#include <limits>
 #include "gdpp/app/Log.hpp"
 #include "usf/logic/logic_manage.h"
 #include "usf/logic/logic_require.h"
