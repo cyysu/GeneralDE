@@ -138,9 +138,12 @@ static dp_req_t set_logic_rsp_commit_build_response_body(
     /*处理包头 */
     if (data) {
         memcpy(
-            ((char*)dp_req_data(response_buf)) + dr_entry_data_start_pos(mgr->m_pkg_data_entry, 0),
+            ((char*)dp_req_data(response_buf)) + data_start_pos,
             data, data_size);
     }
+
+    assert(mgr->m_pkg_cmd_entry);
+    assert(dr_entry_data_start_pos(mgr->m_pkg_cmd_entry, 0) + sizeof(uint32_t) <= data_start_pos);
 
     if (dr_entry_set_from_uint32(
             ((char*)dp_req_data(response_buf)) + dr_entry_data_start_pos(mgr->m_pkg_cmd_entry, 0),
