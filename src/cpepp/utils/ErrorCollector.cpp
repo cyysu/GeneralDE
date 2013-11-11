@@ -1,3 +1,4 @@
+#include <limits>
 #include <sstream>
 #include "cpepp/utils/ErrorCollector.hpp"
 
