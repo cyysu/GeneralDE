@@ -1,3 +1,4 @@
+#include <limits>
 #include <stdexcept>
 #include "cpe/utils/file.h"
 #include "cpepp/utils/StreamFile.hpp"
