@@ -302,7 +302,7 @@ int set_pkg_carry_set_buf(dp_req_t carry, void * buf, size_t capacity) {
 }
 
 int set_pkg_carry_set_size(dp_req_t carry, uint8_t size) {
-    if ((size + 1) > dp_req_capacity(carry)) return - 1;
+    if ((((size_t)size) + 1) > dp_req_capacity(carry)) return - 1;
 
     dp_req_set_size(carry, size + 1);
 
@@ -320,7 +320,9 @@ void * set_pkg_carry_data(dp_req_t carry) {
 }
 
 uint8_t set_pkg_carry_capacity(dp_req_t carry) {
-    return dp_req_capacity(carry) - 1;
+    size_t c = dp_req_capacity(carry);
+    assert(c >= 1 && c <= (256 + 1));
+    return (uint8_t)(c - 1);
 }
 
 static void set_pkg_head_dump(dp_req_t head, write_stream_t s) {

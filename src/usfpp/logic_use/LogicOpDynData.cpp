@@ -1,3 +1,4 @@
+#include <limits>
 #include <cassert>
 #include "gdpp/app/Log.hpp"
 #include "usf/logic/logic_manage.h"

@@ -84,7 +84,7 @@ int payment_svr_db_send_add_money(
         SVR_PAYMENT_MONEY const * money = diff->datas + i;
 
         if (money->type < PAYMENT_MONEY_TYPE_MIN
-            || money->type > PAYMENT_MONEY_TYPE_MAX
+            || money->type >= PAYMENT_MONEY_TYPE_MAX
             || (money->type - PAYMENT_MONEY_TYPE_MIN) >= bag_info->money_type_count)
         {
             CPE_ERROR(
