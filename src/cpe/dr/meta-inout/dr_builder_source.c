@@ -38,7 +38,7 @@ dr_metalib_source_create(
     buf = mem_alloc(builder->m_alloc, name_len + sizeof(struct dr_metalib_source) + capacity);
     if (buf == NULL) return NULL;
 
-    memcpy(buf, name, name_len);
+    strncpy(buf, name, name_len);
 
     source = (dr_metalib_source_t)(buf + name_len);
     source->m_builder = builder;

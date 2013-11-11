@@ -154,7 +154,7 @@ void gd_app_context_free(gd_app_context_t context) {
     }
 
     while(context->m_argc > 0) {
-        mem_free(context->m_alloc, context->m_argv[context->m_argc--]);
+        mem_free(context->m_alloc, context->m_argv[--context->m_argc]);
     }
 
     if (context->m_root) {

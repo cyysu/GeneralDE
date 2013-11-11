@@ -1,3 +1,4 @@
+#include <limits>
 #include <cassert>
 #include <sstream>
 #include <stdexcept>
