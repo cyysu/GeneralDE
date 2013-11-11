@@ -21,7 +21,7 @@ logic_executor_type_create(logic_executor_type_group_t group, const char * name)
     buf = mem_alloc(group->m_alloc, sizeof(struct logic_executor_type) + name_len);
     if (buf == NULL) return NULL;
 
-    memcpy(buf, name, name_len);
+    strncpy(buf, name, name_len);
 
     type = (logic_executor_type_t)(buf + name_len);
     type->m_group = group;
