@@ -8,6 +8,9 @@ ifeq ($(GPROF),1)
 CPDE_OUTPUT_ROOT:=$(CPDE_OUTPUT_ROOT)-gprof
 endif
 
+ifeq ($(MUDFLAP),1)
+CPDE_OUTPUT_ROOT:=$(CPDE_OUTPUT_ROOT)-mudflap
+endif
 
 project_repository:=
 product-support-types:=

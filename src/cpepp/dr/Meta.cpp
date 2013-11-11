@@ -1,3 +1,4 @@
+#include <limits>
 #include <sstream>
 #include <stdexcept>
 #include "cpe/pal/pal_strings.h"
