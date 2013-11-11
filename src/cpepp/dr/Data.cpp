@@ -1,3 +1,4 @@
+#include <limits>
 #include <stdexcept>
 #include "cpe/pal/pal_strings.h"
 #include "cpepp/utils/ErrorCollector.hpp"

@@ -28,7 +28,7 @@ bpg_rsp_t bpg_rsp_create(bpg_rsp_manage_t mgr, const char * name) {
         return NULL;
     }
 
-    memcpy(buf, name, name_len);
+    strncpy(buf, name, name_len);
 
     rsp = (bpg_rsp_t)(buf + name_len);
     rsp->m_mgr = mgr;

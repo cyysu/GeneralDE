@@ -1,3 +1,4 @@
+#include <limits>
 #include "cpepp/utils/CString.hpp"
 #include "cpepp/cfg/Node.hpp"
 #include "cpepp/nm/Manager.hpp"
