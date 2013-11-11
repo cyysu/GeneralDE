@@ -63,6 +63,8 @@ void set_svr_svr_info_free(set_svr_stub_t stub, set_svr_svr_info_t svr_info) {
     if (svr_info->m_response_dispatch_to) {
         mem_free(stub->m_alloc, svr_info->m_response_dispatch_to);
     }
+
+    mem_free(stub->m_alloc, svr_info);
 }
 
 set_svr_svr_info_t set_svr_svr_info_find(set_svr_stub_t stub, uint16_t svr_type) {
