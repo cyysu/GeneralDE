@@ -425,7 +425,7 @@ set_logic_rsp_manage_create_follow_op_by_name(set_logic_rsp_manage_t bpg_mgr, lo
             CPE_ERROR(
                 em, "%s.%s: create follow op: fail, create carry metas fail!",
                 set_logic_rsp_manage_name(bpg_mgr), rsp_name);
-            logic_context_free(context);
+            logic_context_free(follow_context);
             return NULL;
         }
     }
