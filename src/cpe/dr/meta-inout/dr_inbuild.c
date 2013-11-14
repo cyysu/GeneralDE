@@ -628,3 +628,14 @@ int dr_inbuild_meta_copy_key_entrys(struct DRInBuildMeta * new_meta, LPDRMETA sr
 
     return rv;
 }
+
+struct DRInBuildMetaEntry *
+dr_inbuild_meta_find_entry(struct DRInBuildMeta * meta, const char * name) {
+    struct DRInBuildMetaEntry * entry;
+
+    TAILQ_FOREACH(entry, &meta->m_entries, m_next) {
+        if (strcmp(entry->m_name, name) == 0) return entry;
+    }
+
+    return NULL;
+}
