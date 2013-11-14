@@ -117,7 +117,7 @@
     </macrosgroup>
 
     <struct name="svr_room_room_data_roles" version="1">
-        <entry name="user_count" type="uint16" id="2"/>
+        <entry name="user_count" type="uint16" id="1"/>
         <entry name="users" type="svr_room_creating_user" count="0" refer="user_count" id="2"/>
     </struct>
 
@@ -148,14 +148,14 @@
     <struct name="svr_room_notify_user_leave" version="1">
         <entry name="room_id" type="uint64" id="1"/>
         <entry name="user_id" type="uint64" id="2"/>
-        <entry name="leave_user" type="uint64" id="2"/>
-        <entry name="leave_reason" type="uint8" id="3" bindmacrosgroup="svr_room_user_leave_reason"/>
+        <entry name="leave_user" type="uint64" id="3"/>
+        <entry name="leave_reason" type="uint8" id="4" bindmacrosgroup="svr_room_user_leave_reason"/>
     </struct>
 
     <struct name="svr_room_notify_room_destory" version="1">
         <entry name="room_id" type="uint64" id="1"/>
         <entry name="user_id" type="uint64" id="2"/>
-        <entry name="destory_reason" type="uint8" id="2" bindmacrosgroup="svr_room_room_destory_reason"/>
+        <entry name="destory_reason" type="uint8" id="3" bindmacrosgroup="svr_room_room_destory_reason"/>
     </struct>
 
     <struct name="svr_room_notify_room_tick" version="1">
