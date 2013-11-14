@@ -236,7 +236,7 @@ static int set_logic_sp_incoming_recv(dp_req_t req, void * ctx, error_monitor_t 
             logic_require_set_error_ex(require, err);
         }
     }
-    else {
+    else if (data_meta) {
         data = logic_require_data_get_or_create(require, data_meta, data_size);
         if (data == NULL) {
             CPE_ERROR(
