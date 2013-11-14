@@ -1,4 +1,4 @@
 From: wangjian1009 <wangjian1009@gmail.coom>
-Subject: [PATCH] t/svr/usf
+Subject: [PATCH] t/svr/payment
 
-集成usf框架和服务框架
+支付相关服务

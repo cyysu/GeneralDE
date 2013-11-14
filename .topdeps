@@ -1,2 +1,3 @@
 t/svr/env
-t/support/usf
+t/svr/usf
+t/support/mongo
