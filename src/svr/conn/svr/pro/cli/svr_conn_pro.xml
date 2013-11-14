@@ -7,13 +7,13 @@
     <!--  绑定连接到用户 -->
     <struct name="svr_conn_req_bind_user" version="1">
         <entry name="conn_id" type="uint32" id="1"/>
-        <entry name="user_id" type="uint64" id="1"/>
+        <entry name="user_id" type="uint64" id="2"/>
     </struct>
 
     <!-- 关闭连接 -->
     <struct name="svr_conn_req_close" version="1">
         <entry name="conn_id" type="uint32" id="1"/>
-        <entry name="user_id" type="uint64" id="1"/>
+        <entry name="user_id" type="uint64" id="2"/>
     </struct>
 
 
