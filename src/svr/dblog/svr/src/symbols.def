@@ -34,3 +34,4 @@ set_logic_sp_app_init
 set_logic_sp_app_fini
 dblog_svr_app_init
 dblog_svr_app_fini
+g_metalib_svr_dblog_pro

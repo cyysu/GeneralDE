@@ -10,16 +10,6 @@
 extern "C" {
 #endif
 
-dblog_agent_t
-dblog_agent_create(
-    gd_app_context_t app,
-    const char * name,
-    set_svr_stub_t stub,
-    mem_allocrator_t alloc,
-    error_monitor_t em);
-
-void dblog_agent_free(dblog_agent_t svr);
-
 dblog_agent_t dblog_agent_find(gd_app_context_t app, cpe_hash_string_t name);
 dblog_agent_t dblog_agent_find_nc(gd_app_context_t app, const char * name);
 const char * dblog_agent_name(dblog_agent_t svr);
