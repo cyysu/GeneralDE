@@ -13,7 +13,7 @@
 #define SET_SHARE_SAVE_HEAD_SIZE (sizeof(uint32_t) + sizeof(SET_PKG_HEAD) + 1) /*长度计数以及一个协议头*/
 
 static void set_chanel_pipe_save_ignore_pkg(void * buf, size_t capacity);
-static int set_chanel_pipe_save_pkg(dp_req_t body, dp_req_t head, dp_req_t carry, void * buf, size_t capacity);
+static int set_chanel_pipe_save_pkg(dp_req_t body, dp_req_t head, dp_req_t carry, void * buf, size_t capacity, error_monitor_t em);
 static int set_chanel_pipe_load_pkg(dp_req_t body, dp_req_t head, dp_req_t carry, void * buf, size_t capacity, error_monitor_t em);
 static int set_chanel_pipe_write(SVR_SET_CHANEL * chanel, SVR_SET_PIPE * pipe, dp_req_t body, size_t * size, error_monitor_t em);
 static int set_chanel_pipe_peak(SVR_SET_CHANEL * chanel, SVR_SET_PIPE * pipe, dp_req_t body, error_monitor_t em);
@@ -264,7 +264,7 @@ static int set_chanel_pipe_write(SVR_SET_CHANEL * chanel, SVR_SET_PIPE * pipe, d
     if (pipe->wp >= rp) {
         assert(pipe->wp != pipe->capacity);
 
-        write_size = set_chanel_pipe_save_pkg(body, head, carry, buf + pipe->wp, pipe->capacity - pipe->wp);
+        write_size = set_chanel_pipe_save_pkg(body, head, carry, buf + pipe->wp, pipe->capacity - pipe->wp, em);
         if (write_size > 0) {
             pipe->wp += write_size;
             if (pipe->wp == pipe->capacity) pipe->wp = 0;
@@ -275,7 +275,7 @@ static int set_chanel_pipe_write(SVR_SET_CHANEL * chanel, SVR_SET_PIPE * pipe, d
                 return set_chanel_error_chanel_full;
             }
 
-            write_size = set_chanel_pipe_save_pkg(body, head, carry, buf, rp - 1);
+            write_size = set_chanel_pipe_save_pkg(body, head, carry, buf, rp - 1, em);
             if (write_size > 0) {
                 set_chanel_pipe_save_ignore_pkg(buf + pipe->wp, pipe->capacity - pipe->wp);
                 pipe->wp = write_size;
@@ -294,7 +294,7 @@ static int set_chanel_pipe_write(SVR_SET_CHANEL * chanel, SVR_SET_PIPE * pipe, d
         }
     }
     else {
-        write_size = set_chanel_pipe_save_pkg(body, head, carry, buf + pipe->wp, rp - pipe->wp - 1);
+        write_size = set_chanel_pipe_save_pkg(body, head, carry, buf + pipe->wp, rp - pipe->wp - 1, em);
         if (write_size > 0) {
             pipe->wp += write_size;
             if (pipe->wp == pipe->capacity) pipe->wp = 0;
@@ -382,7 +382,7 @@ static int set_chanel_pipe_load_pkg(dp_req_t body, dp_req_t head, dp_req_t carry
     return 0;
 }
 
-static int set_chanel_pipe_save_pkg(dp_req_t body, dp_req_t head, dp_req_t carry, void * input_buf, size_t capacity) {
+static int set_chanel_pipe_save_pkg(dp_req_t body, dp_req_t head, dp_req_t carry, void * input_buf, size_t capacity, error_monitor_t em) {
     char * buf = input_buf;
     uint32_t total_size;
     size_t head_size;
@@ -407,7 +407,7 @@ static int set_chanel_pipe_save_pkg(dp_req_t body, dp_req_t head, dp_req_t carry
         decode_size = 
             dr_pbuf_read(
                 buf + head_size, body_capacity,
-                dp_req_data(body), dp_req_size(body), NULL, dp_req_meta(body), NULL);
+                dp_req_data(body), dp_req_size(body), NULL, dp_req_meta(body), em);
         if (decode_size < 0) {
             if (decode_size == dr_code_error_not_enough_output) {
                 return set_chanel_error_chanel_full;
