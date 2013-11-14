@@ -62,6 +62,8 @@ struct DRInBuildMetaEntry * dr_inbuild_meta_add_entry(struct DRInBuildMeta * met
 void dr_inbuild_meta_remove_entry(struct DRInBuildMeta * meta, struct DRInBuildMetaEntry * entry);
 struct DRInBuildMetaEntry *
 dr_inbuild_meta_copy_entry(struct DRInBuildMeta * meta, LPDRMETAENTRY entry);
+struct DRInBuildMetaEntry *
+dr_inbuild_meta_find_entry(struct DRInBuildMeta * meta, const char * name);
 
 int dr_inbuild_meta_init(struct DRInBuildMeta * new_meta, LPDRMETA src_meta);
 int dr_inbuild_meta_copy_entrys(struct DRInBuildMeta * new_meta, LPDRMETA src_meta);
