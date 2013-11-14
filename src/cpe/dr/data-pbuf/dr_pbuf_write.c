@@ -32,11 +32,13 @@ struct dr_pbuf_write_stack {
 
 #define dr_pbuf_write_check_capacity(__capacity)                        \
     if (curStack->m_output_capacity - curStack->m_output_size < (__capacity)) { \
-        CPE_ERROR(em, "dr_pbuf_write: not enouth buf,"                  \
+        CPE_ERROR(em, "dr_pbuf_write: %s.%s: not enouth buf,"           \
                   " output-capacity=%d, require=%d!",                   \
+                  dr_meta_name(curStack->m_meta),                       \
+                  curStack->m_entry ? dr_entry_name(curStack->m_entry) : "???", \
                   (int)(curStack->m_output_capacity - curStack->m_output_size), \
                   (int)(__capacity));                                   \
-        return -1;                                                      \
+        return dr_code_error_not_enough_output;                         \
     }
 
 #define dr_pbuf_write_encode_uint32(v)                              \

@@ -309,12 +309,26 @@ int dr_add_meta_entry_set_type_calc_align(LPDRMETA meta, LPDRMETAENTRY entry, er
 
 LPDRMETAENTRY
 dr_meta_add_entry(LPDRMETA meta, LPDRMETAENTRY entry, error_monitor_t em) {
+    char * base = (char*)(meta) - meta->m_self_pos;
     LPDRMETAENTRY newEntry =  (LPDRMETAENTRY)(meta + 1) + meta->m_entry_count;
     int entryAlign = 0;
 
     if (entry->m_name_pos < 0) {
         CPE_ERROR_EX(em, CPE_DR_ERROR_META_NO_NAME, "entry have no name!");
         return NULL;
+    }
+
+    if (entry->m_id != -1) {
+        int i;
+        for(i = 0; i < meta->m_entry_count; ++i) {
+            LPDRMETAENTRY check_entry =  (LPDRMETAENTRY)(meta + 1) + i;
+            if (check_entry->m_id == entry->m_id) {
+                CPE_ERROR(
+                    em, "meta %s entry id %d duplicate, %s and %s!",
+                     dr_meta_name(meta), entry->m_id, base + entry->m_name_pos, dr_entry_name(check_entry));
+                return NULL;
+            }
+        }
     }
 
     //process type
@@ -371,7 +385,7 @@ void dr_meta_add_key(LPDRMETA meta, const char * entry_name, error_monitor_t em)
 
     entry = dr_meta_find_entry_lsearch(meta, entry_name);
     if (entry == NULL) {
-        CPE_ERROR(em, "meta %s have entry %s", dr_meta_name(meta), entry_name);
+        CPE_ERROR(em, "meta %s have no entry %s", dr_meta_name(meta), entry_name);
         return;
     }
  

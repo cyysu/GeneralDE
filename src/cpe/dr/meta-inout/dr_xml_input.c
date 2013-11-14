@@ -285,7 +285,7 @@ static void dr_build_xml_process_meta(
         else if (strcmp((char const *)localname, "primarykey") == 0) {
             char * names;
             DR_DO_DUP_STR(names);
-            dr_inbuild_meta_add_key_entries(newMeta, names);
+             dr_inbuild_meta_add_key_entries(newMeta, names);
         }
         else if (strcmp((char const *)localname, CPE_DR_TAG_ID) == 0) {
             DR_DO_READ_INT_OR_MACRO(newMeta->m_data.m_id, CPE_DR_ERROR_ENTRY_INVALID_ID_VALUE);
@@ -468,6 +468,23 @@ static void dr_build_xml_process_entry(
         haveError = 1;
     }
 
+    if (newEntry->m_data.m_id != -1) {
+        struct DRInBuildMetaEntry * check_entry;
+
+        TAILQ_FOREACH(check_entry, &ctx->m_curentMeta->m_entries, m_next) {
+            if (check_entry == newEntry) continue;
+
+            if (newEntry->m_data.m_id <= check_entry->m_data.m_select_range_max
+                && newEntry->m_data.m_id >= check_entry->m_data.m_select_range_min)
+            {
+                CPE_ERROR(
+                    ctx->m_em, "meta %s id %d duplicate, %s and %s!",
+                    ctx->m_curentMeta->m_name, newEntry->m_data.m_id, check_entry->m_name, newEntry->m_name);
+                haveError = 1;
+            }
+        }
+    }
+
     if (haveError) {
         dr_inbuild_meta_remove_entry(ctx->m_curentMeta, newEntry);
         return;
@@ -629,6 +646,16 @@ static void dr_build_xml_endElement(
     struct DRXmlParseCtx * ctx = (struct DRXmlParseCtx *)(inputCtx);
 
     if (strcmp((const char *)localname, CPE_DR_TAG_STRUCT) == 0) {
+        struct dr_inbuild_key_entry * key_entry;
+
+        TAILQ_FOREACH(key_entry, &ctx->m_curentMeta->m_key_entries, m_next) {
+            if (dr_inbuild_meta_find_entry(ctx->m_curentMeta, key_entry->m_entry_name) == NULL) {
+                CPE_ERROR(
+                    ctx->m_em, "meta %s key entry %s not exist!",
+                    ctx->m_curentMeta->m_name, key_entry->m_entry_name);
+            }
+        }
+
         ctx->m_curentMeta = NULL;
         if (ctx->m_state == PS_InMeta) {
             ctx->m_state = PS_InMetaLib;
