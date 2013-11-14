@@ -34,6 +34,8 @@ int match_svr_room_send_create_req(match_svr_room_t room, SVR_MATCH_ROOM_META co
     TAILQ_FOREACH(process_user, &room->m_users, m_next) {
         SVR_ROOM_CREATING_USER * room_user = &create_req->users[create_req->user_count++];
 
+        assert(process_user->m_data->user_data_len <= SVR_ROOM_USER_DATA_MAX);
+
         room_user->user_id = process_user->m_data->user_id;
         room_user->user_at_svr_type = process_user->m_data->user_at_svr_type;
         room_user->user_at_svr_id = process_user->m_data->user_at_svr_id;
