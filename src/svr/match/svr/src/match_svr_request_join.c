@@ -5,6 +5,7 @@
 #include "gd/timer/timer_manage.h"
 #include "svr/center/agent/center_agent.h"
 #include "svr/set/share/set_pkg.h"
+#include "protocol/svr/room/svr_room_pro.h"
 #include "match_svr_ops.h"
 
 static match_svr_user_t match_svr_do_user_join_room(
@@ -22,6 +23,22 @@ void match_svr_request_join(match_svr_t svr, dp_req_t pkg_body, dp_req_t pkg_hea
     uint32_t cur_time = match_svr_cur_time(svr);
 
     req = & ((SVR_MATCH_PKG *)dp_req_data(pkg_body))->data.svr_match_req_join;
+
+    if (req->user.user_data_len > SVR_MATCH_USER_DATA_MAX) {
+        CPE_ERROR(
+            svr->m_em, "%s: join: match room user data-len %d is overflow, match svr max data is %d!",
+            match_svr_name(svr), req->user.user_data_len, SVR_MATCH_USER_DATA_MAX);
+        err = SVR_MATCH_ERROR_USER_DATA_OVERFLOW;
+        goto REQ_JOIN_MATCH_FAIL;
+    }
+
+    if (req->user.user_data_len > SVR_ROOM_USER_DATA_MAX) {
+        CPE_ERROR(
+            svr->m_em, "%s: join: match room user data-len %d is overflow, room svr max data is %d!",
+            match_svr_name(svr), req->user.user_data_len, SVR_ROOM_USER_DATA_MAX);
+        err = SVR_MATCH_ERROR_USER_DATA_OVERFLOW;
+        goto REQ_JOIN_MATCH_FAIL;
+    }
 
     /*获取房间配置数据*/
     room_meta = match_svr_meta_foom_find(svr, req->match_room_type);

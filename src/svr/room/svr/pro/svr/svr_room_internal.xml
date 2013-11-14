@@ -13,7 +13,7 @@
         <entry name="creation_time" type="uint32" id="3"/>
     </struct>
 
-    <struct name="svr_room_user_record" version="1" primarykey="room_id,uid">
+    <struct name="svr_room_user_record" version="1" primarykey="room_id,user_id">
         <entry name="room_id" type="uint64" id="1"/>
         <entry name="user_id" type="uint64" id="2"/>
         <entry name="user_at_svr_type" type="uint16" id="3"/>

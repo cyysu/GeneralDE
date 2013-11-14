@@ -17,4 +17,9 @@
         <entry name="svr_dblog_req_log" type="svr_dblog_req_log" id="SVR_DBLOG_CMD_REQ_LOG"/>
     </union>
 
+    <struct name="svr_dblog_pkg" version="1">
+        <entry name="cmd" type="uint32" id="1"/>
+        <entry name="data" type="svr_dblog_pkg_data" id="2" select="cmd"/>
+    </struct>
+
 </metalib>

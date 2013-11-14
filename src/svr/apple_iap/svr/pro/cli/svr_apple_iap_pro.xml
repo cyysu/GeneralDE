@@ -6,12 +6,12 @@
 
     <!--     验证充值请求 -->
     <struct name="svr_apple_iap_req_validate" version="1">
-        <entry name="receipt" type="string" size="SVR_APPLE_IAP_RECEIPT_MAX" id="2"/>
+        <entry name="receipt" type="string" size="SVR_APPLE_IAP_RECEIPT_MAX" id="1"/>
     </struct>
 
     <struct name="svr_apple_iap_res_validate" version="1">
         <entry name="status" type="int32" id="1"/>
-        <entry name="data" type="svr_apple_iap_purchase_data" id="1"/>
+        <entry name="data" type="svr_apple_iap_purchase_data" id="2"/>
     </struct>
 
     <!--    错误响应 -->
@@ -36,7 +36,7 @@
 
     <struct name="svr_apple_iap_pkg" version="1">
         <entry name="cmd" type="uint32" id="1"/>
-        <entry name="data" type="svr_apple_iap_pkg_data" id="3" select="cmd"/>
+        <entry name="data" type="svr_apple_iap_pkg_data" id="2" select="cmd"/>
     </struct>
 
 </metalib>

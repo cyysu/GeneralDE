@@ -6,6 +6,7 @@
         <macro name="SVR_MATCH_ERROR_ROOM_TYPE_UNKNOWN" value="1"/>
         <macro name="SVR_MATCH_ERROR_ROOM_TYPE_MISMATCH" value="2"/>
         <macro name="SVR_MATCH_ERROR_USER_NOT_EXIST" value="3"/>
+        <macro name="SVR_MATCH_ERROR_USER_DATA_OVERFLOW" value="4"/>
         <macro name="SVR_MATCH_ERROR_INTERNAL" value="-1"/>
     </macrosgroup>
 

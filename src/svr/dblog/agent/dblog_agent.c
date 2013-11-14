@@ -9,9 +9,10 @@
 #include "gd/app/app_module.h"
 #include "gd/app/app_context.h"
 #include "gd/timer/timer_manage.h"
+#include "svr/set/stub/set_svr_stub.h"
 #include "svr/set/share/set_pkg.h"
 #include "svr/dblog/agent/dblog_agent.h"
-#include "dblog_agent_ops.h"
+#include "dblog_agent_internal_ops.h"
 
 static void dblog_agent_clear(nm_node_t node);
 
@@ -24,6 +25,7 @@ dblog_agent_create(
     gd_app_context_t app,
     const char * name,
     set_svr_stub_t stub,
+    uint16_t dblog_svr_type_id,
     mem_allocrator_t alloc,
     error_monitor_t em)
 {
@@ -42,6 +44,7 @@ dblog_agent_create(
     svr->m_em = em;
     svr->m_stub = stub;
     svr->m_debug = 0;
+    svr->m_dblog_svr_type_id = dblog_svr_type_id;
 
     nm_node_set_type(svr_node, &s_nm_node_type_dblog_agent);
 
@@ -95,4 +98,11 @@ dblog_agent_name_hs(dblog_agent_t svr) {
 
 uint32_t dblog_agent_cur_time(dblog_agent_t svr) {
     return tl_manage_time_sec(gd_app_tl_mgr(svr->m_app));
+}
+
+int dblog_agent_log(dblog_agent_t agent, void const * data, size_t data_size, LPDRMETA data_meta) {
+    return set_svr_stub_send_req_data(
+        agent->m_stub, agent->m_dblog_svr_type_id, 0,
+        0, data, data_size, data_meta,
+        NULL, 0);
 }

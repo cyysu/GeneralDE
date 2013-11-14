@@ -1,7 +1,7 @@
 product:=dblog_agent
 $(product).type:=cpe-dr lib 
 $(product).depends:=cpe_dr
-$(product).c.sources:=
+$(product).c.sources:=$(wildcard $(product-base)/*.c)
 $(product).product.c.includes:=$(subst $(CPDE_ROOT)/,,$(call c-source-dir-to-binary-dir,$(product-base),server))
 $(product).product.c.output-includes:=share
 
