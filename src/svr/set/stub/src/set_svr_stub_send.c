@@ -153,7 +153,7 @@ int set_svr_stub_send_pkg(set_svr_stub_t stub, dp_req_t body) {
 static int set_svr_stub_do_send_data(
     set_svr_stub_t stub, set_svr_svr_info_t svr_info,
     uint16_t to_svr_type_id, uint16_t to_svr_id, set_pkg_category_t c,
-    uint16_t sn, void const * data, uint16_t data_size, LPDRMETA meta, void const * carry_data, size_t carry_data_len)
+    uint32_t sn, void const * data, uint16_t data_size, LPDRMETA meta, void const * carry_data, size_t carry_data_len)
 {
     dp_req_t pkg;
     dp_req_t pkg_head;
@@ -239,7 +239,7 @@ static int set_svr_stub_do_send_data(
 static int set_svr_stub_do_send_cmd(
     set_svr_stub_t stub, set_svr_svr_info_t svr_info,
     uint16_t to_svr_type_id, uint16_t to_svr_id, set_pkg_category_t c,
-    uint16_t sn, uint32_t cmd, void const * carry_data, size_t carry_data_len)
+    uint32_t sn, uint32_t cmd, void const * carry_data, size_t carry_data_len)
 {
     dp_req_t pkg;
     dp_req_t pkg_head;
@@ -303,7 +303,7 @@ static int set_svr_stub_do_send_cmd(
 
 int set_svr_stub_send_req_data(
     set_svr_stub_t stub, uint16_t to_svr_type_id, uint16_t to_svr_id,
-    uint16_t sn, void const * data, uint16_t data_size, LPDRMETA meta,
+    uint32_t sn, void const * data, uint16_t data_size, LPDRMETA meta,
     void const * carry_data, size_t carry_data_len)
 {
     set_svr_svr_info_t to_svr_info;
@@ -324,7 +324,7 @@ int set_svr_stub_send_req_data(
 
 int set_svr_stub_send_req_cmd(
     set_svr_stub_t stub, uint16_t to_svr_type_id, uint16_t to_svr_id,
-    uint16_t sn, uint32_t cmd,
+    uint32_t sn, uint32_t cmd,
     void const * carry_data, size_t carry_data_len)
 {
     set_svr_svr_info_t to_svr_info;
@@ -345,7 +345,7 @@ int set_svr_stub_send_req_cmd(
 
 int set_svr_stub_send_response_data(
     set_svr_stub_t stub, uint16_t to_svr_type_id, uint16_t to_svr_id,
-    uint16_t sn, void const * data, uint16_t data_size, LPDRMETA meta,
+    uint32_t sn, void const * data, uint16_t data_size, LPDRMETA meta,
     void const * carry_data, size_t carry_data_len)
 {
     return set_svr_stub_do_send_data(
@@ -355,7 +355,7 @@ int set_svr_stub_send_response_data(
 
 int set_svr_stub_send_response_cmd(
     set_svr_stub_t stub, uint16_t to_svr_type_id, uint16_t to_svr_id,
-    uint16_t sn, uint32_t cmd,
+    uint32_t sn, uint32_t cmd,
     void const * carry_data, size_t carry_data_len)
 {
     return set_svr_stub_do_send_cmd(
@@ -365,7 +365,7 @@ int set_svr_stub_send_response_cmd(
 
 int set_svr_stub_send_notify_data(
     set_svr_stub_t stub, uint16_t to_svr_type_id, uint16_t to_svr_id,
-    uint16_t sn, void const * data, uint16_t data_size, LPDRMETA meta,
+    uint32_t sn, void const * data, uint16_t data_size, LPDRMETA meta,
     void const * carry_data, size_t carry_data_len)
 {
     return set_svr_stub_do_send_data(
@@ -375,7 +375,7 @@ int set_svr_stub_send_notify_data(
 
 int set_svr_stub_send_notify_cmd(
     set_svr_stub_t stub, uint16_t to_svr_type_id, uint16_t to_svr_id,
-    uint16_t sn, uint32_t cmd,
+    uint32_t sn, uint32_t cmd,
     void const * carry_data, size_t carry_data_len)
 {
     return set_svr_stub_do_send_cmd(
