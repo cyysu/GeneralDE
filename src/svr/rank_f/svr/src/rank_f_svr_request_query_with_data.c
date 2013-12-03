@@ -1,8 +1,10 @@
 #include <assert.h> 
 #include "cpe/pal/pal_stdio.h"
+#include "cpe/utils/buffer.h"
 #include "cpe/aom/aom_obj_mgr.h"
 #include "cpe/dp/dp_request.h"
 #include "cpe/dr/dr_pbuf.h"
+#include "cpe/dr/dr_json.h"
 #include "svr/set/share/set_pkg.h"
 #include "svr/set/stub/set_svr_stub.h"
 #include "rank_f_svr_ops.h"
@@ -29,7 +31,10 @@ void rank_f_svr_request_query_with_data(rank_f_svr_t svr, dp_req_t pkg_body, dp_
     }
 
     data_buf_capacity = svr->m_data_size * index->m_record_count;
-    res = rank_f_svr_make_response(&response_body, svr, pkg_body, data_buf_capacity);
+
+    response_body = set_svr_stub_outgoing_pkg_buf(svr->m_stub, sizeof(SVR_RANK_F_PKG) + data_buf_capacity);
+
+    res = set_svr_stub_pkg_to_data(svr->m_stub, response_body, 0, svr->m_pkg_meta_res_query_with_data, NULL);
     if (res == NULL) {
         CPE_ERROR(svr->m_em, "%s: request query-with-data: make response fail!", rank_f_svr_name(svr));
         rank_f_svr_send_error_response(svr, pkg_head, rv);
@@ -58,30 +63,46 @@ void rank_f_svr_request_query_with_data(rank_f_svr_t svr, dp_req_t pkg_body, dp_
             }
         }
 
-        for(; i < RANK_F_SVR_INDEX_BUF_RECORD_COUNT
+        for(; i < buf->m_record_count
                 && data_buf_capacity > 0
-                && res->return_count < req->require_count;
+                && (req->require_count == 0 || res->return_count < req->require_count);
             ++i)
         {
-            int size = dr_pbuf_write(
+            SVR_RANK_F_RECORD * record = buf->m_records[i];
+            int rv;
+
+            assert(record);
+
+            if (svr->m_debug >= 2) {
+                struct mem_buffer buffer;
+                mem_buffer_init(&buffer, svr->m_alloc);
+            
+                CPE_INFO(
+                    svr->m_em, "%s: request query-with-data: dump record: %s",
+                    rank_f_svr_name(svr), dr_json_dump(&buffer, record + 1, svr->m_data_size, svr->m_data_meta));
+
+                mem_buffer_clear(&buffer);
+            }
+
+            rv = dr_pbuf_write_with_size(
                 data_buf, data_buf_capacity, 
-                buf->m_records[i] + 1, svr->m_data_size, svr->m_data_meta, svr->m_em);
-            if (size < 0) {
+                record + 1, svr->m_data_size, svr->m_data_meta, svr->m_em);
+            if (rv < 0) {
                 CPE_ERROR(svr->m_em, "%s: request query-with-data: encode data fail!", rank_f_svr_name(svr));
                 rank_f_svr_send_error_response(svr, pkg_head, -1);
                 return;
             }
 
-            assert(size > 0 && size <= data_buf_capacity);
+            assert(rv > 0 && rv <= data_buf_capacity);
 
-            data_buf_capacity -= size;
-            data_buf += size;
+            data_buf_capacity -= rv;
+            data_buf += rv;
             res->return_count ++;
-            res->data_len += size;
+            res->data_len += rv;
         }
     }
 
-    if (set_svr_stub_send_pkg(svr->m_stub, response_body) != 0) {
+    if (set_svr_stub_reply_pkg(svr->m_stub, pkg_body, response_body) != 0) {
         CPE_ERROR(svr->m_em, "%s: request query-with-data: send response fail!", rank_f_svr_name(svr));
     }
 }

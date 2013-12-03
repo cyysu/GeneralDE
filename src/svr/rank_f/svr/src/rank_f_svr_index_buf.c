@@ -43,12 +43,19 @@ rank_f_svr_index_buf_t rank_f_svr_index_buf_alloc(rank_f_svr_t svr) {
 
     r = svr->m_free_bufs;
     svr->m_free_bufs = r->m_next;
+
+    r->m_next = NULL;
+    r->m_record_count = 0;
+
     return r;
 }
 
 void rank_f_svr_index_buf_free(rank_f_svr_t svr, rank_f_svr_index_buf_t buf) {
     svr->m_buf_using_count--;
     svr->m_buf_free_count++;
+
+    assert(buf->m_next == NULL);
+    assert(buf->m_record_count == 0);
 
     buf->m_next = svr->m_free_bufs;
     svr->m_free_bufs = buf;

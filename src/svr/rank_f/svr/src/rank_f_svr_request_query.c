@@ -25,7 +25,9 @@ void rank_f_svr_request_query(rank_f_svr_t svr, dp_req_t pkg_body, dp_req_t pkg_
         return;
     }
 
-    res = rank_f_svr_make_response(&response_body, svr, pkg_body, sizeof(uint64_t) * index->m_record_count);
+    response_body = set_svr_stub_outgoing_pkg_buf(svr->m_stub, sizeof(SVR_RANK_F_PKG) + sizeof(uint64_t) * index->m_record_count);
+
+    res = set_svr_stub_pkg_to_data(svr->m_stub, response_body, 0, svr->m_pkg_meta_res_query, NULL);
     if (res == NULL) {
         CPE_ERROR(svr->m_em, "%s: request query: make response fail!", rank_f_svr_name(svr));
         rank_f_svr_send_error_response(svr, pkg_head, rv);
@@ -47,7 +49,7 @@ void rank_f_svr_request_query(rank_f_svr_t svr, dp_req_t pkg_body, dp_req_t pkg_
         }
     }
 
-    if (set_svr_stub_send_pkg(svr->m_stub, response_body) != 0) {
+    if (set_svr_stub_reply_pkg(svr->m_stub, pkg_body, response_body) != 0) {
         CPE_ERROR(svr->m_em, "%s: request query: send response fail!", rank_f_svr_name(svr));
     }
 }

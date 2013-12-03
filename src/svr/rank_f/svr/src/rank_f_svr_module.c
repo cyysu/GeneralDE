@@ -1,5 +1,6 @@
 #include <assert.h>
 #include "cpe/pal/pal_external.h"
+#include "cpe/pal/pal_stdio.h"
 #include "cpe/utils/string_utils.h"
 #include "cpe/utils/stream_buffer.h"
 #include "cpe/cfg/cfg_read.h"
@@ -251,6 +252,11 @@ int rank_f_svr_build_record_meta(rank_f_svr_t svr) {
         return -1;
     }
         
+    if (dr_inbuild_tsort(in_build_lib, svr->m_em) != 0) {
+        CPE_ERROR(svr->m_em, "%s: create: build record meta: sort record metalib fail", rank_f_svr_name(svr));
+        dr_inbuild_free_lib(in_build_lib);
+        return -1;
+    }
 
     if (dr_inbuild_build_lib(&svr->m_record_metalib, in_build_lib, svr->m_em) != 0) {
         CPE_ERROR(svr->m_em, "%s: create: build record meta: build record metalib fail", rank_f_svr_name(svr));
@@ -288,6 +294,16 @@ int rank_f_svr_build_record_meta(rank_f_svr_t svr) {
     dr_inbuild_free_lib(in_build_lib);
 
     svr->m_record_size = dr_meta_size(svr->m_record_meta);
+    assert(svr->m_record_size == svr->m_data_size + sizeof(SVR_RANK_F_RECORD));
+
+    if (svr->m_debug) {
+        struct mem_buffer buffer;
+        mem_buffer_init(&buffer, svr->m_alloc);
+
+        CPE_INFO(svr->m_em, "%s: create: record meta:\n%s", rank_f_svr_name(svr), dr_lib_dump(&buffer, metalib, 4));
+
+        mem_buffer_clear(&buffer);
+    }
 
     return 0;
 }

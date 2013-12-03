@@ -1,4 +1,5 @@
 #include <assert.h>
+#include "cpe/aom/aom_obj_mgr.h"
 #include "rank_f_svr_ops.h"
 
 rank_f_svr_index_t rank_f_svr_index_alloc(rank_f_svr_t svr, uint64_t user_id, uint8_t index_id) {
@@ -60,18 +61,52 @@ rank_f_svr_index_t rank_f_svr_index_alloc(rank_f_svr_t svr, uint64_t user_id, ui
     return r;
 }
 
+void rank_f_svr_index_clear_records(rank_f_svr_t svr, rank_f_svr_index_t index) {
+    while(index->m_bufs) {
+        rank_f_svr_index_buf_t buf;
+
+        buf = index->m_bufs;
+        index->m_bufs = buf->m_next;
+        buf->m_next = NULL;
+        buf->m_record_count = 0;
+
+        rank_f_svr_index_buf_free(svr, buf);
+    }
+
+    index->m_record_count = 0;
+    index->m_bufs = NULL;
+}
+
+void rank_f_svr_index_destory_records(rank_f_svr_t svr, rank_f_svr_index_t index) {
+    while(index->m_bufs) {
+        rank_f_svr_index_buf_t buf;
+        uint32_t i;
+
+        buf = index->m_bufs;
+        index->m_bufs = buf->m_next;
+
+        for(i = 0; i < buf->m_record_count; ++i) {
+            aom_obj_free(svr->m_record_mgr, buf->m_records[i]);
+        }
+
+        buf->m_next = NULL;
+        buf->m_record_count = 0;
+
+        rank_f_svr_index_buf_free(svr, buf);
+    }
+
+    index->m_record_count = 0;
+    index->m_bufs = NULL;
+}
+
 void rank_f_svr_index_free(rank_f_svr_t svr, rank_f_svr_index_t index) {
     if (index->m_index_id != 0) {
         TAILQ_REMOVE(&svr->m_indexes_for_check, index, m_next);
     }
 
-    cpe_hash_table_remove_by_ins(&svr->m_indexes, index);
+    assert(index->m_bufs == NULL);
 
-    while(index->m_bufs) {
-        rank_f_svr_index_buf_t buf = index->m_bufs;
-        index->m_bufs = buf->m_next;
-        rank_f_svr_index_buf_free(svr, buf);
-    }
+    cpe_hash_table_remove_by_ins(&svr->m_indexes, index);
 
     svr->m_index_free_count++;
     svr->m_index_using_count--;
@@ -87,11 +122,18 @@ void rank_f_svr_index_free_all(rank_f_svr_t svr) {
 
     index = cpe_hash_it_next(&index_it);
     while(index) {
-        rank_f_svr_index_t next = cpe_hash_it_next(&index_it);
-        rank_f_svr_index_free(svr, index);
-        index = next;
-    }
+        rank_f_svr_index_t free_index = index;
+        index = cpe_hash_it_next(&index_it);
 
+        if (free_index->m_index_id == 0) {
+            rank_f_svr_index_destory_records(svr, free_index);
+        }
+        else {
+            rank_f_svr_index_clear_records(svr, free_index);
+        }
+
+        rank_f_svr_index_free(svr, free_index);
+    }
 
     while(!TAILQ_EMPTY(&svr->m_index_heads)) {
         rank_f_svr_index_t head = TAILQ_FIRST(&svr->m_index_heads);

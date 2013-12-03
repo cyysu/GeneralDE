@@ -188,10 +188,11 @@ static int cmp_string_dsc(void const * l, void const * r) {
     return strcmp(r, l);
 }
 
-int rank_f_svr_index_info_add_sorter(rank_f_svr_index_info_t index_info, const char * entry_name, const char * str_order) {
+int rank_f_svr_index_info_add_sorter(rank_f_svr_index_info_t index_info, const char * entry_path, const char * str_order) {
     rank_f_svr_t svr = index_info->m_svr;
     struct rank_f_svr_index_sorter * sorter;
     int order = 0;
+    int start_pos;
 
     if (strcmp(str_order, "asc") == 0) {
         order = 1;
@@ -202,28 +203,27 @@ int rank_f_svr_index_info_add_sorter(rank_f_svr_index_info_t index_info, const c
     else {
         CPE_ERROR(
             svr->m_em, "%s: create index %d(%s, %s): order is unknown!",
-            rank_f_svr_name(svr), index_info->m_id, entry_name, str_order);
+            rank_f_svr_name(svr), index_info->m_id, entry_path, str_order);
         return -1;
     }
 
     if (index_info->m_sorter_count + 1 >= ((sizeof(index_info->m_sorters) / sizeof(index_info->m_sorters[0])))) {
         CPE_ERROR(
             svr->m_em, "%s: create index %d(%s, %s): sorter count %d full!",
-            rank_f_svr_name(svr), index_info->m_id, entry_name, str_order, index_info->m_sorter_count);
+            rank_f_svr_name(svr), index_info->m_id, entry_path, str_order, index_info->m_sorter_count);
         return -1;
     }
 
     sorter = &index_info->m_sorters[index_info->m_sorter_count];
 
-    sorter->m_sort_entry = dr_meta_find_entry_by_name(svr->m_data_meta, entry_name);
+    sorter->m_sort_entry = dr_meta_find_entry_by_path_ex(svr->m_data_meta, entry_path, &start_pos);
     if (sorter->m_sort_entry == NULL) {
         CPE_ERROR(
             svr->m_em, "%s: create index %d(%s, %s): entry not exist!",
-            rank_f_svr_name(svr), index_info->m_id, entry_name, str_order);
+            rank_f_svr_name(svr), index_info->m_id, entry_path, str_order);
         return -1;
     }
-
-    sorter->m_data_start_pos = dr_entry_data_start_pos(sorter->m_sort_entry, 0);
+    sorter->m_data_start_pos = start_pos;
 
     switch(dr_entry_type(sorter->m_sort_entry)) {
     case CPE_DR_TYPE_CHAR:
@@ -264,7 +264,7 @@ int rank_f_svr_index_info_add_sorter(rank_f_svr_index_info_t index_info, const c
     default:
         CPE_ERROR(
             svr->m_em, "%s: create index %d(%s, %s): entry type %s not support cmp!",
-            rank_f_svr_name(svr), index_info->m_id, entry_name, str_order, dr_type_name(dr_entry_type(sorter->m_sort_entry)));
+            rank_f_svr_name(svr), index_info->m_id, entry_path, str_order, dr_type_name(dr_entry_type(sorter->m_sort_entry)));
         return -1;
     }
 
