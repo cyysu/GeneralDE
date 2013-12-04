@@ -1,7 +1,6 @@
 #include "cpe/cfg/cfg_read.h"
 #include "cpe/cfg/cfg_manage.h"
 #include "cpe/utils/buffer.h"
-#include "cpe/utils/stream_buffer.h"
 #include "gd/app/app_log.h"
 #include "gd/app/app_module.h"
 #include "gd/app/app_context.h"
@@ -11,16 +10,11 @@
 
 static void logic_op_dump_all(logic_context_t context, cfg_t root) {
     struct mem_buffer buffer;
-    struct write_stream_buffer stream = CPE_WRITE_STREAM_BUFFER_INITIALIZER(&buffer);
     gd_app_context_t app = logic_context_app(context);
 
-    mem_buffer_init(&buffer, gd_app_alloc(app));
+    mem_buffer_init(&buffer, NULL);
 
-    cfg_dump(root, (write_stream_t)&stream, 4, 4);
-
-    stream_putc((write_stream_t)&stream, 0);
-
-    APP_CTX_INFO(app, "dump context\n%s", (const char *)mem_buffer_make_continuous(&buffer, 0));
+    APP_CTX_INFO(app, "dump context\n%s", cfg_dump(root, &buffer, 4, 4));
 
     mem_buffer_clear(&buffer);
 }
@@ -30,16 +24,9 @@ static void logic_op_dump_part(logic_context_t context, cfg_t root, const char *
     cfg_t child = cfg_find_cfg(root, path);
     if (child) {
         struct mem_buffer buffer;
-        struct write_stream_buffer stream = CPE_WRITE_STREAM_BUFFER_INITIALIZER(&buffer);
-
-        mem_buffer_init(&buffer, gd_app_alloc(app));
-
-        cfg_dump_inline(child, (write_stream_t)&stream);
-        stream_putc((write_stream_t)&stream, 0);
-
+        mem_buffer_init(&buffer, NULL);
+        APP_CTX_INFO(app, "    %s: %s", path, cfg_dump_inline(child, &buffer));
         mem_buffer_clear(&buffer);
-
-        APP_CTX_INFO(app, "    %s: %s", path, (const char *)mem_buffer_make_continuous(&buffer, 0));
     }
     else {
         APP_CTX_INFO(app, "    %s: NULL", path);
