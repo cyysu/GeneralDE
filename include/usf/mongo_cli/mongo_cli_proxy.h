@@ -42,7 +42,7 @@ mongo_pkg_t mongo_cli_proxy_pkg_buf(mongo_cli_proxy_t proxy);
 
 int mongo_cli_proxy_send(
     mongo_cli_proxy_t agent, mongo_pkg_t pkg, logic_require_t require,
-    LPDRMETA result_meta, int result_count_init);
+    LPDRMETA result_meta, int result_count_init, const char * result_prefix);
 
 #ifdef __cplusplus
 }

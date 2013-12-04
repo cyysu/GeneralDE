@@ -49,6 +49,6 @@
   request-recv-at: process-rank-f-request
   check-span-ms: 1000
 
-  debug: 1
+  debug: 2
 
 # -*- coding: utf-8 -*-

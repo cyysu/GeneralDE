@@ -34,10 +34,12 @@ uint16_t rank_f_svr_gid_start_pos(rank_f_svr_t svr);
 rank_f_svr_index_info_t
 rank_f_svr_index_info_create(rank_f_svr_t svr, uint16_t id);
 int rank_f_svr_index_info_add_sorter(
-    rank_f_svr_index_info_t index_info, const char * entry_name, const char * order);
+    rank_f_svr_index_info_t index_info, const char * entry_path, const char * order);
 
 /*rank_f_svr_index*/
 rank_f_svr_index_t rank_f_svr_index_alloc(rank_f_svr_t svr, uint64_t user_id, uint8_t index_id);
+void rank_f_svr_index_clear_records(rank_f_svr_t svr, rank_f_svr_index_t index);
+void rank_f_svr_index_destory_records(rank_f_svr_t svr, rank_f_svr_index_t index);
 void rank_f_svr_index_free(rank_f_svr_t svr, rank_f_svr_index_t index);
 void rank_f_svr_index_free_all(rank_f_svr_t svr);
 
@@ -47,13 +49,12 @@ uint32_t rank_f_svr_index_hash(rank_f_svr_index_t index);
 int rank_f_svr_index_eq(rank_f_svr_index_t l, rank_f_svr_index_t r);
 
 /*record*/
-int rank_f_svr_record_update(rank_f_svr_t svr, rank_f_svr_index_t gid_index, SVR_RANK_F_RECORD * record);
-int rank_f_svr_record_remove(rank_f_svr_t svr, rank_f_svr_index_t gid_index, SVR_RANK_F_RECORD * key);
+int rank_f_svr_record_update(rank_f_svr_t svr, rank_f_svr_index_t gid_index, void const * record);
+int rank_f_svr_record_remove(rank_f_svr_t svr, rank_f_svr_index_t gid_index, void const * key);
 int rank_f_svr_record_sort(rank_f_svr_t svr, rank_f_svr_index_t index, rank_f_svr_index_t records);
 
 
-SVR_RANK_F_RECORD *
-rank_f_svr_record_find(rank_f_svr_t svr, rank_f_svr_index_t index, SVR_RANK_F_RECORD * key);
+void * rank_f_svr_record_find(rank_f_svr_t svr, rank_f_svr_index_t index, void const * key);
 
 /*rank_f_svr_index_buf*/
 rank_f_svr_index_buf_t rank_f_svr_index_buf_alloc(rank_f_svr_t svr);
