@@ -54,14 +54,8 @@ int main(int argc, char * argv[]) {
     void * common_argtable[] = { common_help, common_end };
     int common_nerrors;
 
-    struct error_monitor em_buf;
-    error_monitor_t em;
-
     run_nerrors = arg_parse(argc, argv, run_argtable);
     common_nerrors = arg_parse(argc, argv, common_argtable);
-
-    cpe_error_monitor_init(&em_buf, cpe_error_log_to_consol, 0);
-    em = &em_buf;
 
     rv = 0;
     if (run_nerrors == 0) {
