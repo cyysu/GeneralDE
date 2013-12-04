@@ -1,4 +1,6 @@
 #include <assert.h>
+#include <limits.h>
+#include "cpe/pal/pal_platform.h"
 #include "cpe/pal/pal_string.h"
 #include "cpe/pal/pal_strings.h"
 #include "cpe/dr/dr_pbuf.h"
@@ -263,7 +265,6 @@ static int dr_pbuf_read_i(
     struct mem_buffer * result_buf, 
     const void * input,
     size_t input_capacity,
-    size_t * input_used,
     LPDRMETA meta,
     error_monitor_t em)
 {
@@ -541,9 +542,6 @@ static int dr_pbuf_read_i(
             }
         }
 
-        if (stackPos == 0 && input_used) {
-        }
-
         --stackPos;
     }
 
@@ -555,7 +553,6 @@ int dr_pbuf_read(
     size_t output_capacity,
     const void * input,
     size_t input_capacity,
-    size_t * input_used,
     LPDRMETA meta,
     error_monitor_t em)
 {
@@ -564,12 +561,12 @@ int dr_pbuf_read(
 
     if (em) {
         CPE_DEF_ERROR_MONITOR_ADD(logError, em, cpe_error_save_last_errno, &ret);
-        size = dr_pbuf_read_i(output, output_capacity, NULL, input, input_capacity, input_used, meta, em);
+        size = dr_pbuf_read_i(output, output_capacity, NULL, input, input_capacity, meta, em);
         CPE_DEF_ERROR_MONITOR_REMOVE(logError, em);
     }
     else {
         CPE_DEF_ERROR_MONITOR(logError, cpe_error_save_last_errno, &ret);
-        size = dr_pbuf_read_i(output, output_capacity, NULL, input, input_capacity, input_used, meta, &logError);
+        size = dr_pbuf_read_i(output, output_capacity, NULL, input, input_capacity, meta, &logError);
     }
 
     return ret == 0 ? size : ret;
@@ -579,7 +576,6 @@ int dr_pbuf_read_to_buffer(
     struct mem_buffer * result, 
     const void * input,
     size_t input_capacity,
-    size_t * input_used,
     LPDRMETA meta,
     error_monitor_t em)
 {
@@ -588,13 +584,74 @@ int dr_pbuf_read_to_buffer(
 
     if (em) {
         CPE_DEF_ERROR_MONITOR_ADD(logError, em, cpe_error_save_last_errno, &ret);
-        size = dr_pbuf_read_i(NULL, 0, result, input, input_capacity, input_used, meta, em);
+        size = dr_pbuf_read_i(NULL, 0, result, input, input_capacity, meta, em);
         CPE_DEF_ERROR_MONITOR_REMOVE(logError, em);
     }
     else {
         CPE_DEF_ERROR_MONITOR(logError, cpe_error_save_last_errno, &ret);
-        size = dr_pbuf_read_i(NULL, 0, result, input, input_capacity, input_used, meta, &logError);
+        size = dr_pbuf_read_i(NULL, 0, result, input, input_capacity, meta, &logError);
     }
 
     return ret == 0 ? size : ret;
 }
+
+int dr_pbuf_read_with_size(
+    void * result, size_t capacity,
+    const void * input, size_t input_capacity, size_t * input_used,
+    LPDRMETA meta,
+    error_monitor_t em)
+{
+    int rv;
+    uint16_t data_input_size;
+
+    if (input_capacity < sizeof(uint16_t)) {
+        CPE_ERROR(em, "dr_pbuf_read_with_size: not enouth input to contain size, input-capacity=%d!", (int)input_capacity);
+        return dr_code_error_not_enough_input;
+    }
+
+    CPE_COPY_NTOH16(&data_input_size, input);
+    if (data_input_size > input_capacity) {
+        CPE_ERROR(
+            em, "dr_pbuf_read_with_size: not enouth input to contain data, input-capacity=%d, data-size=%d!",
+            (int)input_capacity, data_input_size);
+        return dr_code_error_not_enough_input;
+    }
+
+    rv = dr_pbuf_read(result, capacity, ((char*)input) + sizeof(uint16_t), data_input_size - sizeof(uint16_t), meta, em);
+    if (rv < 0) {
+        return rv;
+    }
+
+    if (input_used) *input_used = data_input_size;
+
+    return rv;
+}
+
+int dr_pbuf_array_read(
+    void * output, size_t output_capacity,
+    const void * input, size_t input_capacity,
+    LPDRMETA meta,
+    error_monitor_t em)
+{
+    size_t element_size = dr_meta_size(meta);
+    size_t output_used = 0;
+    size_t input_used = 0;
+
+    while(input_used < input_capacity) {
+        size_t element_input_used = 0;
+
+        int r = dr_pbuf_read_with_size(
+            ((char *)output) + output_used, element_size,
+            ((const char *)input) + input_used, input_capacity - input_used, &element_input_used,
+            meta, em);
+        if (r < 0) return r;
+
+        assert(r <= element_size);
+
+        input_used += element_input_used;
+        output_used += element_size;
+    }
+
+    return output_used;
+}
+

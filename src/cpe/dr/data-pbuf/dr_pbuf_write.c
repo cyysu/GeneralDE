@@ -1,4 +1,5 @@
 #include <assert.h>
+#include "cpe/pal/pal_platform.h"
 #include "cpe/pal/pal_string.h"
 #include "cpe/pal/pal_stackbuf.h"
 #include "cpe/utils/stream_mem.h"
@@ -10,6 +11,7 @@
 #include "../dr_internal_types.h"
 #include "../dr_ctype_ops.h"
 #include "dr_pbuf_internal_ops.h"
+#include "cpe/pal/pal_limits.h"
 
 struct dr_pbuf_write_stack {
     LPDRMETA m_meta;
@@ -390,3 +392,67 @@ int dr_pbuf_write(
 
     return (int)processStack[0].m_output_size;
 }
+
+
+int dr_pbuf_write_with_size(
+    void * output, size_t output_capacity,
+    const void * input, size_t input_capacity,
+    LPDRMETA meta,
+    error_monitor_t em)
+{
+    int rv;
+    uint16_t total_size;
+
+    if (output_capacity < sizeof(uint16_t)) {
+        CPE_ERROR(em, "dr_pbuf_write_with_size: not enouth buf to contain size, output-capacity=%d!", (int)sizeof(uint16_t));
+        return dr_code_error_not_enough_output;                         \
+    }
+
+    rv = dr_pbuf_write(
+        ((char*)output) + sizeof(uint16_t), output_capacity - sizeof(uint16_t),
+        input, input_capacity, meta, em);
+    if (rv < 0) {
+        return rv;
+    }
+
+    if (rv + sizeof(uint16_t) > UINT16_MAX) {
+        CPE_ERROR(
+            em, "dr_pbuf_write_with_size: encode size overflow, size=%d, max-size=%d!", rv,
+            (int)(((uint16_t)UINT16_MAX) - sizeof(uint16_t)));
+        return dr_code_error_internal;
+    }
+
+    total_size = rv + sizeof(uint16_t);
+    CPE_COPY_HTON16(output, &total_size);
+
+    return total_size;
+}
+
+int dr_pbuf_array_write(
+    void * output,
+    size_t output_capacity,
+    const void * input,
+    size_t input_capacity,
+    LPDRMETA meta,
+    error_monitor_t em)
+{
+    size_t element_size = dr_meta_size(meta);
+    size_t output_used = 0;
+    size_t input_used = 0;
+
+    assert(input_capacity % element_size == 0);
+
+    while(input_used < input_capacity) {
+        int r = dr_pbuf_write_with_size(
+            ((char *)output) + output_used, output_capacity - output_used,
+            ((const char *)input) + input_used, element_size,
+            meta, em);
+        if (r < 0) return r;
+
+        input_used += element_size;
+        output_used += r;
+    }
+
+    return output_used;
+}
+
