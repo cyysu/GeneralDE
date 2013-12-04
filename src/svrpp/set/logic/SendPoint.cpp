@@ -4,6 +4,7 @@
 #include "gdpp/app/Log.hpp"
 #include "gdpp/app/Application.hpp"
 #include "svrpp/set/logic/SendPoint.hpp" 
+#include "svrpp/set/stub/Stub.hpp" 
 
 namespace Svr { namespace Set {
 
@@ -26,6 +27,17 @@ void SendPoint::sendCmd(
 {
     if (set_logic_sp_send_req_cmd(*this, to_svr_type, to_svr_id, cmd, carry_data, carry_data_size, require) != 0) {
         APP_CTX_THROW_EXCEPTION(app(), ::std::runtime_error, "%s: send cmd %d fail!", name(), (int)cmd);
+    }
+}
+
+void SendPoint::sendPkg(
+    uint16_t to_svr_type, uint16_t to_svr_id,
+    dp_req_t pkg,
+    void const * carry_data, size_t carry_data_size,
+    logic_require_t require)
+{
+    if (set_logic_sp_send_req_pkg(*this, to_svr_type, to_svr_id, pkg, carry_data, carry_data_size, require) != 0) {
+        APP_CTX_THROW_EXCEPTION(app(), ::std::runtime_error, "%s: send pkg fail!", name());
     }
 }
 
@@ -63,6 +75,14 @@ SendPoint & SendPoint::instance(gd_app_context_t app, const char * name) {
     }
 
     return *(SendPoint*)sp;
+}
+
+PkgBody & SendPoint::outgoingBuf(size_t capacity) {
+    return stub().outgoingBuf(capacity);
+}
+
+void * SendPoint::pkgToData(dp_req_t pkg_body, uint16_t svr_type_id, LPDRMETA data_meta, size_t * data_capacity) {
+    return stub().pkgToData(pkg_body, svr_type_id, data_meta, data_capacity);
 }
 
 }}
