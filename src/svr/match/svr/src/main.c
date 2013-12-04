@@ -144,20 +144,10 @@ int main(int argc, char * argv[]) {
     void * common_argtable[] = { common_help, common_end };
     int common_nerrors;
 
-    struct error_monitor em_buf;
-    error_monitor_t em;
-
-    shm_init_nerrors = arg_parse(argc, argv, shm_init_argtable);
-    shm_rm_nerrors = arg_parse(argc, argv, shm_rm_argtable);
-    shm_dump_nerrors = arg_parse(argc, argv, shm_dump_argtable);
-    shm_info_nerrors = arg_parse(argc, argv, shm_info_argtable);
     run_nerrors = arg_parse(argc, argv, run_argtable);
     start_nerrors = arg_parse(argc, argv, start_argtable);
     stop_nerrors = arg_parse(argc, argv, stop_argtable);
     common_nerrors = arg_parse(argc, argv, common_argtable);
-
-    cpe_error_monitor_init(&em_buf, cpe_error_log_to_consol, 0);
-    em = &em_buf;
 
     rv = 0;
     if (shm_init_nerrors == 0) {
