@@ -245,30 +245,33 @@ size_t mongo_pkg_capacity(mongo_pkg_t pkg) {
     return dp_req_capacity(pkg->m_dp_req) - sizeof(struct mongo_pkg);
 }
 
+mongo_doc_t mongo_pkg_doc_at(mongo_pkg_t pkg, uint32_t doc_idx) {
+    struct mongo_doc_it doc_it;
+    void * doc;
+
+    if (doc_idx >= pkg->m_doc_count) return NULL;
+
+    if (doc_idx == 0) {
+        return (mongo_doc_t)mongo_pkg_data(pkg);
+    }
+
+    mongo_pkg_doc_it(&doc_it, pkg);
+
+    while(doc_idx > 0 && (doc = mongo_pkg_doc_it_next(&doc_it))) {
+        --doc_idx;
+    }
+
+    return doc_idx == 0 ? doc : NULL;
+}
+
 int mongo_pkg_it(bson_iterator * it, mongo_pkg_t pkg, int doc_idx) {
-    if (doc_idx >= pkg->m_doc_count) return -1;
+    mongo_doc_t doc;
 
-    if (doc_idx > 0) {
-        struct mongo_doc_it doc_it;
-        void * doc;
-        mongo_pkg_doc_it(&doc_it, pkg);
+    doc = mongo_pkg_doc_at(pkg, doc_idx);
+    if (doc == NULL) return -1;
 
-        while(doc_idx > 0 && (doc = mongo_pkg_doc_it_next(&doc_it))) {
-            --doc_idx;
-        }
-
-        if (doc_idx == 0) {
-            bson_iterator_from_buffer(it, (const char *)doc);
-            return 0;
-        }
-        else {
-            return -1;
-        }
-    }
-    else {
-        bson_iterator_from_buffer(it, (const char *)mongo_pkg_data(pkg));
-        return 0;
-    }
+    bson_iterator_from_buffer(it, (const char *)doc);
+    return 0;
 }
 
 static int mongo_iterator_find_l1(bson_iterator * it, const char * name, const char * name_end) {
@@ -542,6 +545,20 @@ int32_t mongo_doc_size(mongo_doc_t doc) {
 
 void * mongo_doc_data(mongo_doc_t doc) {
     return (void*)doc;
+}
+
+mongo_doc_t mongo_doc_find_doc(mongo_doc_t doc, const char * path) {
+    bson_iterator it;
+    bson_type t;
+
+    bson_iterator_from_buffer(&it, (const char *)doc);
+
+    if (mongo_iterator_find(&it, path) != 0) return NULL;
+
+    t = bson_iterator_type(&it);
+    if (t != BSON_OBJECT) return NULL;
+
+    return (mongo_doc_t)bson_iterator_value(&it);
 }
 
 void mongo_pkg_cmd_init(mongo_pkg_t pkg) {

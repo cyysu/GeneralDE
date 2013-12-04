@@ -37,6 +37,7 @@ void mongo_pkg_doc_it(mongo_doc_it_t doc_it, mongo_pkg_t pkg);
 int mongo_pkg_doc_open(mongo_pkg_t pkg);
 int mongo_pkg_doc_close(mongo_pkg_t pkg);
 int mongo_pkg_doc_count(mongo_pkg_t pkg);
+mongo_doc_t mongo_pkg_doc_at(mongo_pkg_t pkg, uint32_t doc_idx);
 int mongo_pkg_doc_is_closed(mongo_pkg_t pkg);
 
 int mongo_pkg_doc_append(mongo_pkg_t pkg, LPDRMETA meta, void const * data, size_t capacity);
@@ -91,6 +92,7 @@ void mongo_pkg_doc_count_update(mongo_pkg_t pkg);
 
 int32_t mongo_doc_size(mongo_doc_t doc);
 void * mongo_doc_data(mongo_doc_t doc);
+mongo_doc_t mongo_doc_find_doc(mongo_doc_t doc, const char * path);
 
 #define mongo_pkg_doc_it_next(it) ((it)->next ? (it)->next(it) : NULL)
 
