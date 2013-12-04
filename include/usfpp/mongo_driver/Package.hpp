@@ -63,6 +63,8 @@ public:
     void appendTimeS(const char *name, time_t secs);
     void appendObjectStart(const char * name);
     void appendObjectFinish();
+    void appendArrayStart(const char * name);
+    void appendArrayFinish();
 
     /*query pkg operations*/
     int32_t queryFlags(void) const { return mongo_pkg_query_flags(*this); }
