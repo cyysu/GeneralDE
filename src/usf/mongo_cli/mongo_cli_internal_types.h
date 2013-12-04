@@ -22,6 +22,7 @@ struct mongo_cli_proxy {
 
     LPDRMETA m_meta_lasterror;
     LPDRMETA m_meta_cmd_info;
+    LPDRMETA m_meta_result_build_info;
 
     int m_debug;
 };
