@@ -169,7 +169,7 @@ static int mongo_id_reserve_send_update_pkg(
         return -1;
     }
 
-    if (mongo_cli_proxy_send(op->m_id_generator->m_mongo_cli, pkg, require, meta, 1) != 0) {
+    if (mongo_cli_proxy_send(op->m_id_generator->m_mongo_cli, pkg, require, meta, 1, NULL) != 0) {
         CPE_ERROR(op->m_em, "%s: send update pkg: send request fail", mongo_id_reserve_op_name(op));
         return -1;
     }
@@ -210,7 +210,7 @@ static int mongo_id_reserve_send_insert_pkg(
         return -1;
     }
 
-    if (mongo_cli_proxy_send(op->m_id_generator->m_mongo_cli, pkg, require, meta, 1) != 0) {
+    if (mongo_cli_proxy_send(op->m_id_generator->m_mongo_cli, pkg, require, meta, 1, NULL) != 0) {
         CPE_ERROR(op->m_em, "%s: send insert pkg: send request fail", mongo_id_reserve_op_name(op));
         return -1;
     }

@@ -2,6 +2,8 @@
 #include "yajl/yajl_gen.h"
 #include "cpe/pal/pal_string.h"
 #include "cpe/pal/pal_stackbuf.h"
+#include "cpe/utils/buffer.h"
+#include "cpe/utils/stream_buffer.h"
 #include "cpe/utils/stream_mem.h"
 #include "cpe/dr/dr_ctypes_op.h"
 #include "cpe/dr/dr_json.h"
@@ -405,3 +407,28 @@ int dr_json_print_array(
 
     return ret == 0 ? print_ctx.m_total_size : ret;
 }
+
+const char * dr_json_dump(mem_buffer_t buffer, const void * input, size_t capacity, LPDRMETA meta) {
+    struct write_stream_buffer stream = CPE_WRITE_STREAM_BUFFER_INITIALIZER(buffer);
+
+    mem_buffer_clear_data(buffer);
+
+    dr_json_print((write_stream_t)&stream, input, capacity, meta, DR_JSON_PRINT_BEAUTIFY, NULL);
+
+    stream_putc((write_stream_t)&stream, 0);
+
+    return mem_buffer_make_continuous(buffer, 0);
+}
+
+const char * dr_json_dump_inline(mem_buffer_t buffer, const void * input, size_t capacity, LPDRMETA meta) {
+    struct write_stream_buffer stream = CPE_WRITE_STREAM_BUFFER_INITIALIZER(buffer);
+
+    mem_buffer_clear_data(buffer);
+
+    dr_json_print((write_stream_t)&stream, input, capacity, meta, DR_JSON_PRINT_MINIMIZE, NULL);
+
+    stream_putc((write_stream_t)&stream, 0);
+
+    return mem_buffer_make_continuous(buffer, 0);
+}
+
