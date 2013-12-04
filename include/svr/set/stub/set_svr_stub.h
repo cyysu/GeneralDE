@@ -45,6 +45,11 @@ int set_svr_stub_read_data(
 
 int set_svr_stub_send_pkg(set_svr_stub_t svr, dp_req_t body);
 
+int set_svr_stub_send_req_pkg(
+    set_svr_stub_t svr, uint16_t svr_type, uint16_t svr_id,
+    uint16_t sn, dp_req_t body,
+    void const * carry_data, size_t carry_data_len);
+
 int set_svr_stub_send_req_data(
     set_svr_stub_t svr, uint16_t svr_type, uint16_t svr_id,
     uint32_t sn, void const * data, uint16_t data_size, LPDRMETA meta,
@@ -53,6 +58,11 @@ int set_svr_stub_send_req_data(
 int set_svr_stub_send_req_cmd(
     set_svr_stub_t svr, uint16_t svr_type, uint16_t svr_id,
     uint32_t sn, uint32_t cmd,
+    void const * carry_data, size_t carry_data_len);
+
+int set_svr_stub_send_notify_pkg(
+    set_svr_stub_t svr, uint16_t svr_type, uint16_t svr_id,
+    uint16_t sn, dp_req_t body,
     void const * carry_data, size_t carry_data_len);
 
 int set_svr_stub_send_notify_data(
@@ -65,6 +75,11 @@ int set_svr_stub_send_notify_cmd(
     uint32_t sn, uint32_t cmd,
     void const * carry_data, size_t carry_data_len);
 
+int set_svr_stub_send_response_pkg(
+    set_svr_stub_t svr, uint16_t svr_type, uint16_t svr_id,
+    uint16_t sn, dp_req_t body,
+    void const * carry_data, size_t carry_data_len);
+
 int set_svr_stub_send_response_data(
     set_svr_stub_t svr, uint16_t svr_type, uint16_t svr_id,
     uint32_t sn, void const * data, uint16_t data_size, LPDRMETA meta,
@@ -75,7 +90,13 @@ int set_svr_stub_send_response_cmd(
     uint32_t sn, uint32_t cmd,
     void const * carry_data, size_t carry_data_len);
 
+
+int set_svr_stub_reply_pkg(set_svr_stub_t svr, dp_req_t req, dp_req_t body);
+int set_svr_stub_reply_data(set_svr_stub_t svr, dp_req_t req, void const * data, uint16_t data_size, LPDRMETA meta);
+int set_svr_stub_reply_cmd(set_svr_stub_t svr, dp_req_t req, uint32_t cmd);
+
 dp_req_t set_svr_stub_outgoing_pkg_buf(set_svr_stub_t stub, size_t capacity);
+void * set_svr_stub_pkg_to_data(set_svr_stub_t stub, dp_req_t buf, uint16_t svr_type_id, LPDRMETA data_meta, size_t * data_capacity);
 
 #ifdef __cplusplus
 }
