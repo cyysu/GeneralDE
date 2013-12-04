@@ -1,9 +1,10 @@
 #include "cpe/utils/stream.h"
+#include "cpe/utils/stream_buffer.h"
 #include "cpe/dr/dr_ctypes_op.h"
 #include "cpe/cfg/cfg_read.h"
 #include "cfg_internal_types.h"
 
-void cfg_dump(cfg_t cfg, write_stream_t stream, int ident, int level_ident) {
+void cfg_print(cfg_t cfg, write_stream_t stream, int ident, int level_ident) {
     struct cfg_it it;
     cfg_t child;
     int c;
@@ -19,7 +20,7 @@ void cfg_dump(cfg_t cfg, write_stream_t stream, int ident, int level_ident) {
 
         if ((child = cfg_it_next(&it))) {
             stream_putc(stream, ' ');
-            cfg_dump(child, stream, ident + level_ident, level_ident);
+            cfg_print(child, stream, ident + level_ident, level_ident);
             ++c;
         }
         
@@ -29,7 +30,7 @@ void cfg_dump(cfg_t cfg, write_stream_t stream, int ident, int level_ident) {
             stream_putc(stream, ',');
             stream_putc(stream, ' ');
 
-            cfg_dump(child, stream, ident + level_ident, level_ident);
+            cfg_print(child, stream, ident + level_ident, level_ident);
             ++c;
         }
 
@@ -53,7 +54,7 @@ void cfg_dump(cfg_t cfg, write_stream_t stream, int ident, int level_ident) {
 
         if ((child = cfg_it_next(&it))) {
             stream_printf(stream, " %s=", cfg_name(child));
-            cfg_dump(child, stream, ident + level_ident, level_ident);
+            cfg_print(child, stream, ident + level_ident, level_ident);
             ++c;
         }
         
@@ -62,7 +63,7 @@ void cfg_dump(cfg_t cfg, write_stream_t stream, int ident, int level_ident) {
             stream_putc_count(stream, ' ', ident);
 
             stream_printf(stream, ", %s=", cfg_name(child));
-            cfg_dump(child, stream, ident + level_ident, level_ident);
+            cfg_print(child, stream, ident + level_ident, level_ident);
             ++c;
         }
 
@@ -84,7 +85,7 @@ void cfg_dump(cfg_t cfg, write_stream_t stream, int ident, int level_ident) {
     }
 }
 
-void cfg_dump_inline(cfg_t cfg, write_stream_t stream) {
+void cfg_print_inline(cfg_t cfg, write_stream_t stream) {
     struct cfg_it it;
     cfg_t child;
     int c;
@@ -100,7 +101,7 @@ void cfg_dump_inline(cfg_t cfg, write_stream_t stream) {
 
         if ((child = cfg_it_next(&it))) {
             stream_putc(stream, ' ');
-            cfg_dump_inline(child, stream);
+            cfg_print_inline(child, stream);
             ++c;
         }
         
@@ -108,7 +109,7 @@ void cfg_dump_inline(cfg_t cfg, write_stream_t stream) {
             stream_putc(stream, ',');
             stream_putc(stream, ' ');
 
-            cfg_dump_inline(child, stream);
+            cfg_print_inline(child, stream);
             ++c;
         }
 
@@ -128,13 +129,13 @@ void cfg_dump_inline(cfg_t cfg, write_stream_t stream) {
 
         if ((child = cfg_it_next(&it))) {
             stream_printf(stream, " %s=", cfg_name(child));
-            cfg_dump_inline(child, stream);
+            cfg_print_inline(child, stream);
             ++c;
         }
         
         while((child = cfg_it_next(&it))) {
             stream_printf(stream, ", %s=", cfg_name(child));
-            cfg_dump_inline(child, stream);
+            cfg_print_inline(child, stream);
             ++c;
         }
 
@@ -150,4 +151,24 @@ void cfg_dump_inline(cfg_t cfg, write_stream_t stream) {
         dr_ctype_print_to_stream(stream, cfg_data(cfg), cfg->m_type, 0);
         break;
     }
+}
+
+const char * cfg_dump(cfg_t cfg, mem_buffer_t buffer, int ident, int level_ident) {
+    struct write_stream_buffer stream = CPE_WRITE_STREAM_BUFFER_INITIALIZER(buffer);
+
+    mem_buffer_clear_data(buffer);
+
+    cfg_print(cfg, (write_stream_t)&stream, ident, level_ident);
+    stream_putc((write_stream_t)&stream, 0);
+    return (const char *)mem_buffer_make_continuous(buffer, 0);
+}
+
+const char * cfg_dump_inline(cfg_t cfg, mem_buffer_t buffer) {
+    struct write_stream_buffer stream = CPE_WRITE_STREAM_BUFFER_INITIALIZER(buffer);
+
+    mem_buffer_clear_data(buffer);
+
+    cfg_print_inline(cfg, (write_stream_t)&stream);
+    stream_putc((write_stream_t)&stream, 0);
+    return (const char *)mem_buffer_make_continuous(buffer, 0);
 }
