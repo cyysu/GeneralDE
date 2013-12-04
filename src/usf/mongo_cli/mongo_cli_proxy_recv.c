@@ -14,7 +14,7 @@
 #include "mongo_cli_internal_ops.h"
 
 static int mongo_cli_proxy_recv_build_results(
-    mongo_cli_proxy_t proxy, mongo_pkg_t pkg, logic_data_t * result_data, LPDRMETA result_meta)
+    mongo_cli_proxy_t proxy, mongo_pkg_t pkg, logic_data_t * result_data, LPDRMETA result_meta, const char * result_prefix)
 {
     struct mongo_doc_it doc_it;
     mongo_doc_t doc;
@@ -27,6 +27,14 @@ static int mongo_cli_proxy_recv_build_results(
                 proxy->m_em, "%s: recv_response: append record fail, record count is %d!",
                 mongo_cli_proxy_name(proxy), (int)logic_data_record_count(*result_data));
             return -1;
+        }
+
+        if (result_prefix) {
+            doc = mongo_doc_find_doc(doc, result_prefix);
+            if (doc == NULL) {
+                CPE_ERROR(proxy->m_em, "%s: recv_response: find doc at %s fail!", mongo_cli_proxy_name(proxy), result_prefix);
+                return -1;
+            }
         }
 
         if (dr_bson_read(result, dr_meta_size(result_meta), mongo_doc_data(doc), mongo_doc_size(doc), result_meta, proxy->m_em) < 0) {
@@ -154,32 +162,55 @@ static int mongo_cli_proxy_recv_process_find_and_modify(
 static int mongo_cli_proxy_recv_process_find_last_error(
     mongo_cli_proxy_t proxy, mongo_pkg_t pkg, logic_require_t require, logic_data_t result_data)
 {
+    MONGO_LASTERROR * lasterror;
+    mongo_doc_t doc;
+
     if (logic_data_record_count(result_data) != 1) {
         CPE_ERROR(proxy->m_em, "%s: recv_response: getlasterror: result count error!", mongo_cli_proxy_name(proxy));
         logic_require_set_error(require);
         return -1;
     }
-    else {
-        MONGO_LASTERROR * lasterror = (MONGO_LASTERROR *)logic_data_record_at(result_data, 0);
-        if (lasterror->code == 0) {
-            if (proxy->m_debug) {
-                CPE_INFO(proxy->m_em, "%s: recv_response: req %d: ok", mongo_cli_proxy_name(proxy), logic_require_id(require));
-            }
-        }
-        else {
-            if (proxy->m_debug) {
-                CPE_INFO(
-                    proxy->m_em, "%s: recv_response: req %d: error: %d %s",
-                    mongo_cli_proxy_name(proxy), logic_require_id(require), lasterror->code, lasterror->err);
-            }
 
-            logic_require_set_error_ex(require, lasterror->code);
-            return 0;
-        }
+    if (mongo_pkg_doc_count(pkg) != 1) {
+        CPE_ERROR(
+            proxy->m_em, "%s: recv_response: getlasterror: result pkg doc count %d error!",
+            mongo_cli_proxy_name(proxy), (int)mongo_pkg_doc_count(pkg));
+        logic_require_set_error(require);
+        return -1;
     }
 
-    logic_require_set_done(require);
-    return 0;
+    doc = mongo_pkg_doc_at(pkg, 0);
+    if (doc == NULL) {
+        CPE_ERROR(proxy->m_em, "%s: recv_response: getlasterror: get doc error!", mongo_cli_proxy_name(proxy));
+        logic_require_set_error(require);
+        return -1;
+    }
+
+    lasterror = (MONGO_LASTERROR *)logic_data_record_at(result_data, 0);
+
+    if (dr_bson_read(lasterror, sizeof(*lasterror), mongo_doc_data(doc), mongo_doc_size(doc), proxy->m_meta_lasterror, proxy->m_em) < 0) {
+        CPE_ERROR(proxy->m_em, "%s: recv_response: getlasterror: bson read fail!", mongo_cli_proxy_name(proxy));
+        return -1;
+    }
+
+    if (lasterror->code == 0) {
+        if (proxy->m_debug) {
+            CPE_INFO(proxy->m_em, "%s: recv_response: req %d: ok", mongo_cli_proxy_name(proxy), logic_require_id(require));
+        }
+
+        logic_require_set_done(require);
+        return 0;
+    }
+    else {
+        if (proxy->m_debug) {
+            CPE_INFO(
+                proxy->m_em, "%s: recv_response: req %d: error: %d %s",
+                mongo_cli_proxy_name(proxy), logic_require_id(require), lasterror->code, lasterror->err);
+        }
+
+        logic_require_set_error_ex(require, lasterror->code);
+        return 0;
+    }
 }
 
 int mongo_cli_proxy_recv(dp_req_t req, void * ctx, error_monitor_t em) {
@@ -206,6 +237,11 @@ int mongo_cli_proxy_recv(dp_req_t req, void * ctx, error_monitor_t em) {
     if (mongo_pkg_op(pkg) == mongo_db_op_replay) {
         logic_data_t cmd_info_data;
         MONGO_CMD_INFO* cmd_info;
+
+        MONGO_RESULT_BUILD_INFO * result_build_info;
+        logic_data_t result_build_info_data;
+        const char * result_prefix;
+
         logic_data_t result_data;
         LPDRMETA result_meta;
 
@@ -225,6 +261,11 @@ int mongo_cli_proxy_recv(dp_req_t req, void * ctx, error_monitor_t em) {
 
         cmd_info_data = logic_require_data_find(require, "mongo_cmd_info");
         cmd_info = cmd_info_data ? (MONGO_CMD_INFO*)logic_data_data(cmd_info_data) : NULL;
+
+        result_build_info_data = logic_require_data_find(require, "mongo_result_build_info");
+        result_build_info = result_build_info_data ? (MONGO_RESULT_BUILD_INFO*)logic_data_data(result_build_info_data) : NULL;
+
+        result_prefix = result_build_info ? result_build_info->prefix : NULL;
 
         if (cmd_info && cmd_info->cmd == MONGO_CMD_FINDANDMODIFY) {
             return mongo_cli_proxy_recv_process_find_and_modify(proxy, pkg, require, &result_data, result_meta);
@@ -259,11 +300,10 @@ int mongo_cli_proxy_recv(dp_req_t req, void * ctx, error_monitor_t em) {
                 }
             }
 
-            if (mongo_cli_proxy_recv_build_results(proxy, pkg, &result_data, result_meta) != 0) {
+            if (mongo_cli_proxy_recv_build_results(proxy, pkg, &result_data, result_meta, result_prefix) != 0) {
                 logic_require_set_error(require);
                 return -1;
             }
-
         }
     }
 
