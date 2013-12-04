@@ -13,8 +13,6 @@ logic_op_exec_result_t
 friend_svr_op_add_send(
     logic_context_t ctx, logic_stack_node_t stack, void * user_data, cfg_t cfg)
 {
-<<<<<<< Updated upstream
-=======
     friend_svr_t svr = user_data;
     logic_require_t require;
     logic_data_t req_data;
@@ -69,7 +67,6 @@ friend_svr_op_add_send(
         return logic_op_exec_result_false;
     }
 
->>>>>>> Stashed changes
     return logic_op_exec_result_true;
 }
 
@@ -78,8 +75,6 @@ friend_svr_op_add_recv(
     logic_context_t ctx, logic_stack_node_t stack, logic_require_t require,
     void * user_data, cfg_t cfg)
 {
-<<<<<<< Updated upstream
-=======
     friend_svr_t svr = user_data;
 
     if (logic_require_state(require) != logic_require_state_done) {
@@ -110,6 +105,5 @@ friend_svr_op_add_recv(
         }
     }
 
->>>>>>> Stashed changes
     return logic_op_exec_result_true;
 }
