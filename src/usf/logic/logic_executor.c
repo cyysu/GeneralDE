@@ -359,7 +359,7 @@ void logic_executor_dump(logic_executor_t executor, write_stream_t stream, int l
         stream_putc_count(stream, ' ', level << 2);
         if (action->m_args) {
             stream_printf(stream, "%s: ", logic_executor_name(executor));
-            cfg_dump_inline(action->m_args, stream);
+            cfg_print_inline(action->m_args, stream);
         }
         else {
             stream_printf(stream, "%s", logic_executor_name(executor));

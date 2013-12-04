@@ -29,6 +29,15 @@ public:
     uint16_t responseFromSvrType(logic_require_t require) const;
     uint16_t responseFromSvrId(logic_require_t require) const;
 
+    PkgBody & outgoingBuf(size_t capacity);
+
+    void * pkgToData(dp_req_t pkg_body, uint16_t svr_type_id, LPDRMETA data_meta, size_t * data_capacity = NULL);
+
+    template<typename T>
+    T & pkgToData(dp_req_t pkg_body, uint16_t svr_type_id, size_t * data_capacity = NULL) {
+        return *(T*)pkgToData(pkg_body, svr_type_id, Cpe::Dr::MetaTraits<T>::META, data_capacity);
+    }
+
     void sendData(
         uint16_t to_svr_type, uint16_t to_svr_id,
         LPDRMETA meta, void const * data, size_t size,
@@ -40,6 +49,20 @@ public:
         uint32_t cmd,
         void const * carry_data = NULL, size_t carry_data_size = 0,
         logic_require_t require = NULL);
+
+    void sendPkg(
+        uint16_t to_svr_type, uint16_t to_svr_id,
+        dp_req_t pkg,
+        void const * carry_data, size_t carry_data_size,
+        logic_require_t require = NULL);
+
+    void sendPkg(
+        uint16_t to_svr_type, uint16_t to_svr_id,
+        dp_req_t pkg,
+        logic_require_t require = NULL)
+    {
+        sendPkg(to_svr_type, to_svr_id, pkg, NULL, 0, require);
+    }
 
     void sendPkg(dp_req_t pkg, logic_require_t require = NULL);
 

@@ -249,6 +249,9 @@ static int set_logic_sp_incoming_recv(dp_req_t req, void * ctx, error_monitor_t 
 
         logic_require_set_done(require);
     }
+    else {
+        logic_require_set_done(require);
+    }
 
     return 0;
 }
@@ -328,6 +331,35 @@ int set_logic_sp_send_req_data(
     r = set_svr_stub_send_req_data(sp->m_stub, to_svr_type, to_svr_id, sn, data, data_size, meta, carry_data, carry_data_size);
     if (r != 0) {
         CPE_ERROR(sp->m_em, "%s: send_req_data: send data fail!", set_logic_sp_name(sp));
+        if (require) {
+            logic_require_queue_remove(sp->m_require_queue, sn);
+        }
+        return r;
+    }
+
+    return r;
+}
+
+int set_logic_sp_send_req_pkg(
+    set_logic_sp_t sp, uint16_t to_svr_type, uint16_t to_svr_id,
+    dp_req_t pkg,
+    void const * carry_data, size_t carry_data_size,
+    logic_require_t require)
+{
+    int r;
+    uint32_t sn = 0;
+
+    if (require) {
+        sn = logic_require_id(require);
+        if (logic_require_queue_add(sp->m_require_queue, sn) != 0) {
+            CPE_ERROR(sp->m_em, "%s: send_req_pkg: add require fail!", set_logic_sp_name(sp));
+            return -1;
+        }
+    }
+
+    r = set_svr_stub_send_req_pkg(sp->m_stub, to_svr_type, to_svr_id, sn, pkg, carry_data, carry_data_size);
+    if (r != 0) {
+        CPE_ERROR(sp->m_em, "%s: send_req_pkg: send pkg fail!", set_logic_sp_name(sp));
         if (require) {
             logic_require_queue_remove(sp->m_require_queue, sn);
         }
