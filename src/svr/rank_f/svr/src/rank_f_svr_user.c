@@ -12,7 +12,10 @@ int rank_f_svr_user_clear_index(rank_f_svr_t svr, uint64_t user_id) {
         if (svr->m_index_infos[i].m_svr == NULL) continue;
 
         index = rank_f_svr_index_find(svr, user_id, i);
-        if (index) rank_f_svr_index_free(svr, index);
+        if (index) {
+            rank_f_svr_index_clear_records(svr, index);
+            rank_f_svr_index_free(svr, index);
+        }
     }
 
     return 0;
@@ -20,8 +23,6 @@ int rank_f_svr_user_clear_index(rank_f_svr_t svr, uint64_t user_id) {
 
 int rank_f_svr_user_destory(rank_f_svr_t svr, uint64_t user_id) {
     rank_f_svr_index_t gid_index;
-    rank_f_svr_index_buf_t buf;
-    uint16_t record_count;
 
     gid_index = rank_f_svr_index_find(svr, user_id, 0);
     if (gid_index == NULL) {
@@ -38,15 +39,7 @@ int rank_f_svr_user_destory(rank_f_svr_t svr, uint64_t user_id) {
         return -1;
     }
 
-    record_count = gid_index->m_record_count;
-    for(buf = gid_index->m_bufs; buf; buf = buf->m_next) {
-        uint8_t i;
-        for(i = 0; i < RANK_F_SVR_INDEX_BUF_RECORD_COUNT && record_count > 0; ++i, --record_count) {
-            assert(buf->m_records[i]);
-            aom_obj_free(svr->m_record_mgr, buf->m_records[i]);
-        }
-    }
-
+    rank_f_svr_index_destory_records(svr, gid_index);
     rank_f_svr_index_free(svr, gid_index);
 
     return 0;
@@ -102,6 +95,7 @@ int rank_f_svr_user_index_check_create(rank_f_svr_index_t * r, rank_f_svr_t svr,
         CPE_ERROR(
             svr->m_em, "%s: user "FMT_UINT64_T" build index %d: sort fail!",
             rank_f_svr_name(svr), user_id, index_id);
+        rank_f_svr_index_clear_records(svr, idx);
         rank_f_svr_index_free(svr, idx);
         return rv;
     }

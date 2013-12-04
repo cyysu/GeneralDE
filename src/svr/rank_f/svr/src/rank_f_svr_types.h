@@ -96,7 +96,8 @@ struct rank_f_svr_index {
 #define RANK_F_SVR_INDEX_BUF_RECORD_COUNT 63
 struct rank_f_svr_index_buf {
     struct rank_f_svr_index_buf * m_next;
-    SVR_RANK_F_RECORD * m_records[RANK_F_SVR_INDEX_BUF_RECORD_COUNT];
+    uint32_t m_record_count;
+    void * m_records[RANK_F_SVR_INDEX_BUF_RECORD_COUNT];
 };
 
 typedef void (*rank_f_svr_op_t)(rank_f_svr_t svr, dp_req_t pkg_body, dp_req_t pkg_head);

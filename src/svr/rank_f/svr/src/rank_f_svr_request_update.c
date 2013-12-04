@@ -1,6 +1,8 @@
 #include <assert.h> 
 #include "cpe/dp/dp_request.h"
 #include "cpe/dr/dr_pbuf.h"
+#include "cpe/dr/dr_json.h"
+#include "cpe/utils/buffer.h"
 #include "gd/app/app_context.h"
 #include "svr/set/share/set_pkg.h"
 #include "svr/set/stub/set_svr_stub.h"
@@ -34,8 +36,8 @@ void rank_f_svr_request_update(rank_f_svr_t svr, dp_req_t pkg_body, dp_req_t pkg
         char buf[svr->m_record_size];
         SVR_RANK_F_RECORD * new_record = (SVR_RANK_F_RECORD*)buf;
         size_t input_use = 0;
-        if (dr_pbuf_read(
-                new_record + 1, sizeof(svr->m_record_size) - sizeof(*new_record),
+        if (dr_pbuf_read_with_size(
+                new_record + 1, svr->m_data_size,
                 input_data, input_len, &input_use, svr->m_data_meta,
                 svr->m_em)
             < 0)
@@ -52,6 +54,17 @@ void rank_f_svr_request_update(rank_f_svr_t svr, dp_req_t pkg_body, dp_req_t pkg
         input_len -= input_use;
 
         new_record->rank_f_uid = req->user_id;
+
+        if (svr->m_debug >= 2) {
+            struct mem_buffer buffer;
+            mem_buffer_init(&buffer, svr->m_alloc);
+            
+            CPE_INFO(
+                svr->m_em, "%s: request update: dump record: %s",
+                rank_f_svr_name(svr), dr_json_dump(&buffer, new_record, svr->m_record_size, svr->m_record_meta));
+
+            mem_buffer_clear(&buffer);
+        }
 
         if (rank_f_svr_record_update(svr, gid_index, new_record) != 0) {
             CPE_ERROR(svr->m_em, "%s: request update: update record to gid index fail!", rank_f_svr_name(svr));
