@@ -206,6 +206,8 @@ static int set_logic_rsp_commit_build_response_carry(
         }
     }
     else {
+        size_t carry_data_size;
+
         carry_data = logic_context_data_find(op_context, req_type_set_pkg_carry);
         if (carry_data == NULL) {
             CPE_ERROR(
@@ -214,7 +216,9 @@ static int set_logic_rsp_commit_build_response_carry(
             return -1;
         }
 
-        response_carry = set_pkg_carry_check_create(pkg_body, 0);
+        carry_data_size = dr_meta_calc_data_len(logic_data_meta(carry_data), logic_data_data(carry_data), logic_data_capacity(carry_data));
+
+        response_carry = set_pkg_carry_check_create(pkg_body, carry_data_size);
         if (response_carry == NULL) {
             CPE_ERROR(
                 em, "%s.%s: gen response buf: response carry is NULL!",
@@ -222,8 +226,8 @@ static int set_logic_rsp_commit_build_response_carry(
             return -1;
         }
 
-        dp_req_set_buf(response_carry, logic_data_data(carry_data), logic_data_capacity(carry_data));
-        dp_req_set_size(response_carry, logic_data_capacity(carry_data));
+        memcpy(dp_req_data(response_carry), logic_data_data(carry_data), carry_data_size);
+        dp_req_set_size(response_carry, carry_data_size);
     }
 
     return 0;
