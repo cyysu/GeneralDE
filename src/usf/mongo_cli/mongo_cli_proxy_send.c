@@ -12,6 +12,29 @@
 #include "protocol/mongo_cli/mongo_cli.h"
 #include "mongo_cli_internal_ops.h"
 
+static int mongo_cli_proxy_send_check_save_result_build_info(
+    mongo_cli_proxy_t agent, logic_require_t require, const char * result_prefix)
+{
+    MONGO_RESULT_BUILD_INFO * result_build_info;
+    logic_data_t result_build_info_data;
+
+    if (result_prefix == NULL) return 0;
+
+    result_build_info_data = 
+        logic_require_data_get_or_create(
+            require, agent->m_meta_result_build_info, dr_meta_size(agent->m_meta_result_build_info));
+    if (result_build_info_data == NULL) {
+        CPE_ERROR(agent->m_em, "%s: send_request: init result_build_info meta fail!", mongo_cli_proxy_name(agent));
+        return -1;
+    }
+
+    result_build_info = (MONGO_RESULT_BUILD_INFO*)logic_data_data(result_build_info_data);
+
+    strncpy(result_build_info->prefix, result_prefix, sizeof(result_build_info->prefix));
+
+    return 0;
+}
+
 static int mongo_cli_proxy_send_check_save_cmd(mongo_cli_proxy_t agent, mongo_pkg_t pkg, logic_require_t require) {
     bson_iterator bson_it;
     MONGO_CMD_INFO * cmd_info;
@@ -38,7 +61,7 @@ static int mongo_cli_proxy_send_check_save_cmd(mongo_cli_proxy_t agent, mongo_pk
 
 int mongo_cli_proxy_send(
     mongo_cli_proxy_t agent, mongo_pkg_t pkg, logic_require_t require,
-    LPDRMETA result_meta, int result_count_init)
+    LPDRMETA result_meta, int result_count_init, const char * result_prefix)
 {
     if (agent->m_outgoing_send_to == NULL) {
         CPE_ERROR(
@@ -59,6 +82,11 @@ int mongo_cli_proxy_send(
                 mongo_cli_proxy_name(agent), agent->m_dft_db);
             goto SEND_ERROR;
         }
+    }
+
+    if (mongo_cli_proxy_send_check_save_result_build_info(agent, require, result_prefix) != 0) {
+        CPE_ERROR(agent->m_em, "%s: send: save result_build_info error!", mongo_cli_proxy_name(agent));
+        goto SEND_ERROR;
     }
 
     /*查询请求需要设置好接受返回数据的结构 */

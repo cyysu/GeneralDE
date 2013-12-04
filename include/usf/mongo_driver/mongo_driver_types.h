@@ -27,6 +27,10 @@ typedef struct mongo_doc_it {
     char m_data[16];
 } * mongo_doc_it_t;
 
+typedef enum  mongo_data_error {
+    mongo_data_error_duplicate_key = 11000
+} mongo_data_error_t;
+
 typedef struct mongo_host_port * mongo_host_port_t;
 typedef struct mongo_driver * mongo_driver_t;
 typedef struct mongo_pkg * mongo_pkg_t;

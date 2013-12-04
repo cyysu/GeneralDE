@@ -157,4 +157,16 @@ void Package::appendObjectFinish() {
     }
 }
 
+void Package::appendArrayStart(const char * name) {
+    if (mongo_pkg_append_start_array(*this, name) != 0) {
+        throw ::std::runtime_error("Usf::Mongo::Package: append array start fail!");
+    }
+}
+
+void Package::appendArrayFinish() {
+    if (mongo_pkg_append_finish_array(*this) != 0) {
+        throw ::std::runtime_error("Usf::Mongo::Package: append array finish fail!");
+    }
+}
+
 }}
