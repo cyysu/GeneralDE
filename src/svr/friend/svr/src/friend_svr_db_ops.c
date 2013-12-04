@@ -41,7 +41,7 @@ int friend_svr_db_send_query(friend_svr_t svr, logic_require_t require, uint64_t
         return -1;
     }
 
-    if (mongo_cli_proxy_send(svr->m_db, db_pkg, require, svr->m_record_list_meta, 32) != 0) {
+    if (mongo_cli_proxy_send(svr->m_db, db_pkg, require, svr->m_record_list_meta, 32, NULL) != 0) {
         CPE_ERROR(
             svr->m_em, "%s: %s: send db request fail!",
             friend_svr_name(svr), logic_require_name(require));
@@ -75,7 +75,7 @@ int friend_svr_db_send_insert(friend_svr_t svr, logic_require_t require, void co
         return -1;
     }
 
-    if (mongo_cli_proxy_send(svr->m_db, db_pkg, require, svr->m_record_list_meta, 0) != 0) {
+    if (mongo_cli_proxy_send(svr->m_db, db_pkg, require, svr->m_record_list_meta, 0, NULL) != 0) {
         CPE_ERROR(
             svr->m_em, "%s: %s: send db request fail!",
             friend_svr_name(svr), logic_require_name(require));
@@ -114,7 +114,7 @@ int friend_svr_db_send_remove(friend_svr_t svr, logic_require_t require, uint64_
         return -1;
     }
 
-    if (mongo_cli_proxy_send(svr->m_db, db_pkg, require, svr->m_record_list_meta, 0) != 0) {
+    if (mongo_cli_proxy_send(svr->m_db, db_pkg, require, svr->m_record_list_meta, 0, NULL) != 0) {
         CPE_ERROR(
             svr->m_em, "%s: %s: send db request fail!",
             friend_svr_name(svr), logic_require_name(require));

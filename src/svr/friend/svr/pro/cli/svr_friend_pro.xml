@@ -4,6 +4,7 @@
     <!--  ============ ´íÎóÂë¶¨Òå ======== -->
     <macrosgroup name="svr_friend_error">
         <macro name="SVR_FRIEND_ERRNO_SUCCESS" value="0"/>
+        <macro name="SVR_FRIEND_ERRNO_ALREADY_EXIST" value="1"/>
         <macro name="SVR_FRIEND_ERRNO_INTERNAL" value="-1"/>
         <macro name="SVR_FRIEND_ERRNO_DB" value="-2"/>
     </macrosgroup>

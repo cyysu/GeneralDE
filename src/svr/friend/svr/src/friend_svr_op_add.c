@@ -36,7 +36,6 @@ friend_svr_op_add_send(
         sizeof(buf) - svr->m_record_data_start_pos,
         req->data,
         req->data_len,
-        NULL,
         svr->m_data_meta,
         svr->m_em);
     if (rv <= 0) {
@@ -82,16 +81,27 @@ friend_svr_op_add_recv(
     if (logic_require_state(require) != logic_require_state_done) {
         if (logic_require_state(require) != logic_require_state_error) {
             APP_CTX_ERROR(
-                logic_context_app(ctx), "%s: add: db request error, errno=%d!",
-                friend_svr_name(svr), logic_require_error(require));
-            logic_context_errno_set(ctx, SVR_FRIEND_ERRNO_DB);
+                logic_context_app(ctx), "%s: add: db request state error, state=%s!",
+                friend_svr_name(svr), logic_require_state_name(logic_require_state(require)));
+            logic_context_errno_set(ctx, SVR_FRIEND_ERRNO_INTERNAL);
+            return logic_op_exec_result_false;
+        }
+        else if (logic_require_error(require) == mongo_data_error_duplicate_key) {
+            if (svr->m_debug) {
+                APP_CTX_INFO(
+                    logic_context_app(ctx), "%s: add: friend already exist!",
+                    friend_svr_name(svr));
+            }
+
+            logic_context_errno_set(ctx, SVR_FRIEND_ERRNO_ALREADY_EXIST);
+
             return logic_op_exec_result_false;
         }
         else {
             APP_CTX_ERROR(
-                logic_context_app(ctx), "%s: add: db request state error, state=%s!",
-                friend_svr_name(svr), logic_require_state_name(logic_require_state(require)));
-            logic_context_errno_set(ctx, SVR_FRIEND_ERRNO_INTERNAL);
+                logic_context_app(ctx), "%s: add: db request error, errno=%d!",
+                friend_svr_name(svr), logic_require_error(require));
+            logic_context_errno_set(ctx, SVR_FRIEND_ERRNO_DB);
             return logic_op_exec_result_false;
         }
     }
