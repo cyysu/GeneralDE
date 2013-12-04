@@ -174,3 +174,14 @@ int stream_toupper_len(struct write_stream * stream, const char * data, size_t l
 
     return total;
 }
+
+static int stream_do_write_dummy(struct write_stream * stream, const void * buf, size_t size) { 
+    return (int)size;
+}
+
+struct write_stream g_write_stream_noop = {
+    stream_do_write_dummy
+    , stream_do_flush_dummy
+};
+
+write_stream_t write_stream_noop = &g_write_stream_noop;

@@ -33,6 +33,12 @@ int set_logic_sp_set_incoming_recv_at(set_logic_sp_t sp, const char * incoming_r
 
 int set_logic_sp_send_pkg(set_logic_sp_t sp, dp_req_t pkg, logic_require_t require);
 
+int set_logic_sp_send_req_pkg(
+    set_logic_sp_t sp, uint16_t to_svr_type, uint16_t to_svr_id,
+    dp_req_t pkg,
+    void const * carry_data, size_t carry_data_size,
+    logic_require_t require);
+
 int set_logic_sp_send_req_data(
     set_logic_sp_t sp, uint16_t to_svr_type, uint16_t to_svr_id,
     LPDRMETA meta, void const * data, size_t data_size,
