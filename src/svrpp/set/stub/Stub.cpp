@@ -35,6 +35,20 @@ SvrType const & Stub::svrType(const char * svr_type_name) const {
     return *r;
 }
 
+void Stub::sendReqPkg(
+    uint16_t svr_type, uint16_t svr_id, uint16_t sn,
+    dp_req_t pkg,
+    void const * carry_data, size_t carry_data_size)
+{
+    if (set_svr_stub_send_req_pkg(*this, svr_type, svr_id, sn, pkg, carry_data, carry_data_size) != 0) {
+        APP_CTX_THROW_EXCEPTION(
+            app(),
+            ::std::runtime_error,
+            "Stub %s: send req pkg to %d.%d fail!",
+            name(), svr_type, svr_id);
+    }
+}
+
 void Stub::sendReqData(
     uint16_t svr_type, uint16_t svr_id, uint16_t sn,
     void const * data, uint16_t data_size, LPDRMETA meta,
@@ -60,6 +74,20 @@ void Stub::sendReqCmd(
             ::std::runtime_error,
             "Stub %s: send cmd %d to %d.%d fail!",
             name(), cmd, svr_type, svr_id);
+    }
+}
+
+void Stub::sendNotifyPkg(
+    uint16_t svr_type, uint16_t svr_id, 
+    dp_req_t pkg,
+    void const * carry_data, size_t carry_data_size)
+{
+    if (set_svr_stub_send_notify_pkg(*this, svr_type, svr_id, 0, pkg, carry_data, carry_data_size) != 0) {
+        APP_CTX_THROW_EXCEPTION(
+            app(),
+            ::std::runtime_error,
+            "Stub %s: send notify pkg to %d.%d fail!",
+            name(), svr_type, svr_id);
     }
 }
 
@@ -91,6 +119,20 @@ void Stub::sendNotifyCmd(
     }
 }
 
+void Stub::sendResponsePkg(
+    uint16_t svr_type, uint16_t svr_id, uint16_t sn,
+    dp_req_t pkg,
+    void const * carry_data, size_t carry_data_size)
+{
+    if (set_svr_stub_send_response_pkg(*this, svr_type, svr_id, sn, pkg, carry_data, carry_data_size) != 0) {
+        APP_CTX_THROW_EXCEPTION(
+            app(),
+            ::std::runtime_error,
+            "Stub %s: send response pkg to %d.%d fail!",
+            name(), svr_type, svr_id);
+    }
+}
+
 void Stub::sendResponseData(
     uint16_t svr_type, uint16_t svr_id, uint16_t sn,
     void const * data, uint16_t data_size, LPDRMETA meta,
@@ -117,6 +159,56 @@ void Stub::sendResponseCmd(
             "Stub %s: send cmd %d to %d.%d fail!",
             name(), cmd, svr_type, svr_id);
     }
+}
+
+void Stub::replyPkg(dp_req_t req, dp_req_t pkg) {
+    if (set_svr_stub_reply_pkg(*this, req, pkg) != 0) {
+        APP_CTX_THROW_EXCEPTION(app(), ::std::runtime_error, "Stub %s: reply pkg fail!", name());
+    }
+}
+
+void Stub::replyData(dp_req_t req, void const * data, uint16_t data_size, LPDRMETA meta) {
+    if (set_svr_stub_reply_data(*this, req, data, data_size, meta) != 0) {
+        APP_CTX_THROW_EXCEPTION(
+            app(),
+            ::std::runtime_error,
+            "Stub %s: reply %s(%d) fail!",
+            name(), dr_meta_name(meta), data_size);
+    }
+}
+
+void Stub::replyCmd(dp_req_t req, uint32_t cmd) {
+    if (set_svr_stub_reply_cmd(*this, req, cmd) != 0) {
+        APP_CTX_THROW_EXCEPTION(app(), ::std::runtime_error, "Stub %s: reply %d fail!", name(), cmd);
+    }
+}
+
+PkgBody & Stub::outgoingBuf(size_t capacity) {
+    dp_req_t pkg = set_svr_stub_outgoing_pkg_buf(*this, capacity);
+
+    if (pkg == NULL) {
+        APP_CTX_THROW_EXCEPTION(
+            app(),
+            ::std::runtime_error,
+            "Stub %s: get outgoing buf fail, capacity=%d!",
+            name(), (int)capacity);
+    }
+
+    return *(PkgBody*)pkg;
+}
+
+void * Stub::pkgToData(dp_req_t pkg_body, uint16_t svr_type_id, LPDRMETA data_meta, size_t * data_capacity) {
+    void * data = set_svr_stub_pkg_to_data(*this, pkg_body, svr_type_id, data_meta, data_capacity);
+
+    if (data == NULL) {
+        APP_CTX_THROW_EXCEPTION(
+            app(),
+            ::std::runtime_error,
+            "Stub %s: pkg to data fail, svr_type_id=%d, meta=%s!",
+            name(), svr_type_id, dr_meta_name(data_meta));
+    }
+
+    return data;
 }
 
 }}
