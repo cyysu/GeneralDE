@@ -40,7 +40,7 @@ int payment_svr_db_send_query_money(payment_svr_t svr, BAG_INFO * bag_info, logi
         return -1;
     }
 
-    if (mongo_cli_proxy_send(svr->m_db, db_pkg, require, svr->m_meta_data_list, 1) != 0) {
+    if (mongo_cli_proxy_send(svr->m_db, db_pkg, require, svr->m_meta_data_list, 1, NULL) != 0) {
         CPE_ERROR(
             svr->m_em, "%s: %s: send db request fail!",
             payment_svr_name(svr), logic_require_name(require));
@@ -105,7 +105,7 @@ int payment_svr_db_send_add_money(
         return -1;
     }
 
-    if (mongo_cli_proxy_send(svr->m_db, db_pkg, require, svr->m_meta_data_list, 1) != 0) {
+    if (mongo_cli_proxy_send(svr->m_db, db_pkg, require, svr->m_meta_data_list, 1, NULL) != 0) {
         CPE_ERROR(svr->m_em, "%s: %s: send db request fail!", payment_svr_name(svr), logic_require_name(require));
         return -1;
     }
@@ -166,7 +166,7 @@ int payment_svr_db_send_remove_money(
         return -1;
     }
 
-    if (mongo_cli_proxy_send(svr->m_db, db_pkg, require, svr->m_meta_data_list, 1) != 0) {
+    if (mongo_cli_proxy_send(svr->m_db, db_pkg, require, svr->m_meta_data_list, 1, NULL) != 0) {
         CPE_ERROR(svr->m_em, "%s: %s: send db request fail!", payment_svr_name(svr), logic_require_name(require));
         return -1;
     }
@@ -213,7 +213,7 @@ int payment_svr_db_send_init_money(
         return -1;
     }
 
-    if (mongo_cli_proxy_send(svr->m_db, db_pkg, require, svr->m_meta_data_list, 1) != 0) {
+    if (mongo_cli_proxy_send(svr->m_db, db_pkg, require, svr->m_meta_data_list, 1, NULL) != 0) {
         CPE_ERROR(svr->m_em, "%s: %s: send db request fail!", payment_svr_name(svr), logic_require_name(require));
         return -1;
     }
@@ -355,7 +355,7 @@ void payment_svr_db_add_bill(
         return;
     }
 
-    if (mongo_cli_proxy_send(svr->m_db, db_pkg, NULL, NULL, 0) != 0) {
+    if (mongo_cli_proxy_send(svr->m_db, db_pkg, NULL, NULL, 0, NULL) != 0) {
         CPE_ERROR(svr->m_em, "%s: add_bill: send db request fail!", payment_svr_name(svr));
         return;
     }
