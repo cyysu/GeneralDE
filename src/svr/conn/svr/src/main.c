@@ -48,13 +48,6 @@ int main(int argc, char * argv[]) {
     void* run_argtable[] = { run, run_pidfile, run_root, run_appid, run_end };
     int run_nerrors;
 
-    /*stop service*/
-    struct arg_rex  * stop = arg_rex1(NULL, NULL, "stop", NULL, 0, NULL);
-    struct arg_str *  stop_pidfile = arg_str1(NULL, "pidfile", NULL, "pidfile");
-    struct arg_end  * stop_end = arg_end(20);
-    void* stop_argtable[] = { stop, stop_pidfile, stop_end };
-    int stop_nerrors;
-
     /*common*/
     struct arg_lit * common_help = arg_lit0(NULL,"help",    "print this help and exit");
     struct arg_end * common_end     = arg_end(20);
@@ -65,7 +58,6 @@ int main(int argc, char * argv[]) {
     error_monitor_t em;
 
     run_nerrors = arg_parse(argc, argv, run_argtable);
-    stop_nerrors = arg_parse(argc, argv, stop_argtable);
     common_nerrors = arg_parse(argc, argv, common_argtable);
 
     cpe_error_monitor_init(&em_buf, cpe_error_log_to_consol, 0);
@@ -74,9 +66,6 @@ int main(int argc, char * argv[]) {
     rv = 0;
     if (run->count) {
         rv = svr_main(argc, argv);
-    }
-    else if (stop->count) {
-        rv = cpe_kill_by_pidfile(stop_pidfile->sval[0], SIGUSR1, em);
     }
     else if (common_nerrors == 0) {
         if (common_help->count) {
@@ -98,14 +87,12 @@ int main(int argc, char * argv[]) {
     goto EXIT;
 
 PRINT_HELP:
-    printf("%s: missing <run|stop|help> command.\n", argv[0]);
+    printf("%s: missing <run|help> command.\n", argv[0]);
     printf("usage 1: %s ", argv[0]); arg_print_syntax(stdout, run_argtable, "\n");
-    printf("usage 2: %s ", argv[0]); arg_print_syntax(stdout, stop_argtable, "\n");
-    printf("usage 3: %s ", argv[0]); arg_print_syntax(stdout, common_argtable, "\n");
+    printf("usage 2: %s ", argv[0]); arg_print_syntax(stdout, common_argtable, "\n");
 
 EXIT:
     arg_freetable(run_argtable, sizeof(run_argtable) / sizeof(run_argtable[0]));
-    arg_freetable(stop_argtable, sizeof(stop_argtable) / sizeof(stop_argtable[0]));
     arg_freetable(common_argtable, sizeof(common_argtable) / sizeof(common_argtable[0]));
     return rv;
 }
