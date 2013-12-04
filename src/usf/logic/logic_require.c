@@ -61,13 +61,39 @@ logic_require_create(logic_stack_node_t stack, const char * require_name) {
     ++stack->m_require_waiting_count;
     ++context->m_require_waiting_count;
 
+#ifdef USF_LOGIC_DEBUG_MEMORY
+    memset(require->m_protect_1, 0xCC, USF_LOGIC_DEBUG_MEMORY);
+    memset(require->m_protect_2, 0xCC, USF_LOGIC_DEBUG_MEMORY);
+#endif
+
     return require;
 }
+
+#ifdef USF_LOGIC_DEBUG_MEMORY
+void logic_require_mem_validate(logic_require_t require) {
+    int i;
+    for(i = 0; i < USF_LOGIC_DEBUG_MEMORY; ++i) {
+        assert(require->m_protect_1[i] == 0xcc && "head protect block error");
+        assert(require->m_protect_2[i] == 0xcc && "tail protect block error");
+    }
+}
+#endif
 
 void logic_require_free(logic_require_t require) {
     logic_manage_t mgr;
 
     assert(require);
+
+#ifdef USF_LOGIC_DEBUG_MEMORY
+    if (USF_LOGIC_DEBUG_MEMORY) {
+        int i;
+        for(i = 0; i < USF_LOGIC_DEBUG_MEMORY; ++i) {
+            assert(require->m_protect_1[i] == 0xcc && "head protect block error");
+            assert(require->m_protect_2[i] == 0xcc && "tail protect block error");
+        }
+    }
+#endif
+
 
     mgr = require->m_context->m_mgr;
 
