@@ -44,6 +44,10 @@ int set_svr_stub_send_pkg(set_svr_stub_t stub, dp_req_t body) {
     if (head_buf->from_svr_type == 0) head_buf->from_svr_type = stub->m_svr_type->m_svr_type_id;
     if (head_buf->from_svr_id == 0) head_buf->from_svr_id = stub->m_svr_id;
 
+    if (dp_req_size(body) == 0) {
+        dp_req_set_size(body, dr_meta_calc_data_len(dp_req_meta(body), dp_req_data(body), dp_req_capacity(body)));
+    }
+
     /*检查源地址*/
     if (head_buf->from_svr_type != stub->m_svr_type->m_svr_type_id || head_buf->from_svr_id != stub->m_svr_id) {
         CPE_ERROR(
@@ -254,7 +258,9 @@ static int set_svr_stub_do_send_cmd(
     }
 
     pkg = set_svr_stub_outgoing_pkg_buf(stub, (size_t)dr_meta_size(svr_info->m_pkg_meta));
-    dp_req_set_size(pkg, dr_meta_size(svr_info->m_pkg_meta));
+
+    dp_req_set_meta(pkg, svr_info->m_pkg_meta);
+    dp_req_set_size(pkg, dr_entry_data_start_pos(svr_info->m_pkg_data_entry, 0));
 
     if (dr_entry_set_from_uint32(
             ((char*)dp_req_data(pkg)) + dr_entry_data_start_pos(svr_info->m_pkg_cmd_entry, 0),
@@ -301,6 +307,57 @@ static int set_svr_stub_do_send_cmd(
     return set_svr_stub_send_pkg(stub, pkg);
 }
 
+static int set_svr_stub_do_send_pkg(
+    set_svr_stub_t stub, uint16_t to_svr_type_id, uint16_t to_svr_id, set_pkg_category_t c,
+    uint16_t sn, dp_req_t pkg, void const * carry_data, size_t carry_data_len)
+{
+    dp_req_t pkg_head;
+    dp_req_t pkg_carry;
+
+    pkg_head = set_pkg_head_check_create(pkg);
+    if (pkg_head == NULL) {
+        CPE_ERROR(
+            stub->m_em, "%s: svr %s.%d: send pkg to %d.%d: create pkg head fail!",
+            set_svr_stub_name(stub), stub->m_svr_type->m_svr_type_name, stub->m_svr_id,
+            to_svr_type_id, to_svr_id);
+        return -1;
+    }
+
+    set_pkg_init(pkg_head);
+    set_pkg_set_sn(pkg_head, sn);
+    set_pkg_set_to_svr(pkg_head, to_svr_type_id, to_svr_id);
+    set_pkg_set_category(pkg_head, c);
+
+    pkg_carry = set_pkg_carry_check_create(pkg, carry_data ? carry_data_len : 0);
+    if (pkg_carry == NULL) {
+        CPE_ERROR(
+            stub->m_em, "%s: svr %s.%d: send pkg to %d.%d: create pkg carry fail!",
+            set_svr_stub_name(stub), stub->m_svr_type->m_svr_type_name, stub->m_svr_id,
+            to_svr_type_id, to_svr_id);
+        return -1;
+    }
+
+    if (carry_data) {
+        memcpy(set_pkg_carry_data(pkg_carry), carry_data, carry_data_len);
+        set_pkg_carry_set_size(pkg_carry, carry_data_len);
+    }
+    else {
+        set_pkg_carry_set_size(pkg_carry, 0);
+    }
+
+    return set_svr_stub_send_pkg(stub, pkg);
+}
+
+int set_svr_stub_send_req_pkg(
+    set_svr_stub_t stub, uint16_t to_svr_type_id, uint16_t to_svr_id,
+    uint16_t sn, dp_req_t pkg,
+    void const * carry_data, size_t carry_data_len)
+{
+    return set_svr_stub_do_send_pkg(
+        stub, to_svr_type_id, to_svr_id, set_pkg_request,
+        sn, pkg, carry_data, carry_data_len);
+}
+
 int set_svr_stub_send_req_data(
     set_svr_stub_t stub, uint16_t to_svr_type_id, uint16_t to_svr_id,
     uint32_t sn, void const * data, uint16_t data_size, LPDRMETA meta,
@@ -343,6 +400,16 @@ int set_svr_stub_send_req_cmd(
         cmd, carry_data, carry_data_len);
 }
 
+int set_svr_stub_send_response_pkg(
+    set_svr_stub_t stub, uint16_t to_svr_type_id, uint16_t to_svr_id,
+    uint16_t sn, dp_req_t pkg,
+    void const * carry_data, size_t carry_data_len)
+{
+    return set_svr_stub_do_send_pkg(
+        stub, to_svr_type_id, to_svr_id, set_pkg_response,
+        sn, pkg, carry_data, carry_data_len);
+}
+
 int set_svr_stub_send_response_data(
     set_svr_stub_t stub, uint16_t to_svr_type_id, uint16_t to_svr_id,
     uint32_t sn, void const * data, uint16_t data_size, LPDRMETA meta,
@@ -361,6 +428,16 @@ int set_svr_stub_send_response_cmd(
     return set_svr_stub_do_send_cmd(
         stub, stub->m_svr_type, to_svr_type_id, to_svr_id, set_pkg_response, sn,
         cmd, carry_data, carry_data_len);
+}
+
+int set_svr_stub_send_notify_pkg(
+    set_svr_stub_t stub, uint16_t to_svr_type_id, uint16_t to_svr_id,
+    uint16_t sn, dp_req_t pkg,
+    void const * carry_data, size_t carry_data_len)
+{
+    return set_svr_stub_do_send_pkg(
+        stub, to_svr_type_id, to_svr_id, set_pkg_notify,
+        sn, pkg, carry_data, carry_data_len);
 }
 
 int set_svr_stub_send_notify_data(
@@ -383,3 +460,91 @@ int set_svr_stub_send_notify_cmd(
         cmd, carry_data, carry_data_len);
 }
 
+int set_svr_stub_reply_pkg(set_svr_stub_t svr, dp_req_t req, dp_req_t body) {
+    dp_req_t req_head = set_pkg_head_find(req);
+    dp_req_t req_carry = set_pkg_carry_find(req);
+
+    assert(req_head);
+
+    return set_svr_stub_send_response_pkg(
+        svr, set_pkg_from_svr_type(req_head), set_pkg_from_svr_id(req_head), set_pkg_sn(req_head),
+        body,
+        req_carry ? dp_req_data(req_carry) : NULL,
+        req_carry ? dp_req_size(req_carry) : 0);
+}
+
+int set_svr_stub_reply_data(set_svr_stub_t svr, dp_req_t req, void const * data, uint16_t data_size, LPDRMETA meta) {
+    dp_req_t req_head = set_pkg_head_find(req);
+    dp_req_t req_carry = set_pkg_carry_find(req);
+
+    assert(req_head);
+
+    return set_svr_stub_send_response_data(
+        svr, set_pkg_from_svr_type(req_head), set_pkg_from_svr_id(req_head), set_pkg_sn(req_head),
+        data, data_size, meta,
+        req_carry ? dp_req_data(req_carry) : NULL,
+        req_carry ? dp_req_size(req_carry) : 0);
+}
+
+int set_svr_stub_reply_cmd(set_svr_stub_t svr, dp_req_t req, uint32_t cmd) {
+    dp_req_t req_head = set_pkg_head_find(req);
+    dp_req_t req_carry = set_pkg_carry_find(req);
+
+    assert(req_head);
+
+    return set_svr_stub_send_response_cmd(
+        svr, set_pkg_from_svr_type(req_head), set_pkg_from_svr_id(req_head), set_pkg_sn(req_head),
+        cmd,
+        req_carry ? dp_req_data(req_carry) : NULL,
+        req_carry ? dp_req_size(req_carry) : 0);
+}
+
+void * set_svr_stub_pkg_to_data(set_svr_stub_t stub, dp_req_t pkg, uint16_t svr_type_id, LPDRMETA data_meta, size_t * data_capacity) {
+    set_svr_svr_info_t svr_info;
+    set_svr_cmd_info_t cmd_info;
+
+    if (svr_type_id == 0) {
+        svr_info = stub->m_svr_type;
+    }
+    else {
+        svr_info = set_svr_svr_info_find(stub, svr_type_id);
+        if (svr_info == NULL) {
+            CPE_ERROR(
+                stub->m_em, "%s: set_svr_stub_pkg_to_data: svr_type %d not exist!",
+                set_svr_stub_name(stub), svr_type_id);
+            return NULL;
+        }
+    }
+
+    assert(svr_info);
+
+    if (svr_info->m_pkg_data_entry == NULL || svr_info->m_pkg_cmd_entry == NULL) {
+        CPE_ERROR(
+            stub->m_em, "%s: set_svr_stub_pkg_to_data: svr type %s no pkg cmd info!",
+            set_svr_stub_name(stub), svr_info->m_svr_type_name);
+        return NULL;
+    }
+
+    cmd_info = set_svr_cmd_info_find_by_name(stub, svr_info, dr_meta_name(data_meta));
+    if (cmd_info == NULL) {
+        CPE_ERROR(
+            stub->m_em, "%s: set_svr_stub_pkg_to_data: data %s is unknown!",
+            set_svr_stub_name(stub), dr_meta_name(data_meta));
+        return NULL;
+    }
+
+    dp_req_set_meta(pkg, svr_info->m_pkg_meta);
+    dp_req_set_size(pkg, 0);
+
+    if (dr_entry_set_from_uint32(
+            ((char*)dp_req_data(pkg)) + dr_entry_data_start_pos(svr_info->m_pkg_cmd_entry, 0),
+            (uint32_t)dr_entry_id(cmd_info->m_entry), svr_info->m_pkg_cmd_entry, stub->m_em) != 0)
+    {
+        CPE_ERROR(
+            stub->m_em, "%s: set_svr_stub_pkg_to_data: set cmd fail!",
+            set_svr_stub_name(stub));
+        return NULL;
+    }
+
+    return ((char*)dp_req_data(pkg)) + dr_entry_data_start_pos(svr_info->m_pkg_data_entry, 0);
+}
