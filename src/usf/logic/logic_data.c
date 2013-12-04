@@ -97,6 +97,11 @@ logic_data_get_or_create_i(logic_data_t key, LPDRMETA meta, size_t capacity, log
 
     TAILQ_INSERT_TAIL(data_list, new_data, m_next);
 
+#ifdef USF_LOGIC_DEBUG_MEMORY
+    memset(new_data->m_protect_1, 0xCC, USF_LOGIC_DEBUG_MEMORY);
+    memset(new_data->m_protect_2, 0xCC, USF_LOGIC_DEBUG_MEMORY);
+#endif
+
     return new_data;
 }
 
@@ -207,6 +212,16 @@ void logic_data_free(logic_data_t data) {
     logic_manage_t mgr;
 
     assert(data);
+
+#ifdef USF_LOGIC_DEBUG_MEMORY
+    if (USF_LOGIC_DEBUG_MEMORY) {
+        int i;
+        for(i = 0; i < USF_LOGIC_DEBUG_MEMORY; ++i) {
+            assert(data->m_protect_1[i] == 0xcc && "head protect block error");
+            assert(data->m_protect_2[i] == 0xcc && "tail protect block error");
+        }
+    }
+#endif
 
     mgr = logic_data_mgr(data);
     assert(mgr);

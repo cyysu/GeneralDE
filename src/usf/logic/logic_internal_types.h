@@ -40,12 +40,21 @@ struct logic_manage {
 };
 
 struct logic_stack_node {
+#ifdef USF_LOGIC_DEBUG_MEMORY
+    unsigned char m_protect_1[USF_LOGIC_DEBUG_MEMORY];
+#endif
+
     logic_executor_t m_executr;
     logic_context_t m_context;
     logic_data_list_t m_datas;
     uint32_t m_require_waiting_count;
     logic_require_list_t m_requires;
     logic_op_exec_result_t m_rv;
+
+#ifdef USF_LOGIC_DEBUG_MEMORY
+    unsigned char m_protect_2[USF_LOGIC_DEBUG_MEMORY];
+#endif
+
 };
 
 struct logic_stack {
@@ -100,6 +109,10 @@ struct logic_queue {
 };
 
 struct logic_require {
+#ifdef USF_LOGIC_DEBUG_MEMORY
+    unsigned char m_protect_1[USF_LOGIC_DEBUG_MEMORY];
+#endif
+
     logic_context_t m_context;
     logic_stack_node_t m_stack;
     logic_require_id_t m_id;
@@ -113,6 +126,10 @@ struct logic_require {
     TAILQ_ENTRY(logic_require) m_next_for_stack;
 
     struct cpe_hash_entry m_hh;
+
+#ifdef USF_LOGIC_DEBUG_MEMORY
+    unsigned char m_protect_2[USF_LOGIC_DEBUG_MEMORY];
+#endif
 };
 
 enum logic_data_owner_type {
@@ -128,6 +145,10 @@ union logic_data_owner_data {
 };
 
 struct logic_data {
+#ifdef USF_LOGIC_DEBUG_MEMORY
+    unsigned char m_protect_1[USF_LOGIC_DEBUG_MEMORY];
+#endif
+
     enum logic_data_owner_type m_owner_type;
     union logic_data_owner_data m_owner_data;
     const char * m_name;
@@ -136,6 +157,10 @@ struct logic_data {
 
     TAILQ_ENTRY(logic_data) m_next;
     struct cpe_hash_entry m_hh;
+
+#ifdef USF_LOGIC_DEBUG_MEMORY
+    unsigned char m_protect_2[USF_LOGIC_DEBUG_MEMORY];
+#endif
 };
 
 #define LOGIC_EXECUTOR_COMMON                   \
