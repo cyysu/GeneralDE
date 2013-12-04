@@ -78,8 +78,11 @@ int cfg_seq_count(cfg_t cfg);
 cfg_t cfg_seq_at(cfg_t cfg, int pos);
 
 /*dump operations*/
-void cfg_dump(cfg_t cfg, write_stream_t stream, int ident, int level_ident);
-void cfg_dump_inline(cfg_t cfg, write_stream_t stream);
+void cfg_print(cfg_t cfg, write_stream_t stream, int ident, int level_ident);
+void cfg_print_inline(cfg_t cfg, write_stream_t stream);
+
+const char * cfg_dump(cfg_t cfg, mem_buffer_t buffer, int ident, int level_ident);
+const char * cfg_dump_inline(cfg_t cfg, mem_buffer_t buffer);
 
 /*child operations*/
 int cfg_child_count(cfg_t cfg);

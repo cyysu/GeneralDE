@@ -44,7 +44,7 @@ ptr_int_t set_svr_stub_tick(void * ctx, ptr_int_t arg) {
             if (rv == set_chanel_error_chanel_empty) break;
 
             CPE_ERROR(
-                stub->m_em, "%s: svr %s.%d: ==> peak pkg fail, error=%d (%s)!",
+                stub->m_em, "%s: svr %s.%d: <== peak pkg fail, error=%d (%s)!",
                 set_svr_stub_name(stub), stub->m_svr_type->m_svr_type_name, stub->m_svr_id,
                 rv, set_chanel_str_error(rv));
             goto NEXT_PKG;
@@ -60,7 +60,7 @@ ptr_int_t set_svr_stub_tick(void * ctx, ptr_int_t arg) {
         /*检查目的地址*/
         if (head_buf->to_svr_type != stub->m_svr_type->m_svr_type_id || (head_buf->to_svr_id != 0 && head_buf->to_svr_id != stub->m_svr_id)) {
             CPE_ERROR(
-                stub->m_em, "%s: svr %s.%d: ==> recv one pkg from %d.%d : to_svr %d.%d mismatch!",
+                stub->m_em, "%s: svr %s.%d: <== recv one pkg from %d.%d : to_svr %d.%d mismatch!",
                 set_svr_stub_name(stub), stub->m_svr_type->m_svr_type_name, stub->m_svr_id,
                 head_buf->from_svr_type, head_buf->from_svr_id,
                 head_buf->to_svr_type, head_buf->to_svr_id);
@@ -78,7 +78,7 @@ ptr_int_t set_svr_stub_tick(void * ctx, ptr_int_t arg) {
             set_svr_svr_info_t from_svr_type = set_svr_svr_info_find(stub, head_buf->from_svr_type);
             if (from_svr_type == NULL) {
                 CPE_ERROR(
-                    stub->m_em, "%s: svr %s.%d: ==> recv one pkg from %d.%d: from svr type %d is unknown!",
+                    stub->m_em, "%s: svr %s.%d: <== recv one pkg from %d.%d: from svr type %d is unknown!",
                     set_svr_stub_name(stub), stub->m_svr_type->m_svr_type_name, stub->m_svr_id,
                     head_buf->from_svr_type, head_buf->from_svr_id, head_buf->from_svr_type);
                 goto NEXT_PKG;
@@ -89,7 +89,7 @@ ptr_int_t set_svr_stub_tick(void * ctx, ptr_int_t arg) {
         }
         default:
             CPE_ERROR(
-                stub->m_em, "%s: svr %s.%d: ==> recv one pkg from %d.%d: pkg category %d is unknown!",
+                stub->m_em, "%s: svr %s.%d: <== recv one pkg from %d.%d: pkg category %d is unknown!",
                 set_svr_stub_name(stub), stub->m_svr_type->m_svr_type_name, stub->m_svr_id,
                 head_buf->from_svr_type, head_buf->from_svr_id,
                 (int)set_pkg_category(head));
@@ -99,7 +99,7 @@ ptr_int_t set_svr_stub_tick(void * ctx, ptr_int_t arg) {
         if (stub->m_debug) {
             if (set_pkg_pack_state(head) == set_pkg_packed) {
                 CPE_INFO(
-                    stub->m_em, "%s: svr %s.%d: ==> recv one pkg from %d.%d:\n\thead: %s\tcarry: %s\tbody: [packed %d bytes]",
+                    stub->m_em, "%s: svr %s.%d: <== recv one pkg from %d.%d:\n\thead: %s\tcarry: %s\tbody: [packed %d bytes]",
                     set_svr_stub_name(stub),
                     stub->m_svr_type->m_svr_type_name, stub->m_svr_id,
                     head_buf->from_svr_type, head_buf->from_svr_id,
@@ -109,7 +109,7 @@ ptr_int_t set_svr_stub_tick(void * ctx, ptr_int_t arg) {
             }
             else {
                 CPE_INFO(
-                    stub->m_em, "%s: svr %s.%d: ==> recv one pkg from %d.%d:\n\thead: %s\tcarry: %s\tbody: %s",
+                    stub->m_em, "%s: svr %s.%d: <== recv one pkg from %d.%d:\n\thead: %s\tcarry: %s\tbody: %s",
                     set_svr_stub_name(stub),
                     stub->m_svr_type->m_svr_type_name, stub->m_svr_id,
                     head_buf->from_svr_type, head_buf->from_svr_id,
@@ -123,7 +123,7 @@ ptr_int_t set_svr_stub_tick(void * ctx, ptr_int_t arg) {
         case set_pkg_request: {
             if (stub->m_request_dispatch_to == NULL) {
                 CPE_ERROR(
-                    stub->m_em, "%s: svr %s.%d: ==> recv one pkg from %d.%d: request-dispatch-to configured!",
+                    stub->m_em, "%s: svr %s.%d: <== recv one pkg from %d.%d: request-dispatch-to configured!",
                     set_svr_stub_name(stub), stub->m_svr_type->m_svr_type_name, stub->m_svr_id,
                     head_buf->from_svr_type, head_buf->from_svr_id);
                 goto NEXT_PKG;
@@ -131,7 +131,7 @@ ptr_int_t set_svr_stub_tick(void * ctx, ptr_int_t arg) {
 
             if (dp_dispatch_by_string(stub->m_request_dispatch_to, body, stub->m_em) != 0) {
                 CPE_ERROR(
-                    stub->m_em, "%s: svr %s.%d: ==> recv one pkg from %d.%d: request-dispatch-to %s fail!",
+                    stub->m_em, "%s: svr %s.%d: <== recv one pkg from %d.%d: request-dispatch-to %s fail!",
                     set_svr_stub_name(stub), stub->m_svr_type->m_svr_type_name, stub->m_svr_id,
                     head_buf->from_svr_type, head_buf->from_svr_id,
                     cpe_hs_data(stub->m_request_dispatch_to));
@@ -146,7 +146,7 @@ ptr_int_t set_svr_stub_tick(void * ctx, ptr_int_t arg) {
 
             if (dispatch_to == NULL) {
                 CPE_ERROR(
-                    stub->m_em, "%s: svr %s.%d: ==> recv one pkg from %d.%d: response-dispatch-to not configured!",
+                    stub->m_em, "%s: svr %s.%d: <== recv one pkg from %d.%d: response-dispatch-to not configured!",
                     set_svr_stub_name(stub), stub->m_svr_type->m_svr_type_name, stub->m_svr_id,
                     head_buf->from_svr_type, head_buf->from_svr_id);
                 goto NEXT_PKG;
@@ -154,7 +154,7 @@ ptr_int_t set_svr_stub_tick(void * ctx, ptr_int_t arg) {
 
             if (dp_dispatch_by_string(dispatch_to, body, stub->m_em) != 0) {
                 CPE_ERROR(
-                    stub->m_em, "%s: svr %s.%d: ==> recv one pkg from %d.%d: response-dispatch-to %s fail!",
+                    stub->m_em, "%s: svr %s.%d: <== recv one pkg from %d.%d: response-dispatch-to %s fail!",
                     set_svr_stub_name(stub), stub->m_svr_type->m_svr_type_name, stub->m_svr_id,
                     head_buf->from_svr_type, head_buf->from_svr_id,
                     cpe_hs_data(dispatch_to));
@@ -170,7 +170,7 @@ ptr_int_t set_svr_stub_tick(void * ctx, ptr_int_t arg) {
  
             if (dispatch_to == NULL) {
                 CPE_ERROR(
-                    stub->m_em, "%s: svr %s.%d: ==> recv one pkg from %d.%d: notify-dispatch-to not configured!",
+                    stub->m_em, "%s: svr %s.%d: <== recv one pkg from %d.%d: notify-dispatch-to not configured!",
                     set_svr_stub_name(stub), stub->m_svr_type->m_svr_type_name, stub->m_svr_id,
                     head_buf->from_svr_type, head_buf->from_svr_id);
                 goto NEXT_PKG;
@@ -178,7 +178,7 @@ ptr_int_t set_svr_stub_tick(void * ctx, ptr_int_t arg) {
 
             if (dp_dispatch_by_string(dispatch_to, body, stub->m_em) != 0) {
                 CPE_ERROR(
-                    stub->m_em, "%s: svr %s.%d: ==> recv one pkg from %d.%d: notify-dispatch-to %s fail!",
+                    stub->m_em, "%s: svr %s.%d: <== recv one pkg from %d.%d: notify-dispatch-to %s fail!",
                     set_svr_stub_name(stub), stub->m_svr_type->m_svr_type_name, stub->m_svr_id,
                     head_buf->from_svr_type, head_buf->from_svr_id,
                     cpe_hs_data(dispatch_to));
@@ -188,7 +188,7 @@ ptr_int_t set_svr_stub_tick(void * ctx, ptr_int_t arg) {
         }
         default:
             CPE_ERROR(
-                stub->m_em, "%s: svr %s.%d: ==> recv one pkg from %d.%d: pkg category is unknown!",
+                stub->m_em, "%s: svr %s.%d: <== recv one pkg from %d.%d: pkg category is unknown!",
                 set_svr_stub_name(stub), stub->m_svr_type->m_svr_type_name, stub->m_svr_id,
                 head_buf->from_svr_type, head_buf->from_svr_id);
             break;
