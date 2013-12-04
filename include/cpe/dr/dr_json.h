@@ -42,6 +42,9 @@ int dr_json_print_array(
     int flag,
     error_monitor_t em);
 
+const char * dr_json_dump(mem_buffer_t buffer, const void * input, size_t capacity, LPDRMETA meta);
+const char * dr_json_dump_inline(mem_buffer_t buffer, const void * input, size_t capacity, LPDRMETA meta);
+
 #ifdef __cplusplus
 }
 #endif
