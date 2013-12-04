@@ -65,5 +65,7 @@ typedef int32_t ptr_int_t;
 typedef uint32_t ptr_uint_t;
 #endif
 
+#define CPE_ARRAY_SIZE(__array) ((sizeof(__array) / sizeof(__array[0])))
+
 #endif /* TTYPES_H */
 
