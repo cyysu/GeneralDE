@@ -368,7 +368,7 @@ const char * logic_data_dump(logic_data_t data, mem_buffer_t buffer) {
 
     mem_buffer_clear_data(buffer);
     stream_printf((write_stream_t)&stream, "%s: ", data->m_name);
-    cfg_dump_inline(dump_data, (write_stream_t)&stream);
+    cfg_print_inline(dump_data, (write_stream_t)&stream);
     stream_putc((write_stream_t)&stream, 0);
 
     cfg_free(dump_data);
