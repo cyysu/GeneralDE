@@ -133,6 +133,9 @@ int dr_entry_copy_same_entry(
 uint32_t dr_entry_hash(const void * input, LPDRMETAENTRY entry);
 int dr_entry_cmp(const void * l, const void * r, LPDRMETAENTRY entry);
 
+uint32_t dr_meta_key_hash(const void * input, LPDRMETA meta);
+int dr_meta_key_cmp(const void * l, const void * r, LPDRMETA meta);
+
 #ifdef __cplusplus
 }
 #endif
