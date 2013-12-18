@@ -11,6 +11,8 @@ class with_cfg : public ::testenv::env<> {
 public:
     cfg_t t_cfg_create(void);
     cfg_t t_cfg_parse(const char * input);
+    void t_cfg_read(cfg_t cfg, const char * input);
+
     const char * t_cfg_dump(cfg_t cfg, int ident = 0, int level_ident = 4);
     const char * t_cfg_dump_inline(cfg_t cfg);
 };
