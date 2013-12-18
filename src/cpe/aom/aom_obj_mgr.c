@@ -79,6 +79,7 @@ aom_obj_mgr_create(
         mem_free(alloc, obj_mgr);
         return NULL;
     }
+    obj_mgr->m_record_size = dr_meta_size(obj_mgr->m_meta);
 
     if (dr_meta_key_entry_num(obj_mgr->m_meta) == 0) {
         CPE_ERROR(em, "aom_obj_mgr_create: meta %s have no key!", control->m_meta_name);
@@ -131,7 +132,7 @@ void * aom_obj_alloc(aom_obj_mgr_t mgr) {
 
     cpe_range_put_one(&mgr->m_allocked_objs, idx);
 
-    obj = mgr->m_obj_base + dr_meta_size(mgr->m_meta) * idx;
+    obj = mgr->m_obj_base + mgr->m_record_size * idx;
 
     assert(aom_obj_is_free(mgr->m_meta, obj));
 
@@ -143,7 +144,7 @@ void * aom_obj_alloc(aom_obj_mgr_t mgr) {
 
 void aom_obj_free(aom_obj_mgr_t mgr, void * obj) {
     ptr_int_t idx;
-    size_t obj_size = dr_meta_size(mgr->m_meta);
+    size_t obj_size = mgr->m_record_size;
 
     assert((char*)obj >= mgr->m_obj_base);
     assert((char*)obj + obj_size <= mgr->m_obj_base + mgr->m_obj_capacity);
@@ -162,14 +163,41 @@ void aom_obj_free(aom_obj_mgr_t mgr, void * obj) {
     --mgr->m_allocked_obj_count;
 }
 
-int32_t aom_obj_index(aom_obj_mgr_t mgr, void * obj) {
-    int32_t idx;
-    size_t obj_size = dr_meta_size(mgr->m_meta);
+void aom_obj_free_by_idx(aom_obj_mgr_t mgr, ptr_int_t idx) {
+    size_t obj_size = mgr->m_record_size;
+    void * obj;
 
-    assert((char*)obj >= mgr->m_obj_base);
-    assert((char*)obj + obj_size <= mgr->m_obj_base + mgr->m_obj_capacity);
+    obj = (mgr->m_obj_base + idx * obj_size);
 
-    idx = (((char*)obj) - mgr->m_obj_base) / obj_size;
+    aom_obj_set_free(mgr->m_meta, obj);
+    assert(aom_obj_is_free(mgr->m_meta, obj));
+
+    cpe_range_remove_one(&mgr->m_allocked_objs, idx);
+    cpe_range_put_one(&mgr->m_free_objs, idx);
+
+    ++mgr->m_free_obj_count;
+    --mgr->m_allocked_obj_count;
+}
+
+void * aom_obj_get(aom_obj_mgr_t mgr, ptr_int_t idx) {
+    char * obj;
+
+    assert(idx >= 0 && idx < (mgr->m_allocked_obj_count + mgr->m_free_obj_count));
+
+    obj = mgr->m_obj_base + mgr->m_record_size * idx;
+
+    return aom_obj_is_free(mgr->m_meta, obj) ? NULL : obj;
+}
+
+
+ptr_int_t aom_obj_index(aom_obj_mgr_t mgr, void const * obj) {
+    ptr_int_t idx;
+    size_t obj_size = mgr->m_record_size;
+
+    assert((char const *)obj >= mgr->m_obj_base);
+    assert((char const *)obj + obj_size <= mgr->m_obj_base + mgr->m_obj_capacity);
+
+    idx = (((char const *)obj) - mgr->m_obj_base) / obj_size;
 
     assert(obj == (mgr->m_obj_base + idx * obj_size));
 
@@ -192,7 +220,7 @@ static void * aom_objs_next(struct aom_obj_it * it) {
         if (cpe_range_size(data->m_range) <= 0) return NULL;
     }
 
-    obj = data->m_mgr->m_obj_base + dr_meta_size(data->m_mgr->m_meta) * data->m_range.m_start;
+    obj = data->m_mgr->m_obj_base + data->m_mgr->m_record_size * data->m_range.m_start;
 
     ++data->m_range.m_start;
 
@@ -242,10 +270,10 @@ static void aom_obj_set_free(LPDRMETA meta, char * data) {
 
 static void aom_obj_mgr_init_objs(aom_obj_mgr_t mgr, void * data, uint32_t data_size) {
     char * obj;
-    size_t obj_size = dr_meta_size(mgr->m_meta);
+    size_t obj_size = mgr->m_record_size;
     ptr_int_t idx = 0;
 
-    for(obj = data; data_size > obj_size; obj += obj_size, data_size -= obj_size, ++idx) {
+    for(obj = data; data_size >= obj_size; obj += obj_size, data_size -= obj_size, ++idx) {
         if (aom_obj_is_free(mgr->m_meta, obj)) {
             ++mgr->m_free_obj_count;
             cpe_range_put_one(&mgr->m_free_objs, idx);
