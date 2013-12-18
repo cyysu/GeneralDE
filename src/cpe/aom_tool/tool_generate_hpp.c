@@ -118,7 +118,14 @@ static void aom_tool_do_generate_hpp_read_ops_ba(write_stream_t stream, LPDRMETA
     
     stream_printf(
         stream, "    cpe_ba_value_t %sGet(uint32_t pos) const { return cpe_ba_get((cpe_ba_t)m_data->%s, pos); }\n",
-        entry_name);
+        entry_name, entry_name);
+
+    stream_printf(
+        stream,
+        "    void  %sBinaryGet(void * data, uint32_t capacity) const {\n"
+        "        memcpy(data, m_data->%s, capacity > sizeof(m_data->%s) ? sizeof(m_data->%s) : capacity);\n"
+        "    }\n",
+        entry_name, entry_name, entry_name, entry_name);
 }
 
 static void aom_tool_do_generate_hpp_read_ops(write_stream_t stream, struct aom_tool_env * env) {
@@ -212,8 +219,8 @@ static void aom_tool_do_generate_hpp_write_ops_ba(write_stream_t stream, LPDRMET
     const char * entry_name = dr_entry_name(entry);
 
     stream_printf(
-        stream, "    void _%sSet(uint32_t pos, cpe_ba_value_t value) { return cpe_ba_set((cpe_ba_t)m_data->%s, pos, value); }\n",
-        entry_name);
+        stream, "    void _%sSet(uint32_t pos, cpe_ba_value_t value) { cpe_ba_set(m_data->%s, pos, value); }\n",
+        entry_name, entry_name);
 }
 
 static void aom_tool_do_generate_hpp_write_ops(write_stream_t stream, struct aom_tool_env * env) {
