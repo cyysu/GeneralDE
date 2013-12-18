@@ -7,6 +7,7 @@
 #include "cpe/nm/nm_read.h"
 #include "cpe/utils/stream.h"
 #include "cpe/utils/stream_buffer.h"
+#include "cpe/utils/string_utils.h"
 #include "cpe/dr/dr_data.h"
 #include "cpe/dr/dr_metalib_manage.h"
 #include "cpe/dp/dp_manage.h"
@@ -44,6 +45,7 @@ set_svr_stub_create(gd_app_context_t app, const char * name, uint16_t svr_id, me
     svr->m_alloc = alloc;
     svr->m_em = em;
     svr->m_debug = 0;
+    svr->m_pidfile = NULL;
     svr->m_pidfile_fd = -1;
 
     svr->m_svr_type = NULL;
@@ -80,6 +82,9 @@ set_svr_stub_create(gd_app_context_t app, const char * name, uint16_t svr_id, me
         return NULL;
     }
 
+    svr->m_use_shm = 0;
+    TAILQ_INIT(&svr->m_buffs);
+
     mem_buffer_init(&svr->m_dump_buffer_head, alloc);
     mem_buffer_init(&svr->m_dump_buffer_carry, alloc);
     mem_buffer_init(&svr->m_dump_buffer_body, alloc);
@@ -93,6 +98,11 @@ static void set_svr_stub_clear(nm_node_t node) {
     set_svr_stub_t svr;
 
     svr = (set_svr_stub_t)nm_node_data(node);
+
+    if (svr->m_pidfile) {
+        mem_free(svr->m_alloc, svr->m_pidfile);
+        svr->m_pidfile = NULL;
+    }
 
     if (svr->m_pidfile_fd == -1) {
         close(svr->m_pidfile_fd);
@@ -139,9 +149,16 @@ static void set_svr_stub_clear(nm_node_t node) {
         svr->m_chanel = NULL;
     }
 
+    set_svr_stub_buff_free_all(svr);
+
     mem_buffer_clear(&svr->m_dump_buffer_head);
     mem_buffer_clear(&svr->m_dump_buffer_carry);
     mem_buffer_clear(&svr->m_dump_buffer_body);
+
+    if (svr->m_pidfile_fd >= 0) {
+        close(svr->m_pidfile_fd);
+        svr->m_pidfile_fd = -1;
+    }
 }
 
 void set_svr_stub_free(set_svr_stub_t mgr) {
@@ -339,9 +356,25 @@ int set_svr_stub_read_data(set_svr_stub_t stub, set_svr_svr_info_t svr_info, dp_
     return 0;
 }
 
-int set_svr_stub_write_pidfile(set_svr_stub_t svr, const char * pidfile) {
-    char buf[16];  
-  
+int set_svr_stub_lock_pidfile(set_svr_stub_t svr, const char * pidfile) {
+    if (svr->m_pidfile) {
+        mem_free(svr->m_alloc, svr->m_pidfile);
+        svr->m_pidfile = NULL;
+    }
+
+    if (svr->m_pidfile_fd != -1) {
+        close(svr->m_pidfile_fd);
+        svr->m_pidfile_fd = -1;
+    }
+
+    svr->m_pidfile = cpe_str_mem_dup(svr->m_alloc, pidfile);
+    if (svr->m_pidfile == NULL) {
+        CPE_ERROR(
+            svr->m_em, "%s: write pidfile: save pidfile %s, alloc fail!",
+            set_svr_stub_name(svr), pidfile);
+        return -1;
+    }
+
     /* 打开放置记录锁的文件 */
     svr->m_pidfile_fd = open(pidfile, O_RDWR | O_CREAT, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);  
     if (svr->m_pidfile_fd < 0) {  
@@ -378,11 +411,48 @@ int set_svr_stub_write_pidfile(set_svr_stub_t svr, const char * pidfile) {
             return -1;
         }
     }  
+
+    return 0;
+}
+  
+int set_svr_stub_write_pidfile(set_svr_stub_t svr) {
+    char buf[64];  
+    set_svr_stub_buff_t buff;
   
     /* 先将文件fd清空，然后再向其中写入当前的进程号 */
-    ftruncate(svr->m_pidfile_fd, 0);
-    snprintf(buf, sizeof(buf), "%d", (int)getpid());
-    write(svr->m_pidfile_fd, buf, strlen(buf));
+    if (ftruncate(svr->m_pidfile_fd, 0) == -1) {
+        CPE_ERROR(
+            svr->m_em, "%s: write_pidfile: ftruncate fail, errno=%d (%s)",
+            set_svr_stub_name(svr), errno, strerror(errno));
+        return -1;
+    }
+
+    if (lseek(svr->m_pidfile_fd, 0, SEEK_SET) == -1) {
+        CPE_ERROR(
+            svr->m_em, "%s: write_pidfile: lseak to head fail, errno=%d (%s)",
+            set_svr_stub_name(svr), errno, strerror(errno));
+        return -1;
+    }
+
+    snprintf(buf, sizeof(buf), "pid: %d\n", (int)getpid());
+    if (write(svr->m_pidfile_fd, buf, strlen(buf)) == -1) {
+        CPE_ERROR(
+            svr->m_em, "%s: write_pidfile: write pid fail, errno=%d (%s)",
+            set_svr_stub_name(svr), errno, strerror(errno));
+        return -1;
+    }
+
+    TAILQ_FOREACH(buff, &svr->m_buffs, m_next) {
+        if(buff->m_buff_type == set_svr_stub_buff_type_shm) {
+            snprintf(buf, sizeof(buf), "shm: %d\n", buff->m_shm_id);
+            if (write(svr->m_pidfile_fd, buf, strlen(buf)) == -1) {
+                CPE_ERROR(
+                    svr->m_em, "%s: write_pidfile: write shm id fail, errno=%d (%s)",
+                    set_svr_stub_name(svr), errno, strerror(errno));
+                return -1;
+            }
+        }
+    }
 
     return 0;
 }

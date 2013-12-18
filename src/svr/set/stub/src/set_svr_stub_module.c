@@ -1,7 +1,8 @@
 #include <assert.h>
 #include <signal.h>
-#include "cpe/pal/pal_stdlib.h"
 #include "cpe/pal/pal_external.h"
+#include "cpe/pal/pal_stdlib.h"
+#include "cpe/pal/pal_unistd.h"
 #include "cpe/pal/pal_shm.h"
 #include "cpe/dr/dr_metalib_manage.h"
 #include "cpe/utils/service.h"
@@ -23,6 +24,7 @@ static LPDRMETA set_svr_stub_load_pkg_meta(
 static int set_svr_stub_load_connect_svrs(set_svr_stub_t stub, dr_store_manage_t store_mgr, cfg_t svr_types_cfg);
 static set_svr_svr_info_t
 set_svr_stub_load_svr_info(set_svr_stub_t stub, dr_store_manage_t store_mgr, cfg_t svr_types_cfg, const char * svr_type_name);
+static int set_svr_stub_load_buffs(set_svr_stub_t stub);
 
 EXPORT_DIRECTIVE
 int set_svr_stub_app_init(gd_app_context_t app, gd_app_module_t module, cfg_t cfg) {
@@ -95,8 +97,20 @@ int set_svr_stub_app_init(gd_app_context_t app, gd_app_module_t module, cfg_t cf
         return -1;
     }
 
-    if (set_svr_stub_write_pidfile(svr, pidfile) != 0) {
+    if (set_svr_stub_lock_pidfile(svr, pidfile) != 0) {
         CPE_ERROR(gd_app_em(app), "%s: create: is already runing!", gd_app_module_name(module));
+        set_svr_stub_free(svr);
+        return -1;
+    }
+
+    if (set_svr_stub_load_buffs(svr) != 0) {
+        CPE_ERROR(gd_app_em(app), "%s: create: load buffs fail!", gd_app_module_name(module));
+        set_svr_stub_free(svr);
+        return -1;
+    }
+
+    if (set_svr_stub_write_pidfile(svr) != 0) {
+        CPE_ERROR(gd_app_em(app), "%s: create: write pidfile fail!", gd_app_module_name(module));
         set_svr_stub_free(svr);
         return -1;
     }
@@ -443,6 +457,103 @@ static int set_svr_stub_load_connect_svrs(set_svr_stub_t stub, dr_store_manage_t
             return -1;
         }
     }
+
+    return 0;
+}
+
+static int set_svr_stub_load_buffs(set_svr_stub_t stub) {
+    int shm_reset = 0;
+    const char * str_arg;
+    char buf[64];
+    ssize_t buf_size;
+    ssize_t r_size;
+
+    if ((str_arg = gd_app_arg_find(stub->m_app, "--use-shm"))) {
+        stub->m_use_shm = atoi(str_arg);
+    }
+
+    if ((str_arg = gd_app_arg_find(stub->m_app, "--reset-shm"))) {
+        shm_reset = atoi(str_arg);
+    }
+
+    if (lseek(stub->m_pidfile_fd, 0, SEEK_SET) == -1) {
+        CPE_ERROR(
+            stub->m_em, "%s: load buffs: lseak to head fail, errno=%d (%s)",
+            set_svr_stub_name(stub), errno, strerror(errno));
+        return -1;
+    }
+
+    buf_size = 0;
+    do {
+        char * arg_name_end;
+        char * line_end;
+        assert(buf_size < sizeof(buf));
+
+        r_size = read(stub->m_pidfile_fd, buf + buf_size, sizeof(buf) - buf_size);
+        if (r_size == -1) {
+            CPE_ERROR(
+                stub->m_em, "%s: load buffs: read file fail, errno=%d (%s)",
+                set_svr_stub_name(stub), errno, strerror(errno));
+            return -1;
+        }
+
+        buf_size += r_size;
+
+        if ((line_end = memchr(buf, '\n', buf_size))) {
+            size_t line_len = line_end - buf + 1;
+
+            *line_end = 0;
+            arg_name_end = strchr(buf, ':');
+            if (arg_name_end) {
+                *arg_name_end = 0;
+                if (strcmp(buf, "shm") == 0) {
+                    int shmid = atoi(arg_name_end + 1);
+
+                    if (shm_reset) {
+                        if (cpe_shm_rm(shmid) == -1) {
+                            CPE_ERROR(
+                                stub->m_em, "%s: load buffs: rm shm for reset fail, id=%d, error=%d (%s)",
+                                set_svr_stub_name(stub), shmid, errno, strerror(errno));
+                            return -1;
+                        }
+                        else {
+                            if (stub->m_debug) {
+                                CPE_INFO(
+                                    stub->m_em, "%s: load buffs: rm shm for reset success, id=%d",
+                                    set_svr_stub_name(stub), shmid);
+                            }
+                        }
+                    }
+                    else if (stub->m_use_shm) {
+                        set_svr_stub_buff_t buff = set_svr_stub_buff_shm_attach(stub, shmid);
+                        if (buff == NULL) {
+                            CPE_ERROR(stub->m_em, "%s: load buffs: attach buff to shm fail, id=%d", set_svr_stub_name(stub), shmid);
+                            return -1;
+                        }
+                    }
+                    else {
+                        set_svr_stub_buff_t buff = set_svr_stub_buff_shm_save(stub, shmid);
+                        if (buff == NULL) {
+                            CPE_ERROR(stub->m_em, "%s: load buffs: save shm buff fail, id=%d", set_svr_stub_name(stub), shmid);
+                            return -1;
+                        }
+                    }
+                }
+            }
+
+            assert(buf_size >= line_len);
+            memmove(buf, buf + line_len, buf_size - line_len);
+            buf_size -= line_len;
+        }
+        else if (buf_size == sizeof(buf)) {
+            CPE_ERROR(
+                stub->m_em, "%s: load buffs: read buff is full, line too lone!",
+                set_svr_stub_name(stub));
+            return -1;
+        }
+
+        if (r_size == 0) break;
+    }while(0);
 
     return 0;
 }
