@@ -13,12 +13,15 @@
 #include "svr/set/stub/set_svr_stub_types.h"
 #include "protocol/svr/set/svr_set_pro.h"
 
+typedef TAILQ_HEAD(set_svr_stub_buff_list, set_svr_stub_buff) set_svr_stub_buff_list_t;
+
 struct set_svr_stub {
     gd_app_context_t m_app;
     mem_allocrator_t m_alloc;
     error_monitor_t m_em;
     int m_debug;
 
+    char * m_pidfile;
     int m_pidfile_fd;  
     struct flock m_pidfile_lock;  
 
@@ -39,6 +42,9 @@ struct set_svr_stub {
 
     dp_req_t m_incoming_buf;
     dp_req_t m_outgoing_buf;
+
+    int8_t m_use_shm;
+    set_svr_stub_buff_list_t m_buffs;
 
     struct mem_buffer m_dump_buffer_head;
     struct mem_buffer m_dump_buffer_carry;
@@ -69,5 +75,11 @@ struct set_svr_svr_info {
     struct cpe_hash_table m_cmds;
 };
 
+struct set_svr_stub_buff {
+    TAILQ_ENTRY(set_svr_stub_buff) m_next;
+    set_svr_stub_buff_type_t m_buff_type;
+    void * m_buff;
+    int m_shm_id;
+};
 
 #endif
