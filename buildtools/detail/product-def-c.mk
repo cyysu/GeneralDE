@@ -87,6 +87,7 @@ c-generate-depend-cpp-flags=$(addprefix -I$(CPDE_ROOT)/,\
 									$(call product-gen-depend-value-list,$1,$($2.env),product.c.frameworks) \
                                     $(call product-gen-depend-value-list,$1,$($2.env),$($2.env).product.c.frameworks) \
                                  )) \
+                           $(addprefix -D,$($1.$($2.env).product.c.defs)) \
                            $(addprefix -D,$(sort $(call product-gen-depend-value-list,$1,$($2.env),product.c.defs))) \
                            $(addprefix -D,$(sort $(call product-gen-depend-value-list,$1,$($2.env),$($2.env).product.c.defs))) \
                            $(addprefix -D,$(sort $(call product-gen-depend-value-list,$($2.env),$1,$2.product.c.defs))) \
