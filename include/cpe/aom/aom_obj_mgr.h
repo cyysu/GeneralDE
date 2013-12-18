@@ -30,7 +30,15 @@ void * aom_obj_alloc(aom_obj_mgr_t mgr);
 void aom_obj_free(aom_obj_mgr_t mgr, void * obj);
 void aom_objs(aom_obj_mgr_t mgr, aom_obj_it_t it);
 
-int32_t aom_obj_index(aom_obj_mgr_t mgr, void * obj);
+void aom_obj_free_by_idx(aom_obj_mgr_t mgr, ptr_int_t idx);
+
+void * aom_obj_get(aom_obj_mgr_t mgr, ptr_int_t idx);
+ptr_int_t aom_obj_index(aom_obj_mgr_t mgr, void const * obj);
+
+int aom_obj_mgr_buf_calc_capacity(
+    size_t * result, 
+    LPDRMETA meta, uint32_t record_count,
+    error_monitor_t em);
 
 int aom_obj_mgr_buf_init(
     LPDRMETA meta,
