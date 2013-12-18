@@ -27,8 +27,6 @@ int chat_svr_set_send_to(chat_svr_t svr, const char * send_to);
 int chat_svr_set_recv_at(chat_svr_t svr, const char * name);
 int chat_svr_set_check_span(chat_svr_t svr, uint32_t span_ms);
 
-dp_req_t chat_svr_pkg_buf(chat_svr_t svr, size_t capacity);
-
 /*chanel data*/
 chat_svr_chanel_t
 chat_svr_chanel_create(

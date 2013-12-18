@@ -1,3 +1,0 @@
-load:
-  - name: ChatSvr_Op_SendMsg
-  - name: ChatSvr_Op_QueryMsg
