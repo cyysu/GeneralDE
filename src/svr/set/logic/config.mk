@@ -1,6 +1,6 @@
 product:=set_logic
 $(product).type:=cpe-dr lib
-$(product).depends:=set_svr_stub usf_logic
+$(product).depends:=set_stub usf_logic
 $(product).c.sources:=$(wildcard $(product-base)/*.c)
 
 $(product).cpe-dr.modules:=data
