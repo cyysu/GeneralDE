@@ -33,6 +33,7 @@ $inputSheet = decode("utf8", $inputSheet);
 $inputFile = decode("utf8", $inputFile);
 
 my %macrosgroups;
+my %macros;
 my %metaLib;
 
 push @metaLibDirs, dirname($metaLibFile);
@@ -42,7 +43,7 @@ sub load_meta_lib {
 
    my $xml_lib_source =
      XMLin($file,
-           KeyAttr => {struct => 'name', union => 'name', macrosgroup => 'name' },
+           KeyAttr => {struct => 'name', union => 'name', macrosgroup => 'name', macro => 'name' },
            ForceArray => [ 'struct', 'union', 'macrosgroup', 'macro', 'include' ]);
 
    if (exists $xml_lib_source->{include}) {
@@ -59,6 +60,12 @@ sub load_meta_lib {
    if (exists $xml_lib_source->{macrosgroup}) {
      foreach my $macrogroup_name ( keys %{$xml_lib_source->{macrosgroup}} ) {
        $macrosgroups{$macrogroup_name} = $xml_lib_source->{macrosgroup}->{$macrogroup_name};
+     }
+   }
+
+   if (exists $xml_lib_source->{macro}) {
+     foreach my $macro_name ( keys %{$xml_lib_source->{macro}} ) {
+       $macros{$macro_name} = $xml_lib_source->{macro}->{$macro_name}->{value};
      }
    }
 
@@ -422,14 +429,17 @@ sub analize_entry_processor_struct_seq_compose {
 sub analize_entry_processor_struct {
   my ($meta, $entry, $cname_post_fix, $col_fun_derator) = @_;
 
-  if (defined $entry->{count} and $entry->{count} != 1) {
-    my $count = $entry->{count};
+  my $entry_count = $entry->{count};
+  if (defined $entry_count and exists $macros{$entry_count}) {
+    $entry_count = $macros{$entry_count};
+  }
 
+  if (defined $entry->{count} and $entry_count != 1) {
     if (is_entry_basic_type($entry)) {
-      return analize_entry_processor_struct_seq_basic($meta, $entry, $cname_post_fix, $count, $col_fun_derator);
+      return analize_entry_processor_struct_seq_basic($meta, $entry, $cname_post_fix, $entry_count, $col_fun_derator);
     }
     else {
-      return analize_entry_processor_struct_seq_compose($meta, $entry, $cname_post_fix, $count, $col_fun_derator);
+      return analize_entry_processor_struct_seq_compose($meta, $entry, $cname_post_fix, $entry_count, $col_fun_derator);
     }
   }
   else {
