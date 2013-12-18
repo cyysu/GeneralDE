@@ -2,6 +2,7 @@
 #include <fcntl.h>
 #include <errno.h>
 #include "cpe/pal/pal_external.h"
+#include "cpe/pal/pal_stdlib.h"
 #include "cpe/pal/pal_stdio.h"
 #include "cpe/pal/pal_signal.h"
 #include "cpe/utils/string_utils.h"
@@ -293,31 +294,59 @@ enum set_svr_mon_app_get_pid_result set_svr_mon_app_get_pid(set_svr_mon_app_t mo
     if (fcntl(fd, F_SETLK, &fk) < 0) {      /*如果加锁失败的话 */
         if (EACCES == errno || EAGAIN == errno) { /*正在运行*/
             char buf[64];
-            size_t pos = 0;
+            ssize_t buf_size;
+            ssize_t r_size;
 
-            while(pos < sizeof(buf)) {
-                int r = read(fd, buf + pos, sizeof(buf) - pos);
-                pos += r;
+            buf_size = 0;
+            do {
+                char * arg_name_end;
+                char * line_end;
+                assert(buf_size < sizeof(buf));
 
-                if (r == 0) {
-                    if (sizeof(buf) == pos) {
-                        CPE_ERROR(
-                            svr->m_em, "%s: mon app %s: read pid fail, full",
-                            set_svr_name(svr), mon_app->m_bin);
-                        close(fd);
-                        return set_svr_mon_app_get_pid_error;
-                    }
-                    else {
-                        buf[pos] = 0;
-                        break;
-                    }
+                r_size = read(fd, buf + buf_size, sizeof(buf) - buf_size);
+                if (r_size == -1) {
+                    CPE_ERROR(
+                        svr->m_em, "%s: mon app %s: read file fail, errno=%d (%s)",
+                        set_svr_name(svr), mon_app->m_bin, errno, strerror(errno));
+                    return set_svr_mon_app_get_pid_error;
                 }
-            }
 
-            sscanf(buf, "%d", pid);
+                buf_size += r_size;
+
+                if ((line_end = memchr(buf, '\n', buf_size))) {
+                    size_t line_len = line_end - buf + 1;
+
+                    *line_end = 0;
+                    arg_name_end = strchr(buf, ':');
+                    if (arg_name_end) {
+                        *arg_name_end = 0;
+                        if (strcmp(buf, "pid") == 0) {
+                            *pid = atoi(arg_name_end + 1);
+                            close(fd);
+                            return set_svr_mon_app_get_pid_ok;
+                        }
+                    }
+
+                    assert(buf_size >= line_len);
+                    memmove(buf, buf + line_len, buf_size - line_len);
+                    buf_size -= line_len;
+                }
+                else if (buf_size == sizeof(buf)) {
+                    CPE_ERROR(
+                        svr->m_em, "%s: mon app %s: read buff is full, line too lone!",
+                        set_svr_name(svr), mon_app->m_bin);
+                    return -1;
+                }
+
+                if (r_size == 0) break;
+            }while(0);
+
+            CPE_ERROR(
+                svr->m_em, "%s: mon app %s: read pid format error!",
+                set_svr_name(svr), mon_app->m_bin);
 
             close(fd);
-            return set_svr_mon_app_get_pid_ok;
+            return set_svr_mon_app_get_pid_error;
         }
         else {
             CPE_ERROR(
