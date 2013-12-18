@@ -121,4 +121,35 @@ uint32_t dr_entry_hash(const void * input, LPDRMETAENTRY entry) {
     }
 }
 
+uint32_t dr_meta_key_hash(const void * input, LPDRMETA meta) {
+    int i;
+    uint32_t value;
+    int key_num = dr_meta_key_entry_num(meta);
+
+    value = 5381;
+    for(i = 0; i < key_num; ++i) {
+        LPDRMETAENTRY entry = dr_meta_key_entry_at(meta, i);
+        
+        value += (value << 5) + ((uint8_t)dr_entry_hash(((const char *)input) + entry->m_data_start_pos, entry));
+    }
+
+    return value;
+}
+
+int dr_meta_key_cmp(const void * l, const void * r, LPDRMETA meta) {
+    int i;
+    int key_num = dr_meta_key_entry_num(meta);
+
+    for(i = 0; i < key_num; ++i) {
+        LPDRMETAENTRY entry = dr_meta_key_entry_at(meta, i);
+
+        int rv = dr_entry_cmp(
+            ((const char *)l) + entry->m_data_start_pos,
+            ((const char *)r) + entry->m_data_start_pos,
+            entry);
+        if (rv) return rv;
+    }
+
+    return 0;
+}
 
