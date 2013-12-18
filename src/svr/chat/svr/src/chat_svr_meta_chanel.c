@@ -26,7 +26,7 @@ int chat_svr_meta_chanel_load(chat_svr_t svr, cfg_t cfg) {
         return 0;
     }
 
-    record_meta = dr_lib_find_meta_by_name((LPDRMETALIB)g_metalib_svr_chat_pro, "svr_chat_chanel_meta");
+    record_meta = dr_lib_find_meta_by_name((LPDRMETALIB)g_metalib_svr_chat_pro, "svr_chat_chanel_info");
     if (record_meta == NULL) {
         CPE_ERROR(svr->m_em, "%s: load chat meta: meta svr_chat_chanel_meta not exist!", chat_svr_name(svr));
         return -1;
@@ -50,6 +50,7 @@ int chat_svr_meta_chanel_load(chat_svr_t svr, cfg_t cfg) {
     svr->m_chanel_info_count = meta_count;
 
     qsort(metas, meta_count, sizeof(metas[0]), chat_svr_meta_chanel_meta_cmp);
+
     return 0;
 }
 

@@ -24,9 +24,10 @@
         <entry name="chanel_type" type="uint16" id="1"/>
         <entry name="chanel_id" type="uint64" id="2"/>
         <entry name="sender_id" type="uint64" id="3"/>
-        <entry name="msg" type="string" size="SVR_CHAT_MSG_MAX_LEN" id="4"/>
-        <entry name="addition_data_size" type="uint8" id="5"/>
-        <entry name="addition_data" type="uint8" count="SVR_CHAT_APPEND_MAX_LEN" refer="addition_data_size" id="6"/>
+        <entry name="sender_name" type="string" size="64" id="4"/>
+        <entry name="msg" type="string" size="SVR_CHAT_MSG_MAX_LEN" id="5"/>
+        <entry name="addition_data_size" type="uint8" id="6"/>
+        <entry name="addition_data" type="uint8" count="SVR_CHAT_APPEND_MAX_LEN" refer="addition_data_size" id="7"/>
     </struct>
 
     <struct name="svr_chat_req_query_msg" version="1">

@@ -52,7 +52,17 @@ void chat_svr_op_send(chat_svr_t svr, dp_req_t pkg_head, dp_req_t pkg_body) {
 
     msg->send_time = chat_svr_cur_time(svr);
     msg->sender_id = req->sender_id;
+    strncpy(msg->sender_name, req->sender_name, sizeof(msg->sender_name));
     strncpy(msg->msg, req->msg, sizeof(msg->msg));
+
+    if (set_pkg_sn(pkg_head)) {
+        if (set_svr_stub_reply_cmd(svr->m_stub, pkg_body, SVR_CHAT_CMD_RES_SEND_MSG) != 0) {
+            CPE_ERROR(
+                svr->m_em, "%s: chanel %d-"FMT_UINT64_T": send msg: send response fail!",
+                chat_svr_name(svr), chanel->m_chanel_type, chanel->m_chanel_id);
+            return;
+        }
+    }
 
     return;
 }
