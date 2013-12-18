@@ -22,7 +22,8 @@ void chat_svr_op_query(chat_svr_t svr, dp_req_t pkg_head, dp_req_t pkg_body) {
     require_count = req->require_count;
     if (require_count > 128) require_count = 128;
 
-    response_pkg = chat_svr_pkg_buf(svr, sizeof(SVR_CHAT_PKG) + sizeof(SVR_CHAT_MSG) * require_count);
+    
+    response_pkg = set_svr_stub_outgoing_pkg_buf(svr->m_stub, sizeof(SVR_CHAT_PKG) + sizeof(SVR_CHAT_MSG) * require_count);
     if (response_pkg == NULL) {
         CPE_ERROR(
             svr->m_em, "%s: chat_svr_op_query: get response pkg fail, size=%d!",
@@ -31,14 +32,9 @@ void chat_svr_op_query(chat_svr_t svr, dp_req_t pkg_head, dp_req_t pkg_body) {
         return;
     }
 
-    if (set_pkg_init_response(response_pkg, pkg_body) != 0) {
-        CPE_ERROR(svr->m_em, "%s: chat_svr_op_query: init response fail!", chat_svr_name(svr));
-        chat_svr_send_error_response(svr, pkg_head, pkg_body, SVR_CHAT_ERRNO_INTERNAL);
-        return;
-    }
-    
-    ((SVR_CHAT_PKG*)dp_req_data(response_pkg))->cmd = SVR_CHAT_CMD_RES_QUERY_MSG;
-    response = &((SVR_CHAT_PKG*)dp_req_data(response_pkg))->data.svr_chat_res_query_msg;
+    response = set_svr_stub_pkg_to_data(svr->m_stub, response_pkg, 0, svr->m_meta_res_query, NULL);
+    assert(response);
+
     response->count = 0;
 
     chanel = chat_svr_chanel_find(svr, req->chanel_type, req->chanel_id);
@@ -61,6 +57,7 @@ void chat_svr_op_query(chat_svr_t svr, dp_req_t pkg_head, dp_req_t pkg_body) {
     read_pos = 0;
     msg_count = chat_svr_chanel_msg_count(chanel);
     first_msg = chat_svr_chanel_msg(chanel, 0);
+
     if (req->after_sn >= first_msg->sn) {
         uint32_t ignore_count = req->after_sn - first_msg->sn + 1;
         if (ignore_count <= msg_count) {
@@ -76,8 +73,10 @@ void chat_svr_op_query(chat_svr_t svr, dp_req_t pkg_head, dp_req_t pkg_body) {
     }
 
 SEND_RESPONSE:
-    if (set_svr_stub_send_pkg(svr->m_stub, response_pkg) != 0) {
-        CPE_ERROR(svr->m_em, "%s: chat_svr_op_query: send response fail!", chat_svr_name(svr));
-        return;
+    if (set_pkg_sn(pkg_head)) {
+        if (set_svr_stub_reply_pkg(svr->m_stub, pkg_body, response_pkg) != 0) {
+            CPE_ERROR(svr->m_em, "%s: chat_svr_op_query: send response fail!", chat_svr_name(svr));
+            return;
+        }
     }
 }

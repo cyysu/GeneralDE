@@ -24,7 +24,7 @@ void chat_svr_timer(void * ctx, gd_timer_id_t timer_id, void * arg) {
         TAILQ_INSERT_TAIL(&svr->m_chanel_check_queue, chanel, m_next_for_check);
 
         if (chanel->m_chanel_info->chanel_expire_time_s > 0) {
-            if (chanel->m_last_op_time_s + chanel->m_chanel_info->chanel_expire_time_s >= cur_time_s) {
+            if (chanel->m_last_op_time_s + chanel->m_chanel_info->chanel_expire_time_s < cur_time_s) {
                 CPE_INFO(
                     svr->m_em, "%s: chanel %d-"FMT_UINT64_T": on_timer: chanel expire, free!",
                     chat_svr_name(svr), chanel->m_chanel_type, chanel->m_chanel_id);
@@ -33,7 +33,7 @@ void chat_svr_timer(void * ctx, gd_timer_id_t timer_id, void * arg) {
             }
         }
 
-        /*坚持消息超时 */
+        /*消息超时 */
         msgs = ((SVR_CHAT_MSG *)(chanel + 1));
 
         while(chanel->m_chanel_msg_r != chanel->m_chanel_msg_w) {

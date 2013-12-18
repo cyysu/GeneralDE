@@ -27,7 +27,7 @@ struct nm_node_type s_nm_node_type_chat_svr = {
     chat_svr_clear
 };
 
-#define ROOM_SVR_LOAD_META(__arg, __name) \
+#define CHAT_SVR_LOAD_META(__arg, __name) \
     svr-> __arg  = dr_lib_find_meta_by_name((LPDRMETALIB)g_metalib_svr_chat_pro, __name); \
     assert(svr-> __arg)
 
@@ -58,14 +58,14 @@ chat_svr_create(
     svr->m_check_once_process_count = 100;
     svr->m_check_timer_id = GD_TIMER_ID_INVALID;
 
-    svr->m_outgoing_pkg = NULL;
     svr->m_send_to = NULL;
     svr->m_recv_at = NULL;
 
     svr->m_chanel_info_count = 0;
     svr->m_chanel_infos = NULL;
 
-    ROOM_SVR_LOAD_META(m_meta_res_query, "svr_chat_res_query");
+    CHAT_SVR_LOAD_META(m_meta_res_query, "svr_chat_res_query_msg");
+    CHAT_SVR_LOAD_META(m_meta_res_error, "svr_chat_res_error");
 
     TAILQ_INIT(&svr->m_chanel_check_queue);
 
@@ -93,11 +93,6 @@ static void chat_svr_clear(nm_node_t node) {
     chat_svr_chanel_free_all(svr);
     assert(cpe_hash_table_count(&svr->m_chanels) == 0);
     assert(TAILQ_EMPTY(&svr->m_chanel_check_queue));
-
-    if (svr->m_outgoing_pkg) {
-        dp_req_free(svr->m_outgoing_pkg);
-        svr->m_outgoing_pkg = NULL;
-    }
 
     if (svr->m_send_to) {
         mem_free(svr->m_alloc, svr->m_send_to);
@@ -167,37 +162,6 @@ chat_svr_name_hs(chat_svr_t svr) {
 
 uint32_t chat_svr_cur_time(chat_svr_t svr) {
     return tl_manage_time_sec(gd_app_tl_mgr(svr->m_app));
-}
-
-dp_req_t chat_svr_pkg_buf(chat_svr_t svr, size_t capacity) {
-    dp_req_t head;
-
-    if (svr->m_outgoing_pkg && dp_req_capacity(svr->m_outgoing_pkg) < capacity) {
-        dp_req_free(svr->m_outgoing_pkg);
-        svr->m_outgoing_pkg = NULL;
-    }
-
-    if (svr->m_outgoing_pkg == NULL) {
-        svr->m_outgoing_pkg = dp_req_create(gd_app_dp_mgr(svr->m_app), capacity);
-        if (svr->m_outgoing_pkg == NULL) {
-            CPE_ERROR(svr->m_em, "%s: crate outgoing pkg buf fail!", chat_svr_name(svr));
-            return NULL;
-        }
-
-        head = set_pkg_head_check_create(svr->m_outgoing_pkg);
-        if (head == NULL) {
-            CPE_ERROR(svr->m_em, "%s: crate outgoing pkg buf head fail!", chat_svr_name(svr));
-            return NULL;
-        }
-    }
-    else {
-        head = set_pkg_head_find(svr->m_outgoing_pkg);
-        assert(head);
-    }
-
-    set_pkg_init(head);
-
-    return svr->m_outgoing_pkg;
 }
 
 int chat_svr_set_send_to(chat_svr_t svr, const char * send_to) {

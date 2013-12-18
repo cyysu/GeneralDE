@@ -29,11 +29,11 @@ struct chat_svr {
     uint32_t m_chanel_info_count;
     SVR_CHAT_CHANEL_INFO * m_chanel_infos;
 
-    dp_req_t m_outgoing_pkg;
     cpe_hash_string_t m_send_to;
     dp_rsp_t m_recv_at;
 
     LPDRMETA m_meta_res_query;
+    LPDRMETA m_meta_res_error;
 
     struct cpe_hash_table m_chanels;
 
