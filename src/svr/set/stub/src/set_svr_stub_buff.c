@@ -309,7 +309,8 @@ static void set_svr_stub_buff_free(set_svr_stub_t stub, set_svr_stub_buff_t buff
 }
 
 static int8_t set_svr_stub_buff_find_shm_key(set_svr_stub_t stub) {
-    for(int8_t key = 'b'; key <= 'z'; ++key) {
+    int8_t key;
+    for(key = 'b'; key <= 'z'; ++key) {
         set_svr_stub_buff_t buff;
         int found = 0;
         TAILQ_FOREACH(buff, &stub->m_buffs, m_next) {
