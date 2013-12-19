@@ -2,6 +2,10 @@
 #define SVR_RANK_G_SVR_RANKTREE_H
 #include "rank_g_svr_types.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 enum {
     rt_color_red = 0
     , rt_color_black = 1
@@ -53,5 +57,9 @@ uint32_t rt_node_value(rt_node_t node);
 uint32_t rt_node_record_id(rt_node_t node);
 
 const char * rt_dump(rt_t rank_tree, mem_buffer_t buffer);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
