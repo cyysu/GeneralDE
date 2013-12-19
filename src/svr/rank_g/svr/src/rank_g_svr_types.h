@@ -11,6 +11,10 @@
 #include "svr/set/stub/set_svr_stub_types.h"
 #include "protocol/svr/rank_g/svr_rank_g_internal.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef struct rank_g_svr * rank_g_svr_t;
 typedef struct rank_g_svr_index * rank_g_svr_index_t;
 typedef struct rt * rt_t;
@@ -56,5 +60,9 @@ struct rank_g_svr {
 };
 
 typedef void (*rank_g_svr_op_t)(rank_g_svr_t svr, dp_req_t pkg_body, dp_req_t pkg_head);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
