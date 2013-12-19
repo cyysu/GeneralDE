@@ -1,7 +1,7 @@
 #ifndef SVR_RANK_G_SVR_TEST_RANKTREE_H
 #define SVR_RANK_G_SVR_TEST_RANKTREE_H
 #include "RankGSvrTest.hpp"
-#include "rank_g_svr_rank_tree.h"
+#include "../rank_g_svr_rank_tree.h"
 
 
 typedef ::Loki::NullType RankTreeTestBase;
