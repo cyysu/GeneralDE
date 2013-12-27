@@ -35,8 +35,6 @@ void chat_svr_op_query(chat_svr_t svr, dp_req_t pkg_head, dp_req_t pkg_body) {
     response = set_svr_stub_pkg_to_data(svr->m_stub, response_pkg, 0, svr->m_meta_res_query, NULL);
     assert(response);
 
-    response->count = 0;
-
     chanel = chat_svr_chanel_find(svr, req->chanel_type, req->chanel_id);
     if (chanel == NULL) {
         if (chat_svr_meta_chanel_find(svr, req->chanel_type) == NULL) {
@@ -52,7 +50,14 @@ void chat_svr_op_query(chat_svr_t svr, dp_req_t pkg_head, dp_req_t pkg_body) {
 
     chanel->m_last_op_time_s = chat_svr_cur_time(svr);
 
-    if (chanel->m_chanel_msg_w == chanel->m_chanel_msg_r) goto SEND_RESPONSE;
+    if (chanel->m_chanel_msg_w == chanel->m_chanel_msg_r) {
+        response->count = 0;
+        response->max_sn = 0;
+        goto SEND_RESPONSE;
+    }
+
+    response->count = 0;
+    response->max_sn = chanel->m_chanel_sn;
 
     read_pos = 0;
     msg_count = chat_svr_chanel_msg_count(chanel);
