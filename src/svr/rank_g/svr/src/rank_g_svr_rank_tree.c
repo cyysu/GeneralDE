@@ -17,7 +17,7 @@ static rt_node_t rt_node_go(rt_t rank_tree, rt_node_t h, int dir);
 #define rt_node_is_red(__node) (__node && __node->m_color == rt_color_red)
 #define rt_node_dir(__tree, __p, __n) (__p->m_child[0] == (__n - __tree->m_nodes) ? 0 : 1)
 #define rt_node_get(__tree, __idx) ((__idx) == INVALID_RANK_TREE_NODE_POS ? NULL : __tree->m_nodes + (__idx))
-#define rt_node_idx(__tree, __node) (__node - __tree->m_nodes)
+#define rt_node_idx(__tree, __node) (__node ? (__node - __tree->m_nodes) : INVALID_RANK_TREE_NODE_POS)
 
 rt_t rt_create(rank_g_svr_t svr, void * buff, size_t buff_capacity) {
     rt_t tree;
