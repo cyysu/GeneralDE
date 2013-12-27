@@ -10,15 +10,15 @@ class LogicRequireQueue : public Cpe::Utils::Noncopyable {
 public:
     operator logic_require_queue_t () const { return m_reqruie_queue; }
 
-    LogicRequireQueue(Gd::App::Application & app, const char * name);
-    LogicRequireQueue(Gd::App::Application & app, const char * name, LogicOpManager & logicManager);
+    LogicRequireQueue(Gd::App::Application & app, const char * name, uint32_t binding_capacity = 0);
+    LogicRequireQueue(Gd::App::Application & app, const char * name, LogicOpManager & logicManager, uint32_t binding_capacity = 0);
     ~LogicRequireQueue();
 
     int count(void) const { return logic_require_queue_require_count(*this); }
 
     void add(logic_require_id_t id);
-    bool remove(logic_require_id_t id) { return logic_require_queue_remove(*this, id) == 0 ? false : true; }
-    logic_require_t retrieve(logic_require_id_t id) { return logic_require_queue_remove_get(*this, id); }
+    bool remove(logic_require_id_t id) { return logic_require_queue_remove(*this, id, NULL, NULL) == 0 ? false : true; }
+    logic_require_t retrieve(logic_require_id_t id) { return logic_require_queue_remove_get(*this, id, NULL, NULL); }
 
     void notifyAll(int32_t err) { logic_require_queue_notify_all(*this, err); }
     void cancelAll(void) { logic_require_queue_cancel_all(*this); }
