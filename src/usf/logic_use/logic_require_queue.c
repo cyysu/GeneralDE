@@ -5,17 +5,22 @@
 #include "usf/logic/logic_manage.h"
 #include "usf/logic_use/logic_require_queue.h"
 
+struct logic_require_queue_binding {
+    logic_require_id_t m_require_id;
+};
+
 struct logic_require_queue {
     char m_name[128];
     gd_app_context_t m_app;
     mem_allocrator_t m_alloc;
     error_monitor_t m_em;
     logic_manage_t m_logic_manage;
-
+    uint32_t m_keep_capacity;
+    uint32_t m_total_capacity;
     uint32_t m_runing_require_capacity;
     uint32_t m_runing_require_count;
     uint32_t m_runing_require_check_span;
-    logic_require_id_t * m_runing_requires;
+    void * m_runing_requires;
 
     int m_debug;
 };
@@ -26,7 +31,8 @@ logic_require_queue_create(
     mem_allocrator_t alloc,
     error_monitor_t em,
     const char * name,
-    logic_manage_t logic_manage)
+    logic_manage_t logic_manage,
+    uint32_t binding_capacity)
 {
     logic_require_queue_t queue;
 
@@ -38,6 +44,8 @@ logic_require_queue_create(
     queue->m_alloc = alloc;
     queue->m_em = em;
     queue->m_logic_manage = logic_manage;
+    queue->m_keep_capacity = binding_capacity;
+    queue->m_total_capacity = sizeof(struct logic_require_queue_binding) + binding_capacity;
 
     queue->m_runing_require_capacity = 0;
     queue->m_runing_require_count = 0;
@@ -93,19 +101,20 @@ logic_manage_t logic_require_queue_logic_manage(logic_require_queue_t queue) {
 /*     } */
 /* } */
 
-int logic_require_queue_add(logic_require_queue_t queue, logic_require_id_t id) {
+int logic_require_queue_add(logic_require_queue_t queue, logic_require_id_t id, void const * binding, size_t binding_size) {
     int i;
+    struct logic_require_queue_binding * record;
 
     if (queue->m_runing_require_count >= queue->m_runing_require_capacity) {
         uint32_t new_capacity;
         logic_require_id_t * new_buf;
         new_capacity = 
             queue->m_runing_require_capacity < 128 ? 128 : queue->m_runing_require_capacity * 2;
-        new_buf = mem_alloc(queue->m_alloc, sizeof(logic_require_id_t) * new_capacity);
+        new_buf = mem_alloc(queue->m_alloc, queue->m_total_capacity * new_capacity);
         if (new_buf == NULL) return -1;
 
         if (queue->m_runing_requires) {
-            memcpy(new_buf, queue->m_runing_requires, sizeof(logic_require_id_t) * queue->m_runing_require_count);
+            memcpy(new_buf, queue->m_runing_requires, queue->m_total_capacity * queue->m_runing_require_count);
             mem_free(queue->m_alloc, queue->m_runing_requires);
         }
 
@@ -116,16 +125,40 @@ int logic_require_queue_add(logic_require_queue_t queue, logic_require_id_t id) 
     assert(queue->m_runing_requires);
     assert(queue->m_runing_require_count < queue->m_runing_require_capacity);
 
-    queue->m_runing_requires[queue->m_runing_require_count] = id;
+    record = queue->m_runing_requires + queue->m_total_capacity * queue->m_runing_require_count;
+    record->m_require_id = id;
+
+    if (queue->m_keep_capacity) {
+        if (binding) {
+            if (binding_size != queue->m_keep_capacity) {
+                CPE_ERROR(
+                    queue->m_em, "%s: logic_require_queue_add: binding_size error, require %d, but input is %d!",
+                    queue->m_name, queue->m_keep_capacity, (int)binding_size);
+                return -1;
+            }
+            else {
+                memcpy(record + 1, binding, queue->m_keep_capacity);
+            }
+        }
+        else {
+            bzero(record + 1, queue->m_keep_capacity);
+        }
+    }
+
     ++queue->m_runing_require_count;
 
     for(i = queue->m_runing_require_count - 1; i > 0; --i) {
-        logic_require_id_t buf;
-        if (queue->m_runing_requires[i] >= queue->m_runing_requires[i - 1]) break;
+        struct logic_require_queue_binding * pre_record =
+            (struct logic_require_queue_binding *)(((char*)record) - queue->m_total_capacity);
+        char buf[128];
 
-        buf = queue->m_runing_requires[i];
-        queue->m_runing_requires[i] = queue->m_runing_requires[i - 1];
-        queue->m_runing_requires[i - 1] = buf;
+        if (record->m_require_id >= pre_record->m_require_id) break;
+
+        assert(queue->m_total_capacity <= sizeof(buf));
+
+        memcpy(buf, record, queue->m_total_capacity);
+        memcpy(record, pre_record, queue->m_total_capacity);
+        memcpy(pre_record, buf, queue->m_total_capacity);
     }
 
     if (queue->m_debug >= 2) {
@@ -138,15 +171,18 @@ int logic_require_queue_add(logic_require_queue_t queue, logic_require_id_t id) 
 }
 
 int logic_require_queue_require_id_cmp(const void * l, const void * r) {
-    logic_require_id_t l_id = *((const logic_require_id_t *)l);
-    logic_require_id_t r_id = *((const logic_require_id_t *)r);
+    const struct logic_require_queue_binding * l_record = (const struct logic_require_queue_binding *)l;
+    const struct logic_require_queue_binding * r_record = (const struct logic_require_queue_binding *)r;
 
-    return l_id < r_id ? -1
-        : l_id == r_id ? 0
+    return l_record->m_require_id < r_record->m_require_id ? -1
+        : l_record->m_require_id == r_record->m_require_id ? 0
         : 1;
 }
 
-int logic_require_queue_remove(logic_require_queue_t queue, logic_require_id_t id) {
+int logic_require_queue_remove(
+    logic_require_queue_t queue, logic_require_id_t id,
+    void * binding, size_t * binding_capacity)
+{
     logic_require_id_t * found;
     int found_pos;
 
@@ -162,11 +198,11 @@ int logic_require_queue_remove(logic_require_queue_t queue, logic_require_id_t i
     assert(queue->m_runing_requires);
 
     found =
-        (logic_require_id_t *)bsearch(
+        bsearch(
             &id,
             queue->m_runing_requires,
             queue->m_runing_require_count,
-            sizeof(id),
+            queue->m_total_capacity,
             logic_require_queue_require_id_cmp);
     if (!found) {
         if (queue->m_debug >= 2) {
@@ -177,11 +213,27 @@ int logic_require_queue_remove(logic_require_queue_t queue, logic_require_id_t i
         return -1;
     }
 
-    found_pos = found - queue->m_runing_requires;
+    found_pos = ((char*)found - (char*)queue->m_runing_requires) / queue->m_total_capacity;
     assert(found_pos >= 0 && (uint32_t)found_pos < queue->m_runing_require_count);
 
+    if (binding) {
+        if (binding_capacity) {
+            if (queue->m_keep_capacity > *binding_capacity) {
+                CPE_ERROR(
+                    queue->m_em, "%s: logic_require_queue_add: binding_size error, require %d, but input is %d!",
+                    queue->m_name, queue->m_keep_capacity, (int)(*binding_capacity));
+                return -1;
+            }
+            else {
+                *binding_capacity = queue->m_keep_capacity;
+            }
+        }
+
+        memcpy(binding, found + 1, queue->m_keep_capacity);
+    }
+
     if ((uint32_t)(found_pos + 1) < queue->m_runing_require_count) {
-        memmove(found, found + 1, sizeof(logic_require_id_t) * (queue->m_runing_require_count - found_pos - 1));
+        memmove(found, ((char*)found) + queue->m_total_capacity, queue->m_total_capacity * (queue->m_runing_require_count - found_pos - 1));
     }
 
     --queue->m_runing_require_count;
@@ -195,8 +247,8 @@ int logic_require_queue_remove(logic_require_queue_t queue, logic_require_id_t i
     return 0;
 }
 
-logic_require_t logic_require_queue_remove_get(logic_require_queue_t queue, logic_require_id_t id) {
-    if (logic_require_queue_remove(queue, id) == 0) {
+logic_require_t logic_require_queue_remove_get(logic_require_queue_t queue, logic_require_id_t id, void * binding, size_t * binding_capacity) {
+    if (logic_require_queue_remove(queue, id, binding, binding_capacity) == 0) {
         return logic_require_find(queue->m_logic_manage, id);
     }
     else {
@@ -207,10 +259,14 @@ logic_require_t logic_require_queue_remove_get(logic_require_queue_t queue, logi
 void logic_require_queue_notify_all(logic_require_queue_t queue, int32_t error) {
     uint32_t i;
     int notified_count = 0;
+    const struct logic_require_queue_binding * record;
 
     if (error == 0) {
-        for(i = 0; i < queue->m_runing_require_count; ++i) {
-            logic_require_t require = logic_require_find(queue->m_logic_manage, queue->m_runing_requires[i]);
+        for(record = queue->m_runing_requires, i = 0;
+            i < queue->m_runing_require_count;
+            ++i, record = (const struct logic_require_queue_binding *)((char*)record) + queue->m_total_capacity)
+        {
+            logic_require_t require = logic_require_find(queue->m_logic_manage, record->m_require_id);
             if (require) {
                 ++notified_count;
                 logic_require_set_done(require);
@@ -218,8 +274,11 @@ void logic_require_queue_notify_all(logic_require_queue_t queue, int32_t error) 
         }
     }
     else {
-        for(i = 0; i < queue->m_runing_require_count; ++i) {
-            logic_require_t require = logic_require_find(queue->m_logic_manage, queue->m_runing_requires[i]);
+        for(record = queue->m_runing_requires, i = 0;
+            i < queue->m_runing_require_count;
+            ++i, record = (const struct logic_require_queue_binding *)((char*)record) + queue->m_total_capacity)
+        {
+            logic_require_t require = logic_require_find(queue->m_logic_manage, record->m_require_id);
             if (require) {
                 ++notified_count;
                 logic_require_set_error_ex(require, error);
@@ -239,9 +298,13 @@ void logic_require_queue_notify_all(logic_require_queue_t queue, int32_t error) 
 void logic_require_queue_cancel_all(logic_require_queue_t queue) {
     uint32_t i;
     int notified_count = 0;
+    const struct logic_require_queue_binding * record;
 
-    for(i = 0; i < queue->m_runing_require_count; ++i) {
-        logic_require_t require = logic_require_find(queue->m_logic_manage, queue->m_runing_requires[i]);
+    for(record = queue->m_runing_requires, i = 0;
+        i < queue->m_runing_require_count;
+        ++i, record = (const struct logic_require_queue_binding *)((char*)record) + queue->m_total_capacity)
+    {
+        logic_require_t require = logic_require_find(queue->m_logic_manage, record->m_require_id);
         if (require) {
             ++notified_count;
             logic_require_cancel(require);
