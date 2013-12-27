@@ -141,7 +141,7 @@ public:
     void * pkgToData(dp_req_t pkg_body, uint16_t svr_type_id, LPDRMETA data_meta, size_t * data_capacity = NULL);
 
     template<typename T>
-    T & pkgToData(dp_req_t pkg_body, uint16_t svr_type_id, size_t * data_capacity = NULL) {
+    T & pkgToData(dp_req_t pkg_body, uint16_t svr_type_id = 0, size_t * data_capacity = NULL) {
         return *(T*)pkgToData(pkg_body, svr_type_id, Cpe::Dr::MetaTraits<T>::META, data_capacity);
     }
 

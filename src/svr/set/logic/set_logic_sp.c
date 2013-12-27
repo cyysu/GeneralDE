@@ -59,7 +59,7 @@ set_logic_sp_create(
     mgr->m_sp_data_meta = dr_lib_find_meta_by_name((LPDRMETALIB)g_metalib_set_logic_data_meta, "set_logic_sp_data");
     assert(mgr->m_sp_data_meta);
 
-    mgr->m_require_queue = logic_require_queue_create(app, alloc, em, name, logic_mgr);
+    mgr->m_require_queue = logic_require_queue_create(app, alloc, em, name, logic_mgr, 0);
     if (mgr->m_require_queue == NULL) {
         nm_node_free(mgr_node);
         return NULL;
@@ -191,7 +191,7 @@ static int set_logic_sp_incoming_recv(dp_req_t req, void * ctx, error_monitor_t 
         return -1;
     }
 
-    require = logic_require_queue_remove_get(sp->m_require_queue, set_pkg_sn(pkg_head));
+    require = logic_require_queue_remove_get(sp->m_require_queue, set_pkg_sn(pkg_head), NULL, NULL);
     if (require == NULL) {
         CPE_ERROR(
             sp->m_em, "%s: receive response of %d: require not exist, ignore!",
@@ -292,7 +292,7 @@ int set_logic_sp_send_pkg(set_logic_sp_t sp, dp_req_t pkg, logic_require_t requi
 
     if (require) {
         set_pkg_set_sn(pkg_head, logic_require_id(require));
-        if (logic_require_queue_add(sp->m_require_queue, logic_require_id(require)) != 0) {
+        if (logic_require_queue_add(sp->m_require_queue, logic_require_id(require), NULL, 0) != 0) {
             CPE_ERROR(sp->m_em, "%s: send_req_data: add require fail!", set_logic_sp_name(sp));
             return -1;
         }
@@ -304,7 +304,7 @@ int set_logic_sp_send_pkg(set_logic_sp_t sp, dp_req_t pkg, logic_require_t requi
     r = set_svr_stub_send_pkg(sp->m_stub, pkg);
     if (r != 0) {
         CPE_ERROR(sp->m_em, "%s: send_pkg: send data fail!", set_logic_sp_name(sp));
-        if (require) logic_require_queue_remove(sp->m_require_queue, logic_require_id(require));
+        if (require) logic_require_queue_remove(sp->m_require_queue, logic_require_id(require), NULL, NULL);
         return r;
     }
 
@@ -322,7 +322,7 @@ int set_logic_sp_send_req_data(
 
     if (require) {
         sn = logic_require_id(require);
-        if (logic_require_queue_add(sp->m_require_queue, sn) != 0) {
+        if (logic_require_queue_add(sp->m_require_queue, sn, NULL, 0) != 0) {
             CPE_ERROR(sp->m_em, "%s: send_req_data: add require fail!", set_logic_sp_name(sp));
             return -1;
         }
@@ -332,7 +332,7 @@ int set_logic_sp_send_req_data(
     if (r != 0) {
         CPE_ERROR(sp->m_em, "%s: send_req_data: send data fail!", set_logic_sp_name(sp));
         if (require) {
-            logic_require_queue_remove(sp->m_require_queue, sn);
+            logic_require_queue_remove(sp->m_require_queue, sn, NULL, NULL);
         }
         return r;
     }
@@ -351,7 +351,7 @@ int set_logic_sp_send_req_pkg(
 
     if (require) {
         sn = logic_require_id(require);
-        if (logic_require_queue_add(sp->m_require_queue, sn) != 0) {
+        if (logic_require_queue_add(sp->m_require_queue, sn, NULL, 0) != 0) {
             CPE_ERROR(sp->m_em, "%s: send_req_pkg: add require fail!", set_logic_sp_name(sp));
             return -1;
         }
@@ -361,7 +361,7 @@ int set_logic_sp_send_req_pkg(
     if (r != 0) {
         CPE_ERROR(sp->m_em, "%s: send_req_pkg: send pkg fail!", set_logic_sp_name(sp));
         if (require) {
-            logic_require_queue_remove(sp->m_require_queue, sn);
+            logic_require_queue_remove(sp->m_require_queue, sn, NULL, NULL);
         }
         return r;
     }
@@ -380,7 +380,7 @@ int set_logic_sp_send_req_cmd(
 
     if (require) {
         sn = logic_require_id(require);
-        if (logic_require_queue_add(sp->m_require_queue, sn) != 0) {
+        if (logic_require_queue_add(sp->m_require_queue, sn, NULL, 0) != 0) {
             CPE_ERROR(sp->m_em, "%s: send_req_cmd: add require fail!", set_logic_sp_name(sp));
             return -1;
         }
@@ -389,7 +389,7 @@ int set_logic_sp_send_req_cmd(
     r = set_svr_stub_send_req_cmd(sp->m_stub, to_svr_type, to_svr_id, sn, cmd, carry_data, carry_data_size);
     if (r != 0) {
         CPE_ERROR(sp->m_em, "%s: send_req_cmd: send data fail!", set_logic_sp_name(sp));
-        if (require) logic_require_queue_remove(sp->m_require_queue, sn);
+        if (require) logic_require_queue_remove(sp->m_require_queue, sn, NULL, NULL);
         return r;
     }
 

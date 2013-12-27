@@ -24,12 +24,19 @@ public:
 
     Package & pkgBuf(void);
 
-    void send(logic_require_t require, mongo_pkg_t pkg, LPDRMETA result_meta = NULL, int result_count_init = 0, const char * prefix = NULL);
+    void send(
+        logic_require_t require, mongo_pkg_t pkg,
+        LPDRMETA result_meta = NULL, int result_count_init = 0, const char * prefix = NULL,
+        mongo_cli_pkg_parser parser = NULL, void * parse_ctx = 0);
+
     void send(mongo_pkg_t pkg);
 
     template<typename T>
-    void query(logic_require_t require, mongo_pkg_t pkg, int result_count_init = 0, const char * prefix = NULL) {
-        send(require, pkg, Cpe::Dr::MetaTraits<T>::META, result_count_init, prefix);
+    void query(
+        logic_require_t require, mongo_pkg_t pkg, int result_count_init = 0, const char * prefix = NULL,
+        mongo_cli_pkg_parser parser = NULL, void * parse_ctx = 0)
+    {
+        send(require, pkg, Cpe::Dr::MetaTraits<T>::META, result_count_init, prefix, parser, parse_ctx);
     }
 
     static CliProxy & _cast(mongo_cli_proxy_t agent);

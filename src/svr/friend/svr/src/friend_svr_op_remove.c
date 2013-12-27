@@ -53,14 +53,14 @@ friend_svr_op_remove_recv(
             APP_CTX_ERROR(
                 logic_context_app(ctx), "%s: remove: db request error, errno=%d!",
                 friend_svr_name(svr), logic_require_error(require));
-            logic_context_errno_set(ctx, SVR_FRIEND_ERRNO_DB);
+            logic_context_errno_set(ctx, SVR_FRIEND_ERRNO_INTERNAL);
             return logic_op_exec_result_false;
         }
         else {
             APP_CTX_ERROR(
                 logic_context_app(ctx), "%s: remove: db request state error, state=%s!",
                 friend_svr_name(svr), logic_require_state_name(logic_require_state(require)));
-            logic_context_errno_set(ctx, SVR_FRIEND_ERRNO_INTERNAL);
+            logic_context_errno_set(ctx, SVR_FRIEND_ERRNO_DB);
             return logic_op_exec_result_false;
         }
     }

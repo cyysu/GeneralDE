@@ -267,7 +267,7 @@ static int payment_svr_op_recharge_iap_insert_validate_res(
         return -1;
     }
 
-    if (mongo_cli_proxy_send(svr->m_db, db_pkg, NULL, NULL, 0, NULL) != 0) {
+    if (mongo_cli_proxy_send(svr->m_db, db_pkg, NULL, NULL, 0, NULL, NULL, NULL) != 0) {
         CPE_ERROR(svr->m_em, "%s: iap_insert_validate_res: send db request fail!", payment_svr_name(svr));
         return -1;
     }

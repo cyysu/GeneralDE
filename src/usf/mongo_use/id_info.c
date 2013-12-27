@@ -33,7 +33,7 @@ int mongo_id_generator_regist_id(mongo_id_generator_t generator, const char * id
     id_info->m_waiting_queue =
         logic_require_queue_create(
             generator->m_gen.app, generator->m_alloc, generator->m_em, id_name,
-            mongo_cli_proxy_logic_manage(generator->m_mongo_cli));
+            mongo_cli_proxy_logic_manage(generator->m_mongo_cli), 0);
     if (id_info->m_waiting_queue == NULL) {
         CPE_ERROR(generator->m_em, "%s.%s create: create require queue fail!", mongo_id_generator_name(generator), id_name);
         mem_free(generator->m_alloc, id_info);

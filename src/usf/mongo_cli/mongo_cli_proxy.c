@@ -56,22 +56,8 @@ mongo_cli_proxy_create(
         return NULL;
     }
 
-    proxy->m_meta_cmd_info = dr_lib_find_meta_by_name((LPDRMETALIB)g_metalib_mongo_cli, "mongo_cmd_info");
-    if (proxy->m_meta_cmd_info == NULL) {
-        CPE_ERROR(em, "%s: find lasterror meta mongo_cmd_info fail!", name);
-        nm_node_free(proxy_node);
-        return NULL;
-    }
-
-    proxy->m_meta_result_build_info = dr_lib_find_meta_by_name((LPDRMETALIB)g_metalib_mongo_cli, "mongo_result_build_info");
-    if (proxy->m_meta_result_build_info == NULL) {
-        CPE_ERROR(em, "%s: find lasterror meta mongo_result_build_info fail!", name);
-        nm_node_free(proxy_node);
-        return NULL;
-    }
-
     snprintf(name_buf, sizeof(name_buf), "%s.require_queue", name);
-    proxy->m_require_queue = logic_require_queue_create(app, alloc, em, name_buf, logic_mgr);
+    proxy->m_require_queue = logic_require_queue_create(app, alloc, em, name_buf, logic_mgr, sizeof(struct mongo_cli_require_keep));
     if (proxy->m_require_queue == NULL) {
         CPE_ERROR(em, "%s: create logic usr require queue fail!", name);
         nm_node_free(proxy_node);

@@ -38,8 +38,9 @@
     </struct>
 
     <struct name="svr_chat_res_query_msg" version="1">
-        <entry name="count" type="uint8" id="1"/>
-        <entry name="msgs" type="svr_chat_msg" count="0" refer="count" id="2"/>
+        <entry name="max_sn" type="uint32" id="1"/>
+        <entry name="count" type="uint8" id="2"/>
+        <entry name="msgs" type="svr_chat_msg" count="0" refer="count" id="3"/>
     </struct>
 
     <!--    ´íÎóÏìÓ¦ -->

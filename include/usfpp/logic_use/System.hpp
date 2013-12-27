@@ -8,7 +8,6 @@ namespace Usf { namespace Logic {
 
 class LogicAsyncOp;
 class LogicOpDynData;
-class LogicUniRes;
 
 template<typename ListT, typename EleT = typename Cpe::Dr::MetaTraits<ListT>::dyn_element_type>
 class LogicOpDynList;
