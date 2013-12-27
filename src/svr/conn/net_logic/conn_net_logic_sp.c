@@ -52,7 +52,7 @@ conn_net_logic_sp_create(
     mgr->m_outgoing_pkg = NULL;
     mgr->m_outgoing_body = NULL;
 
-    mgr->m_require_queue = logic_require_queue_create(app, alloc, em, name, logic_mgr);
+    mgr->m_require_queue = logic_require_queue_create(app, alloc, em, name, logic_mgr, 0);
     if (mgr->m_require_queue == NULL) {
         nm_node_free(mgr_node);
         return NULL;
@@ -143,7 +143,7 @@ static int conn_net_logic_sp_incoming_recv(dp_req_t req, void * ctx, error_monit
     logic_require_t require;
     logic_data_t data;
 
-    require = logic_require_queue_remove_get(sp->m_require_queue, conn_net_cli_pkg_sn(pkg));
+    require = logic_require_queue_remove_get(sp->m_require_queue, conn_net_cli_pkg_sn(pkg), NULL, NULL);
     if (require == NULL) {
         CPE_ERROR(
             sp->m_em, "%s: receive response of %d: require not exist, ignore!",
@@ -212,7 +212,7 @@ int conn_net_logic_sp_send_request(
 
     if (require) {
         conn_net_cli_pkg_set_sn(pkg, logic_require_id(require));
-        if (logic_require_queue_add(sp->m_require_queue, logic_require_id(require)) != 0) {
+        if (logic_require_queue_add(sp->m_require_queue, logic_require_id(require), NULL, 0) != 0) {
             CPE_ERROR(sp->m_em, "%s: send_request: add require fail!", conn_net_logic_sp_name(sp));
             dp_req_set_buf(body, NULL, 0);
             dp_req_set_meta(body, NULL);
