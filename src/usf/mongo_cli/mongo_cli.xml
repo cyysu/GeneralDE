@@ -8,12 +8,4 @@
         <entry name="code" type="int32"/>
     </struct>
 
-    <macro name="MONGO_CMD_FINDANDMODIFY" value="1"/>
-    <struct name="mongo_cmd_info" version="1">
-        <entry name="cmd" type="uint32"/>
-    </struct>
-
-    <struct name="mongo_result_build_info" version="1">
-        <entry name="prefix" type="string" size="128" id="1"/>
-    </struct>
 </metalib>
