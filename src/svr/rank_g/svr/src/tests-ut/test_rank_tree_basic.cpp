@@ -63,3 +63,60 @@ TEST_F(ContextBasicTest, move) {
     EXPECT_TRUE(rt_pre(m_rank_tree, node1) == node2);
     EXPECT_TRUE(rt_pre(m_rank_tree, node2) == NULL);
 }
+
+TEST_F(ContextBasicTest, erase_first) {
+    rt_node_t node1 = rt_insert(m_rank_tree, 5, 1);
+    ASSERT_TRUE(node1 != NULL);
+    rt_node_t node2 = rt_insert(m_rank_tree, 7, 2);
+    ASSERT_TRUE(node2 != NULL);
+    rt_node_t node3 = rt_insert(m_rank_tree, 2, 3);
+    ASSERT_TRUE(node3 != NULL);
+
+    rt_erase(m_rank_tree, node2);
+
+    EXPECT_TRUE(rt_next(m_rank_tree, node1) == node3);
+    EXPECT_TRUE(rt_next(m_rank_tree, node3) == NULL);
+
+    EXPECT_TRUE(rt_first(m_rank_tree) == node1);
+    EXPECT_TRUE(rt_last(m_rank_tree) == node3);
+
+    EXPECT_EQ((uint32_t)2, rt_size(m_rank_tree));
+}
+
+TEST_F(ContextBasicTest, erase_middle) {
+    rt_node_t node1 = rt_insert(m_rank_tree, 5, 1);
+    ASSERT_TRUE(node1 != NULL);
+    rt_node_t node2 = rt_insert(m_rank_tree, 7, 2);
+    ASSERT_TRUE(node2 != NULL);
+    rt_node_t node3 = rt_insert(m_rank_tree, 2, 3);
+    ASSERT_TRUE(node3 != NULL);
+
+    rt_erase(m_rank_tree, node1);
+
+    EXPECT_TRUE(rt_next(m_rank_tree, node2) == node3);
+    EXPECT_TRUE(rt_next(m_rank_tree, node3) == NULL);
+
+    EXPECT_TRUE(rt_first(m_rank_tree) == node2);
+    EXPECT_TRUE(rt_last(m_rank_tree) == node3);
+
+    EXPECT_EQ((uint32_t)2, rt_size(m_rank_tree));
+}
+
+TEST_F(ContextBasicTest, erase_last) {
+    rt_node_t node1 = rt_insert(m_rank_tree, 5, 1);
+    ASSERT_TRUE(node1 != NULL);
+    rt_node_t node2 = rt_insert(m_rank_tree, 7, 2);
+    ASSERT_TRUE(node2 != NULL);
+    rt_node_t node3 = rt_insert(m_rank_tree, 2, 3);
+    ASSERT_TRUE(node3 != NULL);
+
+    rt_erase(m_rank_tree, node3);
+
+    EXPECT_TRUE(rt_next(m_rank_tree, node2) == node1);
+    EXPECT_TRUE(rt_next(m_rank_tree, node1) == NULL);
+
+    EXPECT_TRUE(rt_first(m_rank_tree) == node2);
+    EXPECT_TRUE(rt_last(m_rank_tree) == node1);
+
+    EXPECT_EQ((uint32_t)2, rt_size(m_rank_tree));
+}
