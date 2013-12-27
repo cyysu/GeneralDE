@@ -21,10 +21,21 @@ struct mongo_cli_proxy {
     char m_dft_db[64];
 
     LPDRMETA m_meta_lasterror;
-    LPDRMETA m_meta_cmd_info;
-    LPDRMETA m_meta_result_build_info;
 
     int m_debug;
+};
+
+enum {
+    MONGO_CMD_FINDANDMODIFY = 1
+};
+
+struct mongo_cli_require_keep {
+    mongo_cli_pkg_parser m_parser;
+    void * m_parse_ctx;
+    LPDRMETA m_result_meta;
+    int m_result_count_init;
+    uint16_t m_cmd;
+    char m_prefix[64];
 };
 
 #endif
