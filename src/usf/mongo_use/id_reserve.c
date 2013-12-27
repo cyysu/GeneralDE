@@ -14,7 +14,6 @@
 #include "usf/logic/logic_data.h"
 #include "usf/logic/logic_manage.h"
 #include "usf/logic_use/logic_op_async.h"
-#include "usf/logic_use/logic_uni_res.h"
 #include "usf/logic_use/logic_data_dyn.h"
 #include "usf/mongo_driver/mongo_pkg.h"
 #include "usf/mongo_cli/mongo_cli_proxy.h"
@@ -169,7 +168,7 @@ static int mongo_id_reserve_send_update_pkg(
         return -1;
     }
 
-    if (mongo_cli_proxy_send(op->m_id_generator->m_mongo_cli, pkg, require, meta, 1, NULL) != 0) {
+    if (mongo_cli_proxy_send(op->m_id_generator->m_mongo_cli, pkg, require, meta, 1, NULL, NULL, 0) != 0) {
         CPE_ERROR(op->m_em, "%s: send update pkg: send request fail", mongo_id_reserve_op_name(op));
         return -1;
     }
@@ -210,7 +209,7 @@ static int mongo_id_reserve_send_insert_pkg(
         return -1;
     }
 
-    if (mongo_cli_proxy_send(op->m_id_generator->m_mongo_cli, pkg, require, meta, 1, NULL) != 0) {
+    if (mongo_cli_proxy_send(op->m_id_generator->m_mongo_cli, pkg, require, meta, 1, NULL, NULL, 0) != 0) {
         CPE_ERROR(op->m_em, "%s: send insert pkg: send request fail", mongo_id_reserve_op_name(op));
         return -1;
     }
@@ -265,7 +264,7 @@ mongo_id_reserve_send(logic_context_t ctx, logic_stack_node_t stack_noe, void * 
             return logic_op_exec_result_null;
         }
 
-        if (logic_require_queue_add(id_info->m_waiting_queue, logic_require_id(require)) != 0) {
+        if (logic_require_queue_add(id_info->m_waiting_queue, logic_require_id(require), NULL, 0) != 0) {
             CPE_ERROR(op->m_em, "%s: add waiting require to queue fail!", mongo_id_reserve_op_name(op));
             logic_require_free(require);
             return logic_op_exec_result_null;
@@ -316,7 +315,7 @@ mongo_id_reserve_recv_query(
         return logic_op_exec_result_null;
     }
 
-    result_data = logic_uni_res_data(require);
+    result_data = logic_require_data_find(require, "SysIdInfoList");
     if (result_data == NULL) {
         CPE_ERROR(op->m_em, "%s: %s: result not exist!", mongo_id_reserve_op_name(op), logic_require_name(require));
         return logic_op_exec_result_null;
