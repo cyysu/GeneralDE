@@ -6,8 +6,8 @@
 
 namespace Usf { namespace Logic {
 
-LogicRequireQueue::LogicRequireQueue(Gd::App::Application & app, const char * name)
-    : m_reqruie_queue(logic_require_queue_create(app, app.allocrator(), app.em(), name, LogicOpManager::instance(app)))
+LogicRequireQueue::LogicRequireQueue(Gd::App::Application & app, const char * name, uint32_t binding_capacity)
+    : m_reqruie_queue(logic_require_queue_create(app, app.allocrator(), app.em(), name, LogicOpManager::instance(app), binding_capacity))
 {
     if (m_reqruie_queue == NULL) {
         APP_CTX_THROW_EXCEPTION(
@@ -17,8 +17,8 @@ LogicRequireQueue::LogicRequireQueue(Gd::App::Application & app, const char * na
     }
 }
 
-LogicRequireQueue::LogicRequireQueue(Gd::App::Application & app, const char * name, LogicOpManager & logicManager)
-    : m_reqruie_queue(logic_require_queue_create(app, app.allocrator(), app.em(), name, logicManager))
+LogicRequireQueue::LogicRequireQueue(Gd::App::Application & app, const char * name, LogicOpManager & logicManager, uint32_t binding_capacity)
+    : m_reqruie_queue(logic_require_queue_create(app, app.allocrator(), app.em(), name, logicManager, binding_capacity))
 {
     if (m_reqruie_queue == NULL) {
         APP_CTX_THROW_EXCEPTION(
@@ -33,7 +33,7 @@ LogicRequireQueue::~LogicRequireQueue() {
 }
 
 void LogicRequireQueue::add(logic_require_id_t id) {
-    if (logic_require_queue_add(m_reqruie_queue, id) != 0) {
+    if (logic_require_queue_add(m_reqruie_queue, id, NULL, 0) != 0) {
         throw ::std::runtime_error("add require fail");
     }
 }
