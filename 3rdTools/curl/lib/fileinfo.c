@@ -20,9 +20,8 @@
  *
  ***************************************************************************/
 
-#include "setup.h"
+#include "curl_setup.h"
 
-#include <stdlib.h>
 #include "strdup.h"
 #include "fileinfo.h"
 
@@ -49,9 +48,7 @@ void Curl_fileinfo_dtor(void *user, void *element)
   if(!finfo)
     return;
 
-  if(finfo->b_data){
-    free(finfo->b_data);
-  }
+  Curl_safefree(finfo->b_data);
 
   free(finfo);
 }
