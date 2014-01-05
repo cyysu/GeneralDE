@@ -70,11 +70,13 @@ TRY_AGAIN:
     if (is_new) {
         chanel->magic = 132523426;
         chanel->r.capacity = r_capacity;
+        chanel->r.flags = 0;
         chanel->r.begin = sizeof(SVR_SET_CHANEL);
         chanel->r.rp = 0;
         chanel->r.wp = 0;
 
         chanel->w.capacity = w_capacity;
+        chanel->w.flags = 0;
         chanel->w.begin = sizeof(SVR_SET_CHANEL) + r_capacity;
         chanel->w.rp = 0;
         chanel->w.wp = 0;
