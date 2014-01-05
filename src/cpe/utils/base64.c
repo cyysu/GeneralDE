@@ -36,11 +36,11 @@ size_t cpe_base64_encode(write_stream_t output, read_stream_t input) {
                     break;  
                 }
             }
-        }
 
-        rp += 3;  
-        buf_len -= 3;  
-        wlen +=4;  
+            rp += 3;  
+            buf_len -= 3;  
+            wlen +=4;  
+        }
     }
 
     return wlen;  
