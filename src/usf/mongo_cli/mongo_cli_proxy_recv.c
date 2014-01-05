@@ -208,7 +208,8 @@ mongo_cli_proxy_recv_process_find_and_modify(
     return mongo_cli_pkg_parse_next;
 }
 
-static int mongo_cli_proxy_recv_process_find_last_error(
+static mongo_cli_pkg_parse_result_t
+mongo_cli_proxy_recv_process_find_last_error(
     mongo_cli_proxy_t proxy, mongo_pkg_t pkg, logic_require_t require, logic_data_t result_data)
 {
     MONGO_LASTERROR * lasterror;
@@ -216,30 +217,27 @@ static int mongo_cli_proxy_recv_process_find_last_error(
 
     if (logic_data_record_count(result_data) != 1) {
         CPE_ERROR(proxy->m_em, "%s: recv_response: getlasterror: result count error!", mongo_cli_proxy_name(proxy));
-        logic_require_set_error(require);
-        return -1;
+        return mongo_cli_pkg_parse_fail;
     }
 
     if (mongo_pkg_doc_count(pkg) != 1) {
         CPE_ERROR(
             proxy->m_em, "%s: recv_response: getlasterror: result pkg doc count %d error!",
             mongo_cli_proxy_name(proxy), (int)mongo_pkg_doc_count(pkg));
-        logic_require_set_error(require);
-        return -1;
+        return mongo_cli_pkg_parse_fail;
     }
 
     doc = mongo_pkg_doc_at(pkg, 0);
     if (doc == NULL) {
         CPE_ERROR(proxy->m_em, "%s: recv_response: getlasterror: get doc error!", mongo_cli_proxy_name(proxy));
-        logic_require_set_error(require);
-        return -1;
+        return mongo_cli_pkg_parse_fail;
     }
 
     lasterror = (MONGO_LASTERROR *)logic_data_record_at(result_data, 0);
 
     if (dr_bson_read(lasterror, sizeof(*lasterror), mongo_doc_data(doc), mongo_doc_size(doc), proxy->m_meta_lasterror, proxy->m_em) < 0) {
         CPE_ERROR(proxy->m_em, "%s: recv_response: getlasterror: bson read fail!", mongo_cli_proxy_name(proxy));
-        return -1;
+        return mongo_cli_pkg_parse_fail;
     }
 
     if (lasterror->code == 0) {
@@ -248,7 +246,7 @@ static int mongo_cli_proxy_recv_process_find_last_error(
         }
 
         logic_require_set_done(require);
-        return 0;
+        return mongo_cli_pkg_parse_next;
     }
     else {
         if (proxy->m_debug) {
@@ -258,7 +256,7 @@ static int mongo_cli_proxy_recv_process_find_last_error(
         }
 
         logic_require_set_error_ex(require, lasterror->code);
-        return 0;
+        return mongo_cli_pkg_parse_fail;
     }
 }
 
@@ -299,10 +297,23 @@ int mongo_cli_proxy_recv(dp_req_t req, void * ctx, error_monitor_t em) {
         LPDRMETA result_meta = NULL;
 
         if (result_data == NULL && keep_data.m_result_meta) {
-            ssize_t data_capacity = dr_meta_calc_dyn_size(keep_data.m_result_meta, keep_data.m_result_count_init);
+            ssize_t data_capacity = 
+                keep_data.m_result_count_init == 1
+                ? dr_meta_size(keep_data.m_result_meta)
+                : dr_meta_calc_dyn_size(keep_data.m_result_meta, keep_data.m_result_count_init);
+            if (data_capacity < 0) {
+                CPE_ERROR(
+                    proxy->m_em, "%s: recv_response: create result buff, calc capacity fail, meta=%s, count=%d!",
+                    mongo_cli_proxy_name(proxy), dr_meta_name(keep_data.m_result_meta), (int)keep_data.m_result_count_init);
+                parse_result = mongo_cli_pkg_parse_fail;
+                goto RECV_COMPLETE;
+            }
+
             result_data = logic_require_data_get_or_create(require, keep_data.m_result_meta, data_capacity);
             if (result_data == NULL) {
-                CPE_ERROR(proxy->m_em, "%s: recv_response: create result buff =  result data fail!", mongo_cli_proxy_name(proxy));
+                CPE_ERROR(
+                    proxy->m_em, "%s: recv_response: create result buff fail, capacity=%d!",
+                    mongo_cli_proxy_name(proxy), (int)data_capacity);
                 parse_result = mongo_cli_pkg_parse_fail;
                 goto RECV_COMPLETE;
             }
