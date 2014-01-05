@@ -6,6 +6,7 @@
 #include "net_trans_internal_ops.h"
 
 static size_t net_trans_task_write_cb(char *ptr, size_t size, size_t nmemb, void *userdata);
+static int net_tranks_task_prog_cb(void *p, double dltotal, double dlnow, double ult, double uln);
 
 net_trans_task_t net_trans_task_create(net_trans_group_t group, size_t capacity) {
     net_trans_manage_t mgr = group->m_mgr;
@@ -53,8 +54,12 @@ net_trans_task_t net_trans_task_create(net_trans_group_t group, size_t capacity)
 	curl_easy_setopt(task->m_handler, CURLOPT_WRITEFUNCTION, net_trans_task_write_cb);
 	curl_easy_setopt(task->m_handler, CURLOPT_WRITEDATA, task);
 
+    curl_easy_setopt(task->m_handler, CURLOPT_NOPROGRESS, 0L);
+    curl_easy_setopt(task->m_handler, CURLOPT_PROGRESSFUNCTION, net_tranks_task_prog_cb);
+    curl_easy_setopt(task->m_handler, CURLOPT_PROGRESSDATA, task);
+
     cpe_hash_entry_init(&task->m_hh_for_mgr);
-    if (cpe_hash_table_insert_unique(&mgr->m_tasks, task) == 0) {
+    if (cpe_hash_table_insert_unique(&mgr->m_tasks, task) != 0) {
         CPE_ERROR(mgr->m_em, "%s: group %s: create task: task id duplicate!", net_trans_manage_name(mgr), group->m_name);
         curl_easy_cleanup(task->m_handler);
         mem_free(mgr->m_alloc, task);
@@ -283,6 +288,15 @@ static size_t net_trans_task_write_cb(char *ptr, size_t size, size_t nmemb, void
     }
 
     return total_length;
+}
+
+static int net_tranks_task_prog_cb(void *p, double dltotal, double dlnow, double ult, double uln) {
+    net_trans_task_t task = (net_trans_task_t)p;
+    (void)ult;
+    (void)uln;
+
+    //fprintf(MSG_OUT, "Progress: %s (%g/%g)\n", conn->url, dlnow, dltotal);
+    return 0;
 }
 
 uint32_t net_trans_task_hash(net_trans_task_t task) {

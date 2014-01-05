@@ -15,7 +15,9 @@ struct net_trans_manage {
     error_monitor_t m_em;
 
     struct ev_loop * m_loop;
+    struct ev_timer m_timer_event;
 	CURLM * m_multi_handle;
+    int m_still_running;
 
     int m_cfg_dns_cache_timeout;
     int m_cfg_connect_timeout_ms;
