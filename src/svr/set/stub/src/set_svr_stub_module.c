@@ -15,6 +15,7 @@
 #include "gd/dr_store/dr_store.h"
 #include "svr/set/stub/set_svr_stub.h"
 #include "svr/set/stub/set_svr_svr_info.h"
+#include "svr/set/share/set_chanel.h"
 #include "svr/set/share/set_repository.h"
 #include "set_svr_stub_internal_ops.h"
 
@@ -122,6 +123,20 @@ int set_svr_stub_app_init(gd_app_context_t app, gd_app_module_t module, cfg_t cf
         return -1;
     }
     set_svr_stub_set_chanel(svr, chanel);
+    
+    if (set_chanel_r_is_peaked(chanel)) {
+        int r = set_chanel_r_erase(chanel, gd_app_em(app));
+        if (r != 0) {
+            CPE_ERROR(
+                gd_app_em(app), "%s: create: chanel ignore last peaked pkg fail: rv=%d (%s)!",
+                gd_app_module_name(module), r, set_chanel_str_error(r));
+            set_svr_stub_free(svr);
+            return -1;
+        }
+        else {
+            CPE_INFO(gd_app_em(app), "%s: create: chanel ignore last peaked pkg!", gd_app_module_name(module));
+        }
+    }
 
     if ((value = cfg_get_string(cfg, "request-send-to", NULL))) {
         if (set_svr_stub_set_request_dispatch_to(svr, value) != 0) {

@@ -11,6 +11,7 @@
 
 //#define SET_CHANEL_DEBUG
 #define SET_SHARE_SAVE_HEAD_SIZE (sizeof(uint32_t) + sizeof(SET_PKG_HEAD) + 1) /*长度计数以及一个协议头*/
+#define SET_CHANTE_FLAGS_PEAKED ((uint32_t)0x00000001)
 
 static void set_chanel_pipe_save_ignore_pkg(void * buf, size_t capacity);
 static int set_chanel_pipe_save_pkg(dp_req_t body, dp_req_t head, dp_req_t carry, void * buf, size_t capacity, error_monitor_t em);
@@ -26,12 +27,21 @@ int set_chanel_r_write(set_chanel_t input_chanel, dp_req_t body, size_t * size, 
 
 int set_chanel_r_peak(set_chanel_t input_chanel, dp_req_t body, error_monitor_t em) {
     SVR_SET_CHANEL * chanel = (SVR_SET_CHANEL *)input_chanel;
-    return set_chanel_pipe_peak(chanel, &chanel->r, body, em);
+    int r = set_chanel_pipe_peak(chanel, &chanel->r, body, em);
+    if (r == 0) chanel->r.flags |= SET_CHANTE_FLAGS_PEAKED;
+    return r;
+}
+
+int set_chanel_r_is_peaked(set_chanel_t input_chanel) {
+    SVR_SET_CHANEL * chanel = (SVR_SET_CHANEL *)input_chanel;
+    return chanel->r.flags & SET_CHANTE_FLAGS_PEAKED;
 }
 
 int set_chanel_r_erase(set_chanel_t input_chanel, error_monitor_t em) {
     SVR_SET_CHANEL * chanel = (SVR_SET_CHANEL *)input_chanel;
-    return set_chanel_pipe_erase(chanel, &chanel->r, em);
+    int r = set_chanel_pipe_erase(chanel, &chanel->r, em);
+    if (r == 0) chanel->r.flags &= ~SET_CHANTE_FLAGS_PEAKED;
+    return r;
 }
 
 int set_chanel_w_write(set_chanel_t input_chanel, dp_req_t body, size_t * size, error_monitor_t em) {
@@ -41,12 +51,21 @@ int set_chanel_w_write(set_chanel_t input_chanel, dp_req_t body, size_t * size, 
 
 int set_chanel_w_peak(set_chanel_t input_chanel, dp_req_t body, error_monitor_t em) {
     SVR_SET_CHANEL * chanel = (SVR_SET_CHANEL *)input_chanel;
-    return set_chanel_pipe_peak(chanel, &chanel->w, body, em);
+    int r = set_chanel_pipe_peak(chanel, &chanel->w, body, em);
+    if (r == 0) chanel->w.flags |= SET_CHANTE_FLAGS_PEAKED; 
+    return r;
+}
+
+int set_chanel_w_is_peaked(set_chanel_t input_chanel) {
+    SVR_SET_CHANEL * chanel = (SVR_SET_CHANEL *)input_chanel;
+    return chanel->w.flags & SET_CHANTE_FLAGS_PEAKED;
 }
 
 int set_chanel_w_erase(set_chanel_t input_chanel, error_monitor_t em) {
     SVR_SET_CHANEL * chanel = (SVR_SET_CHANEL *)input_chanel;
-    return set_chanel_pipe_erase(chanel, &chanel->w, em);
+    int r = set_chanel_pipe_erase(chanel, &chanel->w, em);
+    if (r == 0) chanel->w.flags &= ~SET_CHANTE_FLAGS_PEAKED;
+    return r;
 }
 
 static int set_chanel_pipe_erase(SVR_SET_CHANEL * chanel, SVR_SET_PIPE * pipe, error_monitor_t em) {
