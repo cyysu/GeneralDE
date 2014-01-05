@@ -31,7 +31,7 @@
 - name: gd_timer_mgr
 
 - name: net_trans_manage
-  debug: 1
+  debug: 2
 
 - name: dr_store_manage
 
@@ -48,5 +48,6 @@
 - name: apple_iap_svr
   send-to: process-apple_iap-outgoing
   request-recv-at: process-apple_iap-incoming
+  debug: 1
 
 # -*- coding: utf-8 -*-

@@ -59,7 +59,7 @@ apple_iap_svr_create(
     APPLE_IAP_SVR_LOAD_META(m_meta_res_error, "svr_apple_iap_res_error");
 
     svr->m_trans_group = net_trans_group_create(trans_mgr, "apple_iap");
-    if (svr->m_trans_group) {
+    if (svr->m_trans_group == NULL) {
         CPE_ERROR(em, "%s: create: crate trans group fail!", name);
         nm_node_free(svr_node);
         return NULL;
