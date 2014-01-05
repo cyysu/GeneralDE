@@ -33,6 +33,7 @@ uint64_t cfg_as_uint64(cfg_t cfg, uint64_t dft);
 float cfg_as_float(cfg_t cfg, float dft);
 double cfg_as_double(cfg_t cfg, double dft);
 const char * cfg_as_string(cfg_t cfg, const char * dft);
+const char * cfg_as_string_cvt(cfg_t cfg, const char * dft, void * buf, size_t buf_capacity);
 
 int cfg_try_as_int8(cfg_t cfg, int8_t * data);
 int cfg_try_as_uint8(cfg_t cfg, uint8_t * data);
@@ -57,6 +58,7 @@ uint64_t cfg_get_uint64(cfg_t cfg, const char * path, uint64_t dft);
 float cfg_get_float(cfg_t cfg, const char * path, float dft);
 double cfg_get_double(cfg_t cfg, const char * path, double dft);
 const char * cfg_get_string(cfg_t cfg, const char * path, const char * dft);
+const char * cfg_get_string_cvt(cfg_t cfg, const char * path, const char * dft, void * buf, size_t buf_capacity);
 
 int cfg_try_get_int8(cfg_t cfg, const char * path, int8_t * data);
 int cfg_try_get_uint8(cfg_t cfg, const char * path, uint8_t * data);
