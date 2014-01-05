@@ -5,7 +5,7 @@
  *                            | (__| |_| |  _ <| |___
  *                             \___|\___/|_| \_\_____|
  *
- * Copyright (C) 1998 - 2011, Daniel Stenberg, <daniel@haxx.se>, et al.
+ * Copyright (C) 1998 - 2013, Daniel Stenberg, <daniel@haxx.se>, et al.
  *
  * This software is licensed as described in the file COPYING, which
  * you should have received as part of this distribution. The terms
@@ -20,13 +20,8 @@
  *
  ***************************************************************************/
 
-#include "setup.h"
+#include "curl_setup.h"
 
-#include <string.h>
-
-#ifdef HAVE_SYS_SOCKET_H
-#include <sys/socket.h>
-#endif
 #ifdef HAVE_NETINET_IN_H
 #include <netinet/in.h>
 #endif
@@ -36,16 +31,9 @@
 #ifdef HAVE_ARPA_INET_H
 #include <arpa/inet.h>
 #endif
-#ifdef HAVE_STDLIB_H
-#include <stdlib.h>     /* required for free() prototypes */
-#endif
-#ifdef HAVE_UNISTD_H
-#include <unistd.h>     /* for the close() proto */
-#endif
 #ifdef __VMS
 #include <in.h>
 #include <inet.h>
-#include <stdlib.h>
 #endif
 
 #ifdef HAVE_PROCESS_H
@@ -160,7 +148,7 @@ static void dump_addrinfo(struct connectdata *conn, const Curl_addrinfo *ai)
   }
 }
 #else
-#define dump_addrinfo(x,y)
+#define dump_addrinfo(x,y) Curl_nop_stmt
 #endif
 
 /*
@@ -180,7 +168,7 @@ Curl_addrinfo *Curl_getaddrinfo(struct connectdata *conn,
   struct addrinfo hints;
   Curl_addrinfo *res;
   int error;
-  char sbuf[NI_MAXSERV];
+  char sbuf[12];
   char *sbufptr = NULL;
   char addrbuf[128];
   int pf;

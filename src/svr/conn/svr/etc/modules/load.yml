@@ -54,8 +54,6 @@
 
 - name: conn_svr
   ip:
-  port: 8079
-  ringbuf-size: 5mb
   ss-send-to: process-conn-outgoing
   ss-request-recv-at: process-conn-request
   ss-trans-recv-at: process-conn-trans
