@@ -1,5 +1,6 @@
 #include <assert.h>
 #include "cpe/pal/pal_string.h"
+#include "cpe/pal/pal_strings.h"
 #include "cpe/pal/pal_stdlib.h"
 #include "usf/logic/logic_require.h"
 #include "usf/logic/logic_manage.h"
@@ -125,7 +126,7 @@ int logic_require_queue_add(logic_require_queue_t queue, logic_require_id_t id, 
     assert(queue->m_runing_requires);
     assert(queue->m_runing_require_count < queue->m_runing_require_capacity);
 
-    record = queue->m_runing_requires + queue->m_total_capacity * queue->m_runing_require_count;
+    record = (void*)(((char*)queue->m_runing_requires) + queue->m_total_capacity * queue->m_runing_require_count);
     record->m_require_id = id;
 
     if (queue->m_keep_capacity) {
