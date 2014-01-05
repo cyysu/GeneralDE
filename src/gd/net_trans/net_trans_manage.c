@@ -43,6 +43,10 @@ net_trans_manage_create(
     mgr->m_debug = 0;
 	mgr->m_multi_handle = NULL;
     mgr->m_loop = net_mgr_ev_loop(gd_app_net_mgr(app));
+    mgr->m_timer_event.data = mgr;
+    ev_timer_init(&mgr->m_timer_event, NULL, 0., 0.);
+    mgr->m_still_running = 0;
+
     mgr->m_max_id = 0;
 
     mgr->m_cfg_dns_cache_timeout = 0;
@@ -90,6 +94,8 @@ static void net_trans_manage_clear(nm_node_t node) {
         curl_multi_cleanup(mgr->m_multi_handle);
         mgr->m_multi_handle = NULL;
     }
+
+    ev_timer_stop(mgr->m_loop, &mgr->m_timer_event);
 
     cpe_hash_table_fini(&mgr->m_groups);
     cpe_hash_table_fini(&mgr->m_tasks);

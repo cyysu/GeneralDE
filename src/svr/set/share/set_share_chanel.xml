@@ -4,6 +4,7 @@
     <struct name="svr_set_pipe" version="1">
         <entry name="capacity" type="uint32"/>
         <entry name="begin" type="uint32"/>
+        <entry name="flags" type="uint32"/>
         <entry name="rp" type="uint32"/>
         <entry name="wp" type="uint32"/>
     </struct>

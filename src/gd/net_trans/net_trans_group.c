@@ -21,7 +21,7 @@ net_trans_group_t net_trans_group_create(net_trans_manage_t mgr, const char * na
     TAILQ_INIT(&group->m_tasks);
 
     cpe_hash_entry_init(&group->m_hh_for_mgr);
-    if (cpe_hash_table_insert_unique(&mgr->m_groups, group) == 0) {
+    if (cpe_hash_table_insert_unique(&mgr->m_groups, group) != 0) {
         CPE_ERROR(mgr->m_em, "%s: group %s: create: name duplicate!", net_trans_manage_name(mgr), name);
         mem_free(mgr->m_alloc, group);
         return NULL;
