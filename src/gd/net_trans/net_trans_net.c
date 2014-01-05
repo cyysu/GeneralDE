@@ -5,6 +5,7 @@
 #include "net_trans_internal_ops.h"
 
 static int net_trans_sock_cb(CURL *e, curl_socket_t s, int what, void *cbp, void *sockp);
+static int net_trans_timer_cb(CURLM *multi, long timeout_ms, net_trans_manage_t mgr);
 static void net_trans_event_cb(EV_P_ struct ev_io *w, int revents);
 static void net_trans_check_multi_info(net_trans_manage_t mgr);
 
@@ -21,8 +22,8 @@ int net_trans_mult_handler_init(net_trans_manage_t mgr) {
 
     curl_multi_setopt(mgr->m_multi_handle, CURLMOPT_SOCKETFUNCTION, net_trans_sock_cb);
     curl_multi_setopt(mgr->m_multi_handle, CURLMOPT_SOCKETDATA, mgr);
-    /* curl_multi_setopt(g.multi, CURLMOPT_TIMERFUNCTION, multi_timer_cb); */
-    /* curl_multi_setopt(g.multi, CURLMOPT_TIMERDATA, mgr); */
+    curl_multi_setopt(mgr->m_multi_handle, CURLMOPT_TIMERFUNCTION, net_trans_timer_cb);
+    curl_multi_setopt(mgr->m_multi_handle, CURLMOPT_TIMERDATA, mgr);
 
     return 0;
 }
@@ -40,6 +41,13 @@ static int net_trans_sock_cb(CURL *e, curl_socket_t s, int what, void *cbp, void
 
     assert(mgr);
     assert(task);
+
+    if (mgr->m_debug >= 2) {
+        static char * what_msgs[] = { "NONE", "IN", "OUT", "INOUT", "REMOVE" };
+        CPE_INFO(
+            mgr->m_em, "%s: sock_cb: task %d (%s) %s!",
+            net_trans_manage_name(mgr), task->m_id, task->m_group->m_name, what_msgs[what]);
+    }
 
     if (what == CURL_POLL_REMOVE) {
         task->m_sockfd = -1;
@@ -72,11 +80,18 @@ static void net_trans_event_cb(EV_P_ struct ev_io *w, int revents) {
     int action;
     int rc;
 
+    if (mgr->m_debug >= 2) {
+        CPE_INFO(
+            mgr->m_em, "%s: socket event%s%s", net_trans_manage_name(mgr),
+            (revents & EV_READ ? " read" : ""),
+            (revents & EV_WRITE ? " write" : ""));
+    }
+
     action =
         (revents & EV_READ ? CURL_POLL_IN : 0)
         | (revents & EV_WRITE ? CURL_POLL_OUT : 0);
 
-    rc = curl_multi_socket_action(mgr->m_multi_handle, task->m_sockfd, action, NULL);
+    rc = curl_multi_socket_action(mgr->m_multi_handle, task->m_sockfd, action, &mgr->m_still_running);
     if (rc != CURLM_OK) {
         CPE_ERROR(mgr->m_em, "%s: event_cb: curl_multi_socket_action return error %d!", net_trans_manage_name(mgr), rc);
         net_trans_task_set_done(task, net_trans_result_error);
@@ -84,6 +99,13 @@ static void net_trans_event_cb(EV_P_ struct ev_io *w, int revents) {
     }
 
     net_trans_check_multi_info(mgr);
+
+    if (mgr->m_still_running <= 0) {
+        if(mgr->m_debug) {
+            CPE_INFO(mgr->m_em, "%s: event_cb: last transfer done, kill timeout", net_trans_manage_name(mgr));
+        }
+        ev_timer_stop(mgr->m_loop, &mgr->m_timer_event);
+    }
 }
 
 static void net_trans_check_multi_info(net_trans_manage_t mgr) {
@@ -111,4 +133,39 @@ static void net_trans_check_multi_info(net_trans_manage_t mgr) {
             break;
         }
     }
+}
+
+static void net_trans_do_timer(EV_P_ struct ev_timer *w, int revents) {
+    net_trans_manage_t mgr = w->data;
+    CURLMcode rc;
+
+    if (mgr->m_debug) {
+        CPE_INFO(mgr->m_em, "%s: curl_multi_socket_action(timeout)", net_trans_manage_name(mgr));
+    }
+
+    rc = curl_multi_socket_action(mgr->m_multi_handle, CURL_SOCKET_TIMEOUT, 0, &mgr->m_still_running);
+    if (rc != CURLM_OK) {
+        CPE_ERROR(mgr->m_em, "%s: do_timer: curl_multi_socket_action return error %d!", net_trans_manage_name(mgr), rc);
+    }
+
+    net_trans_check_multi_info(mgr);
+}
+
+static int net_trans_timer_cb(CURLM *multi, long timeout_ms, net_trans_manage_t mgr) {
+    if (mgr->m_debug >= 2) {
+        CPE_INFO(mgr->m_em, "%s: timer_cb: timeout_ms=%d", net_trans_manage_name(mgr), (int)timeout_ms);
+    }
+
+    ev_timer_stop(mgr->m_loop, &mgr->m_timer_event);
+
+    if (timeout_ms > 0) {
+        double  t = timeout_ms / 1000;
+        ev_timer_init(&mgr->m_timer_event, net_trans_do_timer, t, 0.);
+        ev_timer_start(mgr->m_loop, &mgr->m_timer_event);
+    }
+    else {
+        net_trans_do_timer(mgr->m_loop, &mgr->m_timer_event, 0);
+    }
+
+    return 0;
 }
