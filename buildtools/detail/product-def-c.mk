@@ -1,5 +1,5 @@
 product-support-types+=lib progn
-product-def-c-env-items:= c.flags.cpp c.flags.ld c.sources c.includes \
+product-def-c-env-items:= c.flags.cpp c.flags.ld c.sources c.includes c.flags.warning \
                           product.c.includes product.c.flags.ld product.c.defs product.c.ldpathes product.c.libraries \
                           product.c.flags.warning product.c.frameworks
 
@@ -106,6 +106,8 @@ product-def-gen-dep-cmd=$(if $(compiler.$(call compiler-category,$($($1.env).CC)
 product-def-rule-c-compile-cmd.c=$($($2.env).CC) \
                                  $(compiler.$(call compiler-category,$($($2.env).CC)).flags.warning) \
                                  $($($2.env).CFLAGS) \
+                                 $(r.$1.$($2.env).c.flags.warning) \
+                                 $(r.$1.c.flags.warning) \
                                  $(sort $(call product-gen-depend-value-list,$1,$($2.env),product.c.flags.warning)) \
                                  $(r.$1.product.c.flags.warning) \
                                  $(r.$1.c.flags.lan.all) \
@@ -116,6 +118,8 @@ product-def-rule-c-compile-cmd.c=$($($2.env).CC) \
 product-def-rule-c-compile-cmd.cc=$($($2.env).CXX) \
                                   $(compiler.$(call compiler-category,$($($2.env).CXX)).flags.warning) \
                                   $($($2.env).CXXFLAGS) \
+                                  $(r.$1.$($2.env).c.flags.warning) \
+                                  $(r.$1.c.flags.warning) \
                                   $(sort $(call product-gen-depend-value-list,$1,$($2.env),product.c.flags.warning)) \
                                   $(r.$1.product.c.flags.warning) \
                                   $(r.$1.c.flags.lan.all) \
@@ -125,6 +129,8 @@ product-def-rule-c-compile-cmd.cc=$($($2.env).CXX) \
 
 product-def-rule-c-compile-cmd.mm=$($($2.env).CXX) $($($2.env).MMFLAGS) \
                                   $(compiler.$(call compiler-category,$($($2.env).CXX)).flags.warning) \
+                                  $(r.$1.$($2.env).c.flags.warning) \
+                                  $(r.$1.c.flags.warning) \
                                   $(sort $(call product-gen-depend-value-list,$1,$($2.env),product.c.flags.warning)) \
                                   $(r.$1.product.c.flags.warning) \
                                   $(r.$1.c.flags.lan.all) \
@@ -134,6 +140,8 @@ product-def-rule-c-compile-cmd.mm=$($($2.env).CXX) $($($2.env).MMFLAGS) \
 
 product-def-rule-c-compile-cmd.m=$($($2.env).CC) $($($2.env).MFLAGS) \
                                  $(compiler.$(call compiler-category,$($($2.env).CC)).flags.warning) \
+                                 $(r.$1.$($2.env).c.flags.warning) \
+                                 $(r.$1.c.flags.warning) \
                                  $(sort $(call product-gen-depend-value-list,$1,$($2.env),product.c.flags.warning)) \
                                  $(r.$1.product.c.flags.warning) \
                                  $(r.$1.c.flags.lan.all) \
