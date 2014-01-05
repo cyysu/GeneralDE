@@ -83,6 +83,7 @@ static void apple_iap_svr_request_validate_commit(net_trans_task_t task, void * 
     apple_iap_svr_t svr = ctx;
     struct apple_iap_task_data * task_data = net_trans_task_data(task);
     SVR_APPLE_IAP_RES_VALIDATE res;
+    const char * response;
 
     if (net_trans_task_result(task) != net_trans_result_ok) {
         CPE_ERROR(
@@ -97,14 +98,21 @@ static void apple_iap_svr_request_validate_commit(net_trans_task_t task, void * 
         return;
     }
 
+    response = mem_buffer_make_continuous(net_trans_task_buffer(task), 0);
+    if (response == NULL) {
+        CPE_ERROR(
+            svr->m_em, "%s: validate %s: task not ok, response is NULL!",
+            apple_iap_svr_name(svr), task_data->m_receipt);
+
+        apple_iap_svr_request_validate_send_error_response(
+            svr, task_data->m_receipt, -1,
+            task_data->m_sn, task_data->m_from_svr_type, task_data->m_from_svr_id);
+
+        return;
+    }
+
     bzero(&res, sizeof(res));
-    if (dr_json_read(
-            &res, sizeof(res),
-            mem_buffer_make_continuous(net_trans_task_buffer(task), 0),
-            svr->m_meta_res_validate,
-            svr->m_em)
-        < 0)
-    {
+    if (dr_json_read(&res, sizeof(res), response, svr->m_meta_res_validate, svr->m_em) < 0) {
         CPE_ERROR(
             svr->m_em, "%s: validate %s: parse response fail\n%s!",
             apple_iap_svr_name(svr), task_data->m_receipt,
