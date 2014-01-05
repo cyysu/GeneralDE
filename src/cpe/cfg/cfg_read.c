@@ -2,6 +2,7 @@
 #include "cpe/pal/pal_string.h"
 #include "cpe/pal/pal_stdio.h"
 #include "cpe/utils/stream_buffer.h"
+#include "cpe/utils/stream_mem.h"
 #include "cpe/dr/dr_ctypes_op.h"
 #include "cpe/cfg/cfg_read.h"
 #include "cfg_internal_types.h"
@@ -97,9 +98,36 @@ const char * cfg_as_string(cfg_t cfg, const char * dft) {
         : dft;
 }
 
+const char * cfg_as_string_cvt(cfg_t cfg, const char * dft, void * buf, size_t buf_capacity) {
+    if (cfg == NULL) return dft;
+
+    if (cfg->m_type == CPE_DR_TYPE_STRING) {
+        return (const char *)cfg_data(cfg);
+    }
+    else if (cfg_is_value(cfg)) {
+        if (buf) {
+            struct write_stream_mem s = CPE_WRITE_STREAM_MEM_INITIALIZER(buf, buf_capacity);
+            if (dr_ctype_print_to_stream((write_stream_t)&s, cfg_data(cfg), cfg->m_type, NULL) > 0) {
+                stream_putc((write_stream_t)&s, 0);
+                return buf;
+            }
+            else {
+                return dft;
+            }
+        }
+    }
+
+    return dft;
+}
+
 const char * cfg_get_string(cfg_t cfg, const char * path, const char * dft) {
     cfg_t at = cfg_find_cfg(cfg, path);
     return cfg_as_string(at, dft);
+}
+
+const char * cfg_get_string_cvt(cfg_t cfg, const char * path, const char * dft, void * buf, size_t buf_capacity) {
+    cfg_t at = cfg_find_cfg(cfg, path);
+    return cfg_as_string_cvt(at, dft, buf, buf_capacity);
 }
 
 static cfg_t cfg_do_find_cfg_from_struct(cfg_t cfg, const char * path, const char * end) {

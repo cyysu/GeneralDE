@@ -19,7 +19,8 @@
  * KIND, either express or implied.
  *
  ***************************************************************************/
-#include "setup.h"
+
+#include "curl_setup.h"
 
 #if defined(USE_THREADS_POSIX)
 #  ifdef HAVE_PTHREAD_H
