@@ -1,5 +1,6 @@
 #include <assert.h>
 #include "cpe/pal/pal_external.h"
+#include "cpe/pal/pal_stdlib.h"
 #include "cpe/utils/string_utils.h"
 #include "cpe/cfg/cfg_read.h"
 #include "cpe/dp/dp_manage.h"
@@ -19,6 +20,7 @@ int conn_svr_app_init(gd_app_context_t app, gd_app_module_t module, cfg_t cfg) {
     uint32_t check_span_ms;
     uint32_t conn_timeout_s;
     const char * ip;
+    const char * str_port;
     short port;
     int accept_queue_size;
     const char * send_to;
@@ -28,11 +30,17 @@ int conn_svr_app_init(gd_app_context_t app, gd_app_module_t module, cfg_t cfg) {
     uint64_t ringbuf_size;
 
     ip = cfg_get_string(cfg, "ip", "");
-    port = cfg_get_int16(cfg, "port", 0);
-    accept_queue_size = cfg_get_int32(cfg, "accept-queue-size", 256);
 
-    if ((str_ringbuf_size = cfg_get_string(cfg, "ringbuf-size", NULL)) == NULL) {
-        CPE_ERROR(gd_app_em(app), "%s: create: ringbuf-size not configured!", gd_app_module_name(module));
+    if ((str_port = gd_app_arg_find(app, "--port")) == NULL) {
+        CPE_ERROR(gd_app_em(app), "%s: create: --port not configured in args!", gd_app_module_name(module));
+        return -1;
+    }
+    port = atoi(str_port);
+
+    accept_queue_size = cfg_get_int32(cfg, "accept-queue-size", 1024);
+
+    if ((str_ringbuf_size = gd_app_arg_find(app, "--ringbuf-size")) == NULL) {
+        CPE_ERROR(gd_app_em(app), "%s: create: ringbuf-size not configured in args!", gd_app_module_name(module));
         return -1;
     }
 
