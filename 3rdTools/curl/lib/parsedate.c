@@ -5,7 +5,7 @@
  *                            | (__| |_| |  _ <| |___
  *                             \___|\___/|_| \_\_____|
  *
- * Copyright (C) 1998 - 2011, Daniel Stenberg, <daniel@haxx.se>, et al.
+ * Copyright (C) 1998 - 2013, Daniel Stenberg, <daniel@haxx.se>, et al.
  *
  * This software is licensed as described in the file COPYING, which
  * you should have received as part of this distribution. The terms
@@ -72,13 +72,11 @@
   20040911 +0200
 
 */
-#include "setup.h"
-#include <stdio.h>
-#include <ctype.h>
-#include <string.h>
 
-#ifdef HAVE_STDLIB_H
-#include <stdlib.h> /* for strtol() */
+#include "curl_setup.h"
+
+#ifdef HAVE_LIMITS_H
+#include <limits.h>
 #endif
 
 #include <curl/curl.h>
@@ -398,7 +396,24 @@ static int parsedate(const char *date, time_t *output)
         secnum = 0;
       }
       else {
-        val = curlx_sltosi(strtol(date, &end, 10));
+        long lval;
+        int error;
+        int old_errno;
+
+        old_errno = ERRNO;
+        SET_ERRNO(0);
+        lval = strtol(date, &end, 10);
+        error = ERRNO;
+        if(error != old_errno)
+          SET_ERRNO(old_errno);
+
+        if(error)
+          return PARSEDATE_FAIL;
+
+        if((lval > (long)INT_MAX) || (lval < (long)INT_MIN))
+          return PARSEDATE_FAIL;
+
+        val = curlx_sltosi(lval);
 
         if((tzoff == -1) &&
            ((end - date) == 4) &&
@@ -485,6 +500,10 @@ static int parsedate(const char *date, time_t *output)
     return PARSEDATE_SOONER;
   }
 
+  if((mdaynum > 31) || (monnum > 11) ||
+     (hournum > 23) || (minnum > 59) || (secnum > 60))
+    return PARSEDATE_FAIL; /* clearly an illegal date */
+
   tm.tm_sec = secnum;
   tm.tm_min = minnum;
   tm.tm_hour = hournum;
@@ -507,7 +526,7 @@ static int parsedate(const char *date, time_t *output)
     /* Add the time zone diff between local time zone and GMT. */
     long delta = (long)(tzoff!=-1?tzoff:0);
 
-    if((delta>0) && (t + delta < t))
+    if((delta>0) && (t > LONG_MAX  - delta))
       return -1; /* time_t overflow */
 
     t += delta;
