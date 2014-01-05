@@ -2,6 +2,7 @@
 #include <sched.h>
 #include "cpe/pal/pal_strings.h"
 #include "cpe/pal/pal_unistd.h"
+#include "cpe/pal/pal_socket.h" /*for select (sleep)*/
 #include "cpe/cfg/cfg_read.h"
 #include "cpe/net/net_manage.h"
 #include "cpe/nm/nm_manage.h"
@@ -31,7 +32,24 @@ static int app_tick_run_main(gd_app_context_t ctx, void * user_ctx) {
         r = gd_app_tick(ctx);
         if (r > 0) continue;
 
-        sched_yield();
+        if (runner->m_tick_span > 0) {
+            fd_set rfds;
+            struct timeval tv;
+            int fd = 1;
+
+            FD_ZERO (&rfds);
+            FD_SET(fd, &rfds);
+            tv.tv_sec = 0;
+            tv.tv_usec = runner->m_tick_span * 1000;
+            if (select(0, NULL, NULL, NULL, &tv) == -1) {
+                APP_CTX_ERROR(
+                    ctx, "%s: sleep %d ms, select error, error=%d (%s)!",
+                    "app_tick_runner", (int)runner->m_tick_span, errno, strerror(errno));
+            }
+        }
+        else {
+            sched_yield();
+        }
     };
 
     return -1;
