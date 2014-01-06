@@ -48,9 +48,10 @@
   type: mongo_driver
   outgoing-recv-at: db-connection-send
   incoming-send-to: db-client-process
+  server-arg-name: $db-svr
   #servers:
   #pkg-buf-max-size:
-  #ringbuf-size:
+  ringbuf-size: $db-buf-size
   auto-enable: 1
   debug: 0
 
@@ -59,7 +60,7 @@
   mongo-driver: db-connection
   incoming-recv-at: db-client-process
   outgoing-send-to: db-connection-send
-  dft-db: friend
+  dft-db: $db-ns
   buf-size: 4096000
   debug: 0
 
