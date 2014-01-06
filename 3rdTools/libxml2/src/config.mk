@@ -55,5 +55,9 @@ $(product).product.c.env-libraries:=math
 $(product).c.env-libraries:=dl
 $(product).c.env-includes:=3rdTools/libxml2/src
 $(product).c.flags.cpp:= -DHAVE_CONFIG_H -D_REENTRANT -Wno-format -Wno-unused -Wno-conversion -Wno-self-assign -Wno-parentheses-equality
+$(product).mac.product.c.libraries:=pthread
+$(product).linux32.product.c.libraries:=pthread
+$(product).linux64.product.c.libraries:=pthread
+$(product).ios.product.c.libraries:=pthread
 
 $(eval $(call product-def,$(product)))
