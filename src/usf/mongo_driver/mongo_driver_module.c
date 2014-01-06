@@ -1,4 +1,5 @@
 #include "cpe/pal/pal_external.h"
+#include "cpe/pal/pal_stdlib.h"
 #include "cpe/cfg/cfg_read.h"
 #include "cpe/utils/string_utils.h"
 #include "gd/dr_store/dr_store.h"
@@ -42,12 +43,67 @@ static int mongo_driver_app_init_load_seeds(gd_app_context_t app, mongo_driver_t
     return 0;
 }
 
+static int mongo_driver_app_init_load_server_from_arg(gd_app_context_t app, mongo_driver_t driver, const char * arg_name) {
+    int arg_pos;
+    const char * db_svr;
+    char arg_name_buff[64];
+
+    if (arg_name == NULL) return 0;
+
+    if (arg_name[0] != '$') {
+        CPE_ERROR(
+            gd_app_em(app), "%s: create: load-server from arg %s: arg format error!",
+            mongo_driver_name(driver), arg_name);
+        return -1;
+    }
+
+    snprintf(arg_name_buff, sizeof(arg_name_buff), "--%s", arg_name + 1);
+
+    arg_pos = 0;
+    while((db_svr = gd_app_arg_find_ex(app, arg_name_buff, &arg_pos))) {
+        char * sep;
+        int port;
+        int host_len;
+        char host[64];
+        ++arg_pos;
+
+        sep = strchr(db_svr, ':');
+        if (sep == NULL) {
+            CPE_ERROR(
+                gd_app_em(app), "%s: create: load-server from arg %s: command line arg %s format error!",
+                mongo_driver_name(driver), arg_name, db_svr);
+            return -1;
+        }
+
+        host_len = sep - db_svr;
+        if (host_len + 1 > sizeof(host)) {
+            CPE_ERROR(
+                gd_app_em(app), "%s: create: load-server from arg %s: command line arg %s host too long!",
+                mongo_driver_name(driver), arg_name, db_svr);
+            return -1;
+        }
+
+        memcpy(host, db_svr, host_len);
+        host[host_len] = 0;
+
+        port = atoi(sep + 1);
+        
+        if (mongo_driver_add_server(driver, host, port) != 0) {
+            CPE_ERROR(
+                gd_app_em(app), "%s: create: load-server from arg %s: add ip %s port %d fail!",
+                mongo_driver_name(driver), arg_name, host, port);
+            return -1;
+        }
+    }
+
+    return 0;
+}
+
 static int mongo_driver_app_init_load_servers(gd_app_context_t app, mongo_driver_t driver, cfg_t cfg) {
     struct cfg_it cfg_it;
     cfg_t child;
 
     cfg_it_init(&cfg_it, cfg);
-
     while((child = cfg_it_next(&cfg_it))) {
         const char * host = cfg_get_string(child, "host", NULL);
         int32_t port = cfg_get_int32(child, "port", -1);
@@ -89,6 +145,18 @@ int mongo_driver_app_init(gd_app_context_t app, gd_app_module_t module, cfg_t cf
         return -1;
     }
 
+    if (str_ringbuf_size[0] == '$') {
+        char arg_name_buf[64];
+        snprintf(arg_name_buf, sizeof(arg_name_buf), "--%s", str_ringbuf_size + 1);
+        str_ringbuf_size = gd_app_arg_find(app, arg_name_buf);
+        if (str_ringbuf_size == NULL) {
+            CPE_ERROR(
+                gd_app_em(app), "%s: create: read ringbuf-size %s not configured in command line!",
+                gd_app_module_name(module), arg_name_buf);
+            return -1;
+        }
+    }
+
     if (cpe_str_parse_byte_size(&ringbuf_size, str_ringbuf_size) != 0) {
         CPE_ERROR(
             gd_app_em(app), "%s: create: read ringbuf-size %s fail!",
@@ -123,6 +191,7 @@ int mongo_driver_app_init(gd_app_context_t app, gd_app_module_t module, cfg_t cf
     driver->m_debug = cfg_get_int32(cfg, "debug", driver->m_debug);
 
     if (mongo_driver_set_ringbuf_size(driver, ringbuf_size) != 0
+        || mongo_driver_app_init_load_server_from_arg(app, driver, cfg_get_string(cfg, "server-arg-name", NULL)) != 0
         || mongo_driver_app_init_load_seeds(app, driver, cfg_find_cfg(cfg, "seeds")) != 0
         || mongo_driver_app_init_load_servers(app, driver, cfg_find_cfg(cfg, "servers")) != 0
         || mongo_driver_set_incoming_send_to(driver, incoming_send_to) != 0
