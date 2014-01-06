@@ -143,15 +143,19 @@ sub calc_col_fun {
     return sub {
       my ($row, $value, $input_row) = @_;
       if ($value =~ /$matcher/) {
+        my $orig = $1;
+
         if ($macrogroup) {
-          foreach my $macro ( @{ $macrogroup->{macro} } ) {
-            $row->{$resultColName} = $macro->{value} and return
-              if ((exists $macro->{cname} and $macro->{cname} eq $1)
-                  or $macro->{name} eq $1);
+          foreach my $macro_name ( keys %{ $macrogroup->{macro} } ) {
+            my $macro_cname = $macrogroup->{macro}->{$macro_name}->{cname} || "";
+            my $macro_value = $macrogroup->{macro}->{$macro_name}->{value};
+
+            $row->{$resultColName} = $macro_value and return
+              if ($macro_cname eq $orig or $macro_name eq $orig);
           }
         }
 
-        $row->{$resultColName} = $1 if ( $1 !~ m/^\s*$/) ;
+        $row->{$resultColName} = $orig if ( $orig !~ m/^\s*$/) ;
       }
     };
   }
