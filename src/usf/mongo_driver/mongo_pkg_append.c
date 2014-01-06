@@ -255,3 +255,31 @@ int mongo_pkg_doc_append(mongo_pkg_t pkg, LPDRMETA meta, void const * data, size
 
     return 0;
 }
+
+int mongo_pkg_append_object(mongo_pkg_t pkg, const char *name, LPDRMETA meta, void const * data, size_t capacity) {
+    int r;
+    size_t cur_len;
+    size_t output_capacity;
+    int write_size;
+
+    r = mongo_pkg_append_start_object(pkg, name);
+    if (r != 0) return r;
+
+    cur_len = mongo_pkg_size(pkg);
+    output_capacity = mongo_pkg_capacity(pkg) - cur_len;
+
+    write_size = dr_bson_write(
+        MONGO_REQUEST_APPEND_POS(pkg, cur_len), output_capacity, data, capacity, meta, pkg->m_driver->m_em);
+    if (write_size < 0) {
+        CPE_ERROR(
+            pkg->m_driver->m_em, "%s: mongo_pkg_append_object: bson write fail!",
+            mongo_driver_name(pkg->m_driver));
+        return -1;
+    }
+    mongo_pkg_set_size(pkg, cur_len + write_size);
+    
+    r = mongo_pkg_append_finish_object(pkg);
+    if (r != 0) return r;
+
+    return 0;
+}
