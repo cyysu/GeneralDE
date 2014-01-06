@@ -17,6 +17,7 @@ int mongo_cli_proxy_app_init(gd_app_context_t app, gd_app_module_t module, cfg_t
     const char * mongo_driver_name;
     const char * outgoing_send_to;
     const char * incoming_recv_at;
+    const char * dft_db;
 
     outgoing_send_to = cfg_get_string(cfg, "outgoing-send-to", NULL);
     if (outgoing_send_to == NULL) {
@@ -78,7 +79,23 @@ int mongo_cli_proxy_app_init(gd_app_context_t app, gd_app_module_t module, cfg_t
         return -1;
     }
 
-    mongo_cli_proxy_set_dft_db(proxy, cfg_get_string(cfg, "dft-db", NULL));
+    dft_db = cfg_get_string(cfg, "dft-db", NULL);
+    if (dft_db) {
+        if (dft_db[0] == '$') {
+            char arg_name_buf[128];
+            snprintf(arg_name_buf, sizeof(arg_name_buf), "--%s", dft_db + 1);
+            dft_db = gd_app_arg_find(app, arg_name_buf);
+            if (dft_db == NULL) {
+                CPE_ERROR(
+                    gd_app_em(app), "%s: create: dft-db arg %s not configured!", 
+                    gd_app_module_name(module), arg_name_buf);
+                mongo_cli_proxy_free(proxy);
+                return -1;
+            }
+        }
+
+        mongo_cli_proxy_set_dft_db(proxy, dft_db);
+    }
 
     proxy->m_pkg_buf_max_size = cfg_get_uint32(cfg, "buf-size", proxy->m_pkg_buf_max_size);
     proxy->m_debug = cfg_get_int32(cfg, "debug", proxy->m_debug);
