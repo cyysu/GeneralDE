@@ -69,8 +69,8 @@ endef
 define product-def-rule-android-gen-java-rules
 
 $(foreach d,$(r.$1.android.java-dir) $(call product-gen-depend-value-list,$1,$($2.env),android.java-dir),\
-    $(foreach j,$(shell find $d -name "*.java"),\
-        $(call product-def-rule-android-proj-copy,$1,$2,$j,$(patsubst $d/%,$(CPDE_OUTPUT_ROOT)/$($1.$2.android.output)/src/%,$j))))
+    $(if $(wildcard $d),$(foreach j,$(shell find $d -name "*.java"),\
+        $(call product-def-rule-android-proj-copy,$1,$2,$j,$(patsubst $d/%,$(CPDE_OUTPUT_ROOT)/$($1.$2.android.output)/src/%,$j)))))
 
 endef
 
@@ -157,7 +157,11 @@ $(CPDE_OUTPUT_ROOT)/$($1.$2.android.output)/jni/Android.mk: $$(r.$1.c.sources) $
 	$$(CPE_SILENCE_TAG)echo 'LOCAL_C_INCLUDES += ' $$(patsubst -I%,%,$$(filter -I%,$$(call c-generate-depend-cpp-flags,$1,$2))) >> $$@
 	$$(CPE_SILENCE_TAG)echo '' >> $$@
 	$(if $(filter progn,$($1.type)),\
-        $$(CPE_SILENCE_TAG)echo 'LOCAL_LDLIBS := -L$$$$(SYSROOT)/usr/lib $$($1.android.c.flags.ld)' \
+        $$(CPE_SILENCE_TAG)echo 'LOCAL_LDLIBS := -L$$$$(SYSROOT)/usr/lib ' \
+                                                 $$(addprefix -l,\
+                                                      $$(call product-gen-depend-value-list,$1,$($2.env),\
+                                                          $$(call c-generate-env-arg-lib-name-list,$2,product.c.libraries))) \
+                                                 $$($1.android.c.flags.ld) \
                            >> $$@)
 	$$(CPE_SILENCE_TAG)echo '' >> $$@
 	$$(CPE_SILENCE_TAG)echo 'LOCAL_SRC_FILES += $($1.$2.android.srcs)' >> $$@
