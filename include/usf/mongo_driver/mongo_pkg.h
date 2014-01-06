@@ -87,6 +87,7 @@ int mongo_pkg_append_start_object(mongo_pkg_t pkg, const char *name);
 int mongo_pkg_append_start_array(mongo_pkg_t pkg, const char *name);
 int mongo_pkg_append_finish_object(mongo_pkg_t pkg);
 int mongo_pkg_append_finish_array(mongo_pkg_t pkg);
+int mongo_pkg_append_object(mongo_pkg_t pkg, const char *name, LPDRMETA meta, void const * data, size_t capacity);
 
 void mongo_pkg_doc_count_update(mongo_pkg_t pkg);
 
