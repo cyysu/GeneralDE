@@ -47,13 +47,24 @@ set_svr_mon_app_create(
     mon_app->m_fsm_timer_id = GD_TIMER_ID_INVALID;
     mon_app->m_mon = mon;
     mon_app->m_args = NULL;
-    mon_app->m_arg_count = 0;
-    mon_app->m_arg_capacity = 0;
     mon_app->m_rq_size = rq_size;
     mon_app->m_wq_size = wq_size;
 
+    mon_app->m_arg_count = 0;
+    mon_app->m_arg_capacity = 16;
+    mon_app->m_args = mem_alloc(svr->m_alloc, sizeof(char*) * mon_app->m_arg_capacity);
+    if (mon_app->m_args == NULL) {
+        CPE_ERROR(svr->m_em, "%s: mon_app: alloc args buff fail", set_svr_name(svr))
+        mem_free(svr->m_alloc, mon_app->m_bin);
+        mem_free(svr->m_alloc, mon_app->m_pidfile);
+        mem_free(svr->m_alloc, mon_app);
+        return NULL;
+    }
+    mon_app->m_args[0] = NULL;
+
     if (fsm_machine_init(&mon_app->m_fsm, mon->m_fsm_def, "disable", mon_app, mon->m_debug) != 0) {
         CPE_ERROR(svr->m_em, "%s: mon_app: init fsm fail!", set_svr_name(svr));
+        mem_free(svr->m_alloc, mon_app->m_args);
         mem_free(svr->m_alloc, mon_app->m_bin);
         mem_free(svr->m_alloc, mon_app->m_pidfile);
         mem_free(svr->m_alloc, mon_app);
@@ -131,16 +142,11 @@ int set_svr_mon_app_add_arg(set_svr_mon_app_t mon_app, const char * arg) {
     set_svr_mon_t mon = mon_app->m_mon;
     set_svr_t svr = mon->m_svr;
 
-    if ((mon_app->m_arg_count + 1) > mon_app->m_arg_capacity) {
+    if ((mon_app->m_arg_count + 1) >= mon_app->m_arg_capacity) {
         char ** new_args;
         size_t new_arg_capacity;
 
-        if (mon_app->m_arg_capacity == 0) {
-            new_arg_capacity = 16;
-        }
-        else {
-            new_arg_capacity = mon_app->m_arg_capacity * 2;
-        }
+        new_arg_capacity = mon_app->m_arg_capacity * 2;
 
         new_args = mem_alloc(svr->m_alloc, sizeof(char*) * new_arg_capacity);
         if (new_args == NULL) {
@@ -148,10 +154,9 @@ int set_svr_mon_app_add_arg(set_svr_mon_app_t mon_app, const char * arg) {
             return -1;
         }
 
-        memcpy(new_args, mon_app->m_args, sizeof(char*) * mon_app->m_arg_count);
+        memcpy(new_args, mon_app->m_args, sizeof(char*) * (mon_app->m_arg_count + 1));
 
         mem_free(svr->m_alloc, mon_app->m_args);
-
         mon_app->m_args = new_args;
         mon_app->m_arg_capacity = new_arg_capacity;
     }
