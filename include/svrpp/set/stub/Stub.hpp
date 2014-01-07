@@ -2,6 +2,7 @@
 #define SVRPP_SET_STUB_STUB_H
 #include "cpepp/utils/ClassCategory.hpp"
 #include "cpepp/dr/System.hpp"
+#include "gdpp/app/System.hpp"
 #include "svr/set/stub/set_svr_stub.h"
 #include "svr/set/stub/set_svr_svr_info.h"
 #include "System.hpp"
