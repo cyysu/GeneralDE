@@ -20,6 +20,7 @@ struct apple_iap_svr {
     LPDRMETA m_meta_res_error;
 
     net_trans_group_t m_trans_group;
+    int8_t m_is_sandbox;
 
     dp_req_t m_outgoing_pkg;
     cpe_hash_string_t m_send_to;

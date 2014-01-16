@@ -1,4 +1,5 @@
 #include <assert.h>
+#include "cpe/pal/pal_stdlib.h"
 #include "cpe/pal/pal_external.h"
 #include "cpe/utils/string_utils.h"
 #include "cpe/cfg/cfg_read.h"
@@ -7,6 +8,7 @@
 #include "gd/app/app_context.h"
 #include "gd/app/app_module.h"
 #include "gd/net_trans/net_trans_manage.h"
+#include "gd/net_trans/net_trans_group.h"
 #include "svr/set/stub/set_svr_stub.h"
 #include "svr/set/stub/set_svr_svr_info.h"
 #include "apple_iap_svr_ops.h"
@@ -18,6 +20,12 @@ int apple_iap_svr_app_init(gd_app_context_t app, gd_app_module_t module, cfg_t c
     apple_iap_svr_t apple_iap_svr;
     const char * send_to;
     const char * request_recv_at;
+    const char * is_sandbox;
+
+    if ((is_sandbox = gd_app_arg_find(app, "--is-sandbox")) == NULL) {
+        CPE_ERROR(gd_app_em(app), "%s: create: is-sandbox not configured in args!", gd_app_module_name(module));
+        return -1;
+    }
 
     if ((send_to = cfg_get_string(cfg, "send-to", NULL)) == NULL) {
         CPE_ERROR(gd_app_em(app), "%s: create: send-to not configured!", gd_app_module_name(module));
@@ -52,6 +60,10 @@ int apple_iap_svr_app_init(gd_app_context_t app, gd_app_module_t module, cfg_t c
     if (apple_iap_svr == NULL) return -1;
 
     apple_iap_svr->m_debug = cfg_get_int8(cfg, "debug", apple_iap_svr->m_debug);
+    apple_iap_svr->m_is_sandbox = atoi(is_sandbox);
+
+    net_trans_group_set_connect_timeout(apple_iap_svr->m_trans_group, 2 * 60 * 1000);
+    net_trans_group_set_transfer_timeout(apple_iap_svr->m_trans_group, 2 * 60 * 1000);
 
     if (apple_iap_svr_set_send_to(apple_iap_svr, send_to) != 0) {
         CPE_ERROR(gd_app_em(app), "%s: create: set send-to %s fail!", gd_app_module_name(module), send_to);
@@ -66,7 +78,7 @@ int apple_iap_svr_app_init(gd_app_context_t app, gd_app_module_t module, cfg_t c
     }
 
     if (apple_iap_svr->m_debug) {
-        CPE_INFO(gd_app_em(app), "%s: create: done.", gd_app_module_name(module));
+        CPE_INFO(gd_app_em(app), "%s: create: done. is-sandbox=%d", gd_app_module_name(module), apple_iap_svr->m_is_sandbox);
     }
 
     return 0;
