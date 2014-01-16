@@ -50,9 +50,6 @@ net_trans_manage_create(
     mgr->m_max_id = 0;
 
     mgr->m_cfg_dns_cache_timeout = 0;
-    mgr->m_cfg_connect_timeout_ms = 5000;
-    mgr->m_cfg_transfer_timeout_ms = 5000;
-    mgr->m_cfg_forbid_reuse = 0;
 
     if (cpe_hash_table_init(
             &mgr->m_groups,
