@@ -43,6 +43,7 @@ set_bpg_chanel_create(
     mgr->m_alloc = alloc;
     mgr->m_em = em;
     mgr->m_debug = 0;
+    mgr->m_pkg_max_size = 1 * 1024 * 1024;
 
     mgr->m_bpg_pkg_manage = bpg_pkg_manage;
     mgr->m_bpg_head = NULL;
