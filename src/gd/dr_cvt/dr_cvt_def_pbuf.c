@@ -19,7 +19,14 @@ dr_cvt_result_t dr_cvt_fun_pbuf_encode(
         CPE_ERROR(
             em, "encode %s: pbuf: fail, input buf "FMT_SIZE_T", output buf "FMT_SIZE_T,
             dr_meta_name(meta), *input_capacity, *output_capacity);
-        return dr_cvt_result_error;
+        switch(r) {
+        case dr_code_error_not_enough_output:
+            return dr_cvt_result_not_enough_output;
+        case dr_code_error_not_enough_input:
+            return dr_cvt_result_not_enough_input;
+        default:
+            return dr_cvt_result_error;
+        }
     }
 
     *output_capacity = r;
@@ -48,7 +55,14 @@ dr_cvt_fun_pbuf_decode(
         CPE_ERROR(
             em, "decode %s: pbuf: fail, input buf "FMT_SIZE_T", output buf "FMT_SIZE_T,
             dr_meta_name(meta), *input_capacity, *output_capacity);
-        return dr_cvt_result_error;
+        switch(r) {
+        case dr_code_error_not_enough_output:
+            return dr_cvt_result_not_enough_output;
+        case dr_code_error_not_enough_input:
+            return dr_cvt_result_not_enough_input;
+        default:
+            return dr_cvt_result_error;
+        }
     }
 
     *output_capacity = r;

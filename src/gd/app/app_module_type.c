@@ -1,4 +1,5 @@
 #include <assert.h>
+#include "cpe/pal/pal_platform.h"
 #include "cpe/pal/pal_string.h"
 #include "app_internal_ops.h"
 
@@ -72,6 +73,8 @@ gd_app_module_type_create(const char * type_name, error_monitor_t em) {
     size_t nameLen = cpe_hs_len_to_binary_len(strlen(type_name));
     struct gd_app_module_type * module_type = NULL;
     char * buf;
+
+    CPE_PAL_ALIGN_DFT(nameLen);
 
     buf = (char *)mem_alloc(NULL, nameLen + sizeof(struct gd_app_module_type));
     if (buf == NULL) {
