@@ -15,6 +15,7 @@
         <macro name="SVR_PAYMENT_ERRNO_NOT_ENOUTH_MONEY" value="4"/>
         <macro name="SVR_PAYMENT_ERRNO_RECHARGE_IAP_ERROR" value="5"/>
         <macro name="SVR_PAYMENT_ERRNO_PRODUCT_NOT_EXIST" value="6"/>
+        <macro name="SVR_PAYMENT_ERRNO_RECHARGE_PROCESSED" value="7"/>
     </macrosgroup>
 
     <!--  ============ 协议定义 ========== -->

@@ -19,7 +19,7 @@ void apple_iap_svr_request_validate(apple_iap_svr_t svr, dp_req_t pkg_body, dp_r
     net_trans_task_t task;
     SVR_APPLE_IAP_REQ_VALIDATE * req;
     struct apple_iap_task_data * task_data;
-    char request_buf[512];
+    char request_buf[SVR_APPLE_IAP_RECEIPT_MAX * 2];
     struct write_stream_mem request_stream = CPE_WRITE_STREAM_MEM_INITIALIZER(request_buf, sizeof(request_buf));
     struct read_stream_mem receipt_stream;
 
@@ -48,30 +48,33 @@ void apple_iap_svr_request_validate(apple_iap_svr_t svr, dp_req_t pkg_body, dp_r
     /*构造请求 */
     read_stream_mem_init(&receipt_stream, req->receipt, strlen(req->receipt));
 
-    stream_printf((write_stream_t)&request_stream, "{\"receipt-data\":");
+    stream_printf((write_stream_t)&request_stream, "{\"receipt-data\":\"");
     cpe_base64_encode((write_stream_t)&request_stream, (read_stream_t)&receipt_stream);
-    stream_printf((write_stream_t)&request_stream, "}");
+    stream_printf((write_stream_t)&request_stream, "\"}");
     stream_putc((write_stream_t)&request_stream, 0);
 
     if (svr->m_debug) {
-        CPE_INFO(svr->m_em, "%s: validate %s: send request %s!", apple_iap_svr_name(svr), task_data->m_receipt, request_buf);
+        CPE_INFO(svr->m_em, "%s: validate: send request %s!", apple_iap_svr_name(svr), request_buf);
     }
 
     /*发送请求 */
     if (net_trans_task_set_post_to(
             task, 
-            "https://sandbox.itunes.apple.com/verifyReceipt",
+            svr->m_is_sandbox
+            ? "https://sandbox.itunes.apple.com/verifyReceipt"
+            : "https://buy.itunes.apple.com/verifyReceipt"
+            ,
             request_buf,
-            123)
+            strlen(request_buf))
         != 0)
     {
-        CPE_ERROR(svr->m_em, "%s: validate %s: post %s fail!", apple_iap_svr_name(svr), req->receipt, request_buf);
+        CPE_ERROR(svr->m_em, "%s: validate: post %s fail!", apple_iap_svr_name(svr), request_buf);
         net_trans_task_free(task);
         return;
     }
 
     if (net_trans_task_start(task) != 0) {
-        CPE_ERROR(svr->m_em, "%s: validate %s: start request fail!", apple_iap_svr_name(svr), req->receipt);
+        CPE_ERROR(svr->m_em, "%s: validate: start request fail!", apple_iap_svr_name(svr));
         net_trans_task_free(task);
         return;
     }
@@ -84,11 +87,12 @@ static void apple_iap_svr_request_validate_commit(net_trans_task_t task, void * 
     struct apple_iap_task_data * task_data = net_trans_task_data(task);
     SVR_APPLE_IAP_RES_VALIDATE res;
     const char * response;
+    mem_buffer_t response_buf;
 
     if (net_trans_task_result(task) != net_trans_result_ok) {
         CPE_ERROR(
-            svr->m_em, "%s: validate %s: task not ok, result is %s!",
-            apple_iap_svr_name(svr), task_data->m_receipt,
+            svr->m_em, "%s: validate: task not ok, result is %s!",
+            apple_iap_svr_name(svr),
             net_trans_task_result_str(net_trans_task_result(task)));
 
         apple_iap_svr_request_validate_send_error_response(
@@ -98,11 +102,14 @@ static void apple_iap_svr_request_validate_commit(net_trans_task_t task, void * 
         return;
     }
 
-    response = mem_buffer_make_continuous(net_trans_task_buffer(task), 0);
+    response_buf = net_trans_task_buffer(task);
+    assert(response_buf);
+
+    mem_buffer_append_char(response_buf, 0);
+
+    response = mem_buffer_make_continuous(response_buf, 0);
     if (response == NULL) {
-        CPE_ERROR(
-            svr->m_em, "%s: validate %s: task not ok, response is NULL!",
-            apple_iap_svr_name(svr), task_data->m_receipt);
+        CPE_ERROR(svr->m_em, "%s: validate: task not ok, response is NULL!", apple_iap_svr_name(svr));
 
         apple_iap_svr_request_validate_send_error_response(
             svr, task_data->m_receipt, -1,
@@ -112,11 +119,23 @@ static void apple_iap_svr_request_validate_commit(net_trans_task_t task, void * 
     }
 
     bzero(&res, sizeof(res));
+    res.status = 0xcccccccc;
     if (dr_json_read(&res, sizeof(res), response, svr->m_meta_res_validate, svr->m_em) < 0) {
         CPE_ERROR(
-            svr->m_em, "%s: validate %s: parse response fail\n%s!",
-            apple_iap_svr_name(svr), task_data->m_receipt,
-            (const char *)mem_buffer_make_continuous(net_trans_task_buffer(task), 0));
+            svr->m_em, "%s: validate: parse response fail\n%s!",
+            apple_iap_svr_name(svr), response);
+
+        apple_iap_svr_request_validate_send_error_response(
+            svr, task_data->m_receipt, -1,
+            task_data->m_sn, task_data->m_from_svr_type, task_data->m_from_svr_id);
+
+        return;
+    }
+
+    if ((uint32_t)res.status == 0xcccccccc) {
+        CPE_ERROR(
+            svr->m_em, "%s: validate: read status fail\n%s!",
+            apple_iap_svr_name(svr), response);
 
         apple_iap_svr_request_validate_send_error_response(
             svr, task_data->m_receipt, -1,
@@ -126,10 +145,7 @@ static void apple_iap_svr_request_validate_commit(net_trans_task_t task, void * 
     }
 
     if (svr->m_debug) {
-        CPE_INFO(
-            svr->m_em, "%s: validate %s: receive response\n%s!",
-            apple_iap_svr_name(svr), task_data->m_receipt,
-            (const char *)mem_buffer_make_continuous(net_trans_task_buffer(task), 0));
+        CPE_INFO(svr->m_em, "%s: validate: receive response\n%s!", apple_iap_svr_name(svr), response);
     }
 
     if (set_svr_stub_send_response_data(
@@ -137,9 +153,7 @@ static void apple_iap_svr_request_validate_commit(net_trans_task_t task, void * 
             &res, sizeof(res), svr->m_meta_res_validate, NULL, 0)
         != 0)
     {
-        CPE_ERROR(
-            svr->m_em, "%s: validate %s: send response error!",
-            apple_iap_svr_name(svr), task_data->m_receipt);
+        CPE_ERROR(svr->m_em, "%s: validate: send response error!", apple_iap_svr_name(svr));
         return;
     }
 }
@@ -156,9 +170,7 @@ static void apple_iap_svr_request_validate_send_error_response(
             &res, sizeof(res), svr->m_meta_res_error, NULL, 0)
         != 0)
     {
-        CPE_ERROR(
-            svr->m_em, "%s: validate %s: send error response error!",
-            apple_iap_svr_name(svr), receipt);
+        CPE_ERROR(svr->m_em, "%s: validate: send error response error!", apple_iap_svr_name(svr));
         return;
     }
 }

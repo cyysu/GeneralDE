@@ -16,7 +16,7 @@
         <macro name="PAYMENT_IAP_RET_TOKEN_EXPIRED"       value="-112"/>
     </macrosgroup>
 
-    <macro name="PAYMENT_IAP_RECEIPT_LEN" value="128"/>
+    <macro name="PAYMENT_IAP_RECEIPT_LEN" value="4096"/>
 
     <struct name="svr_payment_recharge_data_iap" version="1">
         <entry name="receipt" type="string" size="PAYMENT_IAP_RECEIPT_LEN" id="1"/>

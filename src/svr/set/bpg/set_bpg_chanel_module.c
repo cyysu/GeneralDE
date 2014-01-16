@@ -1,5 +1,6 @@
 #include <assert.h>
 #include "cpe/pal/pal_external.h"
+#include "cpe/utils/string_utils.h"
 #include "cpe/cfg/cfg_read.h"
 #include "gd/app/app_context.h"
 #include "gd/app/app_module.h"
@@ -14,6 +15,7 @@ int set_bpg_chanel_app_init(gd_app_context_t app, gd_app_module_t module, cfg_t 
     const char * incoming_recv_at;
     const char * outgoing_dispatch_to;
     const char * outgoing_recv_at;
+    const char * str_pkg_max_size;
 
     bpg_pkg_manage = bpg_pkg_manage_find_nc(app, cfg_get_string(cfg, "pkg-manage", NULL));
     if (bpg_pkg_manage == NULL) {
@@ -87,8 +89,21 @@ int set_bpg_chanel_app_init(gd_app_context_t app, gd_app_module_t module, cfg_t 
         return -1;
     }
 
+    if ((str_pkg_max_size = cfg_get_string(cfg, "pkg-max-size", NULL))) {
+        uint64_t result;
+        if (cpe_str_parse_byte_size(&result, str_pkg_max_size) != 0) {
+            CPE_ERROR(
+                gd_app_em(app), "%s: create: read pkg-max-size %s fail!",
+                gd_app_module_name(module), str_pkg_max_size);
+            set_bpg_chanel_free(sp);
+            return -1;
+        }
+
+        sp->m_pkg_max_size = (uint32_t)result;
+    }
+
     if (sp->m_debug) {
-        CPE_INFO(gd_app_em(app), "%s: create: done.", gd_app_module_name(module));
+        CPE_INFO(gd_app_em(app), "%s: create: done. pkg-max-size=%d", gd_app_module_name(module), sp->m_pkg_max_size);
     }
 
     return 0;

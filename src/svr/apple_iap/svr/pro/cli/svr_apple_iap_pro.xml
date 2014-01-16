@@ -11,7 +11,7 @@
 
     <struct name="svr_apple_iap_res_validate" version="1">
         <entry name="status" type="int32" id="1"/>
-        <entry name="data" type="svr_apple_iap_purchase_data" id="2"/>
+        <entry name="receipt" type="svr_apple_iap_purchase_data" id="2"/>
     </struct>
 
     <!--    ´íÎóÏìÓ¦ -->
