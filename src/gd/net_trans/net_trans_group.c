@@ -16,6 +16,9 @@ net_trans_group_t net_trans_group_create(net_trans_manage_t mgr, const char * na
 
     group->m_mgr = mgr;
     group->m_name = (void*)(group + 1);
+    group->m_connect_timeout_ms = 60 * 1000;
+    group->m_transfer_timeout_ms = 60 * 1000;
+    group->m_forbid_reuse = 0;
     memcpy((void*)(group + 1), name, name_len);
 
     TAILQ_INIT(&group->m_tasks);
@@ -40,6 +43,14 @@ void net_trans_group_free(net_trans_group_t group) {
     cpe_hash_table_remove_by_ins(&mgr->m_groups, group);
 
     mem_free(mgr->m_alloc, group);
+}
+
+void net_trans_group_set_transfer_timeout(net_trans_group_t group, uint64_t timeout_ms) {
+    group->m_transfer_timeout_ms = timeout_ms;
+}
+
+void net_trans_group_set_connect_timeout(net_trans_group_t group, uint64_t timeout_ms) {
+    group->m_connect_timeout_ms = timeout_ms;
 }
 
 void net_trans_group_free_all(net_trans_manage_t mgr) {
