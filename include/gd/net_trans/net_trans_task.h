@@ -23,6 +23,9 @@ int net_trans_task_start(net_trans_task_t task);
 int net_trans_task_set_post_to(net_trans_task_t task, const char * uri, const char * data, int data_len);
 void net_trans_task_set_commit_op(net_trans_task_t task, net_trans_task_commit_op_t op, void * ctx);
 
+int net_trans_task_set_ssl_cainfo(net_trans_task_t task, const char * ca_file);
+
+
 const char * net_trans_task_state_str(net_trans_task_state_t state);
 const char * net_trans_task_result_str(net_trans_task_result_t result);
 
