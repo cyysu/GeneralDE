@@ -54,6 +54,7 @@ apple_iap_svr_create(
     svr->m_em = em;
     svr->m_stub = stub;
     svr->m_debug = 0;
+    svr->m_is_sandbox = 0;
 
     APPLE_IAP_SVR_LOAD_META(m_meta_res_validate, "svr_apple_iap_res_validate");
     APPLE_IAP_SVR_LOAD_META(m_meta_res_error, "svr_apple_iap_res_error");

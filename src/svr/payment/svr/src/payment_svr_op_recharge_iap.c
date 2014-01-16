@@ -1,4 +1,5 @@
 #include <assert.h>
+#include "cpe/pal/pal_stdio.h"
 #include "cpe/dr/dr_metalib_manage.h"
 #include "gd/app/app_log.h"
 #include "usf/logic/logic_data.h"
@@ -68,6 +69,13 @@ payment_svr_op_recharge_iap_send(
         != 0)
     {
         APP_CTX_ERROR(logic_context_app(ctx), "%s: iap: send request to apple_iap service fail!", payment_svr_name(svr));
+        logic_require_free(require);
+        logic_context_errno_set(ctx, SVR_PAYMENT_ERRNO_INTERNAL);
+        return logic_op_exec_result_false;
+    }
+
+    if (logic_require_timeout_start(require, 3 * 60 * 1000) != 0) {
+        APP_CTX_ERROR(logic_context_app(ctx), "%s: iap: set timeout fail!", payment_svr_name(svr));
         logic_require_free(require);
         logic_context_errno_set(ctx, SVR_PAYMENT_ERRNO_INTERNAL);
         return logic_op_exec_result_false;
@@ -146,11 +154,11 @@ payment_svr_op_recharge_iap_on_validate_result(
     }
 
     /*获取产品信息 */
-    product_info = payment_svr_meta_product_info_find(svr, validate_res->data.product_id);
+    product_info = payment_svr_meta_product_info_find(svr, validate_res->receipt.product_id);
     if (product_info == NULL) {
         CPE_ERROR(
-            svr->m_em, "%s: iap_on_validate_result: ipa validate return status %d, not success!",
-            payment_svr_name(svr), validate_res->status);
+            svr->m_em, "%s: iap_on_validate_result: product %s not exist",
+            payment_svr_name(svr), validate_res->receipt.product_id);
         logic_context_errno_set(ctx, SVR_PAYMENT_ERRNO_PRODUCT_NOT_EXIST);
         return logic_op_exec_result_false;
     }
@@ -165,18 +173,18 @@ payment_svr_op_recharge_iap_on_validate_result(
     bill = logic_data_data(bill_data);
 
     bill->way = payment_bill_way_in;
+
     for(i = 0; i < product_info->support_money_count; ++i) {
         if (product_info->support_moneies[i].type < PAYMENT_MONEY_TYPE_MIN) continue;
         if ((product_info->support_moneies[i].type - PAYMENT_MONEY_TYPE_MIN) >= bag_info->money_type_count) continue;
 
         bill->money.datas[bill->money.count].type = product_info->support_moneies[i].type;
-        bill->money.datas[bill->money.count].count = product_info->support_moneies[i].count * validate_res->data.quantity;
+        bill->money.datas[bill->money.count].count = product_info->support_moneies[i].count * validate_res->receipt.quantity;
         bill->money.count++;
     }
-    strncpy(
-        bill->recharge_way_info,
-        validate_res->data.original_transaction_id[0] ? validate_res->data.original_transaction_id : validate_res->data.transaction_id,
-        sizeof(bill->recharge_way_info));
+    snprintf(
+        bill->recharge_way_info, sizeof(bill->recharge_way_info),
+        "transaction_id="FMT_UINT64_T, validate_res->receipt.original_transaction_id);
 
     /*将支付信息插入数据库，插入结果判断是否已经支付 */
     insert_require = logic_require_create(stack, "iap_db_insert");
@@ -205,15 +213,23 @@ payment_svr_op_recharge_iap_on_db_insert(
 {
     if (logic_require_state(require) != logic_require_state_done) {
         if (logic_require_state(require) == logic_require_state_error) {
-            CPE_ERROR(
-                svr->m_em, "%s: %s: require state error, errno=%d, db error!",
-                payment_svr_name(svr), logic_require_name(require), logic_require_error(require));
-            logic_context_errno_set(ctx, SVR_PAYMENT_ERRNO_INTERNAL);
+            if (logic_require_error(require) == mongo_data_error_duplicate_key) {
+                CPE_ERROR(
+                    svr->m_em, "%s: %s: already recharged!",
+                    payment_svr_name(svr), logic_require_name(require));
+                logic_context_errno_set(ctx, SVR_PAYMENT_ERRNO_RECHARGE_PROCESSED);
+            }
+            else {
+                CPE_ERROR(
+                    svr->m_em, "%s: %s: require state error, errno=%d, db error!",
+                    payment_svr_name(svr), logic_require_name(require), logic_require_error(require));
+                logic_context_errno_set(ctx, SVR_PAYMENT_ERRNO_INTERNAL);
+            }
         }
         else {
             CPE_ERROR(
-                svr->m_em, "%s: %s: require state error, state = %s!",
-                payment_svr_name(svr), logic_require_name(require), logic_require_state_name(logic_require_state(require)));
+                svr->m_em, "%s: %s: db error %d!",
+                payment_svr_name(svr), logic_require_name(require), logic_require_error(require));
             logic_context_errno_set(ctx, SVR_PAYMENT_ERRNO_INTERNAL);
         }
 
@@ -243,22 +259,15 @@ static int payment_svr_op_recharge_iap_insert_validate_res(
     pkg_r = 0;
     pkg_r |= mongo_pkg_doc_open(db_pkg);
 
-    if (validate_res->data.original_transaction_id[0]) {
-        pkg_r |= mongo_pkg_append_string(db_pkg, "_id", validate_res->data.original_transaction_id);
-        pkg_r |= mongo_pkg_append_int32(db_pkg, "purchase_date", (int32_t)validate_res->data.original_purchase_date);
-    }
-    else {
-        pkg_r |= mongo_pkg_append_string(db_pkg, "_id", validate_res->data.transaction_id);
-        pkg_r |= mongo_pkg_append_int32(db_pkg, "purchase_date", (int32_t)validate_res->data.purchase_date);
-    }
-
+    pkg_r |= mongo_pkg_append_int64(db_pkg, "_id", (int64_t)validate_res->receipt.original_transaction_id);
+    pkg_r |= mongo_pkg_append_int64(db_pkg, "purchase_date", (int64_t)validate_res->receipt.original_purchase_date_ms);
     pkg_r |= mongo_pkg_append_int32(db_pkg, "status", validate_res->status);
-    pkg_r |= mongo_pkg_append_int32(db_pkg, "quantity", validate_res->data.quantity);
-    pkg_r |= mongo_pkg_append_string(db_pkg, "product_id", validate_res->data.product_id);
-    pkg_r |= mongo_pkg_append_string(db_pkg, "app_item_id", validate_res->data.app_item_id);
-    pkg_r |= mongo_pkg_append_int32(db_pkg, "version_external_identifier", (int32_t)validate_res->data.version_external_identifier);
-    pkg_r |= mongo_pkg_append_string(db_pkg, "bid", validate_res->data.bid);
-    pkg_r |= mongo_pkg_append_string(db_pkg, "bvrs", validate_res->data.bvrs);
+    pkg_r |= mongo_pkg_append_int32(db_pkg, "quantity", validate_res->receipt.quantity);
+    pkg_r |= mongo_pkg_append_string(db_pkg, "product_id", validate_res->receipt.product_id);
+    pkg_r |= mongo_pkg_append_int64(db_pkg, "item_id", validate_res->receipt.item_id);
+    pkg_r |= mongo_pkg_append_int32(db_pkg, "version_external_identifier", (int32_t)validate_res->receipt.version_external_identifier);
+    pkg_r |= mongo_pkg_append_string(db_pkg, "bid", validate_res->receipt.bid);
+    pkg_r |= mongo_pkg_append_string(db_pkg, "bvrs", validate_res->receipt.bvrs);
 
     pkg_r |= mongo_pkg_doc_close(db_pkg);
 
@@ -267,7 +276,7 @@ static int payment_svr_op_recharge_iap_insert_validate_res(
         return -1;
     }
 
-    if (mongo_cli_proxy_send(svr->m_db, db_pkg, NULL, NULL, 0, NULL, NULL, NULL) != 0) {
+    if (mongo_cli_proxy_send(svr->m_db, db_pkg, require, NULL, 0, NULL, NULL, NULL) != 0) {
         CPE_ERROR(svr->m_em, "%s: iap_insert_validate_res: send db request fail!", payment_svr_name(svr));
         return -1;
     }

@@ -71,7 +71,7 @@ payment_svr_op_recharge_send(
         return logic_op_exec_result_false;
     }
     res = logic_data_data(res_data);
-    res->result = 0;
+    res->result = -1;
     res->way_result = 0;
     res->balance.count = 0;
 
@@ -184,9 +184,11 @@ payment_svr_op_recharge_on_db_update(
             return logic_op_exec_result_false;
         }
 
+        res->result = 0;
+
         payment_svr_db_add_bill(svr, bag_info, req->user_id, bill_data, &res->balance);
 
-        return logic_op_exec_result_false;
+        return logic_op_exec_result_true;
     }
     else if (mongo_cli_result_n(update_result) == 0) { /*新用户，需要插入记录 */
         logic_require_t insert_require;
@@ -232,6 +234,7 @@ payment_svr_op_recharge_on_db_insert(
     bill_data = logic_data_data(logic_stack_data_find(stack, dr_meta_name(svr->m_meta_bill_data)));
     assert(bill_data);
 
+    res->result = 0;
     res->balance.count = bag_info->money_type_count;
     for(i = 0; i < bag_info->money_type_count; ++i) {
         res->balance.datas[i].type = PAYMENT_MONEY_TYPE_MIN + i;
