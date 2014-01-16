@@ -40,9 +40,9 @@ net_trans_task_t net_trans_task_create(net_trans_group_t group, size_t capacity)
     curl_easy_setopt(task->m_handler, CURLOPT_PRIVATE, task);
 
 	curl_easy_setopt(task->m_handler, CURLOPT_DNS_CACHE_TIMEOUT, mgr->m_cfg_dns_cache_timeout);
-	curl_easy_setopt(task->m_handler, CURLOPT_CONNECTTIMEOUT_MS, mgr->m_cfg_connect_timeout_ms);
-    curl_easy_setopt(task->m_handler, CURLOPT_TIMEOUT_MS, mgr->m_cfg_transfer_timeout_ms);
-	curl_easy_setopt(task->m_handler, CURLOPT_FORBID_REUSE, mgr->m_cfg_forbid_reuse);
+	curl_easy_setopt(task->m_handler, CURLOPT_CONNECTTIMEOUT_MS, group->m_connect_timeout_ms);
+    curl_easy_setopt(task->m_handler, CURLOPT_TIMEOUT_MS, group->m_transfer_timeout_ms);
+	curl_easy_setopt(task->m_handler, CURLOPT_FORBID_REUSE, group->m_forbid_reuse);
 
     if (mgr->m_debug >= 2) {
         curl_easy_setopt(task->m_handler, CURLOPT_STDERR, stderr );
@@ -57,6 +57,10 @@ net_trans_task_t net_trans_task_create(net_trans_group_t group, size_t capacity)
     curl_easy_setopt(task->m_handler, CURLOPT_NOPROGRESS, 0L);
     curl_easy_setopt(task->m_handler, CURLOPT_PROGRESSFUNCTION, net_tranks_task_prog_cb);
     curl_easy_setopt(task->m_handler, CURLOPT_PROGRESSDATA, task);
+
+    if (group->m_transfer_timeout_ms) {
+        curl_easy_setopt(task->m_handler, CURLOPT_CONNECTTIMEOUT_MS, (int)group->m_transfer_timeout_ms);
+    }
 
     cpe_hash_entry_init(&task->m_hh_for_mgr);
     if (cpe_hash_table_insert_unique(&mgr->m_tasks, task) != 0) {
@@ -188,10 +192,45 @@ int net_trans_task_set_post_to(net_trans_task_t task, const char * uri, const ch
         return -1;
     }
 
+    if (memcmp(uri, "https", 5) == 0) {
+        curl_easy_setopt(task->m_handler, CURLOPT_SSL_VERIFYPEER, 0);
+        curl_easy_setopt(task->m_handler, CURLOPT_SSL_VERIFYHOST, 0);
+    }
+
     if (mgr->m_debug) {
         CPE_INFO(
             mgr->m_em, "%s: task %d (%s): set post %d data to %s!",
             net_trans_manage_name(mgr), task->m_id, task->m_group->m_name, data_len, uri);
+    }
+
+    return 0;
+}
+
+int net_trans_task_set_ssl_cainfo(net_trans_task_t task, const char * ca_file) {
+    net_trans_manage_t mgr = task->m_group->m_mgr;
+
+    if (task->m_state != net_trans_task_init) {
+        CPE_ERROR(
+            mgr->m_em, "%s: task %d (%s): can`t set ssl cainfo %s in state %s!",
+            net_trans_manage_name(mgr), task->m_id, task->m_group->m_name,
+            ca_file, net_trans_task_state_str(task->m_state));
+        return -1;
+    }
+
+    if (curl_easy_setopt(task->m_handler, CURLOPT_SSL_VERIFYPEER, 1) != CURLM_OK
+        || curl_easy_setopt(task->m_handler, CURLOPT_CAINFO, ca_file) != CURLM_OK
+        )
+    {
+        CPE_ERROR(
+            mgr->m_em, "%s: task %d (%s): set ssl cainfo %s error!",
+            net_trans_manage_name(mgr), task->m_id, task->m_group->m_name, ca_file);
+        return -1;
+    }
+
+    if (mgr->m_debug) {
+        CPE_INFO(
+            mgr->m_em, "%s: task %d (%s): set ca info %s!",
+            net_trans_manage_name(mgr), task->m_id, task->m_group->m_name, ca_file);
     }
 
     return 0;
