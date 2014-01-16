@@ -1,4 +1,5 @@
 #include <assert.h>
+#include "cpe/pal/pal_platform.h"
 #include "cpe/pal/pal_stdio.h"
 #include "cpe/cfg/cfg_manage.h"
 #include "cpe/dr/dr_cfg.h"
@@ -13,6 +14,8 @@ logic_queue_create(logic_manage_t mgr, const char * queue_name) {
     char * buf;
     logic_queue_t queue;
     size_t name_len = cpe_hs_len_to_binary_len(strlen(queue_name));
+
+    CPE_PAL_ALIGN_DFT(name_len);
 
     buf = mem_alloc(mgr->m_alloc, sizeof(struct logic_queue) + name_len);
     if (buf == NULL) return NULL;

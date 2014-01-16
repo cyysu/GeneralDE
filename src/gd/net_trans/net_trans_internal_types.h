@@ -20,9 +20,6 @@ struct net_trans_manage {
     int m_still_running;
 
     int m_cfg_dns_cache_timeout;
-    int m_cfg_connect_timeout_ms;
-    int m_cfg_transfer_timeout_ms;
-    int m_cfg_forbid_reuse;
 
     uint32_t m_max_id;
     struct cpe_hash_table m_groups;
@@ -34,6 +31,9 @@ struct net_trans_manage {
 struct net_trans_group {
     net_trans_manage_t m_mgr;
     const char * m_name;
+    uint64_t m_connect_timeout_ms;
+    uint64_t m_transfer_timeout_ms;
+    int m_forbid_reuse;
     net_trans_task_list_t m_tasks;
 
     struct cpe_hash_entry m_hh_for_mgr;
