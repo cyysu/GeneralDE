@@ -64,7 +64,7 @@ set_svr_stub_buff_t set_svr_stub_buff_check_create(set_svr_stub_t stub, const ch
             return NULL;
         }
 
-        buff->m_shm_id = cpe_shm_key_gen(stub->m_pidfile, 'a');
+        buff->m_shm_id = cpe_shm_key_gen(stub->m_pidfile, shm_key);
         if (buff->m_shm_id == -1) {
             CPE_ERROR(
                 stub->m_em, "%s: buff_check_create: gen shm key fail, error=%d (%s)!",
@@ -73,13 +73,40 @@ set_svr_stub_buff_t set_svr_stub_buff_check_create(set_svr_stub_t stub, const ch
             return NULL;
         }
 
+    SHM_CREATE:
         h = cpe_shm_create(buff->m_shm_id, head_size + capacity, 0666);
         if (h == -1) {
-            CPE_ERROR(
-                stub->m_em, "%s: buff_check_create: create shm fai, shmid=%d, capacity=%.2fmb, errno=%d (%s)",
-                set_svr_stub_name(stub), buff->m_shm_id, (head_size + capacity) / 1024.0 / 1024.0, errno, strerror(errno));
-            mem_free(stub->m_alloc, buff);
-            return NULL;
+            if (errno == EEXIST) {
+                h = cpe_shm_get(buff->m_shm_id);
+                if (h == -1) {
+                    CPE_ERROR(
+                        stub->m_em, "%s: buff_check_create: shmid=%d already exist, get for remove fail, errno=%d (%s)",
+                        set_svr_stub_name(stub), buff->m_shm_id, errno, strerror(errno));
+                    mem_free(stub->m_alloc, buff);
+                    return NULL;
+                }
+
+                if (cpe_shm_rm(h) == -1) {
+                    CPE_ERROR(
+                        stub->m_em, "%s: buff_check_create: shmid=%d already exist, remove fail, errno=%d (%s)",
+                        set_svr_stub_name(stub), buff->m_shm_id, errno, strerror(errno));
+                    mem_free(stub->m_alloc, buff);
+                    return NULL;
+                }
+                else {
+                    CPE_ERROR(
+                        stub->m_em, "%s: buff_check_create: shmid=%d already exist, remove and try again",
+                        set_svr_stub_name(stub), buff->m_shm_id);
+                    goto SHM_CREATE;
+                }
+            }
+            else {
+                CPE_ERROR(
+                    stub->m_em, "%s: buff_check_create: create shm fai, shmid=%d, capacity=%.2fmb, errno=%d (%s)",
+                    set_svr_stub_name(stub), buff->m_shm_id, (head_size + capacity) / 1024.0 / 1024.0, errno, strerror(errno));
+                mem_free(stub->m_alloc, buff);
+                return NULL;
+            }
         }
 
         buff->m_buff = cpe_shm_attach(h, NULL, 0);
@@ -115,6 +142,10 @@ set_svr_stub_buff_t set_svr_stub_buff_check_create(set_svr_stub_t stub, const ch
     head->m_data_start = head_size;
     head->m_capacity = capacity;
     strncpy(head->m_name, name, sizeof(head->m_name));
+
+    if (stub->m_use_shm) {
+        set_svr_stub_write_pidfile(stub);
+    }
 
     if (stub->m_debug) {
         switch(buff->m_buff_type) {
