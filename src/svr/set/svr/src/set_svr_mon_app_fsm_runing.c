@@ -27,6 +27,7 @@ static void set_svr_mon_app_fsm_runing_enter(fsm_machine_t fsm, fsm_def_state_t 
     }
     else { /*父进程 */
         mon_app->m_pid = pid;
+        mon_app->m_last_start_time = set_svr_cur_time(svr);
 
         do {
             char dump_buffer[512];
@@ -51,7 +52,6 @@ static void set_svr_mon_app_fsm_runing_enter(fsm_machine_t fsm, fsm_def_state_t 
 
 static void set_svr_mon_app_fsm_runing_leave(fsm_machine_t fsm, fsm_def_state_t state, void * event) {
     set_svr_mon_app_t mon_app = fsm_machine_context(fsm);
-
     set_svr_mon_app_stop_state_timer(mon_app);
 }
 
@@ -63,7 +63,29 @@ static uint32_t set_svr_mon_app_fsm_runing_trans(fsm_machine_t fsm, fsm_def_stat
 
     switch(evt->m_type) {
     case set_svr_mon_app_fsm_evt_stoped:
-        return set_svr_mon_app_state_waiting;
+        if (mon_app->m_last_start_time
+            && (set_svr_cur_time(svr) - mon_app->m_last_start_time) > 10
+            )
+        {
+            if (mon->m_debug) {
+                CPE_INFO(
+                    svr->m_em, "%s: mon app %s: pid %d stoped, last run time %d, restart now!",
+                    set_svr_name(svr), mon_app->m_bin, mon_app->m_pid, (set_svr_cur_time(svr) - mon_app->m_last_start_time));
+            }
+
+            mon_app->m_pid = 0;
+            return set_svr_mon_app_state_runing;
+        }
+        else {
+            if (mon->m_debug) {
+                CPE_INFO(
+                    svr->m_em, "%s: mon app %s: pid %d stoped, last run time %d, restart later!",
+                    set_svr_name(svr), mon_app->m_bin, mon_app->m_pid, (set_svr_cur_time(svr) - mon_app->m_last_start_time));
+            }
+
+            mon_app->m_pid = 0;
+            return set_svr_mon_app_state_waiting;
+        }
     case set_svr_mon_app_fsm_evt_timeout: {
         int pid;
 
