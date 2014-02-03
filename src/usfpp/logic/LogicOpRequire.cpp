@@ -59,4 +59,13 @@ LogicOpRequire::copy(logic_data_t input) {
     return *(LogicOpData*)data;
 }
 
+void LogicOpRequire::timeoutStart(tl_time_span_t timeout_ms) {
+    if (logic_require_timeout_start(*this, timeout_ms) != 0) {
+        APP_CTX_THROW_EXCEPTION(
+            context().app(), 
+            ::std::runtime_error,
+            "require %s start timeout error", name().c_str());
+    }
+}
+
 }}
