@@ -3,6 +3,7 @@
 #include "cpe/pal/pal_socket.h"
 #include "cpe/pal/pal_stdio.h"
 #include "cpe/net/net_manage.h"
+#include "cpe/tl/tl_manage.h"
 #include "cpe/nm/nm_manage.h"
 #include "cpe/nm/nm_read.h"
 #include "cpe/dr/dr_metalib_manage.h"
@@ -322,4 +323,8 @@ TRY_AGAIN:
     }
 
     return blk;
+}
+
+uint32_t set_svr_cur_time(set_svr_t svr) {
+    return tl_manage_time_sec(gd_app_tl_mgr(svr->m_app));
 }

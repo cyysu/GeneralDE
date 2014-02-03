@@ -55,6 +55,7 @@
 
   mon:
     restart-wait-ms: 30000
+    debug: 1
 
   debug: 2
 
