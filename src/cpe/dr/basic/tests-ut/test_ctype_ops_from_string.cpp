@@ -26,6 +26,9 @@ public:
     int32_t as_int32(void) { return *((int32_t*)m_buf); }
     uint32_t as_uint32(void) { return *((uint32_t*)m_buf); }
 
+    int64_t as_int64(void) { return *((int64_t*)m_buf); }
+    uint64_t as_uint64(void) { return *((uint64_t*)m_buf); }
+
     char m_buf[128];
 };
 
@@ -191,6 +194,17 @@ TEST_F(CtypeOpsFromStringTest, uint32_down_overflow) {
 TEST_F(CtypeOpsFromStringTest, uint32_end_with_char) {
     EXPECT_EQ(-1, parse("uint32", "15a"));
 }
+
+TEST_F(CtypeOpsFromStringTest, uint64_min) {
+    EXPECT_EQ(0, parse("uint64", "0"));
+    EXPECT_EQ(0U, as_uint64());
+}
+
+TEST_F(CtypeOpsFromStringTest, uint64_max) {
+    EXPECT_EQ(0, parse("uint64", "0xFFFFFFFFFFFFFFFF"));
+    EXPECT_EQ((uint64_t)0xFFFFFFFFFFFFFFFFull, as_uint64());
+}
+
 
 TEST_F(CtypeOpsFromStringTest, string_basic) {
     EXPECT_EQ(-1, parse("string", "a"));
