@@ -49,6 +49,7 @@ struct set_svr_mon_app {
     struct fsm_machine m_fsm;
     gd_timer_id_t m_fsm_timer_id;
     pid_t m_pid;
+    uint32_t m_last_start_time;
 
     TAILQ_ENTRY(set_svr_mon_app) m_next;
 };
