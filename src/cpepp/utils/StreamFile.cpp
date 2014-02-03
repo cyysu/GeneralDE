@@ -2,6 +2,7 @@
 #include <stdexcept>
 #include "cpe/utils/file.h"
 #include "cpepp/utils/StreamFile.hpp"
+#include "cpe/pal/pal_stdio.h"
 
 namespace Cpe { namespace Utils {
 
@@ -10,7 +11,9 @@ WriteStremFile::WriteStremFile(const char * filename, error_monitor_t em, const 
 {
     FILE * file = file_stream_open(filename, mode, em);
     if (file == NULL) {
-        throw ::std::runtime_error("WriteStremFile: open file fail!");
+        char buf[256];
+        snprintf(buf, sizeof(buf), "WriteStremFile: open file(%s) fail!", filename);
+        throw ::std::runtime_error(buf);
     }
 
     write_stream_file_init(&m_stream, file, em);

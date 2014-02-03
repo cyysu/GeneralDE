@@ -34,6 +34,10 @@ public:
     void setError(int32_t err = -1) { logic_require_set_error_ex(*this, err); }
     void setDone(void) { logic_require_set_done(*this); }
 
+    bool timeoutIsStart(void) const { return logic_require_timeout_is_start(*this) ? true : false; }
+    void timeoutStart(tl_time_span_t timeout_ms);
+    void timeoutStop(void) { logic_require_timeout_stop(*this); }
+
     LogicOpData & data(const char * name);
     LogicOpData const & data(const char * name) const;
 
