@@ -39,6 +39,7 @@ net_trans_task_t net_trans_task_create(net_trans_group_t group, size_t capacity)
     }
     curl_easy_setopt(task->m_handler, CURLOPT_PRIVATE, task);
 
+    curl_easy_setopt(task->m_handler, CURLOPT_NOSIGNAL, 1);
 	curl_easy_setopt(task->m_handler, CURLOPT_DNS_CACHE_TIMEOUT, mgr->m_cfg_dns_cache_timeout);
 	curl_easy_setopt(task->m_handler, CURLOPT_CONNECTTIMEOUT_MS, group->m_connect_timeout_ms);
     curl_easy_setopt(task->m_handler, CURLOPT_TIMEOUT_MS, group->m_transfer_timeout_ms);
@@ -99,6 +100,9 @@ void net_trans_task_free(net_trans_task_t task) {
     if (mgr->m_debug) {
         CPE_INFO(mgr->m_em, "%s: task %d (%s): free!", net_trans_manage_name(mgr), task->m_id, task->m_group->m_name);
     }
+
+    curl_easy_cleanup(task->m_handler);
+    task->m_handler = NULL;
 
     TAILQ_REMOVE(&group->m_tasks, task, m_next_for_group);
     cpe_hash_table_remove_by_ins(&mgr->m_tasks, task);
