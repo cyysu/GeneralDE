@@ -90,4 +90,13 @@ void LogicOpContext::bind(logic_executor_t executor) {
     }
 }
 
+void LogicOpContext::timeoutStart(tl_time_span_t timeout_ms) {
+    if (logic_context_timeout_start(*this, timeout_ms) != 0) {
+        APP_CTX_THROW_EXCEPTION(
+            app(), 
+            ::std::runtime_error,
+            "context start timeout error");
+    }
+}
+
 }}
