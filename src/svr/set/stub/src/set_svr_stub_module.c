@@ -514,7 +514,7 @@ static int set_svr_stub_load_buffs(set_svr_stub_t stub) {
 
         buf_size += r_size;
 
-        if ((line_end = memchr(buf, '\n', buf_size))) {
+        while ((line_end = memchr(buf, '\n', buf_size))) {
             size_t line_len = line_end - buf + 1;
 
             *line_end = 0;
@@ -542,8 +542,15 @@ static int set_svr_stub_load_buffs(set_svr_stub_t stub) {
                     else if (stub->m_use_shm) {
                         set_svr_stub_buff_t buff = set_svr_stub_buff_shm_attach(stub, shmid);
                         if (buff == NULL) {
-                            CPE_ERROR(stub->m_em, "%s: load buffs: attach buff to shm fail, id=%d", set_svr_stub_name(stub), shmid);
-                            return -1;
+                            if (errno == ENOENT) {
+                                if (stub->m_debug) {
+                                    CPE_INFO(stub->m_em, "%s: load buffs: shm %d not exist, ignore", set_svr_stub_name(stub), shmid);
+                                }
+                            }
+                            else {
+                                CPE_ERROR(stub->m_em, "%s: load buffs: attach buff to shm fail, id=%d", set_svr_stub_name(stub), shmid);
+                                return -1;
+                            }
                         }
                     }
                     else {
@@ -560,13 +567,14 @@ static int set_svr_stub_load_buffs(set_svr_stub_t stub) {
             memmove(buf, buf + line_len, buf_size - line_len);
             buf_size -= line_len;
         }
-        else if (buf_size == sizeof(buf)) {
+
+        if (buf_size == sizeof(buf)) {
             CPE_ERROR(
                 stub->m_em, "%s: load buffs: read buff is full, line too lone!",
                 set_svr_stub_name(stub));
             return -1;
         }
-
+        
         if (r_size == 0) break;
     }while(0);
 

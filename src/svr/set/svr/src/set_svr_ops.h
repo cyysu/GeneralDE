@@ -24,6 +24,8 @@ ptr_int_t set_svr_dispatch_tick(void * ctx, ptr_int_t arg);
 
 ringbuffer_block_t set_svr_ringbuffer_alloc(set_svr_t svr, int size, uint32_t id);
 
+uint32_t set_svr_cur_time(set_svr_t svr);
+
 /*operations of set_svr_svr_type*/
 set_svr_svr_type_t set_svr_svr_type_create(set_svr_t svr, const char * svr_type);
 void set_svr_svr_type_free(set_svr_svr_type_t svr_type);
