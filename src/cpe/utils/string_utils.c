@@ -213,3 +213,47 @@ int cpe_str_parse_byte_size(uint64_t * result, const char * astring) {
     if (result) *result = res;
     return 0;
 }
+
+uint64_t cpe_str_parse_timespan_ms_with_dft(const char * astring, uint64_t dft) {
+    uint64_t r;
+    if (cpe_str_parse_timespan_ms(&r, astring) != 0) return dft;
+    return r;
+}
+
+int cpe_str_parse_timespan_ms(uint64_t * result, const char * astring) {
+    size_t sz;
+    char * last = NULL;
+    long res;
+    size_t numsize;
+    size_t post_size;
+    const char * post_str;
+
+    if (astring == NULL) return -1;
+
+    sz = strlen (astring);
+    res = strtol(astring, &last, 10);
+    if (res <= 0) return -1;
+
+    assert(last);
+    numsize  = last - astring;
+    post_size = sz - numsize;
+
+    post_str = astring + numsize;
+    if (post_size == 1 && post_str[0] == 's') {
+        res *= 1000;
+    }
+    else if (post_size == 1 && post_str[0] == 'm') {
+        res *= 60 * 1000;
+    }
+    else if (post_size == 2 && post_str[0] == 'm' && post_str[1] == 's') {
+    }
+    else if (post_size == 1 && post_str[0] == 'h') {
+        res *= 60 * 60 * 1000;
+    }
+    else {
+        return -1;
+    }
+
+    if (result) *result = res;
+    return 0;
+}
