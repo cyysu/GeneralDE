@@ -1,4 +1,5 @@
 #include "cpe/pal/pal_external.h"
+#include "cpe/pal/pal_stdio.h"
 #include "cpe/cfg/cfg_read.h"
 #include "gd/dr_store/dr_store.h"
 #include "gd/dr_store/dr_store_manage.h"
