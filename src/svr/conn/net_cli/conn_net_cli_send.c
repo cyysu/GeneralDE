@@ -80,6 +80,7 @@ RESIZE_AND_TRY_AGAIN:
                 curent_pkg_size - sizeof(SVR_CONN_NET_REQ_HEAD),
                 data, data_len, meta, cli->m_em);
         if (encode_size < 0) {
+            blk = ringbuffer_yield(cli->m_ringbuf, blk, curent_pkg_size);
             if (encode_size == dr_code_error_not_enough_output) {
                 if (curent_pkg_size < cli->m_max_pkg_size) {
                     curent_pkg_size *= 2;
@@ -90,14 +91,12 @@ RESIZE_AND_TRY_AGAIN:
                             conn_net_cli_name(cli), (int)curent_pkg_size, (int)data_len);
                     }
 
-                    ringbuffer_free(cli->m_ringbuf, blk);
                     goto RESIZE_AND_TRY_AGAIN;
                 }
                 else {
                     CPE_ERROR(
                         cli->m_em, "%s: send: encode require buf too big!, curent_pkg_size=%d, input_data_len=%d",
                         conn_net_cli_name(cli), (int)curent_pkg_size, (int)data_len);
-                    ringbuffer_free(cli->m_ringbuf, blk);
                     return -1;
                 }
             }
@@ -105,7 +104,6 @@ RESIZE_AND_TRY_AGAIN:
                 CPE_ERROR(
                     cli->m_em, "%s: send: encode fail!, curent_pkg_size=%d, input_data_len=%d",
                     conn_net_cli_name(cli), (int)curent_pkg_size, (int)data_len);
-                ringbuffer_free(cli->m_ringbuf, blk);
                 return -1;
             }
         }

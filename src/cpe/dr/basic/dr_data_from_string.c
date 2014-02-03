@@ -186,6 +186,17 @@ static int dr_set_uint ## __bit ## _from_string(                        \
         return *(s - 1) == 0 ? 0 : -1;                                  \
 }
 
+#ifndef INT64_MIN
+#define INT64_MIN _I64_MIN
+#endif
+
+#ifndef INT64_MAX
+#define INT64_MAX _I64_MAX
+#endif
+
+#ifndef UINT64_MAX
+#define UINT64_MAX _UI64_MAX
+#endif
 
 DR_TYPE_BUILD_READ_INT_FUN(8, CHAR_MIN, CHAR_MAX)
 DR_TYPE_BUILD_READ_UINT_FUN(8, UCHAR_MAX)
@@ -193,8 +204,8 @@ DR_TYPE_BUILD_READ_INT_FUN(16, SHRT_MIN, SHRT_MAX)
 DR_TYPE_BUILD_READ_UINT_FUN(16, USHRT_MAX)
 DR_TYPE_BUILD_READ_INT_FUN(32, INT_MIN, INT_MAX)
 DR_TYPE_BUILD_READ_UINT_FUN(32, UINT_MAX)
-DR_TYPE_BUILD_READ_INT_FUN(64, LONG_MIN, LONG_MAX)
-DR_TYPE_BUILD_READ_UINT_FUN(64, ULONG_MAX)
+DR_TYPE_BUILD_READ_INT_FUN(64, INT64_MIN, INT64_MAX)
+DR_TYPE_BUILD_READ_UINT_FUN(64, UINT64_MAX)
 
 #ifdef _CPE_NO_STRTOF
 static int dr_set_float_from_string(void * output, LPDRMETAENTRY entry, const char * s, error_monitor_t em) {
