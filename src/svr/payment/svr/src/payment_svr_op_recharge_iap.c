@@ -74,7 +74,9 @@ payment_svr_op_recharge_iap_send(
         return logic_op_exec_result_false;
     }
 
-    if (logic_require_timeout_start(require, 3 * 60 * 1000) != 0) {
+    if (logic_require_timeout_start(require, 3 * 60 * 1000) != 0
+        || logic_context_timeout_start(ctx, 3 * 60 * 1000) != 0)
+    {
         APP_CTX_ERROR(logic_context_app(ctx), "%s: iap: set timeout fail!", payment_svr_name(svr));
         logic_require_free(require);
         logic_context_errno_set(ctx, SVR_PAYMENT_ERRNO_INTERNAL);
