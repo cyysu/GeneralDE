@@ -44,6 +44,7 @@ set_svr_mon_app_create(
     }
 
     mon_app->m_pid = 0;
+    mon_app->m_last_start_time = 0;
     mon_app->m_fsm_timer_id = GD_TIMER_ID_INVALID;
     mon_app->m_mon = mon;
     mon_app->m_args = NULL;
