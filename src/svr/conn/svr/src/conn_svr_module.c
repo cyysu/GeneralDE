@@ -18,7 +18,8 @@ int conn_svr_app_init(gd_app_context_t app, gd_app_module_t module, cfg_t cfg) {
     set_svr_svr_info_t svr_info;
     conn_svr_t conn_svr;
     uint32_t check_span_ms;
-    uint32_t conn_timeout_s;
+    const char * str_conn_timeout_s;
+    uint64_t conn_timeout_s;
     const char * ip;
     const char * str_port;
     short port;
@@ -36,6 +37,15 @@ int conn_svr_app_init(gd_app_context_t app, gd_app_module_t module, cfg_t cfg) {
         return -1;
     }
     port = atoi(str_port);
+
+    if ((str_conn_timeout_s = gd_app_arg_find(app, "--timeout")) == NULL) {
+        CPE_ERROR(gd_app_em(app), "%s: create: --timeout not configured in args!", gd_app_module_name(module));
+        return -1;
+    }
+    if (cpe_str_parse_timespan_ms(&conn_timeout_s, str_conn_timeout_s) != 0) {
+        CPE_ERROR(gd_app_em(app), "%s: create: read timeout %s fail!", gd_app_module_name(module), str_conn_timeout_s);
+        return -1;
+    }
 
     accept_queue_size = cfg_get_int32(cfg, "accept-queue-size", 1024);
 
@@ -68,11 +78,6 @@ int conn_svr_app_init(gd_app_context_t app, gd_app_module_t module, cfg_t cfg) {
 
     if (cfg_try_get_uint32(cfg, "check-span-ms", &check_span_ms) != 0) {
         CPE_ERROR(gd_app_em(app), "%s: create: check-span-ms not configured!", gd_app_module_name(module));
-        return -1;
-    }
-
-    if (cfg_try_get_uint32(cfg, "conn-timeout-s", &conn_timeout_s) != 0) {
-        CPE_ERROR(gd_app_em(app), "%s: create: conn-timeout-s not configured!", gd_app_module_name(module));
         return -1;
     }
 
@@ -132,7 +137,7 @@ int conn_svr_app_init(gd_app_context_t app, gd_app_module_t module, cfg_t cfg) {
         return -1;
     }
 
-    conn_svr->m_conn_timeout_s = conn_timeout_s;
+    conn_svr->m_conn_timeout_s = (uint32_t)conn_timeout_s;
 
     if (conn_svr_load_backends(conn_svr, stub) != 0) {
         conn_svr_free(conn_svr);
@@ -140,7 +145,9 @@ int conn_svr_app_init(gd_app_context_t app, gd_app_module_t module, cfg_t cfg) {
     }
 
     if (conn_svr->m_debug) {
-        CPE_INFO(gd_app_em(app), "%s: create: done. listen at %s:%d", gd_app_module_name(module), ip, port);
+        CPE_INFO(
+            gd_app_em(app), "%s: create: done. listen at %s:%d, timeout=%d",
+            gd_app_module_name(module), ip, port, conn_svr->m_conn_timeout_s);
     }
 
     return 0;
