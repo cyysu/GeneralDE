@@ -50,6 +50,10 @@ public:
     void cancel(void) { logic_context_cancel(*this); }
     void timeout(void) { logic_context_timeout(*this); }
 
+    bool timeoutIsStart(void) const { return logic_context_timeout_is_start(*this) ? true : false; }
+    void timeoutStart(tl_time_span_t timeout_ms);
+    void timeoutStop(void) { logic_context_timeout_stop(*this); }
+
     Gd::App::Application & app(void) { return Gd::App::Application::_cast(logic_context_app(*this)); }
     Gd::App::Application const & app(void) const { return Gd::App::Application::_cast(logic_context_app(*this)); }
 
