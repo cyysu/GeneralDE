@@ -108,7 +108,9 @@ int dr_pbuf_write(
         }
 
         for(; curStack->m_entry_pos < curStack->m_entry_count
-                && curStack->m_entry;
+                && curStack->m_entry
+                && curStack->m_entry->m_data_start_pos < curStack->m_input_data_capacity
+                ;
             ++curStack->m_entry_pos
                 , curStack->m_array_pos = 0
                 , curStack->m_entry = dr_meta_entry_at(curStack->m_meta, curStack->m_entry_pos)

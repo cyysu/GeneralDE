@@ -45,7 +45,7 @@
   load-from-symbol: g_metalib_svr_conn_pro
 
 - name: set_svr_stub
-  svr-type: svr_conn
+  svr-type: $svr-type
   request-send-to: process-conn-request
   response-send-to: process-conn-trans
   notify-send-to: process-conn-trans

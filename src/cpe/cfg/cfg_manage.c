@@ -162,6 +162,18 @@ cfg_t cfg_seq_add_value_from_string(cfg_t s, int typeId, const char * value) {
     return rv;
 }
 
+cfg_t cfg_seq_add_value(cfg_t s, int typeId) {
+    int capacity;
+
+    if (typeId == CPE_CFG_TYPE_STRUCT) return cfg_seq_add_struct(s);
+    if (typeId == CPE_CFG_TYPE_SEQUENCE) return cfg_seq_add_seq(s);
+
+    capacity = dr_type_size(typeId);
+    if (capacity <= 0) return NULL;
+
+    return cfg_seq_item_create((struct cfg_seq *)s, typeId, capacity);
+}
+
 cfg_t cfg_seq_add_value_from_binary(cfg_t s, int typeId, const void * value) {
     switch(typeId) {
     case CPE_CFG_TYPE_STRUCT:
@@ -209,6 +221,18 @@ cfg_t cfg_seq_add_value_from_binary(cfg_t s, int typeId, const void * value) {
     default:
         return NULL;
     }
+}
+
+cfg_t cfg_struct_add_value(cfg_t s, const char * name, int typeId, cfg_policy_t policy) {
+    int capacity;
+
+    if (typeId == CPE_CFG_TYPE_STRUCT) return cfg_struct_add_struct(s, name, policy);
+    if (typeId == CPE_CFG_TYPE_SEQUENCE) return cfg_struct_add_seq(s, name, policy);
+
+    capacity = dr_type_size(typeId);
+    if (capacity <= 0) return NULL;
+
+    return cfg_struct_item_create((struct cfg_struct *)s, name, typeId, capacity, policy);
 }
 
 cfg_t cfg_struct_add_value_from_string(cfg_t s, const char * name, int typeId, const char * value, cfg_policy_t policy) {
