@@ -44,13 +44,18 @@
   type: dr_store_loader
   load-from-symbol: g_metalib_svr_account_pro
 
+- name: svr_conn_lib
+  type: dr_store_loader
+  load-from-symbol: g_metalib_svr_conn_pro
+
 - name: db-connection
   type: mongo_driver
   outgoing-recv-at: db-connection-send
   incoming-send-to: db-client-process
+  server-arg-name: $db-svr
   #servers:
   #pkg-buf-max-size:
-  #ringbuf-size:
+  ringbuf-size: $db-buf-size
   auto-enable: 1
   debug: 0
 
@@ -59,8 +64,7 @@
   mongo-driver: db-connection
   incoming-recv-at: db-client-process
   outgoing-send-to: db-connection-send
-  dft-db: account
-  buf-size: 4096000
+  dft-db: $db-ns
   debug: 0
 
 - name: id-generator

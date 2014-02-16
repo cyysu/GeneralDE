@@ -35,3 +35,4 @@ set_logic_sp_app_fini
 account_svr_app_init
 account_svr_app_fini
 g_metalib_svr_account_pro
+g_metalib_svr_conn_pro

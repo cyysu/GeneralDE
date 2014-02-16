@@ -6,6 +6,7 @@
 #include "cpe/dp/dp_manage.h"
 #include "gd/app/app_context.h"
 #include "gd/app/app_module.h"
+#include "usf/mongo_use/id_generator.h"
 #include "svr/set/stub/set_svr_stub.h"
 #include "svr/set/stub/set_svr_svr_info.h"
 #include "svr/set/logic/set_logic_sp.h"
@@ -22,6 +23,7 @@ int account_svr_app_init(gd_app_context_t app, gd_app_module_t module, cfg_t cfg
     account_svr_t account_svr;
     set_logic_rsp_manage_t rsp_manage;
     mongo_cli_proxy_t db;
+    mongo_id_generator_t id_generator;
 
     stub = set_svr_stub_find_nc(app, cfg_get_string(cfg, "set-stub", NULL));
     if (stub == NULL) {
@@ -55,10 +57,16 @@ int account_svr_app_init(gd_app_context_t app, gd_app_module_t module, cfg_t cfg
         return -1;
     }
 
+    id_generator = mongo_id_generator_find_nc(app, "id-generator");
+    if (id_generator == NULL) {
+        CPE_ERROR(gd_app_em(app), "%s: add: get id-generate fail!", gd_app_module_name(module));
+        return -1;
+    }
+
     account_svr =
         account_svr_create(
             app, gd_app_module_name(module),
-            stub, set_sp, rsp_manage, db,
+            stub, set_sp, rsp_manage, db, id_generator,
             gd_app_alloc(app), gd_app_em(app));
     if (account_svr == NULL) return -1;
 
