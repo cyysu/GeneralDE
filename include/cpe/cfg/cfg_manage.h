@@ -3,6 +3,7 @@
 #include "cpe/utils/memory.h"
 #include "cpe/utils/stream.h"
 #include "cpe/utils/error.h"
+#include "cpe/utils/buffer.h"
 #include "cpe/zip/zip_types.h"
 #include "cfg_types.h"
 
@@ -27,6 +28,7 @@ cfg_t cfg_struct_add_int64(cfg_t s, const char * name, int64_t v, cfg_policy_t p
 cfg_t cfg_struct_add_uint64(cfg_t s, const char * name, uint64_t v, cfg_policy_t policy);
 cfg_t cfg_struct_add_float(cfg_t s, const char * name, float v, cfg_policy_t policy);
 cfg_t cfg_struct_add_double(cfg_t s, const char * name, double v, cfg_policy_t policy);
+cfg_t cfg_struct_add_value(cfg_t s, const char * name, int typeId, cfg_policy_t policy);
 cfg_t cfg_struct_add_value_from_string(cfg_t s, const char * name, int typeId, const char * value, cfg_policy_t policy);
 cfg_t cfg_struct_add_value_from_string_auto(cfg_t s, const char * name, const char * value, cfg_policy_t policy);
 cfg_t cfg_struct_add_value_from_binary(cfg_t s, const char * name, int typeId, const void * value, cfg_policy_t policy);
@@ -45,6 +47,7 @@ cfg_t cfg_seq_add_int64(cfg_t s, int64_t v);
 cfg_t cfg_seq_add_uint64(cfg_t s, uint64_t v);
 cfg_t cfg_seq_add_float(cfg_t s, float v);
 cfg_t cfg_seq_add_double(cfg_t s, double v);
+cfg_t cfg_seq_add_value(cfg_t s, int typeId);
 cfg_t cfg_seq_add_value_from_string(cfg_t s, int typeId, const char * value);
 cfg_t cfg_seq_add_value_from_string_auto(cfg_t s, const char * value);
 cfg_t cfg_seq_add_value_from_binary(cfg_t s, int typeId, const void * value);
@@ -72,6 +75,11 @@ int cfg_write(write_stream_t stream, cfg_t cfg, error_monitor_t em);
 int cfg_read_dir(cfg_t cfg, const char * path, cfg_policy_t policy, error_monitor_t em, mem_allocrator_t talloc);
 int cfg_read_file(cfg_t cfg, const char * path, cfg_policy_t policy, error_monitor_t em);
 int cfg_merge(cfg_t cfg, cfg_t input, cfg_policy_t policy, error_monitor_t em);
+
+int cfg_write_bin(void * result, size_t result_capacity, cfg_t cfg, error_monitor_t em);
+int cfg_write_bin_to_buffer(mem_buffer_t result, cfg_t cfg, error_monitor_t em);
+int cfg_read_bin(cfg_t cfg, void const  * input, size_t input_len, error_monitor_t em);
+int cfg_read_bin_with_name(cfg_t cfg, const char * name, void const  * input, size_t input_len, error_monitor_t em);
 
 int cfg_apply_modify(cfg_t cfg, cfg_t modify_info, error_monitor_t em);
 int cfg_apply_modify_seq(cfg_t cfg, cfg_t modify_info, error_monitor_t em);

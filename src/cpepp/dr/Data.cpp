@@ -1,7 +1,9 @@
 #include <limits>
 #include <stdexcept>
 #include "cpe/pal/pal_strings.h"
+#include "cpe/utils/stream_buffer.h"
 #include "cpepp/utils/ErrorCollector.hpp"
+#include "cpe/dr/dr_json.h"
 #include "cpe/dr/dr_data.h"
 #include "cpepp/dr/Data.hpp"
 #include "cpepp/dr/Meta.hpp"
@@ -443,6 +445,28 @@ ConstDataElement ConstData::operator[](LPDRMETAENTRY entry) const {
     else {
         return ConstDataElement(((char *)const_cast<void*>(m_data)) + off, entry);
     }
+}
+
+const char * ConstData::dump_data(mem_buffer_t buffer) const {
+    write_stream_buffer stream = CPE_WRITE_STREAM_BUFFER_INITIALIZER(buffer);
+
+    mem_buffer_clear_data(buffer);
+
+    dump_data((write_stream_t)&stream);
+
+    stream_putc((write_stream_t)&stream, 0);
+
+    return (const char *)mem_buffer_make_continuous(buffer, 0);
+}
+
+void ConstData::dump_data(write_stream_t stream) const {
+    dr_json_print(
+        stream,
+        m_data,
+        m_capacity, 
+        m_meta,
+        DR_JSON_PRINT_MINIMIZE,
+        0);
 }
 
 //class Data
