@@ -81,7 +81,7 @@ TEST_F(ReadTest, union_select_no_daata) {
         );
 
     t_em_set_print();
-    EXPECT_EQ(8, read("S2", "s: 3"));
+    EXPECT_EQ(4, read("S2", "s: 3"));
     
     EXPECT_CFG_EQ(
         "s: 3\n"
