@@ -1,8 +1,8 @@
 product:=account_svr_lib
 $(product).type:=cpe-dr lib 
 $(product).depends:=cpe_cfg cpe_dr cpe_dr_data_cfg cpe_dr_data_pbuf cpe_tl cpe_dp cpe_nm \
-                    gd_net gd_app gd_log gd_dr_store usf_mongo_use \
-                    set_logic
+                    gd_utils gd_net gd_app gd_log gd_dr_store usf_mongo_use \
+                    set_logic conn_agent
 
 $(product).c.sources:=$(filter-out %/main.c,$(wildcard $(product-base)/*.c))
 
