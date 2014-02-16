@@ -181,6 +181,21 @@ const char * conn_net_cli_name(conn_net_cli_t cli) {
     return nm_node_name(nm_node_from_data(cli));
 }
 
+const char * conn_net_cli_state_name(conn_net_cli_state_t state) {
+    switch(state) {
+    case conn_net_cli_state_disable:
+        return "disable";
+    case conn_net_cli_state_disconnected:
+        return "disconnected";
+    case conn_net_cli_state_connecting:
+        return "connecting";
+    case conn_net_cli_state_established:
+        return "established";
+    default:
+        return "unknown-net-cli-state";
+    }
+}
+
 cpe_hash_string_t
 conn_net_cli_name_hs(conn_net_cli_t cli) {
     return nm_node_name_hs(nm_node_from_data(cli));

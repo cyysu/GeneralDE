@@ -71,6 +71,16 @@ int set_svr_stub_app_init(gd_app_context_t app, gd_app_module_t module, cfg_t cf
         return -1;
     }
 
+    if (svr_type_name[0] == '$') {
+        char arg_name_buff[128];
+        snprintf(arg_name_buff, sizeof(arg_name_buff), "--%s", svr_type_name + 1);
+        svr_type_name = gd_app_arg_find(app, arg_name_buff);
+        if (svr_type_name == NULL) {
+            CPE_ERROR(gd_app_em(app), "%s: create: %s not configured!", gd_app_module_name(module), arg_name_buff);
+            return -1;
+        }
+    }
+
     str_svr_id = gd_app_arg_find(app, "--app-id");
     if (str_svr_id == NULL) {
         CPE_ERROR(gd_app_em(app), "%s: create: app-id not configured in command line!", gd_app_module_name(module));

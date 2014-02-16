@@ -86,6 +86,19 @@ set_svr_svr_info_t set_svr_svr_info_find_by_name(set_svr_stub_t stub, const char
     return NULL;
 }
 
+set_svr_svr_info_t set_svr_svr_info_find_by_meta(set_svr_stub_t stub, const char * meta_name) {
+    struct cpe_hash_it svr_info_it;
+    set_svr_svr_info_t svr_info;
+
+    cpe_hash_it_init(&svr_info_it, &stub->m_svr_infos);
+
+    while((svr_info = cpe_hash_it_next(&svr_info_it))) {
+        if (strcmp(dr_meta_name(svr_info->m_pkg_meta), meta_name) == 0) return svr_info;
+    }
+
+    return NULL;
+}
+
 void set_svr_svr_info_free_all(set_svr_stub_t stub) {
     struct cpe_hash_it svr_info_it;
     set_svr_svr_info_t svr_info;
