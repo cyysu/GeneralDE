@@ -13,6 +13,8 @@ set_svr_svr_info_t
 set_svr_svr_info_find(set_svr_stub_t svr, uint16_t svr_type);
 set_svr_svr_info_t
 set_svr_svr_info_find_by_name(set_svr_stub_t svr, const char * svr_name);
+set_svr_svr_info_t
+set_svr_svr_info_find_by_meta(set_svr_stub_t svr, const char * meta_name);
 
 uint16_t set_svr_svr_info_svr_type_id(set_svr_svr_info_t svr_info);
 const char * set_svr_svr_info_svr_type_name(set_svr_svr_info_t svr_info);
