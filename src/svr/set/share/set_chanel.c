@@ -285,6 +285,7 @@ static int set_chanel_pipe_write(SVR_SET_CHANEL * chanel, SVR_SET_PIPE * pipe, d
 
         write_size = set_chanel_pipe_save_pkg(body, head, carry, buf + pipe->wp, pipe->capacity - pipe->wp, em);
         if (write_size > 0) {
+            assert(pipe->wp + write_size < pipe->capacity);
             pipe->wp += write_size;
             if (pipe->wp == pipe->capacity) pipe->wp = 0;
         }

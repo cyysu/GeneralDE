@@ -63,6 +63,7 @@ dr_pbuf_read_get_array_info(
 static char * dr_pbuf_read_get_write_pos(
     struct dr_pbuf_read_ctx * ctx,
     struct dr_pbuf_read_stack * stackInfo,
+    LPDRMETAENTRY entry,
     int start_pos,
     size_t capacity)
 {
@@ -78,7 +79,10 @@ static char * dr_pbuf_read_get_write_pos(
 
     if (ctx->m_output_buf) {
         if (total_size > ctx->m_output_capacity) {
-            CPE_ERROR_EX(ctx->m_em, dr_code_error_not_enough_output, "dr_pbuf_read: not enouth output!");
+            CPE_ERROR_EX(
+                ctx->m_em, dr_code_error_not_enough_output,
+                "dr_pbuf_read: %s.%s: not enouth output, total_size=%d, output-capacity=%d!",
+                dr_meta_name(stackInfo->m_meta), dr_entry_name(entry), (int)total_size, (int)ctx->m_output_capacity);
             return NULL;
         }
 
@@ -175,7 +179,7 @@ static char * dr_pbuf_read_get_write_pos(
         } u;                                                            \
         uint8_t const * i = curStack->m_input_data + curStack->m_input_size; \
         writeBuf = dr_pbuf_read_get_write_pos(                          \
-            &ctx, curStack, dr_pbuf_read_start_pos(), elementSize); \
+            &ctx, curStack, entry, dr_pbuf_read_start_pos(), elementSize); \
         if (writeBuf == NULL) return -1;                 \
                                                                         \
         dr_pbuf_read_check_capacity(4);                                 \
@@ -198,7 +202,7 @@ static char * dr_pbuf_read_get_write_pos(
         } u;                                                            \
         uint8_t const * i = curStack->m_input_data + curStack->m_input_size; \
         writeBuf = dr_pbuf_read_get_write_pos(                          \
-            &ctx, curStack, dr_pbuf_read_start_pos(), elementSize);                \
+            &ctx, curStack, entry, dr_pbuf_read_start_pos(), elementSize); \
         if (writeBuf == NULL) return -1;                 \
                                                                         \
         dr_pbuf_read_check_capacity(8);                                 \
@@ -224,7 +228,7 @@ static char * dr_pbuf_read_get_write_pos(
             int64_t i64;                                                \
         } u;                                                            \
         writeBuf = dr_pbuf_read_get_write_pos(                          \
-            &ctx, curStack, dr_pbuf_read_start_pos(), elementSize);                \
+            &ctx, curStack, entry, dr_pbuf_read_start_pos(), elementSize); \
         if (writeBuf == NULL) return -1;                 \
         dr_pbuf_read_decode_varint(u.sep);                              \
         dr_pbuf_dezigzag64(&u.sep);                                 \
@@ -238,7 +242,7 @@ static char * dr_pbuf_read_get_write_pos(
             uint64_t u64;                                               \
         } u;                                                            \
         writeBuf = dr_pbuf_read_get_write_pos(                          \
-            &ctx, curStack, dr_pbuf_read_start_pos(), elementSize);                \
+            &ctx, curStack, entry, dr_pbuf_read_start_pos(), elementSize); \
         if (writeBuf == NULL) return -1;                 \
         dr_pbuf_read_decode_varint(u.sep);                              \
         dr_entry_set_from_uint64(writeBuf, u.u64, entry, em);           \
@@ -285,7 +289,7 @@ static int dr_pbuf_read_i(
     ctx.m_output_capacity = output_capacity;
     ctx.m_output_alloc = result_buf;
     ctx.m_em = em;
-    ctx.m_used_size = dr_meta_size(meta);
+    ctx.m_used_size = 0;
 
     dr_pbuf_read_stack_init(
         &processStack[0], NULL, 0, meta, input, input_capacity);
@@ -336,7 +340,7 @@ static int dr_pbuf_read_i(
                     selectElementSize = dr_entry_element_size(selectEntry);
 
                     writeBuf = dr_pbuf_read_get_write_pos(
-                        &ctx, preStack, selectEntry->m_data_start_pos, selectElementSize);
+                        &ctx, preStack, selectEntry, selectEntry->m_data_start_pos, selectElementSize);
                     if (writeBuf == NULL) return -1;
 
                     dr_entry_set_from_uint32(writeBuf, entry->m_id, selectEntry, em);
@@ -368,9 +372,9 @@ static int dr_pbuf_read_i(
                     dr_pbuf_read_check_capacity(len);
                     curStack->m_input_size += len;
 
-                    if (stackPos + 1 < CPE_DR_MAX_LEVEL) {
+                    if (len > 0 && stackPos + 1 < CPE_DR_MAX_LEVEL) {
                         struct dr_pbuf_read_stack * nextStack;
-                        size_t total_size;
+
                         nextStack = &processStack[stackPos + 1];
 
                         dr_pbuf_read_stack_init(
@@ -378,20 +382,8 @@ static int dr_pbuf_read_i(
                             dr_entry_ref_meta(entry),
                             curStack->m_input_data + curStack->m_input_size - len, len);
 
-                        total_size = curStack->m_output_start_pos + dr_pbuf_read_start_pos() + elementSize;
-
                         ++stackPos;
                         if (array_info) ++array_info->m_count;
-
-                        if (total_size > ctx.m_output_capacity) {
-                            CPE_ERROR_EX(
-                                em, dr_code_error_not_enough_output
-                                , "dr_pbuf_read: %s: not enouth buf, capacity=%d, require=%d!"
-                                , dr_entry_name(entry), (int)ctx.m_output_capacity , (int)total_size);
-                            return -1;
-                        }
-
-                        if (total_size > ctx.m_used_size) ctx.m_used_size = total_size;
 
                         goto DR_PBUF_READ_STACK;
                     }
@@ -491,7 +483,7 @@ static int dr_pbuf_read_i(
                     size_t len;
 
                     writeBuf = dr_pbuf_read_get_write_pos(
-                        &ctx, curStack, dr_pbuf_read_start_pos(), elementSize);
+                        &ctx, curStack, entry, dr_pbuf_read_start_pos(), elementSize);
                     if (writeBuf == NULL) return -1;
 
                     dr_pbuf_read_decode_varint(len_buf);
@@ -535,7 +527,7 @@ static int dr_pbuf_read_i(
             refer = dr_entry_array_refer_entry(info->m_entry);
             if (refer) {
                 char * writeBuf =
-                    dr_pbuf_read_get_write_pos(&ctx, curStack, refer->m_data_start_pos, dr_entry_element_size(refer));
+                    dr_pbuf_read_get_write_pos(&ctx, curStack, refer, refer->m_data_start_pos, dr_entry_element_size(refer));
                 if (writeBuf == NULL) return -1;
 
                 dr_entry_set_from_uint32(writeBuf, info->m_count, refer, em);

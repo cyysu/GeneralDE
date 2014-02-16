@@ -6,7 +6,8 @@ ANDROID_ARM_MODE?=arm
 #$(call android-proj-copy-dir,src-dir,target-dir,postfix-list)
 android-proj-copy-dir=copy-dir $1 $2 $3 android-proj-def-sep
 android-proj-copy-file=copy-file $1 $2 android-proj-def-sep
-android-proj-combine-etc=combine-etc $1 $2 $3 android-proj-def-sep
+android-proj-combine-etc-bin=combine-etc-bin $1 $2 android-proj-def-sep
+android-proj-combine-etc-yml=combine-etc-yml $1 $2 android-proj-def-sep
 
 .PHONY: android android.proj
 
@@ -36,13 +37,23 @@ $(call product-def-rule-android-proj-copy,$1,$2,$(CPDE_ROOT)/$(strip $(word 1,$3
 
 endef
 
-# $(call product-def-rule-android-proj-combine-etc,product-name,domain,args)
-define product-def-rule-android-proj-combine-etc
+# $(call product-def-rule-android-proj-combine-etc-yml,product-name,domain,args)
+define product-def-rule-android-proj-combine-etc-yml
 
 $1.$2.android.proj: $(CPDE_OUTPUT_ROOT)/$($1.$2.android.output)/$(strip $(word 2,$3))
 
 $(CPDE_OUTPUT_ROOT)/$($1.$2.android.output)/$(strip $(word 2,$3)): $$(CPDE_OUTPUT_ROOT)/tools/bin/cpe_cfg_tool $(shell find $(CPDE_ROOT)/$(word 1,$3) -name "*.y[a]ml")
-	$$(call with_message,combine $(word 1, $3) to $(word 2, $3))$$(CPDE_OUTPUT_ROOT)/tools/bin/cpe_cfg_tool combine --input $$(CPDE_ROOT)/$(word 1,$3) --output $$@
+	$$(call with_message,combine $(word 1, $3) to $(word 2, $3))$$(CPDE_OUTPUT_ROOT)/tools/bin/cpe_cfg_tool combine --input $$(CPDE_ROOT)/$(word 1,$3) --output $$@ --format yml
+
+endef
+
+# $(call product-def-rule-android-proj-combine-etc-bin,product-name,domain,args)
+define product-def-rule-android-proj-combine-etc-bin
+
+$1.$2.android.proj: $(CPDE_OUTPUT_ROOT)/$($1.$2.android.output)/$(strip $(word 2,$3))
+
+$(CPDE_OUTPUT_ROOT)/$($1.$2.android.output)/$(strip $(word 2,$3)): $$(CPDE_OUTPUT_ROOT)/tools/bin/cpe_cfg_tool $(shell find $(CPDE_ROOT)/$(word 1,$3) -name "*.y[a]ml")
+	$$(call with_message,combine $(word 1, $3) to $(word 2, $3))$$(CPDE_OUTPUT_ROOT)/tools/bin/cpe_cfg_tool combine --input $$(CPDE_ROOT)/$(word 1,$3) --output $$@ --format bin
 
 endef
 
