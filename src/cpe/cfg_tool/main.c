@@ -8,11 +8,10 @@
 #include "cpe/cfg/cfg_manage.h"
 #include "cpe/cfg/cfg_read.h"
 
-int combine_cfg(const char * input_dir, const char * output_file_name, error_monitor_t em) {
+int combine_cfg(const char * input_dir, const char * output_file_name, const char * format, error_monitor_t em) {
     cfg_t cfg = NULL;
     FILE * output_file = NULL;
     int rv = -1;
-    struct write_stream_file fs;
 
     cfg = cfg_create(NULL);
     if (cfg == NULL) {
@@ -31,9 +30,37 @@ int combine_cfg(const char * input_dir, const char * output_file_name, error_mon
         goto COMBINE_CFG_COMPLETE;
     }
 
-    write_stream_file_init(&fs, output_file, em);
-    if (cfg_write((write_stream_t)&fs, cfg, em) != 0) {
-        CPE_ERROR(em, "conbine cfg: write result file to %s fail!", output_file_name);
+    if (strcmp(format, "yml") == 0) {
+        struct write_stream_file fs;
+
+        write_stream_file_init(&fs, output_file, em);
+
+        if (cfg_write((write_stream_t)&fs, cfg, em) != 0) {
+            CPE_ERROR(em, "conbine cfg: write result(yml) file to %s fail!", output_file_name);
+            goto COMBINE_CFG_COMPLETE;
+        }
+    }
+    else if (strcmp(format, "bin") == 0) {
+        struct mem_buffer buffer;
+
+        mem_buffer_init(&buffer, NULL);
+
+        if (cfg_write_bin_to_buffer(&buffer, cfg, em) <= 0) {
+            CPE_ERROR(em, "conbine cfg: write result(bin) to buffer fail!");
+            mem_buffer_clear(&buffer);
+            goto COMBINE_CFG_COMPLETE;
+        }
+
+        if (file_stream_write_from_buffer(output_file, &buffer, em) <= 0) {
+            CPE_ERROR(em, "conbine cfg: write result(bin) file to %s fail!", output_file_name);
+            mem_buffer_clear(&buffer);
+            goto COMBINE_CFG_COMPLETE;
+        }
+
+        mem_buffer_clear(&buffer);
+    }
+    else {
+        CPE_ERROR(em, "conbine cfg: unknown format %s", format);
         goto COMBINE_CFG_COMPLETE;
     }
     
@@ -51,8 +78,9 @@ int main(int argc, char * argv[]) {
     struct arg_rex  * combine =     arg_rex1(NULL, NULL, "combine", NULL, 0, NULL);
     struct arg_file  * combine_input =     arg_file1(NULL, "input", NULL, "input cfg root");
     struct arg_file  * combine_output =     arg_file1(NULL, "output", NULL, "output cfg file");
+    struct arg_str  * combine_format =     arg_str1(NULL, "format", "(yml|bin)", "output format");
     struct arg_end  * combine_end = arg_end(20);
-    void* combine_argtable[] = { combine, combine_input, combine_output, combine_end };
+    void* combine_argtable[] = { combine, combine_input, combine_output, combine_format, combine_end };
     int combine_nerrors;
 
     /*common*/
@@ -74,7 +102,7 @@ int main(int argc, char * argv[]) {
     common_nerrors = arg_parse(argc, argv, common_argtable);
 
     if (combine_nerrors == 0) {
-        rv = combine_cfg(combine_input->filename[0], combine_output->filename[0], em);
+        rv = combine_cfg(combine_input->filename[0], combine_output->filename[0], combine_format->sval[0], em);
     }
     else if (common_nerrors == 0) {
         if (common_help->count) {

@@ -184,6 +184,7 @@ static int bpg_rsp_copy_main_to_ctx(bpg_rsp_t rsp, logic_context_t op_context, d
     logic_data_t data;
     bpg_rsp_manage_t mgr;
     size_t size;
+    size_t meta_size;
 
     mgr = rsp->m_mgr;
 
@@ -198,7 +199,8 @@ static int bpg_rsp_copy_main_to_ctx(bpg_rsp_t rsp, logic_context_t op_context, d
     }
 
     size = bpg_pkg_main_data_len(req);
-    data = logic_context_data_get_or_create(op_context, data_meta, size);
+    meta_size = dr_meta_size(data_meta);
+    data = logic_context_data_get_or_create(op_context, data_meta, size < meta_size ? meta_size : data_meta);
     if (data == NULL) {
         CPE_ERROR(
             em, "%s.%s: bpg_rsp_execute: copy_pkg_to_ctx: %s create data fail, capacity=%d!",
@@ -218,6 +220,7 @@ static int bpg_rsp_copy_append_to_ctx(bpg_rsp_t rsp, logic_context_t op_context,
     bpg_rsp_manage_t mgr;
     int32_t append_info_count;
     size_t size;
+    size_t meta_size;
 
     mgr = rsp->m_mgr;
     assert(mgr);
@@ -243,7 +246,8 @@ static int bpg_rsp_copy_append_to_ctx(bpg_rsp_t rsp, logic_context_t op_context,
         }
 
         size = bpg_pkg_append_info_size(append_info);
-        data = logic_context_data_get_or_create(op_context, data_meta, size);
+        meta_size = dr_meta_size(data_meta);
+        data = logic_context_data_get_or_create(op_context, data_meta, size < meta_size ? meta_size : data_size);
         if (data == NULL) {
             CPE_ERROR(
                 em, "%s.%s: bpg_rsp_execute: copy_pkg_to_ctx: append %d: %s create data fail, capacity=%d!",
@@ -278,6 +282,8 @@ int bpg_rsp_copy_req_carry_data_to_ctx(bpg_rsp_manage_t mgr, logic_context_t op_
     LPDRMETA carry_info_list_meta;
     logic_data_t carry_info_list_data;
     BPG_CARRY_METAS * carry_info_list;
+    size_t size;
+    size_t meta_size;
 
     dp_req_childs(bpg_req, &childs);
     carry_info_count = 0;
@@ -298,11 +304,11 @@ int bpg_rsp_copy_req_carry_data_to_ctx(bpg_rsp_manage_t mgr, logic_context_t op_
         return -1;
     }
 
+    size = dr_meta_calc_dyn_size(carry_info_list_meta, carry_info_count);
+    meta_size = dr_meta_size(carry_info_list_meta);
+
     carry_info_list_data =
-        logic_context_data_get_or_create(
-            op_context,
-            carry_info_list_meta,
-            dr_meta_calc_dyn_size(carry_info_list_meta, carry_info_count));
+        logic_context_data_get_or_create(op_context, carry_info_list_meta, size < meta_size ? meta_size : size);
     if (carry_info_list_data == NULL) {
         CPE_ERROR(
             em, "%s: copy_bpg_carry_data: create carry_info_list_data fail!",
@@ -316,11 +322,16 @@ int bpg_rsp_copy_req_carry_data_to_ctx(bpg_rsp_manage_t mgr, logic_context_t op_
     dp_req_childs(bpg_req, &childs);
     while((child = dp_req_next(&childs))) {
         BPG_CARRY_META * carry_meta_info;
+        size_t carry_size;
+        size_t carry_meta_size;
 
         carry_meta = dp_req_meta(child);
         if (carry_meta == NULL) continue;
 
-        data = logic_context_data_get_or_create(op_context, carry_meta, dp_req_size(child));
+        carry_size = dp_req_size(child);
+        carry_meta_size = dr_meta_size(carry_meta);
+
+        data = logic_context_data_get_or_create(op_context, carry_meta, carry_size < carry_meta_size ? carry_meta_size : carry_size);
         if (data == NULL) {
             CPE_ERROR(
                 em, "%s: copy_req_carry_data: %s create data fail, size=%d!",
