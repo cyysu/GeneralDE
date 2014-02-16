@@ -47,7 +47,7 @@ TEST_F(ReadTest, array_with_refer_uin32) {
         );
 
     t_em_set_print();
-    EXPECT_EQ(24, read("S", "a1: [1, 2, 3, 4]"));
+    EXPECT_EQ(20, read("S", "a1: [1, 2, 3, 4]"));
 
     EXPECT_CFG_EQ(
         "count: 4\n"
@@ -103,7 +103,7 @@ TEST_F(ReadTest, array_with_refer_uint8) {
         );
 
     t_em_set_print();
-    EXPECT_EQ(6, read("S", "a1: [1, 2, 3, 4]"));
+    EXPECT_EQ(5, read("S", "a1: [1, 2, 3, 4]"));
 
     EXPECT_CFG_EQ(
         "count: 4\n"
@@ -143,7 +143,7 @@ TEST_F(ReadTest, array_with_refer_uint8_dyn_len_empty) {
         );
 
     t_em_set_print();
-    EXPECT_EQ(2, read("S", "a1: []"));
+    EXPECT_EQ(1, read("S", "a1: []"));
 
     EXPECT_CFG_EQ(
         "count: 0\n"
@@ -163,7 +163,7 @@ TEST_F(ReadTest, array_empty) {
         );
 
     t_em_set_print();
-    EXPECT_EQ(6, read("S", "a1: []"));
+    EXPECT_EQ(1, read("S", "a1: []"));
 
     EXPECT_CFG_EQ(
         "count: 0\n"
@@ -285,7 +285,7 @@ TEST_F(ReadTest, array_struct_with_refer_multi) {
         );
 
     EXPECT_EQ(
-        48, 
+        40, 
         read(
             "S",
             "b1: [ { a1: 150 }, { a1: 151 } ]\n"
@@ -314,11 +314,5 @@ TEST_F(ReadTest, array_struct_with_refer_empty) {
         "</metalib>"
         );
 
-    EXPECT_EQ(8, read("S", "b1: [ ]"));
-
-    EXPECT_CFG_EQ(
-        "count: 0\n"
-        "b1: []"
-        ,
-        result());
+    EXPECT_EQ(0, read("S", "b1: [ ]"));
 }

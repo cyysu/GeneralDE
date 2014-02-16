@@ -28,15 +28,29 @@ struct nm_node_type s_nm_node_type_account_svr = {
 };
 
 struct logic_op_register_def g_account_ops[] = {
+    { "account_op_create", 
+      account_svr_op_create_send,
+      account_svr_op_create_recv }
+    ,
+    { "account_op_login", 
+      account_svr_op_login_send,
+      account_svr_op_login_recv }
+    ,
     { "account_op_bind", 
       account_svr_op_bind_send,
       account_svr_op_bind_recv }
-    , { "account_op_unbind", 
+    ,
+    { "account_op_unbind", 
       account_svr_op_unbind_send,
       account_svr_op_unbind_recv }
-    , { "account_op_query_by_logic_id", 
+    ,
+    { "account_op_query_by_logic_id", 
       account_svr_op_query_by_logic_id_send,
       account_svr_op_query_by_logic_id_recv }
+    ,
+    { "account_op_query_by_account_id", 
+      account_svr_op_query_by_account_id_send,
+      account_svr_op_query_by_account_id_recv }
 };
 
 #define ACCOUNT_SVR_LOAD_META(__arg, __name) \
@@ -51,6 +65,7 @@ account_svr_create(
     set_logic_sp_t set_sp,
     set_logic_rsp_manage_t rsp_manage,
     mongo_cli_proxy_t db,
+    mongo_id_generator_t id_generator,
     mem_allocrator_t alloc,
     error_monitor_t em)
 {
@@ -71,9 +86,16 @@ account_svr_create(
     svr->m_set_sp = set_sp;
     svr->m_rsp_manage = rsp_manage;
     svr->m_db = db;
+    svr->m_id_generator = id_generator;
     svr->m_debug = 0;
 
-    //ACCOUNT_SVR_LOAD_META(m_meta_res_query, "svr_account_res_query");
+    ACCOUNT_SVR_LOAD_META(m_meta_res_create, "svr_account_res_create");
+    ACCOUNT_SVR_LOAD_META(m_meta_res_login, "svr_account_res_login");
+    ACCOUNT_SVR_LOAD_META(m_meta_logic_id, "svr_account_logic_id");
+    ACCOUNT_SVR_LOAD_META(m_meta_record_full, "svr_account_full");
+    ACCOUNT_SVR_LOAD_META(m_meta_record_full_list, "svr_account_full_list");
+    ACCOUNT_SVR_LOAD_META(m_meta_record_basic, "svr_account_basic");
+    ACCOUNT_SVR_LOAD_META(m_meta_record_basic_list, "svr_account_basic_list");
 
     svr->m_op_register = logic_op_register_create(app, NULL, alloc, em);
     if (svr->m_op_register == NULL) {
@@ -94,6 +116,8 @@ account_svr_create(
         return NULL;
     }
 
+    mem_buffer_init(&svr->m_dump_buffer, alloc);
+
     nm_node_set_type(svr_node, &s_nm_node_type_account_svr);
 
     return svr;
@@ -102,6 +126,8 @@ account_svr_create(
 static void account_svr_clear(nm_node_t node) {
     account_svr_t svr;
     svr = (account_svr_t)nm_node_data(node);
+
+    mem_buffer_clear(&svr->m_dump_buffer);
 
     if (svr->m_op_register) {
         logic_op_register_free(svr->m_op_register);

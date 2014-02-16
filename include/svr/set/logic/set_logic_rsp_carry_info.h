@@ -23,6 +23,8 @@ void set_logic_rsp_context_set_from_svr_id(set_logic_rsp_carry_info_t carry_info
 uint16_t set_logic_rsp_context_from_svr_type(set_logic_rsp_carry_info_t carry_info);
 void set_logic_rsp_context_set_from_svr_type(set_logic_rsp_carry_info_t carry_info, uint16_t from_svr_type);
 
+int set_logic_rsp_context_get_conn_info(logic_context_t ctx, uint16_t * from_svr_type, uint16_t * from_svr_id);
+
 #ifdef __cplusplus
 }
 #endif

@@ -1,19 +1,16 @@
-- name: friend_query
-  respons-to: SVR_FRIEND_CMD_REQ_QUERY
+- name: account_create
+  respons-to: SVR_ACCOUNT_CMD_REQ_CREATE
   operations:
-    - friend_op_query
+    - mongo_id_reserve: { id-name: account_id, reserve-count: 1024 }
+    - account_op_create
 
-- name: friend_add
-  respons-to: SVR_FRIEND_CMD_REQ_ADD
+- name: account_login
+  respons-to: SVR_ACCOUNT_CMD_REQ_LOGIN
   operations:
-    - friend_op_add
+    - mongo_id_reserve: { id-name: account_id, reserve-count: 1024 }
+    - account_op_login
 
-- name: friend_remove
-  respons-to: SVR_FRIEND_CMD_REQ_REMOVE
+- name: account_bind
+  respons-to: SVR_ACCOUNT_CMD_REQ_BIND
   operations:
-    - friend_op_remove
-
-- name: friend_sync
-  respons-to: SVR_FRIEND_CMD_REQ_SYNC
-  operations:
-    - friend_op_sync
+    - account_op_bind
