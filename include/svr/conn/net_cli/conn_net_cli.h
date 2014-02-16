@@ -27,6 +27,8 @@ int conn_net_cli_set_svr(conn_net_cli_t cli, const char * ip, uint16_t port);
 const char * conn_net_cli_svr_ip(conn_net_cli_t cli);
 uint16_t conn_net_cli_svr_port(conn_net_cli_t cli);
 
+const char * conn_net_cli_state_name(conn_net_cli_state_t state);
+
 conn_net_cli_state_t conn_net_cli_state(conn_net_cli_t cli);
 void conn_net_cli_enable(conn_net_cli_t cli);
 void conn_net_cli_disable(conn_net_cli_t cli);
