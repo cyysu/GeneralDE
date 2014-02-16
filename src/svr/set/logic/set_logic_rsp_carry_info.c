@@ -56,3 +56,17 @@ void set_logic_rsp_context_set_response(set_logic_rsp_carry_info_t carry_info, u
 uint32_t set_logic_rsp_context_response(set_logic_rsp_carry_info_t carry_info) {
     return ((SET_LOGIC_CARRY_INFO *)carry_info)->response;
 }
+
+int set_logic_rsp_context_get_conn_info(logic_context_t ctx, uint16_t * from_svr_type, uint16_t * from_svr_id) {
+    logic_data_t data;
+    SET_LOGIC_CARRY_INFO * carry_info;
+
+    data = logic_context_data_find(ctx, "set_logic_carry_info");
+    if (data == NULL) return -1;
+    carry_info = logic_data_data(data);
+
+    if (from_svr_type) *from_svr_type = carry_info->from_svr_type;
+    if (from_svr_id) *from_svr_id = carry_info->from_svr_id;
+
+    return 0;
+}
