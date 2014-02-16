@@ -70,7 +70,7 @@ TEST_F(StructTest, it_empty) {
     cfg_it_t it;
     cfg_it_init(&it, m_root);
 
-    ASSERT_FALSE(cfg_it_next(&it));
+    ASSERT_TRUE(cfg_it_next(&it) == NULL);
 }
 
 TEST_F(StructTest, it_basic) {
@@ -88,13 +88,13 @@ TEST_F(StructTest, it_basic) {
     ASSERT_TRUE(cfg_b);
     ASSERT_EQ(2, cfg_as_int32(cfg_b, -1));
 
-    ASSERT_FALSE(cfg_it_next(&it));
+    ASSERT_TRUE(cfg_it_next(&it) == NULL);
 }
 
 TEST_F(StructTest, it_init_cfg_null) {
     cfg_it_t it;
     cfg_it_init(&it, NULL);
 
-    ASSERT_FALSE(cfg_it_next(&it));
+    ASSERT_TRUE(cfg_it_next(&it) == NULL);
 }
 
