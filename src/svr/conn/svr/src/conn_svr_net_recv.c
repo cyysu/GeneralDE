@@ -292,6 +292,7 @@ static int conn_svr_conn_process_data(conn_svr_t svr, conn_svr_conn_t conn) {
         }
 
         /*设置body*/
+        dp_req_set_meta(ss_pkg, NULL);
         dp_req_set_buf(ss_pkg, head + 1, ss_pkg_len);
         dp_req_set_size(ss_pkg, ss_pkg_len);
 
