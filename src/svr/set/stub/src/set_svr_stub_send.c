@@ -44,10 +44,6 @@ int set_svr_stub_send_pkg(set_svr_stub_t stub, dp_req_t body) {
     if (head_buf->from_svr_type == 0) head_buf->from_svr_type = stub->m_svr_type->m_svr_type_id;
     if (head_buf->from_svr_id == 0) head_buf->from_svr_id = stub->m_svr_id;
 
-    if (dp_req_size(body) == 0) {
-        dp_req_set_size(body, dr_meta_calc_data_len(dp_req_meta(body), dp_req_data(body), dp_req_capacity(body)));
-    }
-
     /*检查源地址*/
     if (head_buf->from_svr_type != stub->m_svr_type->m_svr_type_id || head_buf->from_svr_id != stub->m_svr_id) {
         CPE_ERROR(
@@ -87,6 +83,10 @@ int set_svr_stub_send_pkg(set_svr_stub_t stub, dp_req_t body) {
     }
 
     assert(pkg_meta);
+
+    if (dp_req_size(body) == 0) {
+        dp_req_set_size(body, dr_meta_calc_data_len(pkg_meta, dp_req_data(body), dp_req_capacity(body)));
+    }
 
     /*检查发送数据类型*/
     if (dp_req_meta(body)) {
@@ -469,8 +469,8 @@ int set_svr_stub_reply_pkg(set_svr_stub_t svr, dp_req_t req, dp_req_t body) {
     return set_svr_stub_send_response_pkg(
         svr, set_pkg_from_svr_type(req_head), set_pkg_from_svr_id(req_head), set_pkg_sn(req_head),
         body,
-        req_carry ? dp_req_data(req_carry) : NULL,
-        req_carry ? dp_req_size(req_carry) : 0);
+        req_carry ? set_pkg_carry_data(req_carry) : NULL,
+        req_carry ? set_pkg_carry_size(req_carry) : 0);
 }
 
 int set_svr_stub_reply_data(set_svr_stub_t svr, dp_req_t req, void const * data, uint16_t data_size, LPDRMETA meta) {
@@ -482,8 +482,8 @@ int set_svr_stub_reply_data(set_svr_stub_t svr, dp_req_t req, void const * data,
     return set_svr_stub_send_response_data(
         svr, set_pkg_from_svr_type(req_head), set_pkg_from_svr_id(req_head), set_pkg_sn(req_head),
         data, data_size, meta,
-        req_carry ? dp_req_data(req_carry) : NULL,
-        req_carry ? dp_req_size(req_carry) : 0);
+        req_carry ? set_pkg_carry_data(req_carry) : NULL,
+        req_carry ? set_pkg_carry_size(req_carry) : 0);
 }
 
 int set_svr_stub_reply_cmd(set_svr_stub_t svr, dp_req_t req, uint32_t cmd) {
@@ -495,8 +495,8 @@ int set_svr_stub_reply_cmd(set_svr_stub_t svr, dp_req_t req, uint32_t cmd) {
     return set_svr_stub_send_response_cmd(
         svr, set_pkg_from_svr_type(req_head), set_pkg_from_svr_id(req_head), set_pkg_sn(req_head),
         cmd,
-        req_carry ? dp_req_data(req_carry) : NULL,
-        req_carry ? dp_req_size(req_carry) : 0);
+        req_carry ? set_pkg_carry_data(req_carry) : NULL,
+        req_carry ? set_pkg_carry_size(req_carry) : 0);
 }
 
 void * set_svr_stub_pkg_to_data(set_svr_stub_t stub, dp_req_t pkg, uint16_t svr_type_id, LPDRMETA data_meta, size_t * data_capacity) {
