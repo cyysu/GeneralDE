@@ -47,8 +47,9 @@ int main(int argc, char * argv[]) {
     struct arg_int *  run_port = arg_int1(NULL, "port", NULL,    "listen port");
     struct arg_int *  run_conn_timeout = arg_int1(NULL, "timeout", NULL,    "connection timeout in second");
     struct arg_str *  run_ringbuf_size = arg_str1(NULL, "ringbuf-size", NULL,    "ringbuf size");
+    struct arg_str *  run_svr_type = arg_str1(NULL, "svr-type", NULL,    "run as svr type");
     struct arg_end  * run_end = arg_end(20);
-    void* run_argtable[] = { run, run_pidfile, run_root, run_appid, run_port, run_conn_timeout, run_ringbuf_size, run_end };
+    void* run_argtable[] = { run, run_pidfile, run_root, run_appid, run_port, run_conn_timeout, run_ringbuf_size, run_svr_type, run_end };
     int run_nerrors;
 
     /*common*/
