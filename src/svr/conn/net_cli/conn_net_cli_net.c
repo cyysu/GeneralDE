@@ -128,8 +128,10 @@ void conn_net_cli_rw_cb(EV_P_ ev_io *w, int revents) {
         }
     }
 
-    ev_io_stop(cli->m_ev_loop, &cli->m_watcher);
-    conn_net_cli_start_watch(cli);
+    if (cli->m_fd >= 0) {
+        ev_io_stop(cli->m_ev_loop, &cli->m_watcher);
+        conn_net_cli_start_watch(cli);
+    }
 }
 
 static void * conn_net_cli_merge_rb(conn_net_cli_t cli) {
@@ -267,6 +269,7 @@ static int conn_net_cli_process_data(conn_net_cli_t cli) {
         svr_stub = conn_net_cli_svr_stub_find_by_id(cli, cli_pkg->m_svr_type);
         if (svr_stub == NULL) {
             CPE_ERROR(cli->m_em, "%s: svr_stub %d is unknown!", conn_net_cli_name(cli), cli_pkg->m_svr_type);
+            cli->m_rb = ringbuffer_yield(cli->m_ringbuf, cli->m_rb, pkg_data_len);
             continue;
         }
 
