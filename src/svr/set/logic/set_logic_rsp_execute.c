@@ -193,6 +193,11 @@ static int set_logic_rsp_copy_req_main_to_ctx(
     logic_data_t data;
     size_t size;
     size_t data_start;
+    size_t data_size;
+    size_t meta_size;
+
+    data_meta = set_svr_svr_info_find_data_meta_by_cmd(mgr->m_svr_type, cmd);
+    if (data_meta == NULL) return 0;
 
     size = dp_req_size(req);
 
@@ -204,10 +209,10 @@ static int set_logic_rsp_copy_req_main_to_ctx(
         return -1;
     }
 
-    data_meta = set_svr_svr_info_find_data_meta_by_cmd(mgr->m_svr_type, cmd);
-    if (data_meta == NULL) return 0;
+    data_size = size - data_start;
+    meta_size = dr_meta_size(data_meta);
 
-    data = logic_context_data_get_or_create(op_context, data_meta, size - data_start);
+    data = logic_context_data_get_or_create(op_context, data_meta, data_size < meta_size ? meta_size : data_size);
     if (data == NULL) {
         CPE_ERROR(
             em, "%s: set_logic_rsp_execute: copy_pkg_to_ctx: %s create data fail, capacity=%d!",
@@ -215,7 +220,7 @@ static int set_logic_rsp_copy_req_main_to_ctx(
         return -1;
     }
 
-    memcpy(logic_data_data(data), ((const char *)dp_req_data(req)) + data_start, size - data_start);
+    memcpy(logic_data_data(data), ((const char *)dp_req_data(req)) + data_start, data_start);
 
     return 0;
 }
