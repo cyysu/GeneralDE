@@ -32,6 +32,7 @@ double dr_ctype_read_double(const void * input, int type);
 
 int dr_ctype_print_to_stream(write_stream_t output, const void * input, int type, error_monitor_t em);
 int dr_ctype_set_from_string(void * output, int type, const char * input, error_monitor_t em);
+int dr_ctype_set_from_ctype(void * output, int type, int input_type, const void * input_data, error_monitor_t em);
 
 int dr_ctype_set_from_int8(void * output, int8_t input, int type, error_monitor_t em);
 int dr_ctype_set_from_uint8(void * output, uint8_t input, int type, error_monitor_t em);

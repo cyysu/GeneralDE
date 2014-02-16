@@ -77,6 +77,28 @@ TEST_F(WriteTest, type_union_with_select) {
         "0x08 0x01 0x1A 0x03 0x08 0x96 0x01", result());
 }
 
+TEST_F(WriteTest, type_union_with_select_not_in_select) {
+    installMeta(
+        "<metalib tagsetversion='1' name='net'  version='1'>"
+        "    <union name='U1' version='1'>"
+        "	     <entry name='a1' type='uint32' id='1'/>"
+        "	     <entry name='a2' type='uint32' id='2'/>"
+        "    </union>"
+        "    <struct name='S2' version='1' align='1'>"
+        "        <entry name='s' id='1' type='uint32'/>"
+        "	     <entry name='b1' type='U1' id='3' select='s'/>"
+        "    </struct>"
+        "</metalib>"
+        );
+
+    uint32_t i = 3;
+
+    EXPECT_EQ(2, write("S2", &i, sizeof(i)));
+    
+    EXPECT_STREQ(
+        "0x08 0x03", result());
+}
+
 TEST_F(WriteTest, type_union_no_select) {
     installMeta(
         "<metalib tagsetversion='1' name='net'  version='1'>"
