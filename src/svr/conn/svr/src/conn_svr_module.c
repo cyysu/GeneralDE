@@ -204,7 +204,9 @@ static int conn_svr_init_backend(conn_svr_t conn_svr, set_svr_stub_t stub, set_s
 
 static int conn_svr_load_backends(conn_svr_t conn_svr, set_svr_stub_t stub) {
     gd_app_context_t app = conn_svr->m_app;
-    cfg_t svr_cfg = cfg_find_cfg(cfg_find_cfg(gd_app_cfg(app), "svr_types"), "svr_conn");
+    cfg_t svr_cfg = cfg_find_cfg(
+        cfg_find_cfg(gd_app_cfg(app), "svr_types"),
+        set_svr_svr_info_svr_type_name(set_svr_stub_svr_type(stub)));
     struct cfg_it depends_it;
     cfg_t depend_cfg;
 
