@@ -895,7 +895,8 @@ void Curl_ossl_close(struct connectdata *conn, int sockindex)
   struct ssl_connect_data *connssl = &conn->ssl[sockindex];
 
   if(connssl->handle) {
-    (void)SSL_shutdown(connssl->handle);
+      /*TODO: loki*/
+    //(void)SSL_shutdown(connssl->handle);
     SSL_set_connect_state(connssl->handle);
 
     SSL_free (connssl->handle);

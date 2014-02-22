@@ -200,7 +200,7 @@ static int bpg_rsp_copy_main_to_ctx(bpg_rsp_t rsp, logic_context_t op_context, d
 
     size = bpg_pkg_main_data_len(req);
     meta_size = dr_meta_size(data_meta);
-    data = logic_context_data_get_or_create(op_context, data_meta, size < meta_size ? meta_size : data_meta);
+    data = logic_context_data_get_or_create(op_context, data_meta, size < meta_size ? meta_size : size);
     if (data == NULL) {
         CPE_ERROR(
             em, "%s.%s: bpg_rsp_execute: copy_pkg_to_ctx: %s create data fail, capacity=%d!",
@@ -247,7 +247,7 @@ static int bpg_rsp_copy_append_to_ctx(bpg_rsp_t rsp, logic_context_t op_context,
 
         size = bpg_pkg_append_info_size(append_info);
         meta_size = dr_meta_size(data_meta);
-        data = logic_context_data_get_or_create(op_context, data_meta, size < meta_size ? meta_size : data_size);
+        data = logic_context_data_get_or_create(op_context, data_meta, size < meta_size ? meta_size : size);
         if (data == NULL) {
             CPE_ERROR(
                 em, "%s.%s: bpg_rsp_execute: copy_pkg_to_ctx: append %d: %s create data fail, capacity=%d!",
