@@ -46,12 +46,14 @@ static int bpg_cli_proxy_save_main_body(logic_require_t require, dp_req_t pkg, e
     logic_data_t data;
     LPDRMETA meta;
     size_t size;
+    size_t meta_size;
 
     meta = bpg_pkg_main_data_meta(pkg, em);
     if (meta == NULL) return 0;
+    meta_size = dr_meta_size(meta);
 
     size = bpg_pkg_main_data_len(pkg);
-    data = logic_require_data_get_or_create(require, meta, size);
+    data = logic_require_data_get_or_create(require, meta, size < meta_size ? meta_size : size);
     if (data == NULL) {
         CPE_ERROR(em, "bpg_cli_proxy_rsp: save_main_body: crate data with meta %s fail!", dr_meta_name(meta));
         return -1;
@@ -66,6 +68,7 @@ static int bpg_cli_proxy_save_append_infos(logic_require_t require, dp_req_t pkg
     logic_data_t data;
     LPDRMETA meta;
     size_t size;
+    size_t meta_size;
     int32_t append_info_count;
     int32_t i;
 
@@ -81,9 +84,10 @@ static int bpg_cli_proxy_save_append_infos(logic_require_t require, dp_req_t pkg
                 i, bpg_pkg_append_info_id(append_info));
             continue;
         }
+        meta_size = dr_meta_size(meta);
 
         size = bpg_pkg_append_info_size(append_info);
-        data = logic_require_data_get_or_create(require, meta, size);
+        data = logic_require_data_get_or_create(require, meta, size < meta_size ? meta_size : size);
         if (data == NULL) {
             CPE_ERROR(
                 em, "bpg_cli_proxy_rsp: save_append_info: %d: crate data with meta %s fail!"
