@@ -311,6 +311,12 @@ const char * bpg_pkg_dump(dp_req_t body, mem_buffer_t buffer) {
 
     mem_buffer_clear_data(buffer);
 
+    if (req == NULL) {
+        stream_printf(((write_stream_t)&stream), "not bpg pkg");
+        stream_putc((write_stream_t)&stream, 0);
+        return (const char *)mem_buffer_make_continuous(buffer, 0);
+    }
+
     data = dp_req_data(body);
 
     head = (BASEPKG_HEAD *)data;
