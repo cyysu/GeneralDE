@@ -106,7 +106,6 @@ void bpg_rsp_commit(logic_context_t op_context, void * user_data) {
     return;
 
 SEND_ERROR_RESPONSE:
-    dp_req_child_clear(response_buf);
     bpg_pkg_init(response_buf);
     bpg_pkg_set_sn(response_buf, bpg_private->sn);
     bpg_pkg_set_client_id(response_buf, bpg_private->clientId);
