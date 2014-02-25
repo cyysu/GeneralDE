@@ -220,7 +220,7 @@ static int set_logic_rsp_copy_req_main_to_ctx(
         return -1;
     }
 
-    memcpy(logic_data_data(data), ((const char *)dp_req_data(req)) + data_start, data_start);
+    memcpy(logic_data_data(data), ((const char *)dp_req_data(req)) + data_start, data_size);
 
     return 0;
 }
