@@ -301,8 +301,8 @@ static void set_svr_stub_buff_destory(set_svr_stub_t stub, set_svr_stub_buff_t b
 
         if (cpe_shm_rm(buff->m_shm_id) != 0) {
             CPE_ERROR(
-                stub->m_em, "%s: buff %s destory:  shm rm (id=%d) fail, error=%d (%s)",
-                set_svr_stub_name(stub), STUB_BUFF_HEAD(buff)->m_name, buff->m_shm_id, errno, strerror(errno));
+                stub->m_em, "%s: buff (detached) destory:  shm rm (id=%d) fail, error=%d (%s)",
+                set_svr_stub_name(stub), buff->m_shm_id, errno, strerror(errno));
         }
 
         break;
