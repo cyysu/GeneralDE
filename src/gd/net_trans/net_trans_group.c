@@ -53,6 +53,14 @@ void net_trans_group_set_connect_timeout(net_trans_group_t group, uint64_t timeo
     group->m_connect_timeout_ms = timeout_ms;
 }
 
+int net_trans_group_forbid_reuse(net_trans_group_t group) {
+    return group->m_forbid_reuse;
+}
+
+void net_trans_group_set_forbid_reuse(net_trans_group_t group, int forbid_reuse) {
+    group->m_forbid_reuse = forbid_reuse;
+}
+
 void net_trans_group_free_all(net_trans_manage_t mgr) {
     struct cpe_hash_it group_it;
     net_trans_group_t group;
