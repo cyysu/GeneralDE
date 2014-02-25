@@ -1,6 +1,7 @@
 #include <assert.h>
 #include "zlib.h"
 #include "cpe/pal/pal_platform.h"
+#include "cpe/pal/pal_strings.h"
 #include "cpe/utils/stream_buffer.h"
 #include "cpe/dr/dr_metalib_manage.h"
 #include "cpe/dr/dr_metalib_init.h"
@@ -46,6 +47,7 @@ bpg_pkg_decode(
 dr_cvt_result_t bpg_pkg_decode_data(dp_req_t body, const void * input, size_t * input_capacity, error_monitor_t em, int debug) {
     dr_cvt_result_t r;
     BASEPKG * input_pkg;
+    BASEPKG_HEAD input_pkg_head_buf;
     char * input_data;
     BASEPKG * output_pkg;
     char * output_buf;
@@ -117,15 +119,30 @@ dr_cvt_result_t bpg_pkg_decode_data(dp_req_t body, const void * input, size_t * 
         input_pkg->head.flags &= ~BASEPKG_HEAD_FLAG_ZIP;
     }
     else {
-        if ((input_pkg->head.bodytotallen ? input_pkg->head.bodytotallen : 1) + sizeof(BASEPKG_HEAD) != *input_capacity) {
-            CPE_ERROR(
-                em, "%s: decode: totalbodylen error, totalbodylen=%d, headlen=%d, input-total-len=%d!",
-                bpg_pkg_manage_name(pkg->m_mgr),
-                (int)input_pkg->head.bodytotallen, (int)sizeof(BASEPKG_HEAD), (int)*input_capacity);
-            return dr_cvt_result_error;
-        }
+        if (*input_capacity >= sizeof(BASEPKG_HEAD)) {
+            if ((input_pkg->head.bodytotallen + sizeof(BASEPKG_HEAD)) > *input_capacity) {
+                CPE_ERROR(
+                    em, "%s: decode: totalbodylen error, totalbodylen=%d, headlen=%d, input-total-len=%d!",
+                    bpg_pkg_manage_name(pkg->m_mgr),
+                    (int)input_pkg->head.bodytotallen, (int)sizeof(BASEPKG_HEAD), (int)*input_capacity);
+                return dr_cvt_result_error;
+            }
 
-        input_data = (char *)input;
+            input_data = (char *)input;
+        }
+        else {
+            if (input_pkg->head.bodytotallen != 0) {
+                CPE_ERROR(
+                    em, "%s: decode: totalbodylen error, totalbodylen=%d, headlen=%d, input-total-len=%d!",
+                    bpg_pkg_manage_name(pkg->m_mgr),
+                    (int)input_pkg->head.bodytotallen, (int)sizeof(BASEPKG_HEAD), (int)*input_capacity);
+                return dr_cvt_result_error;
+            }
+
+            bzero(&input_pkg_head_buf, sizeof(input_pkg_head_buf));
+            memcpy(&input_pkg_head_buf, input, *input_capacity);
+            input_data = (char *)&input_pkg_head_buf;
+        }
     }
         
     input_pkg = (BASEPKG *)input_data;
