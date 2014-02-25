@@ -11,7 +11,12 @@ $(product).product.c.flags.ld:=$($(product).c.flags.ld)
 gd-app-multi-thread?=0
 ifeq ($(gd-app-multi-thread),1)
 $(product).c.flags.cpp+=$(if $(filter 1,$(gd-app-multi-thread)), -DGD_APP_MULTI_THREAD )
-$(product).product.c.libraries+=pthread
+
+$(product).mac.product.c.libraries:=pthread
+$(product).linux32.product.c.libraries:=pthread
+$(product).linux64.product.c.libraries:=pthread
+$(product).ios.product.c.libraries:=pthread
+
 endif
 
 $(eval $(call product-def,$(product)))
