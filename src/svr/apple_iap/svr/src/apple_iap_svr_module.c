@@ -64,6 +64,7 @@ int apple_iap_svr_app_init(gd_app_context_t app, gd_app_module_t module, cfg_t c
 
     net_trans_group_set_connect_timeout(apple_iap_svr->m_trans_group, 2 * 60 * 1000);
     net_trans_group_set_transfer_timeout(apple_iap_svr->m_trans_group, 2 * 60 * 1000);
+    net_trans_group_set_forbid_reuse(apple_iap_svr->m_trans_group, 1);
 
     if (apple_iap_svr_set_send_to(apple_iap_svr, send_to) != 0) {
         CPE_ERROR(gd_app_em(app), "%s: create: set send-to %s fail!", gd_app_module_name(module), send_to);
