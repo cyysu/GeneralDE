@@ -6,7 +6,8 @@ ANDROID_ARM_MODE?=arm
 #$(call android-proj-copy-dir,src-dir,target-dir,postfix-list)
 android-proj-copy-dir=copy-dir $1 $2 $3 android-proj-def-sep
 android-proj-copy-file=copy-file $1 $2 android-proj-def-sep
-android-proj-combine-etc=combine-etc $1 $2 $3 android-proj-def-sep
+android-proj-combine-etc-bin=combine-etc-bin $1 $2 android-proj-def-sep
+android-proj-combine-etc-yml=combine-etc-yml $1 $2 android-proj-def-sep
 
 .PHONY: android android.proj
 
@@ -36,13 +37,23 @@ $(call product-def-rule-android-proj-copy,$1,$2,$(CPDE_ROOT)/$(strip $(word 1,$3
 
 endef
 
-# $(call product-def-rule-android-proj-combine-etc,product-name,domain,args)
-define product-def-rule-android-proj-combine-etc
+# $(call product-def-rule-android-proj-combine-etc-yml,product-name,domain,args)
+define product-def-rule-android-proj-combine-etc-yml
 
 $1.$2.android.proj: $(CPDE_OUTPUT_ROOT)/$($1.$2.android.output)/$(strip $(word 2,$3))
 
 $(CPDE_OUTPUT_ROOT)/$($1.$2.android.output)/$(strip $(word 2,$3)): $$(CPDE_OUTPUT_ROOT)/tools/bin/cpe_cfg_tool $(shell find $(CPDE_ROOT)/$(word 1,$3) -name "*.y[a]ml")
-	$$(call with_message,combine $(word 1, $3) to $(word 2, $3))$$(CPDE_OUTPUT_ROOT)/tools/bin/cpe_cfg_tool combine --input $$(CPDE_ROOT)/$(word 1,$3) --output $$@
+	$$(call with_message,combine $(word 1, $3) to $(word 2, $3))$$(CPDE_OUTPUT_ROOT)/tools/bin/cpe_cfg_tool combine --input $$(CPDE_ROOT)/$(word 1,$3) --output $$@ --format yml
+
+endef
+
+# $(call product-def-rule-android-proj-combine-etc-bin,product-name,domain,args)
+define product-def-rule-android-proj-combine-etc-bin
+
+$1.$2.android.proj: $(CPDE_OUTPUT_ROOT)/$($1.$2.android.output)/$(strip $(word 2,$3))
+
+$(CPDE_OUTPUT_ROOT)/$($1.$2.android.output)/$(strip $(word 2,$3)): $$(CPDE_OUTPUT_ROOT)/tools/bin/cpe_cfg_tool $(shell find $(CPDE_ROOT)/$(word 1,$3) -name "*.y[a]ml")
+	$$(call with_message,combine $(word 1, $3) to $(word 2, $3))$$(CPDE_OUTPUT_ROOT)/tools/bin/cpe_cfg_tool combine --input $$(CPDE_ROOT)/$(word 1,$3) --output $$@ --format bin
 
 endef
 
@@ -69,8 +80,8 @@ endef
 define product-def-rule-android-gen-java-rules
 
 $(foreach d,$(r.$1.android.java-dir) $(call product-gen-depend-value-list,$1,$($2.env),android.java-dir),\
-    $(foreach j,$(shell find $d -name "*.java"),\
-        $(call product-def-rule-android-proj-copy,$1,$2,$j,$(patsubst $d/%,$(CPDE_OUTPUT_ROOT)/$($1.$2.android.output)/src/%,$j))))
+    $(if $(wildcard $d),$(foreach j,$(shell find $d -name "*.java"),\
+        $(call product-def-rule-android-proj-copy,$1,$2,$j,$(patsubst $d/%,$(CPDE_OUTPUT_ROOT)/$($1.$2.android.output)/src/%,$j)))))
 
 endef
 
@@ -157,7 +168,21 @@ $(CPDE_OUTPUT_ROOT)/$($1.$2.android.output)/jni/Android.mk: $$(r.$1.c.sources) $
 	$$(CPE_SILENCE_TAG)echo 'LOCAL_C_INCLUDES += ' $$(patsubst -I%,%,$$(filter -I%,$$(call c-generate-depend-cpp-flags,$1,$2))) >> $$@
 	$$(CPE_SILENCE_TAG)echo '' >> $$@
 	$(if $(filter progn,$($1.type)),\
-        $$(CPE_SILENCE_TAG)echo 'LOCAL_LDLIBS := -L$$$$(SYSROOT)/usr/lib $$($1.android.c.flags.ld)' \
+        $$(CPE_SILENCE_TAG)echo 'LOCAL_LDLIBS := -L$$$$(SYSROOT)/usr/lib ' \
+                                                $$(addprefix -L$$$$(CPDE_OUTPUT_ROOT)/,\
+                                                   $$(foreach ei,\
+                                                      $$(call merge-list, $$(r.$1.c.ldpathes) \
+                                                                        , $$(call product-gen-depend-value-list,$1,$($2.env),\
+                                                                                $$(call c-generate-env-arg-name-list,$2,product.c.ldpathes)) \
+                                                      ),\
+                                                   $$(patsubst domain/%,$2/%,$$(subst /domain/,/$2/,$$(patsubst env/%,$($2.env)/%,$$(subst /env/,/$($2.env)/,$$(ei)))))) \
+                                                ) \
+                                                 $$(addprefix -l,\
+                                                      $$(call product-gen-depend-value-list,$1,$($2.env),\
+                                                          $$(call c-generate-env-arg-lib-name-list,$2,product.c.libraries))) \
+                                                 $$(call revert-list,$$(call product-gen-depend-value-list,$1,$($2.env), \
+                                                         $$(call c-generate-env-arg-name-list,$2,product.c.flags.ld))) \
+                                                 $$($1.android.c.flags.ld) \
                            >> $$@)
 	$$(CPE_SILENCE_TAG)echo '' >> $$@
 	$$(CPE_SILENCE_TAG)echo 'LOCAL_SRC_FILES += $($1.$2.android.srcs)' >> $$@
