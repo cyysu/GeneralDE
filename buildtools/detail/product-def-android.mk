@@ -169,9 +169,19 @@ $(CPDE_OUTPUT_ROOT)/$($1.$2.android.output)/jni/Android.mk: $$(r.$1.c.sources) $
 	$$(CPE_SILENCE_TAG)echo '' >> $$@
 	$(if $(filter progn,$($1.type)),\
         $$(CPE_SILENCE_TAG)echo 'LOCAL_LDLIBS := -L$$$$(SYSROOT)/usr/lib ' \
+                                                $$(addprefix -L$$$$(CPDE_OUTPUT_ROOT)/,\
+                                                   $$(foreach ei,\
+                                                      $$(call merge-list, $$(r.$1.c.ldpathes) \
+                                                                        , $$(call product-gen-depend-value-list,$1,$($2.env),\
+                                                                                $$(call c-generate-env-arg-name-list,$2,product.c.ldpathes)) \
+                                                      ),\
+                                                   $$(patsubst domain/%,$2/%,$$(subst /domain/,/$2/,$$(patsubst env/%,$($2.env)/%,$$(subst /env/,/$($2.env)/,$$(ei)))))) \
+                                                ) \
                                                  $$(addprefix -l,\
                                                       $$(call product-gen-depend-value-list,$1,$($2.env),\
                                                           $$(call c-generate-env-arg-lib-name-list,$2,product.c.libraries))) \
+                                                 $$(call revert-list,$$(call product-gen-depend-value-list,$1,$($2.env), \
+                                                         $$(call c-generate-env-arg-name-list,$2,product.c.flags.ld))) \
                                                  $$($1.android.c.flags.ld) \
                            >> $$@)
 	$$(CPE_SILENCE_TAG)echo '' >> $$@
