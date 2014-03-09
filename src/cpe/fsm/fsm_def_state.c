@@ -38,8 +38,8 @@ fsm_def_state_t fsm_def_state_create_ex(fsm_def_machine_t m, const char * name, 
         }
 
         if (m->m_states) {
-            memcpy(new_states, m->m_states, sizeof(fsm_def_state_t) * m->m_state_max);
-            bzero(new_states + m->m_state_max, sizeof(fsm_def_state_t) * (new_capacity - m->m_state_max));
+            memcpy(new_states, m->m_states, sizeof(fsm_def_state_t) * (m->m_state_max + 1));
+            bzero(new_states + m->m_state_max + 1, sizeof(fsm_def_state_t) * (new_capacity - m->m_state_max - 1));
             mem_free(m->m_alloc, m->m_states);
         }
         else {
@@ -92,7 +92,7 @@ void fsm_def_state_free(fsm_def_state_t s) {
     fsm_def_machine_t m = s->m_machine;
 
     assert(m);
-    assert(s->m_id < m->m_state_max);
+    assert(s->m_id <= m->m_state_max);
     assert(m->m_states);
     assert(m->m_states[s->m_id] == s);
 
