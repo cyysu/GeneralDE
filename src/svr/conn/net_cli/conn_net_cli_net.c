@@ -38,6 +38,7 @@ void conn_net_cli_rw_cb(EV_P_ ev_io *w, int revents) {
 
         for(;;) {
             int bytes = cpe_recv(cli->m_fd, buffer, cli->m_read_block_size, 0);
+
             if (bytes > 0) {
                 if (cli->m_debug >= 2) {
                     CPE_INFO(
@@ -60,6 +61,7 @@ void conn_net_cli_rw_cb(EV_P_ ev_io *w, int revents) {
                 assert(bytes == -1);
 
                 switch(errno) {
+                case EINPROGRESS:
                 case EWOULDBLOCK:
                     blk = ringbuffer_yield(cli->m_ringbuf, blk, cli->m_read_block_size);
                     assert(blk == NULL);
@@ -239,7 +241,12 @@ static int conn_net_cli_process_data(conn_net_cli_t cli) {
 
          /*数据主够读取包的大小，但是头块太小，无法保存数据头，提前合并一次数据 */  
         if (buf == NULL) buf = conn_net_cli_merge_rb(cli);
-        if (buf == NULL) return -1;
+        if (buf == NULL) {
+            CPE_ERROR(
+                cli->m_em, "%s: conn_net_cli_merge_rb fail!!!", conn_net_cli_name(cli));
+            conn_net_cli_apply_evt(cli, conn_net_cli_fsm_evt_disconnected);
+            return -1;
+        }
 
         CPE_COPY_HTON16(&pkg_data_len, buf);
 
@@ -257,7 +264,12 @@ static int conn_net_cli_process_data(conn_net_cli_t cli) {
 
         /*完整的数据包不在一个块内 */  
         if (buf == NULL) buf = conn_net_cli_merge_rb(cli);
-        if (buf == NULL) return -1;
+        if (buf == NULL) {
+            CPE_ERROR(
+                cli->m_em, "%s: conn_net_cli_merge_rb fail!!!", conn_net_cli_name(cli));
+            conn_net_cli_apply_evt(cli, conn_net_cli_fsm_evt_disconnected);
+            return -1;
+        }
 
         /*转换成内部的pkg */  
         head = buf;

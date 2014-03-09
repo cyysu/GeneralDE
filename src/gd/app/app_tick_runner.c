@@ -42,7 +42,7 @@ static int app_tick_run_main(gd_app_context_t ctx, void * user_ctx) {
             tv.tv_sec = 0;
             tv.tv_usec = runner->m_tick_span * 1000;
             if (select(0, NULL, NULL, NULL, &tv) == -1) {
-                APP_CTX_ERROR(
+                APP_CTX_INFO(
                     ctx, "%s: sleep %d ms, select error, error=%d (%s)!",
                     "app_tick_runner", (int)runner->m_tick_span, errno, strerror(errno));
             }
