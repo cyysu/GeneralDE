@@ -12,6 +12,9 @@ struct set_svr_mon {
 
     fsm_def_machine_t m_fsm_def;
 
+    uint8_t m_have_stop_apps;
+    gd_timer_id_t m_wait_timer_id;
+
     set_svr_mon_app_list_t m_mon_apps;
 };
 
