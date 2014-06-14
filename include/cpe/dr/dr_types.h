@@ -29,6 +29,23 @@ typedef struct dr_idx_entry_info * dr_idx_entry_info_t;
 typedef struct dr_index_info * dr_index_info_t;
 typedef struct dr_index_entry_info * dr_index_entry_info_t;
 
+typedef struct dr_data {
+    LPDRMETA m_meta;
+    void * m_data;
+    size_t m_size;
+} * dr_data_t;
+
+typedef struct dr_data_entry {
+    LPDRMETAENTRY m_entry;
+    void * m_data;
+    size_t m_size;
+} * dr_data_entry_t;
+
+typedef struct dr_data_source {
+    struct dr_data m_data;
+    struct dr_data_source * m_next;
+} * dr_data_source_t;
+
 enum dr_code_error {
     dr_code_error_format_error = -1
     , dr_code_error_not_enough_input = -2
