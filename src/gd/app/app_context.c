@@ -8,10 +8,6 @@
 #include "cpe/cfg/cfg_manage.h"
 #include "gd/app/app_context.h"
 #include "app_internal_types.h"
-#ifdef ANDROID
-#include "cpe/zip/zip_file.h"
-#include "cpe/android/android_env.h"
-#endif
 
 void gd_app_set_main(gd_app_context_t context, gd_app_fn_t fn_main, gd_app_fn_t fn_stop, void * fn_ctx) {
     context->m_main = fn_main;
@@ -187,64 +183,8 @@ const char * gd_app_root(gd_app_context_t context) {
     return context->m_root;
 }
 
+#ifndef ANDROID
 int gd_app_cfg_reload(gd_app_context_t context) {
-#ifdef ANDROID
-    int rv;
-    const char * apk_name;
-    cpe_unzip_context_t zip_context;
-    cpe_unzip_dir_t zip_dir;
-    cpe_unzip_file_t zip_file;
-
-    apk_name = android_current_apk();
-    if (strcmp(apk_name, "") == 0) {
-        CPE_ERROR(context->m_em, "load config from assets/etc: apk config not exist!");
-        return -1;
-    }
-
-    zip_context = cpe_unzip_context_create(apk_name, context->m_alloc, context->m_em);
-    if (zip_context == NULL) {
-        CPE_ERROR(context->m_em, "load config from %s:assets/etc: open apk fail!", apk_name);
-        return -1;
-    }
-
-    if ((zip_file = cpe_unzip_file_find(zip_context, "assets/etc.yml", context->m_em))) {
-        rv = cfg_read_zip_file(
-            context->m_cfg,
-            zip_file,
-            cfg_merge_use_new,
-            context->m_em);
-
-        if (rv == 0) {
-            if (context->m_debug) {
-                CPE_INFO(context->m_em, "load config from %s:assets/etc.yml success!", apk_name);
-            }
-        }
-    }
-    else if ((zip_dir = cpe_unzip_dir_find(zip_context, "assets/etc", context->m_em))) {
-        rv = cfg_read_zip_dir(
-            context->m_cfg,
-            zip_dir,
-            cfg_merge_use_new,
-            context->m_em,
-            context->m_alloc);
-
-        if (rv == 0) {
-            if (context->m_debug) {
-                CPE_INFO(context->m_em, "load config from %s:assets/etc success!", apk_name);
-            }
-        }
-    }
-    else {
-        if (context->m_debug) {
-            CPE_INFO(context->m_em, "load config from %s:assets/etc: dir not exist, skip!", apk_name);
-        }
-        rv = 0;
-    }
-
-    cpe_unzip_context_free(zip_context);
-
-    return rv;
-#else
     int rv;
     struct mem_buffer tbuf;
 
@@ -254,7 +194,28 @@ int gd_app_cfg_reload(gd_app_context_t context) {
     }
 
     mem_buffer_init(&tbuf, context->m_alloc);
+    /*
+    mem_buffer_strcat(&tbuf, context->m_root);
+    mem_buffer_strcat(&tbuf, "/etc.bc");
+    if (file_exist((char*)mem_buffer_make_continuous(&tbuf, 0), NULL)) {
+        rv = cfg_read_bin_file(context->m_cfg, (char*)mem_buffer_make_continuous(&tbuf, 0), context->m_em);
+        goto READ_COMPLETE;
+    }
+    //*/
 
+    mem_buffer_clear_data(&tbuf);
+    mem_buffer_strcat(&tbuf, context->m_root);
+    mem_buffer_strcat(&tbuf, "/etc.yml");
+    if (file_exist((char*)mem_buffer_make_continuous(&tbuf, 0), NULL)) {
+        rv = cfg_read_file(
+            context->m_cfg,
+            (char*)mem_buffer_make_continuous(&tbuf, 0),
+            cfg_merge_use_new,
+            context->m_em);
+        goto READ_COMPLETE;
+    }
+
+    mem_buffer_clear_data(&tbuf);
     mem_buffer_strcat(&tbuf, context->m_root);
     mem_buffer_strcat(&tbuf, "/etc");
 
@@ -265,6 +226,7 @@ int gd_app_cfg_reload(gd_app_context_t context) {
         context->m_em,
         context->m_alloc);
 
+READ_COMPLETE:
     if (rv == 0) {
         if (context->m_debug) {
             CPE_INFO(context->m_em, "load config from %s success!", (char*)mem_buffer_make_continuous(&tbuf, 0));
@@ -309,8 +271,8 @@ int gd_app_cfg_reload(gd_app_context_t context) {
     mem_buffer_clear(&tbuf);
 
     return rv;
-#endif
 }
+#endif
 
 uint32_t gd_app_flags(gd_app_context_t app) {
     return app->m_flags;

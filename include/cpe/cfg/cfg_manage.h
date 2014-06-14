@@ -88,6 +88,7 @@ int cfg_apply_modify_seq(cfg_t cfg, cfg_t modify_info, error_monitor_t em);
 
 int cfg_read_zip_dir(cfg_t cfg, cpe_unzip_dir_t d, cfg_policy_t policy, error_monitor_t em, mem_allocrator_t talloc);
 int cfg_read_zip_file(cfg_t cfg, cpe_unzip_file_t zf, cfg_policy_t policy, error_monitor_t em);
+int cfg_read_zip_bin_file(cfg_t cfg, cpe_unzip_file_t zf, cfg_policy_t policy, error_monitor_t em);
 
 #ifdef __cplusplus
 }
