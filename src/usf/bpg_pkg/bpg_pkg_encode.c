@@ -206,7 +206,7 @@ dr_cvt_result_t bpg_pkg_encode_data(dp_req_t body, void * output, size_t * outpu
         }
 
         output_pkg->head.flags |= BASEPKG_HEAD_FLAG_ZIP;
-        output_pkg->head.bodytotallen = ziped_size;
+        output_pkg->head.bodytotallen = (uint16_t)ziped_size;
     }
 
     *output_capacity = sizeof(BASEPKG_HEAD) + output_pkg->head.bodytotallen;
