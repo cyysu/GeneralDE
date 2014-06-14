@@ -1,5 +1,5 @@
 #ifndef GDPP_NM_GROUP_H
-#define GDPP_NM_GRUOP_H
+#define GDPP_NM_GROUP_H
 #include "Object.hpp"
 
 namespace Cpe { namespace Nm {

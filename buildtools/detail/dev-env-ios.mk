@@ -74,7 +74,8 @@ iPhoneSimulator.MMFLAGS ?= \
                    -fobjc-legacy-dispatch \
 
 iPhoneSimulator.LDFLAGS ?=  -arch i386\
-                            -mmacosx-version-min=10.6 \
+                            -stdlib=libc++ \
+                            -miphoneos-version-min=6.1 \
                             -Xlinker \
                             -objc_abi_version \
                             -Xlinker 2 
@@ -83,7 +84,8 @@ iPhoneSimulator.install-dir?=$(HOME)/Library/Application Support/iPhone Simulato
 
 # }}}
 # {{{ toolset def
-IOS_PLATFORM_VERSION_LIST:=7.0 6.1 6.0 5.0
+
+IOS_PLATFORM_VERSION_LIST:=7.1 7.0 6.1 6.0 5.0
 IOS_PLATFORM_NAME?=iPhoneSimulator
 
 IOS_XCODE_ROOT:=$(if $(filter mac,$(OS_NAME)),$(shell xcode-select -print-path))
@@ -130,6 +132,7 @@ ios.LDFLAGS += \
            -isysroot $(IOS_SDK_PREFIX) \
            $($(IOS_PLATFORM_NAME)LDFLAGS) \
            $(addprefix -L,$(sort $(dir $(libraries)))) \
+           $($(IOS_PLATFORM_NAME).LDFLAGS)
 
 ios.PLUTILFLAGS += -convert binary1
 
