@@ -78,7 +78,7 @@ ssize_t file_load_to_stream(write_stream_t stream, const char * file, error_moni
     FILE * fp;
     ssize_t totalSize;
 
-    fp = file_stream_open(file, "r", em);
+    fp = file_stream_open(file, "rb", em);
     if (fp == NULL) return -1;
 
     totalSize = file_stream_load_to_stream(stream, fp, em);
@@ -181,10 +181,14 @@ ssize_t file_stream_load_to_stream(write_stream_t stream, FILE * fp, error_monit
     size_t writeOkSize;
     size_t size;
     ssize_t totalSize;
+
+    size_t exTotalSize;
     char buf[128];
 
+    exTotalSize = 0;
     totalSize = 0;
     while((size = fread(buf, 1, 128, fp)) > 0) {
+        exTotalSize += size;
         writeOkSize = 0;
         while(size > writeOkSize
               && (writeSize = stream_write(stream, buf + writeOkSize, size - writeOkSize)) > 0)
@@ -193,7 +197,10 @@ ssize_t file_stream_load_to_stream(write_stream_t stream, FILE * fp, error_monit
         }
 
         totalSize += writeOkSize;
-        if (writeOkSize < size) break;
+        if (writeOkSize < size)
+        {
+            break;
+        }
     }
 
     if (ferror(fp)) {

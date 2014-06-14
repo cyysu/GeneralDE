@@ -31,6 +31,15 @@ cfg_t BinTest::build_by_bin(cfg_t cfg) {
     return cfg_find_cfg(m_root, name);
 }
 
+cfg_t BinTest::build_by_bin_file(const char * path) {
+    char name[128];
+    snprintf(name, sizeof(name), "test_%d", ++m_test_attr_id);
+
+    EXPECT_EQ(0, cfg_read_bin_file(m_root, path, t_em()));
+
+    return m_root;
+}
+
 cfg_t BinTest::build_by_bin(int typeId, const char * value) {
     cfg_t input = build(typeId, value);
     EXPECT_TRUE(input != NULL) << "build input of (type=" << typeId << ", value=" << value << " fail!";
