@@ -1,5 +1,5 @@
 #ifndef USFPP_BPG_USE_SENDPOINT_H
-#define USFPP_BPG_USE_SENDPOING_H
+#define USFPP_BPG_USE_SENDPOINT_H
 #include "cpepp/utils/ClassCategory.hpp"
 #include "cpepp/dr/Data.hpp"
 #include "gdpp/app/Application.hpp"
