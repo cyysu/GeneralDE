@@ -15,6 +15,7 @@ namespace Cpe { namespace Dr {
 class ConstDataElement {
 public:
     ConstDataElement(const void * data, LPDRMETAENTRY entry, size_t capacity = 0);
+    ConstDataElement(dr_data_entry const & o);
 
     operator int8_t(void) const;
     operator uint8_t(void) const;
@@ -56,6 +57,7 @@ protected:
 class DataElement : public ConstDataElement {
 public:
     DataElement(void * data, LPDRMETAENTRY entry, size_t capacity = 0);
+    DataElement(dr_data_entry const & o);
 
     DataElement & operator=(int8_t d);
     DataElement & operator=(uint8_t d);
