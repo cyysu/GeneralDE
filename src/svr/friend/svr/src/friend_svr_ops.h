@@ -56,4 +56,9 @@ friend_svr_op_sync_send(logic_context_t ctx, logic_stack_node_t stack, void * us
 logic_op_exec_result_t
 friend_svr_op_sync_recv(logic_context_t ctx, logic_stack_node_t stack, logic_require_t require, void * user_data, cfg_t cfg);
 
+logic_op_exec_result_t
+friend_svr_op_ack_send(logic_context_t ctx, logic_stack_node_t stack, void * user_data, cfg_t cfg);
+logic_op_exec_result_t
+friend_svr_op_ack_recv(logic_context_t ctx, logic_stack_node_t stack, logic_require_t require, void * user_data, cfg_t cfg);
+
 #endif
