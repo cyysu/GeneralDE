@@ -9,6 +9,8 @@
 #include "cpepp/dr/MetaLib.hpp"
 #include "cpepp/dr/Meta.hpp"
 #include "gdpp/app/Log.hpp"
+#include "cpe/dr/dr_pbuf.h"
+#include "cpe/pal/pal_strings.h"
 
 namespace Gd { namespace Utils {
 
@@ -16,6 +18,32 @@ template<typename BaseT, typename ElementT, typename Compare>
 class BasicMetaInfoManagerGen : public BaseT {
 public:
     typedef BasicMetaInfoManagerGen Base;
+
+    virtual void load_pbuf_array(void const * data, size_t data_capacity) {
+        ElementT buf;
+        const char * rp = (const char *)data;
+        int r_capacity = (int)data_capacity;
+
+        while(r_capacity > 0) {
+            int rv;
+            size_t read_with_size;
+ 
+            bzero(&buf, sizeof(buf));
+
+            rv = dr_pbuf_read_with_size(&buf, sizeof(buf), rp, data_capacity, &read_with_size, this->meta(), NULL);
+            if (rv < 0) {
+                APP_ERROR("load from pbuf array fail, rv=%d!", rv);
+                break;
+            }
+
+            m_elements.push_back(buf);
+
+            rp += read_with_size;
+            r_capacity -= read_with_size;
+        }
+
+        ::std::sort(m_elements.begin(), m_elements.end(), Compare());
+    }
 
     virtual void load(ElementT const * data, size_t count) {
         size_t writeCount = m_elements.size();
