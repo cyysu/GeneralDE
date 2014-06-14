@@ -31,7 +31,7 @@
 - name: gd_timer_mgr
 
 - name: net_trans_manage
-  debug: 2
+  debug: 1
 
 - name: dr_store_manage
 
