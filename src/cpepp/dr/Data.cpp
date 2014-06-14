@@ -17,6 +17,13 @@ ConstDataElement::ConstDataElement(const void * data, LPDRMETAENTRY entry, size_
 {
 }
 
+ConstDataElement::ConstDataElement(dr_data_entry const & o)
+    : m_data(o.m_data)
+    , m_capacity(o.m_size)
+    , m_entry(o.m_entry)
+{
+}
+
 ConstDataElement::operator int8_t(void) const {
     int8_t r;
     Utils::ErrorCollector em;
@@ -188,6 +195,11 @@ ConstData ConstDataElement::operator[] (size_t pos) const {
 //class DataElement
 DataElement::DataElement(void * data, LPDRMETAENTRY entry, size_t capacity) 
     : ConstDataElement(data, entry, capacity)
+{
+}
+
+DataElement::DataElement(dr_data_entry const & o)
+    : ConstDataElement(o)
 {
 }
 
