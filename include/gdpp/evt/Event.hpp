@@ -53,6 +53,12 @@ public:
     template<typename T>
     T const & as(void) const { return *(T const *)data(); }
 
+    template<typename T>
+    T * check_as(void) { return Cpe::Dr::MetaTraits<T>::META == meta() ? (T *)data() : NULL; }
+
+    template<typename T>
+    T const * check_as(void) const { return Cpe::Dr::MetaTraits<T>::META == meta() ? (T const *)data() : NULL; }
+
     Event * clone(mem_allocrator_t alloc = NULL) const;
 
     void destory(void);
