@@ -33,6 +33,9 @@ public:
     NodePlacehold operator[](const char * path) { return NodePlacehold(*this, path, cfg_find_cfg(*this, path)); }
     Node const & operator[](const char * path) const { return *((Node*)cfg_find_cfg(*this, path)); }
 
+    Node * findChild(const char * path) { return (Node*)cfg_find_cfg(*this, path); }
+    Node const * findChild(const char * path) const { return (Node*)cfg_find_cfg(*this, path); }
+
     Node & onlyChild(void);
     Node const & onlyChild(void) const;
 

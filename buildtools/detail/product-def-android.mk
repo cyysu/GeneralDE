@@ -52,6 +52,8 @@ define product-def-rule-android-proj-combine-etc-bin
 
 $1.$2.android.proj: $(CPDE_OUTPUT_ROOT)/$($1.$2.android.output)/$(strip $(word 2,$3))
 
+auto-build-dirs+=$(dir $(CPDE_OUTPUT_ROOT)/$($1.$2.android.output)/$(strip $(word 2,$3)))
+
 $(CPDE_OUTPUT_ROOT)/$($1.$2.android.output)/$(strip $(word 2,$3)): $$(CPDE_OUTPUT_ROOT)/tools/bin/cpe_cfg_tool $(shell find $(CPDE_ROOT)/$(word 1,$3) -name "*.y[a]ml")
 	$$(call with_message,combine $(word 1, $3) to $(word 2, $3))$$(CPDE_OUTPUT_ROOT)/tools/bin/cpe_cfg_tool combine --input $$(CPDE_ROOT)/$(word 1,$3) --output $$@ --format bin
 
@@ -102,7 +104,7 @@ $1.$2.android.install: $(if $(filter 1,$(only)),,$1.$2.android.apk)
 	ant -f $$(CPDE_OUTPUT_ROOT)/$$($1.$2.android.output)/build.xml $(if $(filter 0,$(APKD)),installr,installd)
 
 $1.$2.android.native: $(if $(filter 1,$(only)),,$1.$2.android.proj)
-	ndk-build --directory=$$(CPDE_OUTPUT_ROOT)/$$($1.$2.android.output) $$(if $$(filter 1,$$V),V=1) -k
+	ndk-build $(if $(filter 0,$(APKD)),,NDK_DEBUG=1) --directory=$$(CPDE_OUTPUT_ROOT)/$$($1.$2.android.output) $$(if $$(filter 1,$$V),V=1) -k
 
 $1.$2.android.proj: $(CPDE_OUTPUT_ROOT)/$($1.$2.android.output)/local.properties \
                     $(CPDE_OUTPUT_ROOT)/$($1.$2.android.output)/jni/Application.mk \
@@ -120,7 +122,7 @@ $(CPDE_OUTPUT_ROOT)/$$($1.$2.android.output)/jni/Application.mk:
 	$$(CPE_SILENCE_TAG)echo 'LOCAL_PATH := $$$$(call my-dir)' > $$@
 	$$(CPE_SILENCE_TAG)echo '' >> $$@
 	$$(CPE_SILENCE_TAG)echo 'APP_STL := $$($1.$2.android.stl)' >> $$@
-	$$(CPE_SILENCE_TAG)echo 'APP_ABI := armeabi' >> $$@
+	$$(CPE_SILENCE_TAG)echo 'APP_ABI := armeabi  armeabi-v7a' >> $$@
 	$$(CPE_SILENCE_TAG)echo 'APP_OPTIM := debug' >> $$@
 
 $(eval product-def-rule-android-proj-tmp-name:=)

@@ -18,6 +18,9 @@ define assert-set-one
   $(if $(filter 1,$(words $(foreach m,$1,$($m)))),,$(warning $1 only can set 1 value))
 endef
 
+# $(call concat,a b c d)
+concat=$(if $(firstword $1),$(firstword $1)$(call concat,$(wordlist 2,$(words $1),$1)))
+
 # $(call join-path,part1,part2)
 join-path=$(if $(1),$(strip $(1))/$(strip $(2)),$(2))
 
@@ -53,6 +56,33 @@ $(foreach part,$(subst /,$(space),$2),                          \
 )
 $(foreach result-part,$($1.inbuild),$(eval $1:=/$(result-part)$($1)))
 endef
+
+# $(call list-to-path,path)
+list-to-path=$(if $(word 1,$1),$(if $(word 2,$1),$(word 1,$1)/$(call list-to-path,$(wordlist 2,$(words $1),$1)),$1))
+
+# $(call build-relative-path,path,base)
+build-relative-path-last=$(if $(word 1,$1) \
+                           , $(if $(word 1, $2) \
+                                 , $(if $(filter $(word 1,$1),$(word 1,$2)) \
+                                        , $(call build-relative-path-last,$(wordlist 2,$(words $1),$1),$(wordlist 2,$(words $2),$2)) \
+                                        , $1 \
+                                    ) \
+                                 , $1 \
+                              ) \
+                        )
+
+build-relative-path-node-to-up=$(if $(word 2,$1),.. $(call build-relative-path-node-to-up,$(wordlist 2,$(words $1),$1)))
+
+build-relative-path-prefix=$(if $(word 1,$1) \
+                           , $(if $(word 1, $2) \
+                                 , $(if $(filter $(word 1,$1),$(word 1,$2)) \
+                                        , $(call build-relative-path-prefix,$(wordlist 2,$(words $1),$1),$(wordlist 2,$(words $2),$2)) \
+                                        , $(call build-relative-path-node-to-up,$2) \
+                                    ) \
+                              ) \
+                           )
+
+build-relative-path=$(call list-to-path,$(call build-relative-path-prefix,$(subst /, ,$1),$(subst /, ,$2))$(call build-relative-path-last,$(subst /, ,$1),$(subst /, ,$2)))
 
 # $(call path-list-join,path-list)
 define path-list-join
