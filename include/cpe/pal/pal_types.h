@@ -35,9 +35,8 @@ typedef __int64 int64_t;
 
 typedef unsigned char uint8_t;
 typedef unsigned short int uint16_t;
-
 #ifndef __uint32_t_defined
-typedef unsigned int uint32_t;
+typedef unsigned int	uint32_t;
 # define __uint32_t_defined
 #endif
 
@@ -66,6 +65,8 @@ typedef uint32_t ptr_uint_t;
 #endif
 
 #define CPE_ARRAY_SIZE(__array) ((sizeof(__array) / sizeof(__array[0])))
+#define CPE_ENTRY_START(__typeName, __itemName)  (((char*)(&((struct __typeName *)1000)->__itemName)) - ((char*)1000))
+#define CPE_ENTRY_SIZE(__typeName, __itemName)  (sizeof(((struct __typeName *)1000)->__itemName))
 
 #endif /* TTYPES_H */
 
