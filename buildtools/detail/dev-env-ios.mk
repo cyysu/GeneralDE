@@ -16,7 +16,7 @@ ios.LDFLAGS.share:=--shared
 
 ios.default-lib-type:=static
 ios.make-static-lib-name=lib$1.a
-ios.make-dynamic-lib-name=lib$1.so
+ios.make-dynamic-lib-name=lib$1.dylib
 ios.make-executable-name=$1
 ios.export-symbols=$(addprefix -u ,$(foreach m,$1,_$m))
 
@@ -54,13 +54,9 @@ iPhoneSimulator.CPPFLAGS ?= \
 iPhoneSimulator.CFLAGS ?= \
                    -std=c99 \
                    -fexceptions \
-                   -mmacosx-version-min=10.6 \
-                   -gdwarf-2 \
 
 iPhoneSimulator.CXXFLAGS ?= \
                    -fexceptions \
-                   -mmacosx-version-min=10.6 \
-                   -gdwarf-2 \
 
 iPhoneSimulator.MFLAGS ?= \
                    $(iPhoneSimulator.CFLAGS) \
@@ -78,7 +74,8 @@ iPhoneSimulator.MMFLAGS ?= \
                    -fobjc-legacy-dispatch \
 
 iPhoneSimulator.LDFLAGS ?=  -arch i386\
-                            -mmacosx-version-min=10.6 \
+                            -stdlib=libc++ \
+                            -miphoneos-version-min=6.1 \
                             -Xlinker \
                             -objc_abi_version \
                             -Xlinker 2 
@@ -87,7 +84,8 @@ iPhoneSimulator.install-dir?=$(HOME)/Library/Application Support/iPhone Simulato
 
 # }}}
 # {{{ toolset def
-IOS_PLATFORM_VERSION_LIST:=6.0 5.0
+
+IOS_PLATFORM_VERSION_LIST:=7.1 7.0 6.1 6.0 5.0
 IOS_PLATFORM_NAME?=iPhoneSimulator
 
 IOS_XCODE_ROOT:=$(if $(filter mac,$(OS_NAME)),$(shell xcode-select -print-path))
@@ -105,7 +103,8 @@ ios.GCC = $(call $(IOS_PLATFORM_NAME).compiler,gcc)
 ios.CXX = $(call $(IOS_PLATFORM_NAME).compiler,g++)
 ios.CC = $(ios.GCC)
 ios.LD = $(ios.CC)
-ios.AR = $(IOS_PLATFORM_BIN_PATH)/ar
+ios.AR = $(word 1, $(wildcard $(IOS_PLATFORM_BIN_PATH)/ar)  \
+                   $(wildcard $(IOS_XCODE_ROOT)/Toolchains/XcodeDefault.xctoolchain/usr/bin/ar))
 ios.STRIP = $(IOS_PLATFORM_BIN_PATH)/strip
 ios.OBJCOPY = $(IOS_PLATFORM_BIN_PATH)/objcopy
 ios.IBTOOL = ibtool
@@ -133,6 +132,7 @@ ios.LDFLAGS += \
            -isysroot $(IOS_SDK_PREFIX) \
            $($(IOS_PLATFORM_NAME)LDFLAGS) \
            $(addprefix -L,$(sort $(dir $(libraries)))) \
+           $($(IOS_PLATFORM_NAME).LDFLAGS)
 
 ios.PLUTILFLAGS += -convert binary1
 
