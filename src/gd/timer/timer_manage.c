@@ -7,6 +7,7 @@
 #include "cpe/nm/nm_read.h"
 #include "cpe/tl/tl_manage.h"
 #include "cpe/tl/tl_action.h"
+#include "cpe/timer/timer_manage.h"
 #include "gd/app/app_log.h"
 #include "gd/app/app_context.h"
 #include "gd/app/app_module.h"
@@ -16,8 +17,6 @@
 
 cpe_hash_string_t s_gd_timer_mgr_default_name;
 struct nm_node_type s_nm_node_type_gd_timer_mgr;
-static void gd_timer_mgr_dispatch_timer(tl_event_t input, void * context);
-static void gd_timer_mgr_destory_timer(tl_event_t event, void * context);
 
 gd_timer_mgr_t
 gd_timer_mgr_create(
@@ -43,72 +42,20 @@ gd_timer_mgr_create(
     mgr->m_app = app;
     mgr->m_em = em;
     mgr->m_debug = 0;
-    mgr->m_timer_count_in_page = 2048;
-    mgr->m_timer_page_count = 0;
-    mgr->m_timer_page_capacity = 0;
-    mgr->m_timer_buf = NULL;
-
-    if (cpe_range_mgr_init(&mgr->m_ids, alloc) != 0) {
-        CPE_ERROR(em, "gd_timer_mgr_create: init range mgr!");
-        nm_node_free(mgr_node);
-        return NULL;
-    }
 
     tl_mgr = app_tl_manage_find(app, tl_name);
     if (tl_mgr == NULL) {
         CPE_ERROR(em, "gd_timer_mgr_create: tl %s not exist!", tl_name ? tl_name : "default");
-        cpe_range_mgr_fini(&mgr->m_ids);
         nm_node_free(mgr_node);
         return NULL;
     }
 
-    mgr->m_tl = tl_create(tl_mgr);
-    if (mgr->m_tl == NULL) {
-        CPE_ERROR(em, "gd_timer_mgr_create: create tl fail!");
-        cpe_range_mgr_fini(&mgr->m_ids);
+    mgr->m_timer_mgr = cpe_timer_mgr_create(tl_mgr, alloc, em);
+    if (mgr->m_timer_mgr == NULL) {
+        CPE_ERROR(em, "gd_timer_mgr_create: create cpe timer manager fail!");
         nm_node_free(mgr_node);
         return NULL;
     }
-
-    tl_set_opt(mgr->m_tl, tl_set_event_dispatcher, gd_timer_mgr_dispatch_timer);
-    tl_set_opt(mgr->m_tl, tl_set_event_op_context, mgr);
-    tl_set_opt(mgr->m_tl, tl_set_event_destory, gd_timer_mgr_destory_timer);
-
-    if (cpe_hash_table_init(
-            &mgr->m_responser_to_processor,
-            alloc,
-            (cpe_hash_fun_t) gd_timer_processor_hash_fun,
-            (cpe_hash_cmp_t) gd_timer_processor_cmp_fun,
-            CPE_HASH_OBJ2ENTRY(gd_timer_processor, m_hh_for_responser_to_processor),
-            -1) != 0)
-    {
-        CPE_ERROR(em, "gd_timer_mgr_create: init responser hash table fail!");
-        tl_free(mgr->m_tl);
-        cpe_range_mgr_fini(&mgr->m_ids);
-        nm_node_free(mgr_node);
-        return NULL;
-    }
-
-#ifdef GD_TIMER_DEBUG
-    cpe_range_set_debug(&mgr->m_ids, 1);
-
-    if (cpe_hash_table_init(
-            &mgr->m_alloc_infos,
-            alloc,
-            (cpe_hash_fun_t) gd_debug_info_hash_fun,
-            (cpe_hash_cmp_t) gd_debug_info_eq_fun,
-            CPE_HASH_OBJ2ENTRY(gd_timer_alloc_info, m_hh),
-            -1) != 0)
-    {
-        CPE_ERROR(em, "gd_timer_mgr_create: init debug info hash table fail!");
-        tl_free(mgr->m_tl);
-        cpe_range_mgr_fini(&mgr->m_ids);
-        nm_node_free(mgr_node);
-        cpe_hash_table_fini(&mgr->m_responser_to_processor);
-        return NULL;
-    }
-
-#endif
 
     nm_node_set_type(mgr_node, &s_nm_node_type_gd_timer_mgr);
 
@@ -119,31 +66,7 @@ static void gd_timer_mgr_clear(nm_node_t node) {
     gd_timer_mgr_t mgr;
     mgr = (gd_timer_mgr_t)nm_node_data(node);
 
-    tl_free(mgr->m_tl);
-
-    gd_timer_mgr_free_processor_buf(mgr);
-
-    cpe_range_mgr_fini(&mgr->m_ids);
-
-    cpe_hash_table_fini(&mgr->m_responser_to_processor);
-
-#ifdef GD_TIMER_DEBUG
-    do {
-        struct cpe_hash_it it;
-        struct gd_timer_alloc_info * e;
-
-        cpe_hash_it_init(&it, &mgr->m_alloc_infos);
-
-        e = cpe_hash_it_next(&it);
-        while (e) {
-            struct gd_timer_alloc_info * next = cpe_hash_it_next(&it);
-            mem_free(mgr->m_alloc, e);
-            e = next;
-        }
-
-        cpe_hash_table_fini(&mgr->m_alloc_infos);
-    } while(0);
-#endif
+    cpe_timer_mgr_free(mgr->m_timer_mgr);
 }
 
 void gd_timer_mgr_free(gd_timer_mgr_t mgr) {
@@ -192,7 +115,7 @@ gd_timer_mgr_name_hs(gd_timer_mgr_t mgr) {
 }
 
 tl_t gd_timer_mgr_tl(gd_timer_mgr_t mgr) {
-    return mgr->m_tl;
+    return cpe_timer_mgr_tl(mgr->m_timer_mgr);
 }
 
 int gd_timer_mgr_regist_timer(
@@ -202,157 +125,22 @@ int gd_timer_mgr_regist_timer(
     void * arg, void (*arg_fini)(void *),
     tl_time_span_t delay, tl_time_span_t span, int repeatCount)
 {
-    gd_timer_id_t newProcessorId;
-    struct gd_timer_processor * newProcessorData;
-    int send_rv;
-
-    if (gd_timer_processor_alloc(mgr, &newProcessorId) != 0) {
-        if (arg && arg_fini) arg_fini(arg);
-        CPE_ERROR(
-            mgr->m_em, "%s: regist processor: alloc processor fail!",
-            gd_timer_mgr_name(mgr));
-        return -1;
-    }
-
-    newProcessorData = gd_timer_processor_get(mgr, newProcessorId);
-    assert(newProcessorData);
-    assert(newProcessorData->m_process_ctx == NULL);
-    assert(newProcessorData->m_state == timer_processor_state_NotInResponserHash);
-
-    newProcessorData->m_process_ctx = ctx;
-    newProcessorData->m_process_arg = arg;
-    newProcessorData->m_process_arg_free = arg_fini;
-    newProcessorData->m_process_fun = fun;
-
-    newProcessorData->m_tl_event = tl_event_create(mgr->m_tl, sizeof(gd_timer_id_t));
-    if (newProcessorData->m_tl_event == NULL) {
-        gd_timer_processor_free(mgr, newProcessorData);
-        CPE_ERROR(
-            mgr->m_em, "%s: regist processor: create tl_event fail!",
-            gd_timer_mgr_name(mgr));
-        return -1;
-    }
-    *(gd_timer_id_t*)tl_event_data(newProcessorData->m_tl_event) = newProcessorId;
-
-    if (cpe_hash_table_insert(&mgr->m_responser_to_processor, newProcessorData) != 0) {
-        gd_timer_processor_free(mgr, newProcessorData);
-        CPE_ERROR(
-            mgr->m_em, "%s: regist processor: insert to responser processor list fail!",
-            gd_timer_mgr_name(mgr));
-        return -1;
-    }
-    newProcessorData->m_state = timer_processor_state_InResponserHash;
-
-    send_rv = tl_event_send_ex(newProcessorData->m_tl_event, delay, span, repeatCount);
-    if (send_rv != 0) {
-        gd_timer_processor_free(mgr, newProcessorData);
-        CPE_ERROR(
-            mgr->m_em, "%s: regist processor: send event to tl fail, rv=%d!",
-            gd_timer_mgr_name(mgr), send_rv);
-        return -1;
-    }
-
-    if (id) *id = newProcessorId;
-
-    return 0;
+    return cpe_timer_mgr_regist_timer(mgr->m_timer_mgr, id, fun, ctx, arg, arg_fini, delay, span, repeatCount);
 }
 
 void gd_timer_mgr_unregist_timer_by_ctx(gd_timer_mgr_t mgr, void * ctx) {
-    struct gd_timer_processor key;
-    struct gd_timer_processor * node;
-
-    key.m_process_ctx = ctx;
-
-    node = (struct gd_timer_processor *)cpe_hash_table_find(&mgr->m_responser_to_processor, &key);
-    while(node) {
-        struct gd_timer_processor * next = 
-            cpe_hash_table_find_next(&mgr->m_responser_to_processor, node);
-        assert(node->m_process_ctx);
-
-        gd_timer_processor_free(mgr, node);
-
-        node = next;
-    }
+    cpe_timer_mgr_unregist_timer_by_ctx(mgr->m_timer_mgr, ctx);
 }
 
 void gd_timer_mgr_unregist_timer_by_id(gd_timer_mgr_t mgr, gd_timer_id_t timer_id) {
-    struct gd_timer_processor * timer;
-    timer = gd_timer_processor_get(mgr, timer_id);
-
-    if (timer == NULL) {
-        CPE_ERROR(
-            mgr->m_em, "%s: unregister timer by id: %d not a valid timer!",
-            gd_timer_mgr_name(mgr), timer_id);
-    }
-    else if (timer->m_process_ctx == NULL) {
-        CPE_ERROR(
-            mgr->m_em, "%s: unregister timer by id: %d not a allocked timer!",
-            gd_timer_mgr_name(mgr), timer_id);
-    }
-    else {
-        assert(timer->m_process_ctx);
-        gd_timer_processor_free(mgr, timer);
-    }
+    cpe_timer_mgr_unregist_timer_by_id(mgr->m_timer_mgr, timer_id);
 }
 
 int gd_timer_mgr_have_timer(gd_timer_mgr_t mgr, gd_timer_id_t timer_id) {
-    struct gd_timer_processor * timerPage;
-    int pagePos;
-
-    pagePos = timer_id / mgr->m_timer_count_in_page;
-    if (pagePos >= (int)mgr->m_timer_page_count) return 0;
-
-    timerPage = mgr->m_timer_buf[pagePos];
-
-    return timerPage[timer_id % mgr->m_timer_count_in_page].m_process_ctx ? 1 : 0;
-}
-
-static void gd_timer_mgr_destory_timer(tl_event_t event, void * context) {
-    gd_timer_mgr_t mgr;
-    gd_timer_id_t timerId;
-    struct gd_timer_processor * timer;
-
-    mgr = (gd_timer_mgr_t)context;
-
-    timerId = *(gd_timer_id_t*)tl_event_data(event);
-
-    timer = gd_timer_processor_get(mgr, timerId);
-    if (timer == NULL) {
-        CPE_ERROR(mgr->m_em, "%s: destory timer: timer(id=%d) not exist!", gd_timer_mgr_name(mgr), timerId);
-        return;
-    }
-
-    if (timer->m_tl_event != event) {
-        CPE_ERROR(mgr->m_em, "%s: destory timer: timer(id=%d) tl_event mismatch!", gd_timer_mgr_name(mgr), timerId);
-        return;
-    }
-
-    timer->m_tl_event = NULL;
-    gd_timer_processor_free(mgr, timer);
-}
-
-static void gd_timer_mgr_dispatch_timer(tl_event_t input, void * context) {
-    gd_timer_mgr_t mgr;
-    gd_timer_id_t timerId;
-    struct gd_timer_processor * timer;
-
-    mgr = (gd_timer_mgr_t)context;
-    assert(mgr);
-
-    timerId = *(gd_timer_id_t*)tl_event_data(input);
-
-    timer = gd_timer_processor_get(mgr, timerId);
-    if (timer == NULL) {
-        CPE_ERROR(mgr->m_em, "%s: dispatch timer: get timer(id=%d) fail!", gd_timer_mgr_name(mgr), timerId);
-        return;
-    }
-
-    timer->m_process_fun(timer->m_process_ctx, timerId, timer->m_process_arg);
+    return cpe_timer_mgr_have_timer(mgr->m_timer_mgr, timer_id);
 }
 
 CPE_HS_DEF_VAR(s_gd_timer_mgr_default_name, "gd_timer_mgr");
-
-CPE_HS_DEF_VAR(gd_timer_req_type_name, "app.event.req");
 
 struct nm_node_type s_nm_node_type_gd_timer_mgr = {
     "gd_timer_mgr",
