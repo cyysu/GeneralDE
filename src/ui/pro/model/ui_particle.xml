@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<metalib tagsetversion="1" name="" version="1">
+    <include name="ui_common" file="ui_common.xml"/>
+
+    <macrosgroup name="ui_particle_xform_mode">
+        <macro name="UI_PARTICLE_XFORM_LOCAL" value="0"/>
+        <macro name="UI_PARTICLE_XFORM_WORLD" value="1"/>
+    </macrosgroup>
+
+    <macrosgroup name="ui_particle_bound_mode">
+        <macro name="UI_PARTICLE_BOUND_NONE" value="0"/>
+        <macro name="UI_PARTICLE_BOUND_PARTICLE" value="1"/>
+        <macro name="UI_PARTICLE_BOUND_VERTICES" value="2"/>
+    </macrosgroup>
+
+    <macrosgroup name="ui_particle_belend_mode">
+        <macro name="UI_PARTICLE_BLEND_ADDITIVE" value="0"/> <!-- Final Color = Particle Color + Background Color  -->
+        <macro name="UI_PARTICLE_BLEND_ALPHABASE" value="1"/> <!-- Final Color = Particle Color * Particle Alpha + Background Color * (1 - Particle Alpha) -->
+        <macro name="UI_PARTICLE_BLEND_COLORBASE" value="2"/> <!-- Final Color = Particle Color + Background Color * (white - Particle Color) -->
+        <macro name="UI_PARTICLE_BLEND_NONE" value="3"/> <!-- Final Color = Particle Color -->
+    </macrosgroup>
+
+    <macrosgroup name="ui_particle_sprite_origin">
+        <macro name="UI_PARTICLE_ORIGIN_TOPLEFT" value="0"/>
+        <macro name="UI_PARTICLE_ORIGIN_TOPCENTER" value="1"/>
+        <macro name="UI_PARTICLE_ORIGIN_TOPRIGHT" value="2"/>
+        <macro name="UI_PARTICLE_ORIGIN_CENTERLEFT" value="3"/>
+        <macro name="UI_PARTICLE_ORIGIN_CENTER" value="4"/>
+        <macro name="UI_PARTICLE_ORIGIN_CENTERRIGHT" value="5"/>
+        <macro name="UI_PARTICLE_ORIGIN_BOTTOMLEFT" value="6"/>
+        <macro name="UI_PARTICLE_ORIGIN_BOTTOMCENTER" value="7"/>
+        <macro name="UI_PARTICLE_ORIGIN_BOTTOMRIGHT" value="8"/>
+    </macrosgroup>
+
+    <struct name="ui_particle_emitter" version="1">
+        <entry name="name" type="string" size="UI_NAME_LEN" id="1"/>
+
+        <!-- basic -->
+        <entry name="xform_mod" type="uint8" bindmacrosgroup="ui_particle_xform_mode" id="2" defaultvalue="0"/>
+        <entry name="bound_mod" type="uint8" bindmacrosgroup="ui_particle_bound_mode" id="3" defaultvalue="0"/>
+        <entry name="spawn_rate" type="float" id="4" defaultvalue="25.0"/>
+        <entry name="max_amount" type="uint32" id="5" defaultvalue="200"/>
+        <entry name="auto_up_dir" type="uint8" id="6" defaultvalue="0"/>
+        <entry name="scale" type="float" id="7" defaultvalue="1.0"/>
+
+        <!-- time -->
+        <entry name="init_delay_time" type="float" id="8"/>
+        <entry name="loop_delay_time" type="float" id="9"/>
+        <entry name="duration" type="float" id="10"/>
+        <entry name="time_scale" type="float" id="11" defaultvalue="1.0"/>
+        <entry name="repeat_time" type="uint32" id="12" defaultvalue="1"/>
+        <entry name="min_extra_brust" type="uint32" id="13"/>
+        <entry name="max_extra_brust" type="uint32" id="14"/>
+
+        <!-- child effect -->
+        <entry name="wait_child_fx" type="uint8" id="15"/>
+        <entry name="pass_on_color" type="uint8" id="16"/>
+        <entry name="child_fx_file" type="string" size="64" id="17"/>
+
+        <!-- sprite -->
+        <entry name="blend_mode" type="uint8" bindmacrosgroup="ui_particle_belend_mode" id="18"/> <!-- blend mode for quad particle rendering -->
+        <entry name="tiling_u" type="float" id="19" defaultvalue="1.0"/>  <!-- working U tiling -->
+        <entry name="tiling_v" type="float" id="20" defaultvalue="1.0"/> <!-- working V tiling -->
+        <entry name="atlas_x" type="float" id="21"/> <!-- texture altas x offset -->
+        <entry name="atlas_y" type="float" id="22"/> <!-- texture atlas y offset -->
+        <entry name="atlas_w" type="float" id="23"/> <!-- texture atlas width -->
+        <entry name="atlas_h" type="float" id="24"/> <!-- texture atlas height -->
+        <entry name="coord_offset" type="ui_vector_2" id="25"/> <!-- texture coordinates offset -->
+        <entry name="coord_scale" type="ui_vector_2" id="26"/> <!-- texture coordinates scaling -->
+        <entry name="origin" type="uint8" bindmacrosgroup="ui_particle_sprite_origin" id="27" defaultvalue="4"/> <!-- origin used to do stretch/spin -->
+        <entry name="texture" type="string" size="64" id="28"/>
+
+    </struct>
+
+</metalib>
