@@ -8,8 +8,10 @@
 extern "C" {
 #endif
 
+#define CPE_MD5_VALUE_DIGEST_COUNT (16)
+
 typedef struct {
-    uint8_t digest[16];
+    uint8_t digest[CPE_MD5_VALUE_DIGEST_COUNT];
 } cpe_md5_value, * cpe_md5_value_t;
 
 typedef struct cpe_md5_ctx {
@@ -22,6 +24,8 @@ typedef struct cpe_md5_ctx {
 void cpe_md5_ctx_init(cpe_md5_ctx_t ctx);
 void cpe_md5_ctx_update(cpe_md5_ctx_t ctx, void const * inBuf, size_t inLen);
 void cpe_md5_ctx_final(cpe_md5_ctx_t ctx);
+
+int cpe_md5_cmp(cpe_md5_value_t l, cpe_md5_value_t r);
 
 void cpe_md5_print(write_stream_t s, cpe_md5_value_t value);
 const char * cpe_md5_dump(cpe_md5_value_t value, mem_buffer_t buff);
