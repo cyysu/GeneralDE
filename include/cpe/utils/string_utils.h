@@ -41,6 +41,11 @@ int cpe_str_parse_byte_size(uint64_t * result, const char * astring);
 uint64_t cpe_str_parse_timespan_ms_with_dft(const char * astring, uint64_t dft);
 int cpe_str_parse_timespan_ms(uint64_t * result, const char * astring);
 
+char * cpe_str_trim_head(char * p);
+char * cpe_str_trim_tail(char * p, const char * head);
+
+char * cpe_str_mask_uint16(uint16_t v, char * buf, size_t buf_size);
+
 #define CPE_STR_BUF_INIT(__b, __size) { __size, 0, __b, 0 }
 
 #ifdef __cplusplus
