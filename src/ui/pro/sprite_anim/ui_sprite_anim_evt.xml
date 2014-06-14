@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<metalib tagsetversion="1" name="" version="1">
+    <include name="ui_sprite_anim_data" file="ui_sprite_anim_data.xml"/>
+
+    <!-- 控件: camera-touch -->
+    <struct name="ui_sprite_evt_anim_camera_touch_begin" version="1">
+        <entry name="dummy" type="uint8" id="1"/>
+    </struct>
+
+    <struct name="ui_sprite_evt_anim_camera_touch_move" version="1">
+        <entry name="old_screen_pos" type="ui_sprite_anim_pair" id="1"/>
+        <entry name="new_screen_pos" type="ui_sprite_anim_pair" id="2"/>
+        <entry name="max_speed" type="float" id="3"/>
+        <entry name="duration" type="float" id="4"/>
+    </struct>
+
+    <struct name="ui_sprite_evt_anim_camera_touch_end" version="1">
+        <entry name="speed" type="ui_sprite_anim_pair" id="1"/>
+        <entry name="step" type="float" id="2"/>
+        <entry name="reduce_per_step" type="float" id="3"/>
+    </struct>
+
+    <!-- 控件: camera-move -->
+    <!-- 镜头跟踪对象 -->
+    <struct name="ui_sprite_evt_anim_camera_move_follow_entity" version="1">
+        <entry name="entity_id" type="uint32" id="1"/>
+        <entry name="entity_name" type="string" size="64" id="2"/>
+        <entry name="pos_of_entity" type="string" size="32" id="3"/>
+        <entry name="pos_on_screen" type="ui_sprite_anim_pair" id="4"/>
+        <entry name="scale" type="float" id="5"/>
+        <entry name="max_speed" type="float" id="6"/>
+        <entry name="duration" type="float" id="7"/>
+    </struct>
+
+    <!-- 镜头移动到对象 -->
+    <struct name="ui_sprite_evt_anim_camera_move_to_entity" version="1">
+        <entry name="entity_id" type="uint32" id="1"/>
+        <entry name="entity_name" type="string" size="64" id="2"/>
+        <entry name="pos_of_entity" type="string" size="32" id="3"/>
+        <entry name="pos_on_screen" type="ui_sprite_anim_pair" id="4"/>
+        <entry name="scale" type="float" id="5"/>
+        <entry name="max_speed" type="float" id="6"/>
+        <entry name="duration" type="float" id="7"/>
+    </struct>
+
+    <!-- 镜头设置到位置 -->
+    <struct name="ui_sprite_evt_anim_camera_move_to_pos" version="1">
+        <entry name="pos_of_world" type="ui_sprite_anim_pair" id="1"/>
+        <entry name="pos_on_screen" type="ui_sprite_anim_pair" id="2"/>
+        <entry name="scale" type="float" id="3"/>
+        <entry name="max_speed" type="float" id="4"/>
+        <entry name="duration" type="float" id="5"/>
+    </struct>
+
+    <!-- 控件: camera-shake -->
+	<!-- 镜头震动 -->
+    <struct name="ui_sprite_evt_anim_camera_shake_to" version="1">
+    	<!-- 震动幅度 单位：米 -->
+        <entry name="amplitude" type="ui_sprite_anim_pair" id="1"/>
+        <entry name="num" type="uint32" id="2"/>
+        <entry name="duration" type="float" id="3"/>
+    </struct>
+
+    <!-- 控件: camera-scale -->
+    <struct name="ui_sprite_evt_anim_camera_scale" version="1">
+        <entry name="scale" type="float" id="1"/>
+        <entry name="keep_pos_on_screen" type="ui_sprite_anim_pair" id="2"/>
+        <entry name="duration" type="float" id="3"/>
+    </struct>
+</metalib>
