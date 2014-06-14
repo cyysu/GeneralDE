@@ -123,7 +123,20 @@ static void net_trans_check_multi_info(net_trans_manage_t mgr) {
 
             curl_easy_getinfo(handler, CURLINFO_PRIVATE, &task);
 
-            net_trans_task_set_done(task, net_trans_result_ok);
+            switch(res) {
+            case CURLE_OK:
+                net_trans_task_set_done(task, net_trans_result_ok);
+                break;
+            case CURLE_OPERATION_TIMEDOUT:
+                net_trans_task_set_done(task, net_trans_result_timeout);
+                break;
+            default:
+                CPE_ERROR(
+                    mgr->m_em, "%s: task %d (%s): check_multi_info done: res=%d!",
+                    net_trans_manage_name(mgr), task->m_id, task->m_group->m_name, res);
+                net_trans_task_set_done(task, net_trans_result_error);
+                break;
+            }
             break;
         }
         default:
@@ -159,7 +172,7 @@ static int net_trans_timer_cb(CURLM *multi, long timeout_ms, net_trans_manage_t 
     ev_timer_stop(mgr->m_loop, &mgr->m_timer_event);
 
     if (timeout_ms > 0) {
-        double  t = timeout_ms / 1000;
+        double  t = (double)timeout_ms / 1000.0;
         ev_timer_init(&mgr->m_timer_event, net_trans_do_timer, t, 0.);
         ev_timer_start(mgr->m_loop, &mgr->m_timer_event);
     }

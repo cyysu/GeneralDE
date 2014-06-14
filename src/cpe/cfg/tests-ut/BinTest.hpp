@@ -12,6 +12,7 @@ public:
     virtual void TearDown();
 
     cfg_t build_by_bin(cfg_t cfg);
+    cfg_t build_by_bin_file(const char * path);
     cfg_t build_by_bin(int typeId, const char * value);
     cfg_t build_by_bin(const char * value);
 };
