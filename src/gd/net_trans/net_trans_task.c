@@ -71,6 +71,8 @@ net_trans_task_t net_trans_task_create(net_trans_group_t group, size_t capacity)
         return NULL;
     }
 
+    TAILQ_INSERT_TAIL(&group->m_tasks, task, m_next_for_group);
+
     mem_buffer_init(&task->m_buffer, mgr->m_alloc);
 
     bzero(task + 1, capacity);
@@ -123,12 +125,31 @@ int net_trans_task_start(net_trans_task_t task) {
     net_trans_manage_t mgr = task->m_group->m_mgr;
     int rc;
 
-    if (task->m_state != net_trans_task_init) {
+    assert(!task->m_is_free);
+
+    if (task->m_state == net_trans_task_working) {
         CPE_ERROR(
             mgr->m_em, "%s: task %d (%s): can`t start in state %s!",
             net_trans_manage_name(mgr), task->m_id, task->m_group->m_name,
             net_trans_task_state_str(task->m_state));
         return -1;
+    }
+
+    if (task->m_state == net_trans_task_done) {
+        CURL * new_handler = curl_easy_duphandle(task->m_handler);
+        if (new_handler == NULL) {
+            CPE_ERROR(
+                mgr->m_em, "%s: task %d (%s): duphandler fail!",
+                net_trans_manage_name(mgr), task->m_id, task->m_group->m_name);
+            return -1;
+        }
+
+        if (mgr->m_debug) {
+            CPE_INFO(mgr->m_em, "%s: task %d (%s): duphandler!", net_trans_manage_name(mgr), task->m_id, task->m_group->m_name);
+        }
+
+        curl_easy_cleanup(task->m_handler);
+        task->m_handler = new_handler;
     }
 
     rc = curl_multi_add_handle(mgr->m_multi_handle, task->m_handler);
@@ -139,6 +160,8 @@ int net_trans_task_start(net_trans_task_t task) {
         return -1;
     }
     task->m_state = net_trans_task_working;
+
+    mgr->m_still_running = 1;
 
     if (mgr->m_debug) {
         CPE_INFO(mgr->m_em, "%s: task %d (%s): start!", net_trans_manage_name(mgr), task->m_id, task->m_group->m_name);
@@ -177,7 +200,7 @@ void net_trans_task_set_commit_op(net_trans_task_t task, net_trans_task_commit_o
 int net_trans_task_set_post_to(net_trans_task_t task, const char * uri, const char * data, int data_len) {
     net_trans_manage_t mgr = task->m_group->m_mgr;
 
-    if (task->m_state != net_trans_task_init) {
+    if (task->m_state == net_trans_task_working) {
         CPE_ERROR(
             mgr->m_em, "%s: task %d (%s): can`t set post %d data to %s in state %s!",
             net_trans_manage_name(mgr), task->m_id, task->m_group->m_name,
@@ -213,7 +236,7 @@ int net_trans_task_set_post_to(net_trans_task_t task, const char * uri, const ch
 int net_trans_task_set_ssl_cainfo(net_trans_task_t task, const char * ca_file) {
     net_trans_manage_t mgr = task->m_group->m_mgr;
 
-    if (task->m_state != net_trans_task_init) {
+    if (task->m_state == net_trans_task_working) {
         CPE_ERROR(
             mgr->m_em, "%s: task %d (%s): can`t set ssl cainfo %s in state %s!",
             net_trans_manage_name(mgr), task->m_id, task->m_group->m_name,
@@ -270,7 +293,7 @@ int net_trans_task_set_done(net_trans_task_t task, net_trans_task_result_t resul
         task->m_commit_op(task, task->m_commit_ctx);
         task->m_in_callback = 0;
 
-        if (task->m_is_free || task->m_state != net_trans_task_done) {
+        if (task->m_is_free || task->m_state == net_trans_task_done) {
             task->m_is_free = 0;
             net_trans_task_free(task);
         }
