@@ -21,15 +21,26 @@ int dir_mk_recursion(const char * path, mode_t mode, error_monitor_t em, mem_all
 
         *nextSepPos = 0;
 
+#ifdef __CYGWIN__
+        if (!dir_exist(path_buf, em)) {
+            rv = dir_mk(path_buf, mode, em);
+        }
+#else
         rv = dir_mk(path_buf, mode, em);
         if (rv && errno == EEXIST) rv = 0;
-
+#endif
         *nextSepPos = '/';
     }
 
     if (rv == 0) {
+#ifdef __CYGWIN__
+        if (!dir_exist(path_buf, em)) {
+            rv = dir_mk(path_buf, mode, em);
+        }
+#else
         rv = dir_mk(path_buf, mode, em);
         if (rv && errno == EEXIST) rv = 0;
+#endif
     }
 
     mem_free(talloc, path_buf);
