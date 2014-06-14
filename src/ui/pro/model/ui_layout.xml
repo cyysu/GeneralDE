@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<metalib tagsetversion="1" name="" version="1">
+    <include name="ui_control" file="ui_control.xml"/>
+
+    <!-- Window -->
+    <struct name="ui_control_window" version="1">
+	    <entry name="mudal" type="uint8" id="6"/>
+	    <entry name="start_show" type="uint8" id="7"/>
+	    <entry name="dialog_template" type="uint8" id="9"/>
+    </struct>
+
+    <struct name="ui_window" version="1">
+        <entry name="basic" type="ui_control_basic" id="1"/>
+        <entry name="tmpl" type="ui_control_template" id="2"/>
+        <entry name="layout" type="ui_control_layout" id="3"/>
+        <entry name="state" type="ui_control_state" id="4"/>
+        <entry name="anim" type="ui_control_anim" id="5"/>
+        <entry name="sound" type="ui_control_sound" id="6"/>
+        <entry name="ed" type="ui_control_ed" id="7"/>
+        <entry name="window" type="ui_control_window" id="8"/>
+    </struct>
+
+    <!-- Panel -->
+    <struct name="ui_panel" version="1">
+        <entry name="basic" type="ui_control_basic" id="1"/>
+        <entry name="tmpl" type="ui_control_template" id="2"/>
+        <entry name="layout" type="ui_control_layout" id="3"/>
+        <entry name="state" type="ui_control_state" id="4"/>
+        <entry name="anim" type="ui_control_anim" id="5"/>
+        <entry name="sound" type="ui_control_sound" id="6"/>
+        <entry name="ed" type="ui_control_ed" id="7"/>
+    </struct>
+
+    <!-- Picture -->
+    <struct name="ui_picture" version="1">
+        <entry name="basic" type="ui_control_basic" id="1"/>
+        <entry name="tmpl" type="ui_control_template" id="2"/>
+        <entry name="layout" type="ui_control_layout" id="3"/>
+        <entry name="state" type="ui_control_state" id="4"/>
+        <entry name="anim" type="ui_control_anim" id="5"/>
+        <entry name="sound" type="ui_control_sound" id="6"/>
+        <entry name="ed" type="ui_control_ed" id="7"/>
+    </struct>
+
+    <!-- Label -->
+    <struct name="ui_label" version="1">
+        <entry name="basic" type="ui_control_basic" id="1"/>
+        <entry name="tmpl" type="ui_control_template" id="2"/>
+        <entry name="layout" type="ui_control_layout" id="3"/>
+        <entry name="state" type="ui_control_state" id="4"/>
+        <entry name="anim" type="ui_control_anim" id="5"/>
+        <entry name="sound" type="ui_control_sound" id="6"/>
+        <entry name="ed" type="ui_control_ed" id="7"/>
+    </struct>
+
+    <!-- Button -->
+    <struct name="ui_button" version="1">
+        <entry name="basic" type="ui_control_basic" id="1"/>
+        <entry name="tmpl" type="ui_control_template" id="2"/>
+        <entry name="layout" type="ui_control_layout" id="3"/>
+        <entry name="state" type="ui_control_state" id="4"/>
+        <entry name="anim" type="ui_control_anim" id="5"/>
+        <entry name="sound" type="ui_control_sound" id="6"/>
+        <entry name="ed" type="ui_control_ed" id="7"/>
+    </struct>
+
+    <!-- Toggle -->
+    <struct name="ui_toggle" version="1">
+        <entry name="basic" type="ui_control_basic" id="1"/>
+        <entry name="tmpl" type="ui_control_template" id="2"/>
+        <entry name="layout" type="ui_control_layout" id="3"/>
+        <entry name="state" type="ui_control_state" id="4"/>
+        <entry name="anim" type="ui_control_anim" id="5"/>
+        <entry name="sound" type="ui_control_sound" id="6"/>
+        <entry name="ed" type="ui_control_ed" id="7"/>
+    </struct>
+
+    <!-- Progress -->
+    <struct name="ui_progress" version="1">
+        <entry name="basic" type="ui_control_basic" id="1"/>
+        <entry name="tmpl" type="ui_control_template" id="2"/>
+        <entry name="layout" type="ui_control_layout" id="3"/>
+        <entry name="state" type="ui_control_state" id="4"/>
+        <entry name="anim" type="ui_control_anim" id="5"/>
+        <entry name="sound" type="ui_control_sound" id="6"/>
+        <entry name="ed" type="ui_control_ed" id="7"/>
+    </struct>
+
+    <!-- PictureCondition -->
+    <struct name="ui_picture_cond" version="1">
+        <entry name="basic" type="ui_control_basic" id="1"/>
+        <entry name="tmpl" type="ui_control_template" id="2"/>
+        <entry name="layout" type="ui_control_layout" id="3"/>
+        <entry name="state" type="ui_control_state" id="4"/>
+        <entry name="anim" type="ui_control_anim" id="5"/>
+        <entry name="sound" type="ui_control_sound" id="6"/>
+        <entry name="ed" type="ui_control_ed" id="7"/>
+    </struct>
+
+</metalib>

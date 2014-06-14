@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<metalib tagsetversion="1" name="" version="1">
+
+    <struct name="ui_sprite_evt_fsm_run_fsm" version="1">
+        <entry name="action" type="string" size="64" id="1"/>
+        <entry name="load_from" type="string" size="64" id="2"/>
+    </struct>
+
+</metalib>

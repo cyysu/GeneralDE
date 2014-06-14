@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<metalib tagsetversion="1" name="" version="1">
+    <include name="ui_common" file="ui_common.xml"/>
+
+    <struct name="ui_control_basic" version="1">
+        <entry name="id" type="uint32" id="1"/>
+        <entry name="name" type="string" size="UI_NAME_LEN" id="2"/>
+        <entry name="user_text" type="string" size="64" id="3"/>
+    </struct>
+
+    <struct name="ui_control_template" version="1">
+        <entry name="is_link" type="uint8" id="1"/>
+        <entry name="link_control" type="string" size="UI_NAME_LEN" id="2"/>
+    </struct>
+
+    <struct name="ui_control_ed" version="1">
+        <entry name="editor_pt" type="ui_vector_2" id="1"/>
+        <entry name="editor_sz" type="ui_vector_2" id="2"/>
+        <entry name="editor_pd" type="ui_rect" id="3"/>
+    </struct>
+
+    <struct name="ui_control_layout" version="1">
+	    <entry name="align_horz" type="uint8" id="1"/>
+	    <entry name="align_vert" type="uint8" id="2"/>
+	    <entry name="client_sz" type="ui_unit_vector_2" id="3"/>
+	    <entry name="render_pt" type="ui_unit_vector_2" id="4"/>
+	    <entry name="render_sz" type="ui_unit_vector_2" id="5"/>
+	    <entry name="client_pd" type="ui_unit_rect" id="6"/>
+        <entry name="pivot" type="ui_vector_2" id="7"/>
+        <entry name="scale" type="ui_vector_2" id="8"/>
+        <entry name="angle" type="ui_vector_3" id="9"/>
+        <entry name="alpha" type="float" id="10"/>
+        <entry name="color" type="ui_color" id="11"/>
+        <entry name="gray_color" type="ui_color" id="12"/>
+        <entry name="draw_align" type="uint8" id="13"/>
+        <entry name="draw_color" type="uint8" id="14"/>
+        <entry name="draw_frame" type="uint8" id="15"/>
+        <entry name="draw_inner" type="uint8" id="16"/>
+    </struct>
+
+    <struct name="ui_control_state" version="1">
+        <entry name="enable" type="uint8" id="1"/>
+        <entry name="visiable" type="uint8" id="2"/>
+        <entry name="always_top" type="uint8" id="3"/>
+        <entry name="accept_pt_ls" type="uint8" id="4"/>
+        <entry name="accept_sz_ls" type="uint8" id="5"/>
+        <entry name="accept_move" type="uint8" id="6"/>
+        <entry name="accept_clip" type="uint8" id="7"/>
+        <entry name="parent_clip" type="uint8" id="8"/>
+        <entry name="accept_hits" type="uint8" id="9"/>
+    </struct>
+
+    <struct name="ui_control_anim" version="1">
+        <entry name="fire_anim_clip" type="uint8" id="1"/>
+    </struct>
+
+    <struct name="ui_control_sound" version="1">
+        <entry name="show_sfx_file" type="string" size="64" id="1"/>
+        <entry name="hide_sfx_file" type="string" size="64" id="2"/>
+        <entry name="down_sfx_file" type="string" size="64" id="3"/>
+        <entry name="rise_sfx_file" type="string" size="64" id="4"/>
+        <entry name="push_sfx_file" type="string" size="64" id="5"/>
+    </struct>
+
+</metalib>

@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<metalib tagsetversion="1" name="" version="1">
+    <macro name="UI_NAME_LEN" value="64"/>
+
+    <struct name="ui_color" version="1">
+        <entry name="r" type="float" id="1"/>
+        <entry name="g" type="float" id="2"/>
+	    <entry name="b" type="float" id="3"/>
+	    <entry name="a" type="float" id="4" defaultvalue="1"/>
+    </struct>
+
+    <struct name="ui_vector_2" version="1">
+        <entry name="value" type="float" count="2" id="1"/>
+    </struct>
+
+    <struct name="ui_vector_3" version="1">
+        <entry name="value" type="float" count="3" id="1"/>
+    </struct>
+
+    <struct name="ui_vector_4" version="1">
+        <entry name="value" type="float" count="4" id="1"/>
+    </struct>
+
+    <struct name="ui_rect" version="1">
+        <entry name="lt" type="int32" id="1" desc="left"/>
+        <entry name="tp" type="int32" id="2" desc="top"/>
+        <entry name="rt" type="int32" id="3" desc="right"/>
+        <entry name="bm" type="int32" id="4" desc="botton"/>
+    </struct>
+
+    <struct name="ui_unit" version="1">
+        <entry name="k" type="float" id="1"/>
+        <entry name="b" type="float" id="2"/>
+    </struct>
+
+    <struct name="ui_unit_vector_2" version="1">
+        <entry name="x" type="ui_unit" id="1"/>
+        <entry name="y" type="ui_unit" id="2"/>
+    </struct>
+    
+    <struct name="ui_unit_rect" version="1">
+        <entry name="lt" type="ui_unit_vector_2" id="1"/>
+        <entry name="rb" type="ui_unit_vector_2" id="2"/>
+    </struct>
+
+    <!-- 曲线变化 -->
+    <macrosgroup name="ui_curve_interp_mode">
+        <macro name="ui_curve_interp_mode_linear" value="0"/> <!-- straight line between two control points -->
+        <macro name="ui_curve_interp_mode_bezier" value="1"/> <!--sample along a bezier curve -->
+        <macro name="ui_curve_interp_mode_break"  value="2"/> <!-- out value is held constant until the next key -->
+    </macrosgroup>
+
+    <struct name="ui_curve_point" version="1">
+        <entry name="interp" type="uint8" bindmacrosgroup="ui_curve_interp_mode" id="1"/>
+        <entry name="key" type="float" id="2"/>
+        <entry name="ret" type="float" id="3"/>
+        <entry name="enter_tan" type="float" id="4"/>
+        <entry name="leave_tan" type="float" id="5"/>
+    </struct>
+
+    <struct name="ui_curve_chanel" version="1">
+        <entry name="point_count" type="uint8" id="1"/>
+        <entry name="points" type="ui_curve_point" count="10" refer="point_count" id="2"/>
+    </struct>
+
+    <!-- 基本转换信息 -->
+    <struct name="ui_trans_base" version="1">
+        <entry name="angle" type="float" id="1"/>
+        <entry name="angle_pivot" type="ui_vector_3" id="2"/>
+        <entry name="flips" type="uint8" id="3"/>
+        <entry name="scale" type="ui_vector_3" id="4"/>
+        <entry name="trans" type="ui_vector_3" id="5"/>
+    </struct>
+
+    <!-- 描边信息 -->
+    <struct name="ui_ol" version="1">
+        <entry name="enable" type="uint8" id="1"/>
+        <entry name="width" type="uint8" id="2" defaultvalue="1"/>
+        <entry name="color" type="ui_color" id="3"/>
+    </struct>
+
+    <!-- 转换信息 -->
+    <struct name="ui_trans" version="1">
+        <entry name="local_trans" type="ui_trans_base" id="1"/>
+        <entry name="world_trans" type="ui_trans_base" id="2"/>
+        <entry name="filter" type="uint32" id="3"/>
+        <entry name="tex_env" type="uint32" id="4"/>
+        <entry name="src_abm" type="uint32" id="5"/>
+        <entry name="dst_abm" type="uint32" id="6"/>
+        <entry name="background" type="ui_color" id="7"/>
+        <entry name="ol" type="ui_ol" id="8"/>
+    </struct>
+
+</metalib>

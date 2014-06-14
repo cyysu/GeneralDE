@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<metalib tagsetversion="1" name="" version="1">
+    <include name="ui_sprite_2d_data" file="ui_sprite_2d_data.xml"/>
+
+    <!-- 位置移动控制事件 -->
+    <struct name="ui_sprite_evt_2d_move_to" version="1">
+        <entry name="pos" type="ui_sprite_2d_pair" id="1"/>
+        <entry name="speed" type="float" id="2"/>
+        <entry name="duration" type="float" id="3"/>
+    </struct>
+
+    <struct name="ui_sprite_evt_2d_move_follow_entity" version="1">
+        <entry name="entity_id" type="uint32" id="1"/>
+        <entry name="entity_name" type="string" size="64" id="2"/>
+        <entry name="pos_of_entity" type="string" size="32" id="3"/>
+        <entry name="speed" type="float" id="4"/>
+        <entry name="duration" type="float" id="5"/>
+    </struct>
+
+    <struct name="ui_sprite_evt_2d_move_set_to" version="1">
+        <entry name="pos" type="ui_sprite_2d_pair" id="1"/>
+    </struct>
+
+    <struct name="ui_sprite_evt_2d_move_set_to_entity" version="1">
+        <entry name="entity_id" type="uint32" id="1"/>
+        <entry name="entity_name" type="string" size="64" id="2"/>
+        <entry name="pos_of_entity" type="string" size="32" id="3"/>
+    </struct>
+
+    <struct name="ui_sprite_evt_2d_scale" version="1">
+        <entry name="duration" type="float" id="1"/>
+        <entry name="scale" type="ui_sprite_2d_pair" id="2"/>
+    </struct>
+    
+</metalib>

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<metalib tagsetversion="1" name="" version="1">
+
+    <struct name="ui_sprite_2d_pair" version="1">
+        <entry name="x" type="float" id="1"/>
+        <entry name="y" type="float" id="2"/>
+    </struct>
+
+    <macrosgroup name="ui_sprite_2d_transform_pos_policy">
+        <macro name="UI_SPRITE_2D_TRANSFORM_POS_ORIGIN" value="1"/>
+        <macro name="UI_SPRITE_2D_TRANSFORM_POS_TOP_LEFT" value="2"/>
+        <macro name="UI_SPRITE_2D_TRANSFORM_POS_TOP_CENTER" value="3"/>
+        <macro name="UI_SPRITE_2D_TRANSFORM_POS_TOP_RIGHT" value="4"/>
+        <macro name="UI_SPRITE_2D_TRANSFORM_POS_CENTER_LEFT" value="5"/>
+        <macro name="UI_SPRITE_2D_TRANSFORM_POS_CENTER" value="6"/>
+        <macro name="UI_SPRITE_2D_TRANSFORM_POS_CENTER_RIGHT" value="7"/>
+        <macro name="UI_SPRITE_2D_TRANSFORM_POS_BOTTOM_LEFT" value="8"/>
+        <macro name="UI_SPRITE_2D_TRANSFORM_POS_BOTTOM_CENTER" value="9"/>
+        <macro name="UI_SPRITE_2D_TRANSFORM_POS_BOTTOM_RIGHT" value="10"/>
+    </macrosgroup>
+
+    <struct name="ui_sprite_2d_transform_data" version="1">
+        <entry name="pos" type="ui_sprite_2d_pair" id="1"/>
+        <entry name="scale" type="ui_sprite_2d_pair" id="2"/>
+        <entry name="angle" type="float" id="3"/>
+        <entry name="flip_x" type="uint8" id="4"/>
+        <entry name="flip_y" type="uint8" id="5"/>
+        <entry name="rect_lt" type="ui_sprite_2d_pair" id="6"/>
+        <entry name="rect_rb" type="ui_sprite_2d_pair" id="7"/>
+    </struct>
+
+    <struct name="ui_sprite_2d_transform" version="1">
+        <entry name="transform" type="ui_sprite_2d_transform_data" id="1"/>
+    </struct>
+
+</metalib>
