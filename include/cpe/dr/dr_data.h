@@ -32,7 +32,7 @@ float dr_entry_read_float(const void * input, LPDRMETAENTRY entry);
 double dr_entry_read_double(const void * input, LPDRMETAENTRY entry);
 const char * dr_entry_read_string(const void * input, LPDRMETAENTRY entry);
 
-int8_t dr_entry_read_with(const void * input, LPDRMETAENTRY entry, int8_t dft);
+int8_t dr_entry_read_with_dft_int8(const void * input, LPDRMETAENTRY entry, int8_t dft);
 uint8_t dr_entry_read_with_dft_uint8(const void * input, LPDRMETAENTRY entry, uint8_t dft);
 int16_t dr_entry_read_with_dft_int16(const void * input, LPDRMETAENTRY entry, int16_t dft);
 uint16_t dr_entry_read_with_dft_uint16(const void * input, LPDRMETAENTRY entry, uint16_t dft);

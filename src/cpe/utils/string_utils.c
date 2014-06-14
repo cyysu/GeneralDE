@@ -257,3 +257,48 @@ int cpe_str_parse_timespan_ms(uint64_t * result, const char * astring) {
     if (result) *result = res;
     return 0;
 }
+
+char * cpe_str_trim_head(char * p) {
+    char v;
+    while((v = *p) != 0) {
+        if (v == ' ' || v == '\t' || v == '\r' || v == '\n') {
+            ++p;
+        }
+        else {
+            return p;
+        }
+    }
+
+    return p;
+}
+
+char * cpe_str_trim_tail(char * p, const char * head) {
+    while((p - 1) >= head) {
+        char v = *(p - 1);
+
+        if (v == ' ' || v == '\t' || v == '\r' || v == '\n') {
+            --p;
+        }
+        else {
+            return p;
+        }
+        
+    }
+
+    return p;
+}
+
+char * cpe_str_mask_uint16(uint16_t v, char * buf, size_t buf_size) {
+    uint8_t i;
+    uint8_t bit_count = sizeof(v) * 8;
+    assert(buf);
+    assert(buf_size >= bit_count + 1);
+
+    for(i = 0; i < bit_count; ++i) {
+        buf[i] = (v & 1 << (bit_count - i - 1)) ? '1' : '0';
+    }
+
+    buf[bit_count] = 0;
+
+    return buf;
+}

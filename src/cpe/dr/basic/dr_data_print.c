@@ -1,3 +1,4 @@
+#include "cpe/utils/stream_buffer.h"
 #include "cpe/dr/dr_data.h"
 #include "cpe/dr/dr_ctypes_op.h"
 #include "../dr_internal_types.h"
@@ -34,7 +35,7 @@ int dr_printf_float_to_stream(write_stream_t stream, const void * data, LPDRMETA
     return stream_printf(stream, "%f", *((float*)data));
 }
 int dr_printf_double_to_stream(write_stream_t stream, const void * data, LPDRMETAENTRY entry, error_monitor_t em) {
-    return stream_printf(stream, "%d", *((double*)data));
+    return stream_printf(stream, "%f", *((double*)data));
 }
 
 int dr_printf_char_to_stream(write_stream_t stream, const void * data, LPDRMETAENTRY entry, error_monitor_t em) {
@@ -111,4 +112,14 @@ int dr_ctype_print_to_stream(write_stream_t output, const void * input, int type
     }
 }
 
+const char * dr_entry_to_string(mem_buffer_t buffer, const void * input, LPDRMETAENTRY entry) {
+    struct write_stream_buffer stream = CPE_WRITE_STREAM_BUFFER_INITIALIZER(buffer);
 
+    mem_buffer_clear_data(buffer);
+
+    dr_entry_print_to_stream((write_stream_t)&stream, input, entry, NULL);
+
+    stream_putc((write_stream_t)&stream, 0);
+
+    return mem_buffer_make_continuous(buffer, 0);
+}
