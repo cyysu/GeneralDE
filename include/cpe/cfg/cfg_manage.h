@@ -18,6 +18,7 @@ void cfg_free(cfg_t cfg);
 cfg_t cfg_struct_add_struct(cfg_t s, const char * name, cfg_policy_t policy);
 cfg_t cfg_struct_add_seq(cfg_t s, const char * name, cfg_policy_t policy);
 cfg_t cfg_struct_add_string(cfg_t s, const char * name, const char * value, cfg_policy_t policy);
+cfg_t cfg_struct_add_string_len(cfg_t s, const char * name, const char * value, size_t len, cfg_policy_t policy);
 cfg_t cfg_struct_add_int8(cfg_t s, const char * name, int8_t v, cfg_policy_t policy);
 cfg_t cfg_struct_add_uint8(cfg_t s, const char * name, uint8_t v, cfg_policy_t policy);
 cfg_t cfg_struct_add_int16(cfg_t s, const char * name, int16_t v, cfg_policy_t policy);
@@ -37,6 +38,7 @@ cfg_t cfg_struct_add_value_from_binary(cfg_t s, const char * name, int typeId, c
 cfg_t cfg_seq_add_struct(cfg_t s);
 cfg_t cfg_seq_add_seq(cfg_t s);
 cfg_t cfg_seq_add_string(cfg_t s, const char * value);
+cfg_t cfg_seq_add_string_len(cfg_t s, const char * value, size_t len);
 cfg_t cfg_seq_add_int8(cfg_t s, int8_t v);
 cfg_t cfg_seq_add_uint8(cfg_t s, uint8_t v);
 cfg_t cfg_seq_add_int16(cfg_t s, int16_t v);

@@ -266,6 +266,16 @@ static void cpe_md5_transform (uint32_t *buf, uint32_t *in) {
 ******************************* (cut) ********************************
 */
 
+int cpe_md5_cmp(cpe_md5_value_t l, cpe_md5_value_t r) {
+    int i;
+    for (i = 0; i < 16; i++) {
+        int c = (int)l->digest[i] - (int)r->digest[i];
+        if (c) return c;
+    }
+
+    return 0;
+}
+
 void cpe_md5_print(write_stream_t s, cpe_md5_value_t value) {
     int i;
     for (i = 0; i < 16; i++) {
