@@ -7,7 +7,7 @@ uint32_t cpe_rand(int32_t seed, uint32_t max) {
     seed = seed ^ ((seed << 15) & (4022730752u));
     seed = seed ^ ((seed >> 18));
 
-    return seed % max;
+    return max ? seed % max : seed;
 }
 
 void cpe_rand_ctx_init(struct cpe_rand_ctx * ctx, int32_t seed) {
