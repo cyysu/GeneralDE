@@ -97,8 +97,6 @@ TEST_F(BinTest, basic_seq_str) {
 }
 
 TEST_F(BinTest, basic_seq_struct) {
-    t_em_set_print();
-
     cfg_t input = t_cfg_parse(
                     "- a: abcd\n"
                     "  b: 8\n"
@@ -112,4 +110,20 @@ TEST_F(BinTest, basic_seq_struct) {
         "...\n"
         ,
         result(build_by_bin(input)));
+}
+
+TEST_F(BinTest, test_etc) {
+    t_em_set_print();
+
+    cfg_t input = build_by_bin_file("/Users/wangjian/Downloads/etc.bc");
+    ASSERT_TRUE(input != NULL);
+
+    ASSERT_STREQ(
+        "---\n"
+        "-   a: 'abcd'\n"
+        "    b: 8\n"
+        "- 7\n"
+        "...\n"
+        ,
+        result(input));
 }
