@@ -104,11 +104,28 @@ cfg_t cfg_struct_add_string(cfg_t s, const char * name, const char * value, cfg_
     return rv;
 }
 
+cfg_t cfg_struct_add_string_len(cfg_t s, const char * name, const char * value, size_t len, cfg_policy_t policy) {
+    cfg_t rv = cfg_struct_item_create(
+        (struct cfg_struct *)s, name, CPE_CFG_TYPE_STRING, len + 1, policy);
+    if (rv == NULL) return NULL;
+    memcpy(cfg_data(rv), value, len);
+    ((char*)cfg_data(rv))[len] = 0;
+    return rv;
+}
+
 cfg_t cfg_seq_add_string(cfg_t s, const char * value) {
     size_t len = strlen(value) + 1;
     cfg_t rv = cfg_seq_item_create((struct cfg_seq *)s, CPE_CFG_TYPE_STRING, len);
     if (rv == NULL) return NULL;
     memcpy(cfg_data(rv), value, len);
+    return rv;
+}
+
+cfg_t cfg_seq_add_string_len(cfg_t s, const char * value, size_t len) {
+    cfg_t rv = cfg_seq_item_create((struct cfg_seq *)s, CPE_CFG_TYPE_STRING, len + 1);
+    if (rv == NULL) return NULL;
+    memcpy(cfg_data(rv), value, len);
+((char*)cfg_data(rv))[len] = 0;
     return rv;
 }
 
