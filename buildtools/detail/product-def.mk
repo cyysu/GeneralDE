@@ -1,46 +1,53 @@
 CPDE_OUTPUT_ROOT?=$(CPDE_ROOT)/build
 
+ifeq ($(GCOV),1)
+CPDE_OUTPUT_ROOT:=$(CPDE_OUTPUT_ROOT)-gcov
+endif
+
+ifeq ($(GPROF),1)
+CPDE_OUTPUT_ROOT:=$(CPDE_OUTPUT_ROOT)-gprof
+endif
+
+ifeq ($(MUDFLAP),1)
+CPDE_OUTPUT_ROOT:=$(CPDE_OUTPUT_ROOT)-mudflap
+endif
+
 project_repository:=
 product-support-types:=
-product-def-all-items:=type buildfor depends output
+product-def-all-items:=type buildfor depends output $(foreach env,$(dev-env-list),$(env).depends)
 product-def-not-null-items:=type
 
 product-base = $(patsubst %/,%,$(dir $(word $(words $(MAKEFILE_LIST)), $(MAKEFILE_LIST))))
 
-#$(call product-gen-depend-list-expand,cur-list,product-list)
+#$(call product-gen-depend-list-expand,env,cur-list,product-list)
 product-gen-depend-list-expand=\
-  $(if $(strip $2) \
-       , $(if $(filter $(strip $(firstword $2)),$1) \
-              , $(call product-gen-depend-list-expand\
-                       , $(call merge-force-to-end \
-                                , $1 \
-                                , $(firstword $2) $(call product-gen-depend-list-expand,,$(firstword $2))) \
-                       , $(wordlist 2,$(words $2),$2)) \
-              , $(call product-gen-depend-list-expand\
-                       , $1 $(firstword $2)\
-                       , $(wordlist 2,$(words $2),$2) $(r.$(strip $(firstword $2)).depends))) \
-       , $1)
+  $(if $(strip $3) \
+       , $(call product-gen-depend-list-expand\
+                   , $1 \
+                   , $(call product-gen-depend-list-expand\
+                            , $1 \
+                            , $(filter-out $(strip $(firstword $3)),$2) $(strip $(firstword $3)) \
+                            , $(r.$(strip $(firstword $3)).depends) $(r.$(strip $(firstword $3)).$(strip $1).depends)) \
+                   , $(wordlist 2,$(words $3),$3)) \
+       , $2)
 
-#$(call product-gen-depend-list,product-list)
-product-gen-depend-list=$(call regular-list,$(call product-gen-depend-list-expand,,$(foreach p,$1,$(r.$p.depends))))
+#$(call product-gen-depend-list,env,product-list)
+product-gen-depend-list=$(call regular-list,$(call product-gen-depend-list-expand,$1,,$(foreach p,$2,$(r.$p.depends))))
 
-#$(call product-gen-depend-value-list,product-name,value-name-list)
-product-gen-depend-value-list=$(call merge-list,,$(foreach p,$(call product-gen-depend-list,$1),$(foreach v,$2,$(r.$p.$v))))
-
-product-gen-depend-value-list-r=$(call merge-list,,$(foreach p,$(call revert-list,$(call product-gen-depend-list,$1)),$(foreach v,$2,$(r.$p.$v))))
+#$(call product-gen-depend-value-list,product-name,env,value-name-list)
+product-gen-depend-value-list=$(call merge-list,,$(foreach p,$(call product-gen-depend-list,$2,$1),$(foreach v,$3,$(r.$p.$v))))
 
 # $(call product-def-for-domain,product-name,domain)
 define product-def-for-domain
 
-$(eval domain-list+=$2)
 $(eval $2.product-list+=$1)
 
 .PHONY:$2.$1
 $1: $2.$1
 
-$(if $(r.$1.depends),$2.$1: $(addprefix $2.,$(r.$1.depends)))
+$(if $(r.$1.depends),$2.$1: $(addprefix $2.,$(r.$1.depends) $(r.$1.$($2.env).depends)))
 
-$(foreach type,$(if $($1.$2.type),$($1.$2.type),$($1.type)), $(call product-def-rule-$(type),$1,$2))
+$(foreach type,$(if $($1.$2.type),$($1.$2.type),$($1.type)), $(if $(filter $(type),$($2.ignore-types)),,$(call product-def-rule-$(type),$1,$2)))
 
 endef
 
@@ -70,7 +77,7 @@ project_repository+=$1
 
 .PHONY: $1 $1.clean
 
-$(if $2,$(call product-def-for-domain,$1,$2))
+$(if $2,$(if $(filter $2,$(using-domain-list)),$(call product-def-for-domain,$1,$2)))
 
 $1.clean:
 	$(call with_message,cleaning...)$(RM) $$(r.$1.cleanup)
