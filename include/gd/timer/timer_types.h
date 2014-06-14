@@ -1,21 +1,18 @@
-#ifndef CPE_DP_TIMER_TYPES_H
-#define CPE_DP_TIMER_TYPES_H
-#include "cpe/utils/hash_string.h"
-#include "cpe/tl/tl_types.h"
-#include "gd/app/app_types.h"
+#ifndef GD_TIMER_TYPES_H
+#define GD_TIMER_TYPES_H
+#include "cpe/timer/timer_types.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-typedef int32_t gd_timer_id_t;
+typedef cpe_timer_id_t gd_timer_id_t;
 
 typedef struct gd_timer_mgr * gd_timer_mgr_t;
-typedef struct gd_evt_processor * gd_evt_responser_t;
+typedef cpe_timer_processor_t gd_timer_processor_t;
+typedef cpe_timer_process_fun_t gd_timer_process_fun_t;
 
-typedef void (*gd_timer_process_fun_t)(void * ctx, gd_timer_id_t timer_id, void * arg);
-
-#define GD_TIMER_ID_INVALID ((gd_timer_id_t)-1)
+#define GD_TIMER_ID_INVALID CPE_TIMER_ID_INVALID
 
 #ifdef __cplusplus
 }
