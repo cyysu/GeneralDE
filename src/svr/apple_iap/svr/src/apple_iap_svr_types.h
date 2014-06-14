@@ -32,6 +32,7 @@ struct apple_iap_task_data {
     uint32_t m_sn;
     uint16_t m_from_svr_type;
     uint16_t m_from_svr_id;
+    uint16_t m_is_sandbox;
 };
 
 typedef void (*apple_iap_svr_op_t)(apple_iap_svr_t svr, dp_req_t pkg_body, dp_req_t pkg_head);
