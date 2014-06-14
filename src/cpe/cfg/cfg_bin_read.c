@@ -1,6 +1,7 @@
 #include <assert.h>
 #include "cpe/pal/pal_platform.h"
 #include "cpe/pal/pal_strings.h"
+#include "cpe/utils/file.h"
 #include "cpe/dr/dr_ctypes_op.h"
 #include "cpe/cfg/cfg_manage.h"
 #include "cpe/cfg/cfg_read.h"
@@ -88,6 +89,20 @@ int cfg_read_bin_with_name(cfg_t cfg, const char * name, void const * input, siz
         return -1;
     }
 
+    if ((head->m_data_start + head->m_data_capacity) > input_size) {
+        CPE_ERROR(
+            em, "cfg_read: data [%d ~ %d) overflow, input-size=%d!",
+            head->m_data_start, head->m_data_start + head->m_data_capacity, (int)input_size);
+        return -1;
+    }
+
+    if ((head->m_strpool_start + head->m_strpool_capacity) > input_size) {
+        CPE_ERROR(
+            em, "cfg_read: strpool [%d ~ %d) overflow, input-size=%d!",
+            head->m_strpool_start, head->m_strpool_start + head->m_strpool_capacity, (int)input_size);
+        return -1;
+    }
+
     buf_data = ((char const *)input) + head->m_data_start;
     buf_str = ((char const *)input) + head->m_strpool_start;
 
@@ -132,7 +147,7 @@ int cfg_read_bin_with_name(cfg_t cfg, const char * name, void const * input, siz
         if (name) {
             cfg_t tmp = cfg_struct_add_value(cfg, name, cur_type, cfg_merge_use_new);
             if (tmp == NULL) {
-                CPE_ERROR(em, "cfg_bin_read: add value %s type %s fail", name, dr_type_name(cur_type));
+                CPE_ERROR(em, "cfg_bin_read: add value %s type %d(%s) fail", name, cur_type, dr_type_name(cur_type));
                 return -1;
             }
             CFG_READ_BIN_READ_VALUE(cur_type, tmp);
@@ -169,7 +184,7 @@ int cfg_read_bin_with_name(cfg_t cfg, const char * name, void const * input, siz
                 else if (cfg_type_is_value(cur_type)) {
                     cfg_t tmp = cfg_seq_add_value(cur_stack->m_output, cur_type);
                     if (tmp == NULL) {
-                        CPE_ERROR(em, "cfg_bin_read: seq add type %s fail", dr_type_name(cur_type));
+                        CPE_ERROR(em, "cfg_bin_read: seq add type %d(%s) fail", cur_type, dr_type_name(cur_type));
                         return -1;
                     }
                     CFG_READ_BIN_READ_VALUE(cur_type, tmp);
@@ -215,7 +230,7 @@ int cfg_read_bin_with_name(cfg_t cfg, const char * name, void const * input, siz
                 else if (cfg_type_is_value(cur_type)) {
                     cfg_t tmp = cfg_struct_add_value(cur_stack->m_output, attr_name, cur_type, cfg_merge_use_new);
                     if (tmp == NULL) {
-                        CPE_ERROR(em, "cfg_bin_read: add attr %s type %s fail", attr_name, dr_type_name(cur_type));
+                        CPE_ERROR(em, "cfg_bin_read: add attr %s type %d(%s) fail", attr_name, cur_type, dr_type_name(cur_type));
                         return -1;
                     }
                     CFG_READ_BIN_READ_VALUE(cur_type, tmp);
@@ -257,4 +272,27 @@ int cfg_read_bin_with_name(cfg_t cfg, const char * name, void const * input, siz
  
 int cfg_read_bin(cfg_t cfg, void const  * input, size_t input_len, error_monitor_t em) {
     return cfg_read_bin_with_name(cfg, NULL, input, input_len, em);
+}
+
+int cfg_read_bin_file(cfg_t cfg, void const  * path, error_monitor_t em) {
+    struct mem_buffer buffer;
+    ssize_t sz;
+
+    mem_buffer_init(&buffer, NULL);
+
+    sz = file_load_to_buffer(&buffer, path, em);
+    if (sz < 0) {
+        CPE_ERROR(em, "cfg read bin from file %s: load file fail!", path);
+        mem_buffer_clear(&buffer);
+        return -1;
+    }
+
+    if (cfg_read_bin(cfg, mem_buffer_make_continuous(&buffer, 0), sz, em) != 0) {
+        CPE_ERROR(em, "cfg read bin from file %s: parse config fail!", path);
+        mem_buffer_clear(&buffer);
+        return -1;
+    }
+
+    mem_buffer_clear(&buffer);
+    return 0;
 }

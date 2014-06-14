@@ -1,6 +1,10 @@
 #ifndef SVR_SET_STUB_INTERNAL_TYPES_H
 #define SVR_SET_STUB_INTERNAL_TYPES_H
+
+#ifdef _MSC_VER
+#else
 #include <sys/file.h>
+#endif
 #include "cpe/utils/memory.h"
 #include "cpe/utils/error.h"
 #include "cpe/utils/buffer.h"
