@@ -82,12 +82,14 @@ int cfg_write_bin(void * result, size_t result_capacity, cfg_t cfg, error_monito
 int cfg_write_bin_to_buffer(mem_buffer_t result, cfg_t cfg, error_monitor_t em);
 int cfg_read_bin(cfg_t cfg, void const  * input, size_t input_len, error_monitor_t em);
 int cfg_read_bin_with_name(cfg_t cfg, const char * name, void const  * input, size_t input_len, error_monitor_t em);
+int cfg_read_bin_file(cfg_t cfg, void const  * path, error_monitor_t em);
 
 int cfg_apply_modify(cfg_t cfg, cfg_t modify_info, error_monitor_t em);
 int cfg_apply_modify_seq(cfg_t cfg, cfg_t modify_info, error_monitor_t em);
 
 int cfg_read_zip_dir(cfg_t cfg, cpe_unzip_dir_t d, cfg_policy_t policy, error_monitor_t em, mem_allocrator_t talloc);
 int cfg_read_zip_file(cfg_t cfg, cpe_unzip_file_t zf, cfg_policy_t policy, error_monitor_t em);
+int cfg_read_zip_bin_file(cfg_t cfg, cpe_unzip_file_t zf, cfg_policy_t policy, error_monitor_t em);
 
 #ifdef __cplusplus
 }
