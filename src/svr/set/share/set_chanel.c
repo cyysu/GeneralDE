@@ -79,7 +79,7 @@ static int set_chanel_pipe_erase(SVR_SET_CHANEL * chanel, SVR_SET_PIPE * pipe, e
     CPE_INFO(em, "set_chanel_pipe_erase: wp=%d, rp=%d, capacity=%d: erase begin!", wp, pipe->rp, pipe->capacity);
 #endif
 
-TRY_AGAIN:
+tag_TRY_AGAIN:
     if (wp == pipe->rp) return set_chanel_error_chanel_empty;
 
     if (wp > pipe->rp) {
@@ -109,14 +109,14 @@ TRY_AGAIN:
                 wp, pipe->rp, pipe->capacity, total_size, (int)SET_SHARE_SAVE_HEAD_SIZE, capacity);
             pipe->rp += total_size;
             if (pipe->rp == pipe->capacity) pipe->rp = 0;
-            goto TRY_AGAIN;
+            goto tag_TRY_AGAIN;
         }
 
         head = (SET_PKG_HEAD *)(buf + pipe->rp + sizeof(uint32_t));
         if (head->to_svr_id == 0 && head->to_svr_type == 0) {
             pipe->rp += total_size;
             if (pipe->rp == pipe->capacity) pipe->rp = 0;
-            goto TRY_AGAIN;
+            goto tag_TRY_AGAIN;
         }
 
         pipe->rp += total_size;
@@ -140,7 +140,7 @@ TRY_AGAIN:
                 wp, pipe->rp, pipe->capacity, capacity);
 #endif
             pipe->rp = 0;
-            goto TRY_AGAIN;
+            goto tag_TRY_AGAIN;
         }
 
         total_size = *((uint32_t*)(buf + pipe->rp));
@@ -149,7 +149,7 @@ TRY_AGAIN:
                 em, "set_chanel_pipe_erase: wp=%d, rp=%d, capacity=%d: found bad pkg (pkg-size=%d, buf-size=%d), clear chanel",
                 wp, pipe->rp, pipe->capacity, total_size, capacity);
             pipe->rp = 0;
-            goto TRY_AGAIN;
+            goto tag_TRY_AGAIN;
         }
 
         if (total_size < SET_SHARE_SAVE_HEAD_SIZE) {
@@ -158,14 +158,14 @@ TRY_AGAIN:
                 wp, pipe->rp, pipe->capacity, total_size, (int)SET_SHARE_SAVE_HEAD_SIZE, capacity);
             pipe->rp += total_size;
             if (pipe->rp == pipe->capacity) pipe->rp = 0;
-            goto TRY_AGAIN;
+            goto tag_TRY_AGAIN;
         }
 
         head = (SET_PKG_HEAD *)(buf + pipe->rp + sizeof(uint32_t));
         if (head->to_svr_id == 0 && head->to_svr_type == 0) {
             pipe->rp += total_size;
             if (pipe->rp == pipe->capacity) pipe->rp = 0;
-            goto TRY_AGAIN;
+            goto tag_TRY_AGAIN;
         }
 
         pipe->rp += total_size;
@@ -285,7 +285,7 @@ static int set_chanel_pipe_write(SVR_SET_CHANEL * chanel, SVR_SET_PIPE * pipe, d
 
         write_size = set_chanel_pipe_save_pkg(body, head, carry, buf + pipe->wp, pipe->capacity - pipe->wp, em);
         if (write_size > 0) {
-            assert(pipe->wp + write_size < pipe->capacity);
+            assert(pipe->wp + write_size <= pipe->capacity);
             pipe->wp += write_size;
             if (pipe->wp == pipe->capacity) pipe->wp = 0;
         }
