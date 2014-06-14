@@ -629,7 +629,7 @@ static void dr_build_xml_startElement(
     else if (strcmp((const char *)localname, CPE_DR_TAG_METALIB) == 0) {
         dr_build_xml_process_metalib(ctx, nb_attributes, attributes);
     }
-    else if (strcmp((const char *)localname, "include") == 0) {
+    else if (strcmp((const char *)localname, CPE_DR_TAG_INCLUDE) == 0) {
         dr_build_xml_process_include(ctx, nb_attributes, attributes);
     }
     else {
