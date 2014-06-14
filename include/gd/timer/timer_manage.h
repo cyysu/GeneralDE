@@ -2,6 +2,7 @@
 #define GD_TIMER_MANAGE_H
 #include "cpe/utils/memory.h"
 #include "cpe/tl/tl_types.h"
+#include "gd/app/app_types.h"
 #include "timer_types.h"
 
 #ifdef __cplusplus
