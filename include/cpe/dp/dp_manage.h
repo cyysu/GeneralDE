@@ -36,9 +36,9 @@ dp_rsp_t dp_rsp_find_first_by_string(dp_mgr_t dp, const char * cmd);
 void dp_rsp_find_by_numeric(dp_rsp_it_t it, dp_mgr_t dp, int32_t cmd);
 void dp_rsp_find_by_string(dp_rsp_it_t it, dp_mgr_t dp, const char * cmd);
 
-int dp_dispatch_by_string(cpe_hash_string_t cmd, dp_req_t req, error_monitor_t em);
-int dp_dispatch_by_numeric(int32_t cmd, dp_req_t req, error_monitor_t em);
-int dp_dispatch_by_name(const char * name, dp_req_t req, error_monitor_t em);
+int dp_dispatch_by_string(cpe_hash_string_t cmd, dp_mgr_t dm , dp_req_t req, error_monitor_t em);
+int dp_dispatch_by_numeric(int32_t cmd, dp_mgr_t dm , dp_req_t req, error_monitor_t em);
+int dp_dispatch_by_name(const char * name, dp_mgr_t dm , dp_req_t req, error_monitor_t em);
 
 /*iterator operations*/
 #define dp_rsp_next(it) (it)->m_next_fun((it))

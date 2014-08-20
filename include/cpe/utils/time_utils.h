@@ -1,5 +1,6 @@
 #ifndef CPE_UTILS_TIME_H
 #define CPE_UTILS_TIME_H
+#include "cpe/pal/pal_time.h"
 #include "stream.h"
 #include "error.h"
 #include "memory.h"

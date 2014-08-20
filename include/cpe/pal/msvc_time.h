@@ -13,6 +13,7 @@ struct timezone {
 };
 
 int gettimeofday(struct timeval *tv/*in*/, struct timezone *tz/*in*/);
+struct tm * localtime_r(const time_t *clock, struct tm *result);
 
 #ifdef __cplusplus
 }

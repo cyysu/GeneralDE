@@ -1,5 +1,8 @@
+<<<<<<< HEAD
+=======
 #include "cpe/pal/pal_time.h"
 #include "cpe/pal/pal_stdio.h"
+>>>>>>> refs/top-bases/master
 #include "cpe/utils/time_utils.h"
 
 time_t next_time_in_range_vn(
@@ -13,11 +16,7 @@ time_t next_time_in_range_vn(
     int after_mon;
     int after_day;
 
-#ifdef _MSC_VER
-    after_time = *localtime(&after);
-#else
     localtime_r(&after, &after_time);
-#endif
 
     if (end_time_vn) {
         int h = end_time_vn / 10000;
@@ -61,11 +60,7 @@ time_t next_time_in_range_vn(
         after_time.tm_mday = after_time.tm_mday + next_day;
         tmp = mktime(&after_time);
 
-#ifdef _MSC_VER
-        after_time = *localtime(&tmp);
-#else
         localtime_r(&tmp, &after_time);
-#endif
     }
 
     after_year = after_time.tm_year + 1900;
@@ -147,13 +142,8 @@ time_t time_from_str(const char * str_time) {
 
 const char * time_to_str(time_t time, void * buf, size_t buf_size) {
     struct tm *tm;
-
-#ifdef _MSC_VER
-    tm = localtime(&time);
-#else
     struct tm tm_buf;
     tm = localtime_r(&time, &tm_buf);
-#endif
 
     strftime(buf, buf_size, "%Y-%m-%d %H:%M:%S", tm);
     return buf;
