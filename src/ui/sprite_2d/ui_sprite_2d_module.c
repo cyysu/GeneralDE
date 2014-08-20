@@ -10,10 +10,13 @@
 #include "ui_sprite_2d_module_i.h"
 #include "ui_sprite_2d_transform_i.h"
 #include "ui_sprite_2d_move_i.h"
+#include "ui_sprite_2d_move_follow_i.h"
 #include "ui_sprite_2d_scale_i.h"
+#include "ui_sprite_2d_flip_i.h"
 #include "ui_sprite_2d_track_flip_i.h"
 #include "ui_sprite_2d_track_angle_i.h"
 #include "ui_sprite_2d_wait_switchback_i.h"
+#include "ui_sprite_2d_search_i.h"
 
 extern char g_metalib_ui_sprite_2d[];
 static void ui_sprite_2d_module_clear(nm_node_t node);
@@ -30,10 +33,15 @@ static struct {
 } s_auto_reg_products[] = {
     { "transform", ui_sprite_2d_transform_regist, ui_sprite_2d_transform_unregist }
     , { "2d-move", ui_sprite_2d_move_regist, ui_sprite_2d_move_unregist }
+    , { "2d-move-follow", ui_sprite_2d_move_follow_regist, ui_sprite_2d_move_follow_unregist }
 	, { "2d-scale", ui_sprite_2d_scale_regist, ui_sprite_2d_scale_unregist }
+	, { "2d-flip", ui_sprite_2d_flip_regist, ui_sprite_2d_flip_unregist }
 	, { "2d-track-flip", ui_sprite_2d_track_flip_regist, ui_sprite_2d_track_flip_unregist }
 	, { "2d-track-angle", ui_sprite_2d_track_angle_regist, ui_sprite_2d_track_angle_unregist }
 	, { "2d-wait-switchback", ui_sprite_2d_wait_switchback_regist, ui_sprite_2d_wait_switchback_unregist }
+    , { "2d-search", ui_sprite_2d_search_regist, ui_sprite_2d_search_unregist }
+    , { "2d-angle-flip-x", ui_sprite_2d_add_angle_flip_x, ui_sprite_2d_remove_angle_flip_x }
+
 };
 
 #define UI_SPRITE_2D_MODULE_LOAD_META(__arg, __name) \
@@ -51,6 +59,8 @@ ui_sprite_2d_module_create(
 
     assert(app);
 
+    if (name == NULL) name = "ui_sprite_2d_module";
+
     module_node = nm_group_create(gd_app_nm_mgr(app), name, sizeof(struct ui_sprite_2d_module));
     if (module_node == NULL) return NULL;
 
@@ -64,6 +74,7 @@ ui_sprite_2d_module_create(
     module->m_debug = 0;
 
     UI_SPRITE_2D_MODULE_LOAD_META(m_meta_transform_data, "ui_sprite_2d_transform");
+    UI_SPRITE_2D_MODULE_LOAD_META(m_meta_search_result, "ui_sprite_2d_search_result");
 
     if (ui_sprite_repository_register_events_by_prefix(
             repo, (LPDRMETALIB)g_metalib_ui_sprite_2d, "ui_sprite_evt") != 0)

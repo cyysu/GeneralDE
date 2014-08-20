@@ -31,13 +31,22 @@ public:
         }
     }
 
-    static uint32_t create_group(void * ctx, const char * layer) {
+    static uint32_t create_group(void * ctx, const char * layer, uint32_t entity_id, float priority) {
         OuterT * o = (OuterT*)ctx;
         try {
-            return o->createGroup(layer);
+            return o->createGroup(layer, entity_id, priority);
         }
         catch(...) {
             return UI_SPRITE_INVALID_ANIM_ID;
+        }
+    }
+
+    static void set_group_priority(void * ctx, uint32_t group_id, float priority) {
+        OuterT * o = (OuterT*)ctx;
+        try {
+            return o->setGruopPriority(group_id, priority);
+        }
+        catch(...) {
         }
     }
 
@@ -103,6 +112,14 @@ public:
         APP_CTX_CATCH_EXCEPTION(o->world().app(), "on_angle_update: ");
     }
 
+	static void on_flip_update(void * ctx, uint32_t group_id, uint8_t flip_x, uint8_t flip_y) {
+        OuterT * o = (OuterT*)ctx;
+        try {
+            o->onGroupFlipUpdate(group_id, flip_x, flip_y);
+        }
+        APP_CTX_CATCH_EXCEPTION(o->world().app(), "on_flip_update: ");
+    }
+
     static void on_camera_update(void * ctx, UI_SPRITE_2D_PAIR pos, UI_SPRITE_2D_PAIR scale) {
         OuterT * o = (OuterT*)ctx;
         try {
@@ -125,9 +142,11 @@ public:
             screen_size,
             create_group,
             remove_group,
+            set_group_priority,
             on_pos_update,
             on_scale_update,
             on_angle_update,
+			on_flip_update,
             start_fun,
             stop_fun,
             is_runing_fun,

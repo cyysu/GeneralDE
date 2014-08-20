@@ -11,10 +11,13 @@ extern "C" {
 typedef struct ui_sprite_2d_module * ui_sprite_2d_module_t;
 typedef struct ui_sprite_2d_transform * ui_sprite_2d_transform_t;
 typedef struct ui_sprite_2d_move * ui_sprite_2d_move_t;
+typedef struct ui_sprite_2d_move_follow * ui_sprite_2d_move_follow_t;
 typedef struct ui_sprite_2d_scale * ui_sprite_2d_scale_t;
+typedef struct ui_sprite_2d_flip * ui_sprite_2d_flip_t;
 typedef struct ui_sprite_2d_track_flip * ui_sprite_2d_track_flip_t;
 typedef struct ui_sprite_2d_track_angle * ui_sprite_2d_track_angle_t;
 typedef struct ui_sprite_2d_wait_switchback * ui_sprite_2d_wait_switchback_t;
+typedef struct ui_sprite_2d_search * ui_sprite_2d_search_t;
 
 #ifdef __cplusplus
 }

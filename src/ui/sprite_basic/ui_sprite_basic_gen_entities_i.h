@@ -2,6 +2,7 @@
 #define UI_SPRITE_BASIC_GEN_ENTITIES_I_H
 #include "ui/sprite_basic/ui_sprite_basic_gen_entities.h"
 #include "ui_sprite_basic_module_i.h"
+#include "ui_sprite_basic_value_generator_i.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -16,9 +17,10 @@ struct ui_sprite_basic_gen_entities {
     uint8_t m_do_destory;
 
     char * m_attrs;
+    ui_sprite_basic_value_generator_list_t m_generators;
 
     uint16_t m_generated_count;
-    uint16_t m_generated_duration;
+    float m_generated_duration;
 
     uint16_t m_runing_entity_count;
     uint16_t m_runing_entity_capacity;

@@ -30,6 +30,8 @@ ui_sprite_cfg_loader_load_action_from_cfg(
     ui_sprite_fsm_action_life_circle_t life_circle;
     cfg_t cfg_duration;
     const char * work;
+    const char * condition;
+    cfg_t cfg_convert;
 
     action_loader = ui_sprite_cfg_action_loader_find(loader, comp_name);
     if (action_loader == NULL) {
@@ -71,6 +73,9 @@ ui_sprite_cfg_loader_load_action_from_cfg(
         else if (strcmp(str_life_circle, "duration") == 0) {
             life_circle = ui_sprite_fsm_action_life_circle_duration;
         }
+        else if (strcmp(str_life_circle, "passive-working") == 0) {
+            life_circle = ui_sprite_fsm_action_life_circle_passive_working;
+        }
         else {
             CPE_ERROR(
                 loader->m_em, "%s: action %s(%s) load fail: life-circle %s unknown!",
@@ -90,7 +95,9 @@ ui_sprite_cfg_loader_load_action_from_cfg(
             life_circle = ui_sprite_fsm_action_life_circle_duration;
         }
 
-        if (life_circle != ui_sprite_fsm_action_life_circle_duration) {
+        if (life_circle != ui_sprite_fsm_action_life_circle_duration
+            && life_circle != ui_sprite_fsm_action_life_circle_working)
+        {
             CPE_ERROR(
                 loader->m_em, "%s: action %s(%s) load fail: can`t set duration in life-circie %d!",
                 ui_sprite_cfg_loader_name(loader),
@@ -137,6 +144,10 @@ ui_sprite_cfg_loader_load_action_from_cfg(
         }
     }
 
+    ui_sprite_fsm_action_set_apply_enter_evt(
+        action,
+        cfg_get_uint8(cfg, "apply-enter-evt", ui_sprite_fsm_action_apply_enter_evt(action)));
+
     if ((work = cfg_get_string(cfg, "work", NULL))) {
         if (ui_sprite_fsm_action_set_work(action, work) != 0) {
             CPE_ERROR(
@@ -146,6 +157,59 @@ ui_sprite_cfg_loader_load_action_from_cfg(
                 work);
             ui_sprite_fsm_action_free(action);
             return NULL;
+        }
+    }
+
+    if ((condition = cfg_get_string(cfg, "condition", NULL))) {
+        if (ui_sprite_fsm_action_set_condition(action, condition) != 0) {
+            CPE_ERROR(
+                loader->m_em, "%s: action %s(%s) load fail: set enter %s fail!",
+                ui_sprite_cfg_loader_name(loader),
+                ui_sprite_fsm_action_type_name(action), ui_sprite_fsm_action_name(action),
+                condition);
+            ui_sprite_fsm_action_free(action);
+            return NULL;
+        }
+    }
+
+    if ((cfg_convert = cfg_find_cfg(cfg, "convertors"))) {
+        struct cfg_it child_it;
+        cfg_t child_cfg;
+
+        cfg_it_init(&child_it, cfg_convert);
+        while((child_cfg = cfg_it_next(&child_it))) {
+            const char * event = cfg_get_string(child_cfg, "event", NULL);
+            const char * condition = cfg_get_string(child_cfg, "condition", NULL);
+            const char * convert_to = cfg_get_string(child_cfg, "convert-to", NULL);
+            ui_sprite_fsm_convertor_t convertor;
+
+            if (event == NULL) {
+                CPE_ERROR(
+                    loader->m_em, "%s: action %s(%s) load fail: load convertor: event not configured!",
+                    ui_sprite_cfg_loader_name(loader),
+                    ui_sprite_fsm_action_type_name(action), ui_sprite_fsm_action_name(action));
+                ui_sprite_fsm_action_free(action);
+                return NULL;
+            }
+
+            if (convert_to == NULL) {
+                CPE_ERROR(
+                    loader->m_em, "%s: action %s(%s) load fail: load convertor: event %s: convert-to not configured!",
+                    ui_sprite_cfg_loader_name(loader),
+                    ui_sprite_fsm_action_type_name(action), ui_sprite_fsm_action_name(action), event);
+                ui_sprite_fsm_action_free(action);
+                return NULL;
+            }
+
+            convertor = ui_sprite_fsm_convertor_create(action, event, condition, convert_to);
+            if (convertor == NULL) {
+                CPE_ERROR(
+                    loader->m_em, "%s: action %s(%s) load fail: load convertor: event %s: create convertor fail!",
+                    ui_sprite_cfg_loader_name(loader),
+                    ui_sprite_fsm_action_type_name(action), ui_sprite_fsm_action_name(action), event);
+                ui_sprite_fsm_action_free(action);
+                return NULL;
+            }
         }
     }
 

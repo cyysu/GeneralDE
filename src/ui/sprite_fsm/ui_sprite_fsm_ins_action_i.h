@@ -16,10 +16,14 @@ struct ui_sprite_fsm_action {
     ui_sprite_fsm_state_t m_state;
     ui_sprite_fsm_action_meta_t m_meta;
     const char * m_name;
+    ui_sprite_event_t m_addition_event; /*for save convertor origin event*/
+    ui_sprite_fsm_convertor_list_t m_convertors;
     ui_sprite_fsm_action_life_circle_t m_life_circle;
     float m_duration;
+    char * m_condition;
     char * m_work;
     float m_runing_time;
+    uint8_t m_apply_enter_evt;
     uint8_t m_is_update;
     TAILQ_ENTRY(ui_sprite_fsm_action) m_next_for_state;
     TAILQ_ENTRY(ui_sprite_fsm_action) m_next_for_work;

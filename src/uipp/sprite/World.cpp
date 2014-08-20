@@ -138,6 +138,13 @@ Entity & World::createProto(const char * name) {
     return *(Entity*)entity;
 }
 
+void World::removeProto(const char * name) {
+    ui_sprite_entity_t entity = ui_sprite_entity_proto_find(*this, name);
+    if (entity) {
+        ui_sprite_entity_free(entity);
+    }
+}
+
 Group & World::group(const char * name) {
     Group * e = findGroup(name);
 
@@ -193,6 +200,14 @@ void World::addUpdator(ui_sprite_world_update_fun_t fun, void * ctx) {
         APP_CTX_THROW_EXCEPTION(
             repository().app(), ::std::runtime_error,
             "world add updator fail!");
+    }
+}
+
+void World::setUpdatorPriority(void * ctx, int8_t priority) {
+    if (ui_sprite_world_set_updator_priority(*this, ctx, priority) != 0) {
+        APP_CTX_THROW_EXCEPTION(
+            repository().app(), ::std::runtime_error,
+            "world set updator priority fail!");
     }
 }
 

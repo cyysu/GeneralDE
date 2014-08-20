@@ -7,6 +7,7 @@
 namespace UI { namespace Sprite { namespace P2D {
 
 typedef UI_SPRITE_2D_PAIR Pair;
+typedef UI_SPRITE_2D_RECT Rect;
 class Transform;
 
 enum PosPolicy {
@@ -20,6 +21,13 @@ enum PosPolicy {
     , BottomLeft = UI_SPRITE_2D_TRANSFORM_POS_BOTTOM_LEFT
     , BottomCenter = UI_SPRITE_2D_TRANSFORM_POS_BOTTOM_CENTER
     , BottomRight = UI_SPRITE_2D_TRANSFORM_POS_BOTTOM_RIGHT
+};
+
+enum PosAdjType {
+    PosAdjByFlip = UI_SPRITE_2D_TRANSFORM_POS_ADJ_BY_FLIP
+    , PosAdjByScale = UI_SPRITE_2D_TRANSFORM_POS_ADJ_BY_SCALE
+    , PosAdjByAngle = UI_SPRITE_2D_TRANSFORM_POS_ADJ_BY_ANGLE
+    , PosAdjAll = UI_SPRITE_2D_TRANSFORM_POS_ADJ_ALL
 };
 
 }}}

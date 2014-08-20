@@ -1,6 +1,7 @@
 #ifndef UI_SPRITE_WORLD_H
 #define UI_SPRITE_WORLD_H
 #include "cpe/tl/tl_types.h"
+#include "cpe/xcalc/xcalc_types.h"
 #include "cpe/timer/timer_types.h"
 #include "ui_sprite_types.h"
 
@@ -23,12 +24,15 @@ ui_sprite_event_handler_t ui_sprite_world_add_event_handler(
 
 void ui_sprite_world_clear_event_handler_by_ctx(ui_sprite_world_t world, void * ctx);
 
+xcomputer_t ui_sprite_world_computer(ui_sprite_world_t world);
+
 uint8_t ui_sprite_world_is_tick_start(ui_sprite_world_t world);
 int ui_sprite_world_start_tick(ui_sprite_world_t world);
 void ui_sprite_world_stop_tick(ui_sprite_world_t world);
 
 int ui_sprite_world_add_updator(ui_sprite_world_t world, ui_sprite_world_update_fun_t fun, void * ctx);
 void ui_sprite_world_remove_updator(ui_sprite_world_t world, void * ctx);
+int ui_sprite_world_set_updator_priority(ui_sprite_world_t world, void * ctx, int8_t priority);
 
 tl_time_t ui_sprite_world_time(ui_sprite_world_t world);
 

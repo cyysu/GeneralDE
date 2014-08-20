@@ -44,6 +44,8 @@ ui_sprite_fsm_module_create(
 
     assert(app);
 
+    if (name == NULL) name = "ui_sprite_fsm_module";
+
     module_node = nm_group_create(gd_app_nm_mgr(app), name, sizeof(struct ui_sprite_fsm_module));
     if (module_node == NULL) return NULL;
 

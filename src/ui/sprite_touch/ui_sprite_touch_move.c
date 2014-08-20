@@ -43,6 +43,14 @@ int ui_sprite_touch_move_set_finger_count(ui_sprite_touch_move_t move, uint8_t f
     return ui_sprite_touch_responser_set_finger_count(&move->m_responser, finger_count);
 }
 
+uint16_t ui_sprite_touch_move_threshold(ui_sprite_touch_move_t move) {
+    return move->m_responser.m_threshold;
+}
+
+void ui_sprite_touch_move_set_threshold(ui_sprite_touch_move_t move, uint16_t threshold) {
+    move->m_responser.m_threshold = threshold;
+}
+
 float ui_sprite_touch_move_stick_duration(ui_sprite_touch_move_t move) {
     return move->m_stick_duration;
 }
@@ -137,7 +145,8 @@ static void ui_sprite_touch_move_process_begin(void * ctx) {
     ui_sprite_touch_responser_binding_t binding;
 
     assert(move->m_responser.m_binding_count > 0);
-    binding = &move->m_responser.m_bindings[move->m_responser.m_binding_count - 1];
+    binding = TAILQ_FIRST(&move->m_responser.m_bindings);
+    assert(binding);
 
     move->m_state.start_world_pos.x = binding->m_start_world_pt.x;
     move->m_state.start_world_pos.y = binding->m_start_world_pt.y;
@@ -175,7 +184,8 @@ static void ui_sprite_touch_move_process_move(void * ctx) {
     float stick_percent;
 
     assert(move->m_responser.m_binding_count > 0);
-    binding = &move->m_responser.m_bindings[move->m_responser.m_binding_count -1];
+    binding = TAILQ_FIRST(&move->m_responser.m_bindings);
+    assert(binding);
 
     move->m_state.pre_world_pos = move->m_state.cur_world_pos;
     move->m_state.pre_screen_pos = move->m_state.cur_screen_pos;

@@ -23,10 +23,17 @@ ui_sprite_world_t ui_sprite_entity_world(ui_sprite_entity_t entity);
 uint8_t ui_sprite_entity_debug(ui_sprite_entity_t entity);
 void ui_sprite_entity_set_debug(ui_sprite_entity_t entity, uint8_t is_debug);
 
+int8_t ui_sprite_entity_update_priority(ui_sprite_entity_t entity);
+void ui_sprite_entity_set_update_priority(ui_sprite_entity_t entity, int8_t priority);
+
 int ui_sprite_entity_enter(ui_sprite_entity_t entity);
 void ui_sprite_entity_exit(ui_sprite_entity_t entity);
 
 uint8_t ui_sprite_entity_is_active(ui_sprite_entity_t entity);
+
+ui_sprite_event_handler_t ui_sprite_entity_add_event_handler(
+    ui_sprite_entity_t entity, ui_sprite_event_scope_t scope,
+    const char * event_name, ui_sprite_event_process_fun_t fun, void * ctx);
 
 void ui_sprite_entity_send_event(
     ui_sprite_entity_t entity,

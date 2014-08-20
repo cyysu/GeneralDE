@@ -12,6 +12,7 @@ struct ui_sprite_component {
     ui_sprite_component_meta_t m_meta;
     uint8_t m_is_active;
     uint8_t m_is_update;
+    uint8_t m_need_process;
     ui_sprite_event_handler_list_t m_event_handlers;
     ui_sprite_attr_monitor_list_t m_attr_monitors;
     TAILQ_ENTRY(ui_sprite_component) m_next_for_entity;

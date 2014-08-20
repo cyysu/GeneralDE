@@ -3,7 +3,7 @@
 #include "ui/sprite_fsm/ui_sprite_fsm_action_meta.h"
 #include "ui/sprite_fsm/ui_sprite_fsm_ins.h"
 #include "ui_sprite_anim_camera_wait_stop_i.h"
-#include "ui_sprite_anim_camera_op_i.h"
+#include "ui_sprite_anim_camera_i.h"
 
 ui_sprite_anim_camera_wait_stop_t ui_sprite_anim_camera_wait_stop_create(ui_sprite_fsm_state_t fsm_state, const char * name) {
     ui_sprite_fsm_action_t fsm_action = ui_sprite_fsm_action_create(fsm_state, name, UI_SPRITE_ANIM_CAMERA_WAIT_STOP_NAME);
@@ -42,7 +42,6 @@ static void ui_sprite_anim_camera_wait_stop_update(ui_sprite_fsm_action_t fsm_ac
     ui_sprite_entity_t entity = ui_sprite_fsm_action_to_entity(fsm_action);
     ui_sprite_world_t world = ui_sprite_entity_world(entity);
     ui_sprite_anim_camera_t camera = ui_sprite_anim_camera_find(world);
-    ui_sprite_anim_camera_op_t curent_op;
 
     if (camera == NULL) {
         CPE_ERROR(
@@ -52,9 +51,7 @@ static void ui_sprite_anim_camera_wait_stop_update(ui_sprite_fsm_action_t fsm_ac
         return;
     }
 
-    curent_op = TAILQ_FIRST(&camera->m_ops);
-
-    if (curent_op == NULL || curent_op->m_is_done) {
+    if (camera->m_curent_op_id == 0) {
         ui_sprite_fsm_action_stop_update(fsm_action);
     }
 }

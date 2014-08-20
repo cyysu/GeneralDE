@@ -20,6 +20,9 @@ int ui_sprite_touch_move_set_is_capture(ui_sprite_touch_move_t move, uint8_t is_
 uint8_t ui_sprite_touch_move_is_grab(ui_sprite_touch_move_t move);
 int ui_sprite_touch_move_set_is_grab(ui_sprite_touch_move_t move, uint8_t is_grab);
 
+uint16_t ui_sprite_touch_move_threshold(ui_sprite_touch_move_t move);
+void ui_sprite_touch_move_set_threshold(ui_sprite_touch_move_t move, uint16_t threshold);
+
 const char * ui_sprite_touch_move_on_begin(ui_sprite_touch_move_t move);
 int ui_sprite_touch_move_set_on_begin(ui_sprite_touch_move_t move, const char * on_begin);
 

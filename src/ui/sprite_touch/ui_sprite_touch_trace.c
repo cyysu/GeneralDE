@@ -13,8 +13,7 @@ ui_sprite_touch_trace_t ui_sprite_touch_trace_create(ui_sprite_touch_mgr_t mgr, 
     }
 
     trace->m_id = id;
-    trace->m_state = ui_sprite_touch_trace_new;
-    TAILQ_INIT(&trace->m_active_responsers);
+    TAILQ_INIT(&trace->m_bindings);
 
     TAILQ_INSERT_TAIL(&mgr->m_touch_traces, trace, m_next_for_mgr);
 
@@ -24,8 +23,8 @@ ui_sprite_touch_trace_t ui_sprite_touch_trace_create(ui_sprite_touch_mgr_t mgr, 
 void ui_sprite_touch_trace_free(ui_sprite_touch_mgr_t mgr, ui_sprite_touch_trace_t trace) {
     TAILQ_REMOVE(&mgr->m_touch_traces, trace, m_next_for_mgr);
 
-    while(!TAILQ_EMPTY(&trace->m_active_responsers)) {
-        ui_sprite_touch_responser_unbind_tracer(TAILQ_FIRST(&trace->m_active_responsers), trace);
+    while(!TAILQ_EMPTY(&trace->m_bindings)) {
+        ui_sprite_touch_responser_unbind_tracer(TAILQ_FIRST(&trace->m_bindings));
     }
 
     mem_free(mgr->m_alloc, trace);

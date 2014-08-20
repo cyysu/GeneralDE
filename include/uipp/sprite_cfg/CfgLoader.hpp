@@ -2,6 +2,7 @@
 #define UIPP_SPRITE_CFG_LOADER_H
 #include "gdpp/app/System.hpp"
 #include "ui/sprite_cfg/ui_sprite_cfg_loader.h"
+#include "uipp/sprite/World.hpp"
 #include "uipp/sprite/WorldRes.hpp"
 #include "uipp/sprite/Entity.hpp"
 #include "uipp/sprite/Component.hpp"

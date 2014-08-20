@@ -52,6 +52,9 @@ ui_sprite_fsm_action_t ui_sprite_cfg_load_action_touch_move(void * ctx, ui_sprit
         return NULL;
     }
 
+    ui_sprite_touch_move_set_threshold(
+        touch_move, cfg_get_uint8(cfg, "threshold", ui_sprite_touch_move_threshold(touch_move)));
+
     if (ui_sprite_touch_move_set_on_begin(touch_move, cfg_get_string(cfg, "on-begin", NULL)) != 0) {
         CPE_ERROR(
             loader->m_em, "%s: create touch_move action: set on-begin fail",

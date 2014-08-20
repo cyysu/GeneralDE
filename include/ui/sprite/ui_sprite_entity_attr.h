@@ -39,6 +39,9 @@ int ui_sprite_entity_set_attr_uint64(ui_sprite_entity_t entity, const char * pat
 int ui_sprite_entity_set_attr_float(ui_sprite_entity_t entity, const char * path, float v);
 int ui_sprite_entity_set_attr_double(ui_sprite_entity_t entity, const char * path, double v);
 int ui_sprite_entity_set_attr_string(ui_sprite_entity_t entity, const char * path, const char * v);
+int ui_sprite_entity_set_attr_bin(ui_sprite_entity_t entity, const char * path, const void * v, LPDRMETA meta);
+
+int ui_sprite_entity_set_attr_value(ui_sprite_entity_t entity, const char * path, dr_value_t value);
 
 void ui_sprite_attr_monitor_free(ui_sprite_world_t world, ui_sprite_attr_monitor_t monitor);
 void * ui_sprite_attr_monitor_process_ctx(ui_sprite_attr_monitor_t handler);
