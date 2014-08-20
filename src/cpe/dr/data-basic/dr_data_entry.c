@@ -78,3 +78,40 @@ int dr_data_entry_set_from_string(dr_data_entry_t to, const char * value, error_
 
     return 0;
 }
+
+int dr_data_entry_set_from_value(dr_data_entry_t to, dr_value_t from, error_monitor_t em) {
+    if (dr_entry_type(to->m_entry) == CPE_DR_TYPE_STRUCT && from->m_type == CPE_DR_TYPE_STRUCT) {
+        if (dr_meta_copy_same_entry(
+                to->m_data, to->m_size, dr_entry_ref_meta(to->m_entry),
+                from->m_data, from->m_size, from->m_meta,
+                0, em)
+            <= 0)
+        {
+            CPE_ERROR(
+                em, "set entry %s(%s) from %s: copy same entry error",
+                dr_entry_name(to->m_entry), dr_entry_type_name(to->m_entry), dr_meta_name(from->m_meta));
+            return -1;
+        }
+        else {
+            return 0;
+        }
+    }
+    else if (dr_entry_type(to->m_entry) > CPE_DR_TYPE_COMPOSITE && from->m_type > CPE_DR_TYPE_COMPOSITE) {
+        if (dr_entry_set_from_ctype(to->m_data, from->m_data, from->m_type, to->m_entry, em) != 0) {
+            CPE_ERROR(
+                em, "set entry %s(%s) from %s: set with ctype error",
+                dr_entry_name(to->m_entry), dr_entry_type_name(to->m_entry), dr_type_name(from->m_type));
+            return -1;
+        }
+        else {
+            return 0;
+        }
+    }
+    else {
+        CPE_ERROR(
+            em, "set entry %s(%s) from %s: type convert error",
+            dr_entry_name(to->m_entry), dr_entry_type_name(to->m_entry), dr_type_name(from->m_type));
+
+        return -1;
+    }
+}
