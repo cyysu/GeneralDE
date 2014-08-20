@@ -29,8 +29,8 @@ public:
             size_t read_with_size;
  
             bzero(&buf, sizeof(buf));
-
-            rv = dr_pbuf_read_with_size(&buf, sizeof(buf), rp, data_capacity, &read_with_size, this->meta(), NULL);
+            
+            rv = dr_pbuf_read_with_size(&buf, sizeof(buf), rp, data_capacity, &read_with_size, Cpe::Dr::MetaTraits<ElementT>::META, NULL);
             if (rv < 0) {
                 APP_ERROR("load from pbuf array fail, rv=%d!", rv);
                 break;
