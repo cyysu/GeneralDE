@@ -1,5 +1,6 @@
 #include <assert.h>
 #include "cpe/pal/pal_platform.h"
+#include "cpe/pal/pal_strings.h"
 #include "cpe/dp/dp_manage.h"
 #include "cpe/dr/dr_metalib_manage.h"
 #include "cpe/dr/dr_bson.h"
