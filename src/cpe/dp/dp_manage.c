@@ -112,11 +112,10 @@ dp_rsp_t dp_rsp_find_first_by_string(dp_mgr_t dp, const char * cmd) {
     return dp_rsp_next(&it);
 }
 
-static int dp_do_dispatch_i(struct dp_rsp_it * rsps, dp_req_t req, error_monitor_t em) {
+static int dp_do_dispatch_i(struct dp_rsp_it * rsps, dp_mgr_t dm, dp_req_t req, error_monitor_t em) {
     dp_rsp_t rsp;
     int rv;
     int count;
-    dp_mgr_t dm = req->m_mgr;
     struct dp_processing_rsp_buf pbuf;
 
     dp_pbuf_init(dm, &pbuf);
@@ -148,13 +147,13 @@ static int dp_do_dispatch_i(struct dp_rsp_it * rsps, dp_req_t req, error_monitor
     return rv < 0 ? rv : count;
 }
 
-int dp_dispatch_by_string(cpe_hash_string_t cmd, dp_req_t req, error_monitor_t em) {
+int dp_dispatch_by_string(cpe_hash_string_t cmd, dp_mgr_t dm, dp_req_t req, error_monitor_t em) {
     struct dp_rsp_it rspIt;
     int rv;
 
-    dp_rsp_find_by_string(&rspIt, req->m_mgr, cpe_hs_data(cmd));
+    dp_rsp_find_by_string(&rspIt, dm, cpe_hs_data(cmd));
     
-    rv = dp_do_dispatch_i(&rspIt, req, em);
+    rv = dp_do_dispatch_i(&rspIt, dm, req, em);
 
     if (rv == 0) {
         CPE_INFO(em, "no responser to process cmd %s", cpe_hs_data(cmd));
@@ -164,12 +163,12 @@ int dp_dispatch_by_string(cpe_hash_string_t cmd, dp_req_t req, error_monitor_t e
     return rv < 0 ? rv : 0;
 }
 
-int dp_dispatch_by_numeric(int32_t cmd, dp_req_t req, error_monitor_t em) {
+int dp_dispatch_by_numeric(int32_t cmd, dp_mgr_t dm, dp_req_t req, error_monitor_t em) {
     struct dp_rsp_it rspIt;
     int rv;
 
-    dp_rsp_find_by_numeric(&rspIt, req->m_mgr, cmd);
-    rv = dp_do_dispatch_i(&rspIt, req, em);
+    dp_rsp_find_by_numeric(&rspIt, dm, cmd);
+    rv = dp_do_dispatch_i(&rspIt, dm, req, em);
 
     if (rv == 0) {
         CPE_INFO(em, "no responser to process cmd %d", cmd);
@@ -179,9 +178,9 @@ int dp_dispatch_by_numeric(int32_t cmd, dp_req_t req, error_monitor_t em) {
     return rv < 0 ? rv : 0;
 }
 
-int dp_dispatch_by_name(const char * name, dp_req_t req, error_monitor_t em) {
+int dp_dispatch_by_name(const char * name, dp_mgr_t dm, dp_req_t req, error_monitor_t em) {
     dp_rsp_t rsp;
-    rsp = dp_rsp_find_by_name(req->m_mgr, name);
+    rsp = dp_rsp_find_by_name(dm, name);
 
     if (rsp == 0) {
         CPE_ERROR(em, "no responser name %s", name);

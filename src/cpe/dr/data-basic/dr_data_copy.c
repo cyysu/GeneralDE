@@ -14,6 +14,7 @@ struct CopySameEntryProcessStack{
     int32_t m_des_entry_count;
     char * m_des_data;
     size_t m_des_capacity;
+    size_t m_des_used_size;
 
     LPDRMETA m_src_meta;
     char const * m_src_data;
@@ -101,7 +102,6 @@ int dr_meta_copy_same_entry_part(
 {
     struct CopySameEntryProcessStack processStack[CPE_DR_MAX_LEVEL];
     int stackPos;
-    int des_used_size;
 
     assert(des_data);
     assert(des_meta);
@@ -115,11 +115,11 @@ int dr_meta_copy_same_entry_part(
     processStack[0].m_array_pos = 0;
     processStack[0].m_des_data = (char *)des_data;
     processStack[0].m_des_capacity = des_capacity;
+    processStack[0].m_des_used_size = 0;
     processStack[0].m_src_meta = src_meta;
     processStack[0].m_src_data = (const char *)src_data;
     processStack[0].m_src_capacity = src_capacity;
 
-    des_used_size = 0;
     for(stackPos = 0; stackPos >= 0;) {
         struct CopySameEntryProcessStack * curStack;
 
@@ -184,14 +184,14 @@ int dr_meta_copy_same_entry_part(
             {
                 char * des_entry_data;
                 const char * src_entry_data;
-                size_t des_entry_capacity, des_left_capacity, des_total_size;
+                size_t des_entry_capacity, des_left_capacity, des_start_pos;
                 size_t src_entry_capacity, src_left_capacity;
 
-                des_total_size = dr_entry_data_start_pos(curStack->m_des_entry, curStack->m_array_pos) + des_element_size;
-                des_entry_data = curStack->m_des_data + dr_entry_data_start_pos(curStack->m_des_entry, curStack->m_array_pos);
+                des_start_pos = dr_entry_data_start_pos(curStack->m_des_entry, curStack->m_array_pos);
+                des_entry_data = curStack->m_des_data + des_start_pos;
                 if ((size_t)(des_entry_data - curStack->m_des_data) > curStack->m_des_capacity) continue;
 
-                des_left_capacity = curStack->m_des_capacity - (des_entry_data - curStack->m_des_data);
+                des_left_capacity = curStack->m_des_capacity - des_start_pos;
                 des_entry_capacity = des_element_size;
 
                 if ((curStack->m_des_entry_pos + 1 == curStack->m_des_meta->m_entry_count
@@ -229,6 +229,7 @@ int dr_meta_copy_same_entry_part(
 
                     nextStack->m_des_data = des_entry_data;
                     nextStack->m_des_capacity = des_entry_capacity;
+                    nextStack->m_des_used_size = 0;
                     nextStack->m_array_pos = 0;
 
                     nextStack->m_src_data = src_entry_data;
@@ -277,12 +278,14 @@ int dr_meta_copy_same_entry_part(
                     ++curStack->m_array_pos;
                     ++stackPos;
                     curStack = nextStack;
-                    if (stackPos == 0 && des_total_size > des_used_size) des_used_size = des_total_size;
                     goto LOOPENTRY;
                 }
                 else {
+                    size_t total_capacity = des_start_pos + dr_entry_element_size(curStack->m_des_entry);
+                    if (total_capacity > curStack->m_des_capacity) continue;
+                    if (total_capacity > curStack->m_des_used_size) curStack->m_des_used_size = total_capacity;
+                    
                     dr_entry_set_from_ctype(des_entry_data, src_entry_data, src_entry->m_type, curStack->m_des_entry, 0);
-                    if (stackPos == 0 && des_total_size > des_used_size) des_used_size = des_total_size;
                 }
             }
 
@@ -298,10 +301,16 @@ int dr_meta_copy_same_entry_part(
             }
         }
 
+        if (stackPos > 0) {
+            struct CopySameEntryProcessStack * preStack = &processStack[stackPos - 1];
+            size_t total_capacity = (curStack->m_des_data - preStack->m_des_data) + curStack->m_des_used_size;
+            if (total_capacity > preStack->m_des_used_size) preStack->m_des_used_size = total_capacity;
+        }
+
         --stackPos;
     }
 
-    return des_used_size;
+    return processStack[0].m_des_used_size;
 }
 
 int dr_entry_copy_same_entry(
