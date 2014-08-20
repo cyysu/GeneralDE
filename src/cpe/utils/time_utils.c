@@ -1,4 +1,5 @@
 #include "cpe/pal/pal_time.h"
+#include "cpe/pal/pal_stdio.h"
 #include "cpe/utils/time_utils.h"
 
 time_t next_time_in_range_vn(
@@ -8,9 +9,9 @@ time_t next_time_in_range_vn(
 {
     struct tm after_time;
     int next_day = 0;
-    uint32_t after_year;
-    uint32_t after_mon;
-    uint32_t after_day;
+    int after_year;
+    int after_mon;
+    int after_day;
 
 #ifdef _MSC_VER
     after_time = *localtime(&after);
@@ -19,9 +20,9 @@ time_t next_time_in_range_vn(
 #endif
 
     if (end_time_vn) {
-        uint32_t h = end_time_vn / 10000;
-        uint32_t m = (end_time_vn - h * 10000) / 100;
-        uint32_t s = end_time_vn - h * 10000 - m * 100;
+        int h = end_time_vn / 10000;
+        int m = (end_time_vn - h * 10000) / 100;
+        int s = end_time_vn - h * 10000 - m * 100;
 
         if (after_time.tm_hour > h
             || (after_time.tm_hour == h && after_time.tm_min > m)
@@ -32,9 +33,9 @@ time_t next_time_in_range_vn(
     }
 
     if (start_time_vn) {
-        uint32_t h = start_time_vn / 10000;
-        uint32_t m = (start_time_vn - h * 10000) / 100;
-        uint32_t s = start_time_vn - h * 10000 - m * 100;
+        int h = start_time_vn / 10000;
+        int m = (start_time_vn - h * 10000) / 100;
+        int s = start_time_vn - h * 10000 - m * 100;
 
         if (next_day
             || after_time.tm_hour < h
@@ -72,9 +73,9 @@ time_t next_time_in_range_vn(
     after_day = after_time.tm_mday;
 
     if (end_date_vn) {
-        uint32_t year = end_date_vn / 10000;
-        uint32_t mon = (end_date_vn - year * 10000) / 100;
-        uint32_t day = end_date_vn - year * 10000 - mon * 100;
+        int year = end_date_vn / 10000;
+        int mon = (end_date_vn - year * 10000) / 100;
+        int day = end_date_vn - year * 10000 - mon * 100;
 
         if (after_year >  year
             || (after_year == year && after_mon > mon)
@@ -85,9 +86,9 @@ time_t next_time_in_range_vn(
     }
 
     if (start_date_vn) {
-        uint32_t year = start_date_vn / 10000;
-        uint32_t mon = (start_date_vn - year * 10000) / 100;
-        uint32_t day = start_date_vn - year * 10000 - mon * 100;
+        int year = start_date_vn / 10000;
+        int mon = (start_date_vn - year * 10000) / 100;
+        int day = start_date_vn - year * 10000 - mon * 100;
 
         if (after_year <  year
             || (after_year == year && after_mon < mon)

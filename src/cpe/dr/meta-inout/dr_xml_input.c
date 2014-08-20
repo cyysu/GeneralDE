@@ -62,7 +62,7 @@ enum DRXmlParseState {
                     __d = macro->m_data.m_value;                        \
                 }                                                       \
                 else {                                                  \
-                    DR_NOTIFY_ERROR(ctx->m_em, CPE_DR_ERROR_UNDEFINED_MACRO_NAME); \
+                    DR_NOTIFY_ERROR_EXTRA(ctx->m_em, CPE_DR_ERROR_UNDEFINED_MACRO_NAME, ctx->m_data_buf); \
                 }                                                       \
             }                                                           \
         }                                                               \
