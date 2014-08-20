@@ -55,7 +55,7 @@ public:
 
     char * strdup(const char * d) { return mem_buffer_strdup(&m_buf, d); }
     char * strdup(const char * d, size_t len) { return mem_buffer_strdup_len(&m_buf, d, len); }
-    void strcat(const char * d);
+    void strcat(const char * d) { mem_buffer_strcat(&m_buf, d); }
 
     TrunkIterator trunks(void) { return TrunkIterator(mem_buffer_trunk_first(&m_buf)); }
 

@@ -44,6 +44,10 @@ public:
     Cpe::Dr::ConstDataElement operator[] (const char * name) const { return args()[name]; }
     Cpe::Dr::DataElement operator[] (const char * name) { return args()[name]; }
 
+    bool is_valid(const char * name) const {
+        return args().is_valid(name);
+    }
+
     const char * dump(mem_buffer_t buffer) const;
     void dump(write_stream_t stream) const { gd_evt_dump(stream, *this); }
 

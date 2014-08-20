@@ -389,6 +389,7 @@ static void cfg_yaml_notify_parse_error(struct cfg_yaml_read_ctx * ctx) {
             }
             break;
         case YAML_SCANNER_ERROR:
+            CPE_ERROR_SET_LINE(ctx->m_em, ctx->m_parser.problem_mark.line + 1);
             if (ctx->m_parser.context) {
                 CPE_ERROR(
                     ctx->m_em, "Scanner error: %s at line %d, column %d\n"
@@ -409,6 +410,7 @@ static void cfg_yaml_notify_parse_error(struct cfg_yaml_read_ctx * ctx) {
             }
             break;
         case YAML_PARSER_ERROR:
+            CPE_ERROR_SET_LINE(ctx->m_em, ctx->m_parser.problem_mark.line + 1);
             if (ctx->m_parser.context) {
                 CPE_ERROR(
                     ctx->m_em,
