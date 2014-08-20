@@ -12,3 +12,4 @@ t/svr/dblog
 t/svr/rank_f
 t/svr/rank_g
 t/support/ui
+t/support/ui_b2
