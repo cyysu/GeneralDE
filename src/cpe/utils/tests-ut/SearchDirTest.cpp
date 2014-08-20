@@ -1,5 +1,7 @@
 #include "SearchDirTest.hpp"
 
+#ifndef TARGET_IPHONE_SIMULATOR
+
 void SearchDirTest::SetUp() {
     Base::SetUp();
 
@@ -52,3 +54,5 @@ void SearchDirTest::expectLeave(const char * file, dir_visit_next_op_t r) {
     EXPECT_CALL(m_visitCheck, on_leave_dir(::testing::StrEq(file)))
         .WillOnce(::testing::Return(r));
 }
+
+#endif
