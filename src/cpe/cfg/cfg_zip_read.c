@@ -165,18 +165,20 @@ int cfg_read_zip_file(cfg_t cfg, cpe_unzip_file_t zf, cfg_policy_t policy, error
 int cfg_read_zip_bin_file(cfg_t cfg, cpe_unzip_file_t zf, cfg_policy_t policy, error_monitor_t em) {
     struct mem_buffer buffer;
     int rv;
+    ssize_t fileSize;
 
     CPE_ERROR_SET_FILE(em, cpe_unzip_file_name(zf));
 
     mem_buffer_init(&buffer, NULL);
     
-    if (cpe_unzip_file_load_to_buffer(&buffer, zf, em) < 0) {
+    fileSize = cpe_unzip_file_load_to_buffer(&buffer, zf, em);
+    if (fileSize < 0) {
         CPE_ERROR(em, "read file to buffer fail!");
         CPE_ERROR_SET_FILE(em, NULL);
         return -1;
     }
 
-    rv = cfg_read_bin(cfg, mem_buffer_make_continuous(&buffer, 0), policy, em);
+    rv = cfg_read_bin(cfg, mem_buffer_make_continuous(&buffer, 0), fileSize, em);
 
     mem_buffer_clear(&buffer);
     CPE_ERROR_SET_FILE(em, NULL);

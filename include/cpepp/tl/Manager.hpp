@@ -18,6 +18,7 @@ public:
     tl_manage_state_t state(void) const { return tl_manage_state(*this); }
     void pause(void) { tl_manage_pause(*this); }
     void resume(void) { tl_manage_resume(*this); }
+    void rate(float rate) { tl_manage_rate(*this, rate); }
 
     tl_time_t curTime(void) const { return tl_manage_time(*this); }
     uint32_t curTimeSec(void) const { return (uint32_t)(curTime() / 1000); }

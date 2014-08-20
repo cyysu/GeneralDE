@@ -14,7 +14,7 @@ gd_id_t IdGenerator::generate(const char * id_name) {
             ::std::runtime_error,
             "IdGeneratro %s generate id fail!", name());
     }
-
+    //printf("gd_id: %d\n", r);
     return r;
 }
 

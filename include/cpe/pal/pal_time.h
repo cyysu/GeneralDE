@@ -5,6 +5,7 @@
 #include "msvc_time.h"
 #else
 #include <sys/time.h>
+#include <time.h>
 #endif
 
 #endif
