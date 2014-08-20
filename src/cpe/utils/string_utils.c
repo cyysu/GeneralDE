@@ -157,6 +157,20 @@ void cpe_str_tolower(char * data) {
     }
 }
 
+const char * cpe_str_char_not_in_pair(const char * p, char f, const char * start_set, const char * end_set) {
+    char v;
+    int state = 0;
+
+    for(; (v = *p); p++) {
+        if (v == f && state == 0) return p;
+
+        if (strchr(start_set, v)) ++state;
+        if (strchr(end_set, v)) --state;
+    }
+
+    return NULL;
+}
+
 int cpe_str_cmp_part(const char * part_str, size_t part_str_len, const char * full_str) {
     int r = strncmp(part_str, full_str, part_str_len);
     if (r == 0) return full_str[part_str_len] == 0 ? 0 : - (int)part_str_len;
@@ -261,7 +275,7 @@ int cpe_str_parse_timespan_ms(uint64_t * result, const char * astring) {
 char * cpe_str_trim_head(char * p) {
     char v;
     while((v = *p) != 0) {
-        if (v == ' ' || v == '\t' || v == '\r' || v == '\n') {
+        if (isspace(v)) {
             ++p;
         }
         else {
@@ -276,7 +290,7 @@ char * cpe_str_trim_tail(char * p, const char * head) {
     while((p - 1) >= head) {
         char v = *(p - 1);
 
-        if (v == ' ' || v == '\t' || v == '\r' || v == '\n') {
+        if (isspace(v)) {
             --p;
         }
         else {
@@ -301,4 +315,58 @@ char * cpe_str_mask_uint16(uint16_t v, char * buf, size_t buf_size) {
     buf[bit_count] = 0;
 
     return buf;
+}
+
+char * cpe_str_read_and_remove_arg_pocess_arg(char * input, char const * arg_name, size_t name_len, char pair) {
+    input = cpe_str_trim_head(input);
+
+    if (memcmp(input, arg_name, name_len) != 0) return NULL;
+
+    input = cpe_str_trim_head(input += name_len);
+    if (*input != pair) return NULL;
+
+    return cpe_str_trim_head(input + 1);
+}
+
+char * cpe_str_read_and_remove_arg(char * input, const char * arg_name, char sep, char pair) {
+    size_t name_len = strlen(arg_name);
+    char * s;
+    char * p = input;
+    char * r;
+
+    while((s = strchr(p, sep))) {
+        *s = 0;
+
+        r = cpe_str_read_and_remove_arg_pocess_arg(p, arg_name, name_len, pair);
+
+        if (r) {
+            size_t value_len = strlen(r) + 1;
+            size_t left_len = strlen(s + 1) + 1;
+            #ifdef _MSC_VER
+            char buf[129];
+            #else
+            char buf[value_len];
+            #endif
+
+            strncmp(buf, r, sizeof(buf));
+
+            memmove(p, s + 1, left_len);
+            strcpy(p + left_len, buf);
+
+            return p + left_len;
+        }
+        else {
+            *s = sep;
+            p = cpe_str_trim_head(s + 1);
+        }
+    }
+
+    r = cpe_str_read_and_remove_arg_pocess_arg(p, arg_name, name_len, pair);
+    if (r) {
+        *p = 0;
+        * cpe_str_trim_tail(r + strlen(r), r) = 0;
+        return r;
+    }
+
+    return NULL;
 }

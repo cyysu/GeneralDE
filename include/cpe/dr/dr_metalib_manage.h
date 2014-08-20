@@ -95,9 +95,11 @@ LPDRMACROSGROUP dr_macro_macrosgroup(LPDRMETALIB metaLib, LPDRMACRO macro);
 /*macro-group operations*/	
 int dr_lib_macrosgroup_num(LPDRMETALIB metaLib);
 LPDRMACROSGROUP dr_lib_macrosgroup_at(LPDRMETALIB metaLib, int a_iIdx);
+
 const char* dr_macrosgroup_name(LPDRMACROSGROUP macroGroup);
 int dr_macrosgroup_macro_num(LPDRMACROSGROUP macroGroup);
 LPDRMACRO dr_macrosgroup_macro_at(LPDRMETALIB metaLib, LPDRMACROSGROUP macroGroup, int idx);
+LPDRMACRO dr_macrosgroup_find_macro_by_name(LPDRMETALIB metaLib, LPDRMACROSGROUP macroGroup, const char * name);
 
 void dr_lib_print(write_stream_t stream, LPDRMETALIB metaLib, int ident);
 const char * dr_lib_dump(mem_buffer_t buffer, LPDRMETALIB metaLib, int ident);
