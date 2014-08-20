@@ -1,5 +1,7 @@
 #include "FileTest.hpp"
 
+#ifndef TARGET_IPHONE_SIMULATOR
+
 TEST_F(FileTest, file_write_from_buf_basic) {
     const char * data = "abc";
 
@@ -78,3 +80,5 @@ TEST_F(FileTest, file_append_from_string_basic) {
 
     EXPECT_STREQ("abcdef", t_file_to_str("a.txt"));
 }
+
+#endif
