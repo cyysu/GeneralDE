@@ -1,7 +1,7 @@
 #include "cpe/utils/service.h"
 
 #if defined _MSC_VER
-#elsif defined ANDROID
+#elif defined ANDROID
 /*not impl for android!*/
 #else
 #include <stdio.h>

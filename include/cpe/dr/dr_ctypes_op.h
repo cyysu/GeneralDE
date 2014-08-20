@@ -2,6 +2,7 @@
 #define CPE_DR_CTYPES_READ_H
 #include "cpe/utils/error.h"
 #include "cpe/utils/stream.h"
+#include "cpe/utils/buffer.h"
 #include "dr_ctypes_info.h"
 
 #ifdef __cplusplus
@@ -31,6 +32,7 @@ float dr_ctype_read_float(const void * input, int type);
 double dr_ctype_read_double(const void * input, int type);
 
 int dr_ctype_print_to_stream(write_stream_t output, const void * input, int type, error_monitor_t em);
+const char * dr_ctype_to_string(mem_buffer_t buffer, const void * input, int type);
 int dr_ctype_set_from_string(void * output, int type, const char * input, error_monitor_t em);
 
 int dr_ctype_set_from_int8(void * output, int8_t input, int type, error_monitor_t em);

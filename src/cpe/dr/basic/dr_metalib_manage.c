@@ -787,6 +787,10 @@ const char* dr_macro_desc(LPDRMETALIB metaLib, LPDRMACRO a_pstMacro) {
     }
 }
 
+LPDRMACRO dr_macrosgroup_find_macro_by_name(LPDRMETALIB metaLib, LPDRMACROSGROUP macroGroup, const char * name) {
+    return dr_lib_macro_find(metaLib, name);
+}
+
 LPDRMACROSGROUP dr_macro_macrosgroup(LPDRMETALIB metaLib, LPDRMACRO a_pstMacro) {
     //TODO
     return NULL;
