@@ -116,12 +116,39 @@ static const char * g_dr_error_msgs_[] = {
     , "网络数据包中的版本指示器值不正确，其取值应大于元数据基准版本,并且小于元数据的当前如果元数据有版本指示器，则版本指示器的值必须不小于版本指示器允许的最小版本 "
 };
 
+#ifdef _MSC_VER
+#include "cpe/pal/pal_string.h"
+#include "windows.h"
+char const *utf8_to_gbk(char const *strChar) {
+    static char buf[1024];
+    wchar_t *unicode;
+    int len = MultiByteToWideChar(CP_UTF8, 0, strChar, -1, NULL, 0);  
+    if (len == 0) return strChar;  
+
+    unicode = (wchar_t*) malloc(sizeof(wchar_t) * (len + 1));
+    MultiByteToWideChar(CP_UTF8, 0, strChar, -1, unicode, len);
+
+    len = WideCharToMultiByte(CP_ACP, 0, unicode, len, buf, 1024, NULL, NULL);
+    if (len > 0)
+    {
+        buf[len] = 0;
+    }
+    free(unicode);
+    return buf;
+}
+#endif
+
+
 char const* dr_error_string(int iErrorCode) {
     iErrorCode = CPE_ERR_BASE(iErrorCode);
     if (iErrorCode < 0 || iErrorCode >= sizeof(g_dr_error_msgs_) / sizeof(char*)) {
         return "unknown error code!";
     }
     else {
+#ifdef _MSC_VER
+        return utf8_to_gbk(g_dr_error_msgs_[iErrorCode]);
+#else
         return g_dr_error_msgs_[iErrorCode];
+#endif
     }
 }

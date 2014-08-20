@@ -99,8 +99,8 @@ int tl_event_enqueue_local(
     struct tl_event_node * input = tl_event_to_node(event);
 
     input->m_execute_time =
-        event->m_tl->m_manage->m_time_current +  delay;
-    input->m_span = span;
+    event->m_tl->m_manage->m_time_current + (tl_time_span_t)((float)delay / event->m_tl->m_manage->m_rate);
+    input->m_span = span;// / event->m_tl->m_manage->m_rate;
     input->m_repeatCount = repeatCount;
 
     /*be careful, input not be managed by manage!!!*/

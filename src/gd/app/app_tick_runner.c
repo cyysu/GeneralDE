@@ -1,5 +1,7 @@
 #include <assert.h>
+#ifndef _MSC_VER
 #include <sched.h>
+#endif
 #include "cpe/pal/pal_strings.h"
 #include "cpe/pal/pal_unistd.h"
 #include "cpe/pal/pal_socket.h" /*for select (sleep)*/
@@ -48,7 +50,9 @@ static int app_tick_run_main(gd_app_context_t ctx, void * user_ctx) {
             }
         }
         else {
+#ifndef _MSC_VER
             sched_yield();
+#endif
         }
     };
 
