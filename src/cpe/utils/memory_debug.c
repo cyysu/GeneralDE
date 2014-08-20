@@ -71,6 +71,7 @@ static void * do_debug_allocrator_alloc(size_t size, struct mem_allocrator * all
     cpe_hash_entry_init(&alloc_info->m_hh);
 
     if (cpe_hash_table_insert_unique(&dalloc->m_alloc_infos, alloc_info) != 0) {
+        assert(0);
         CPE_ERROR(dalloc->m_em, "mem_alloc_debug: alloc: parent alloc same address?!");
         mem_free(dalloc->m_using, alloc_info);
         return r;
@@ -87,6 +88,7 @@ static void do_debug_allocrator_free(void * p, struct mem_allocrator * allocrato
     key.m_addr = p;
     alloc_info = (struct debug_mem_alloc_info *)cpe_hash_table_find(&dalloc->m_alloc_infos, &key);
     if (alloc_info == NULL) {
+        assert(0);
         CPE_ERROR(dalloc->m_em, "mem_alloc_debug: free: address %p not alloc from here or already released?!", p);
         return;
     }
