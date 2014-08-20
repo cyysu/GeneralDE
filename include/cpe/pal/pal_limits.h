@@ -11,6 +11,10 @@ extern "C" {
     #define UINT16_MAX  0xFFFFu
 #endif
 
+#ifndef UINT32_MAX
+    #define UINT32_MAX  0xFFFFFFFFUL
+#endif
+
 #else /*ux*/
 
 #include <limits.h>

@@ -14,7 +14,7 @@ TEST_F(CopySameEntryTest, multi_entry_basic) {
         "    </struct>"
         "</metalib>");
 
-    copy("des", "src");
+    EXPECT_EQ(4, copy("des", "src"));
 
     EXPECT_EQ(23, dr_ctype_read_int16(result(), CPE_DR_TYPE_INT16));
     EXPECT_EQ(67, dr_ctype_read_int16(result(2), CPE_DR_TYPE_INT16));
@@ -421,7 +421,7 @@ TEST_F(CopySameEntryTest, struct_array_in_union_with_selector) {
         "    </struct>"
         "</metalib>");
 
-    copy("des", "src");
+    EXPECT_EQ(10, copy("des", "src"));
 
     EXPECT_EQ(1, dr_ctype_read_int16(result(), CPE_DR_TYPE_INT16));
     EXPECT_EQ(3, dr_ctype_read_int16(result(2), CPE_DR_TYPE_INT16));
