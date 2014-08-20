@@ -1,3 +1,4 @@
+#include "cpe/pal/pal_stdio.h"
 #include "cpe/dr/dr_metalib_manage.h"
 #include "cpe/tl/tl_manage.h"
 #include "gd/app/app_context.h"

@@ -1,6 +1,7 @@
 #include <assert.h>
 #include "cpe/pal/pal_queue.h"
 #include "cpe/pal/pal_platform.h"
+#include "cpe/pal/pal_string.h"
 #include "cpe/pal/pal_strings.h"
 #include "cpe/pal/pal_stdio.h"
 #include "cpe/utils/stream_mem.h"
@@ -165,7 +166,7 @@ static int cfg_write_bin_i(void * result, size_t result_capacity, mem_buffer_t r
             break;
         case CPE_CFG_TYPE_STRUCT:
             while((cur_cfg = cfg_it_next(&cur_stack->m_cfg_it))) {
-                int cur_type = cfg_type(cur_cfg);
+                cur_type = cfg_type(cur_cfg);
 
                 CFG_WRITE_BIN_APPEND_TYPE(cur_type);
                 CFG_WRITE_BIN_APPEND_STRING(cfg_name(cur_cfg));
@@ -280,7 +281,7 @@ static void * cfg_write_bin_append(struct cfg_bin_write_ctx * ctx, size_t requir
                 new_capacity = new_capacity * 2;
             }
 
-            ctx->m_output_buf = mem_buffer_make_continuous(ctx->m_output_alloc, new_capacity - ctx->m_output_capacity);
+            ctx->m_output_buf = mem_buffer_make_continuous(ctx->m_output_alloc, new_capacity - ctx->m_used_size);
             if (ctx->m_output_buf == NULL) {
                 CPE_ERROR(ctx->m_em, "dr_pbuf_read: resize to %d fail!", (int)new_capacity);
                 return NULL;
