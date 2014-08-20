@@ -1,0 +1,3 @@
+[submodule "3rdTools/Box2D"]
+	path = 3rdTools/Box2D
+	url = git@github.com:wangjian1009/Box2D.git
