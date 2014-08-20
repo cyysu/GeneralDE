@@ -1,5 +1,7 @@
 #include "FileTest.hpp"
 
+#ifndef TARGET_IPHONE_SIMULATOR
+
 TEST_F(FileTest, dir_mk_recursion_basic) {
     EXPECT_EQ(
         0,
@@ -79,3 +81,5 @@ TEST_F(FileTest, dir_exist_file) {
         0,
         dir_exist(t_path_make("not-exist"), t_em()));
 }
+
+#endif
