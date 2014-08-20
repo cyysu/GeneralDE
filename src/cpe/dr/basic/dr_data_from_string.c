@@ -1,9 +1,11 @@
 #define _ISOC99_SOURCE
+#include <assert.h>
 #include <ctype.h>
 #include <limits.h>
 #include "cpe/pal/pal_stdlib.h"
 #include "cpe/pal/pal_string.h"
 #include "cpe/dr/dr_data.h"
+#include "cpe/dr/dr_metalib_manage.h"
 #include "../dr_internal_types.h"
 
 #if defined _MSC_VER
@@ -41,6 +43,20 @@ static int dr_set_int ## __bit ## _from_string(void * output, LPDRMETAENTRY entr
     do {                                                                \
         c = *s++;                                                       \
     } while (isspace((unsigned char)c));                                \
+                                                                        \
+    if (c != '-' && c != '+' && (c < '0' || c > '9')) {                 \
+        if (entry) {                                                    \
+            LPDRMETALIB metalib = dr_meta_owner_lib(                    \
+                dr_entry_self_meta(entry));                             \
+            LPDRMACRO macro = dr_lib_macro_find(metalib, s - 1);        \
+            if (macro == NULL) return -1;                               \
+            *((int ## __bit ## _t*)output) = dr_macro_value(macro);     \
+            return 0;                                                   \
+        }                                                               \
+        else {                                                          \
+            return -1;                                                  \
+        }                                                               \
+    }                                                                   \
                                                                         \
     if (c == '-') {                                                     \
         neg = 1;                                                        \
@@ -116,74 +132,88 @@ static int dr_set_uint ## __bit ## _from_string(                        \
     void * output, LPDRMETAENTRY entry,                                 \
     const char * s, error_monitor_t em)                                 \
 {                                                                       \
-        uint ## __bit ## _t acc;                                        \
-        int base;                                                       \
-        char c;                                                         \
-        uint ## __bit ##_t cutoff;                                      \
-        int ## __bit ## _t any, cutlim;                                 \
+    uint ## __bit ## _t acc;                                            \
+    int base;                                                           \
+    char c;                                                             \
+    uint ## __bit ##_t cutoff;                                          \
+    int ## __bit ## _t any, cutlim;                                     \
                                                                         \
-        do {                                                            \
-            c = *s++;                                                   \
-        } while (isspace((unsigned char)c));                            \
+    do {                                                                \
+        c = *s++;                                                       \
+    } while (isspace((unsigned char)c));                                \
                                                                         \
-        if (c == '-') {                                                 \
+    if (c != '-' && c != '+' && (c < '0' || c > '9')) {                 \
+        if (entry) {                                                    \
+            LPDRMETALIB metalib = dr_meta_owner_lib(                    \
+                dr_entry_self_meta(entry));                             \
+            LPDRMACRO macro = dr_lib_macro_find(metalib, s - 1);        \
+            if (macro == NULL) return -1;                               \
+            *((uint ## __bit ## _t*)output) = dr_macro_value(macro);    \
+            return 0;                                                   \
+        }                                                               \
+        else {                                                          \
             return -1;                                                  \
         }                                                               \
+    }                                                                   \
                                                                         \
-        if (c == '+') {                                                 \
-            c = *s++;                                                   \
+    if (c == '-') {                                                     \
+        return -1;                                                      \
+    }                                                                   \
+                                                                        \
+    if (c == '+') {                                                     \
+        c = *s++;                                                       \
+    }                                                                   \
+                                                                        \
+    base = 10;                                                          \
+    if (c == '0' && (*s == 'x' || *s == 'X') &&                         \
+        ((s[1] >= '0' && s[1] <= '9') ||                                \
+         (s[1] >= 'A' && s[1] <= 'F') ||                                \
+         (s[1] >= 'a' && s[1] <= 'f')))                                 \
+    {                                                                   \
+        c = s[1];                                                       \
+        s += 2;                                                         \
+        base = 16;                                                      \
+    }                                                                   \
+                                                                        \
+    acc = any = 0;                                                      \
+                                                                        \
+    cutoff = __max;                                                     \
+    cutlim = cutoff % base;                                             \
+    cutoff /= base;                                                     \
+                                                                        \
+    for ( ; ; c = *s++) {                                               \
+        if (c >= '0' && c <= '9')                                       \
+            c -= '0';                                                   \
+        else if (c >= 'A' && c <= 'Z')                                  \
+            c -= 'A' - 10;                                              \
+        else if (c >= 'a' && c <= 'z')                                  \
+            c -= 'a' - 10;                                              \
+        else                                                            \
+            break;                                                      \
+                                                                        \
+        if (c >= base) {                                                \
+            break;                                                      \
         }                                                               \
                                                                         \
-        base = 10;                                                      \
-        if (c == '0' && (*s == 'x' || *s == 'X') &&                     \
-            ((s[1] >= '0' && s[1] <= '9') ||                            \
-             (s[1] >= 'A' && s[1] <= 'F') ||                            \
-             (s[1] >= 'a' && s[1] <= 'f')))                             \
-        {                                                               \
-            c = s[1];                                                   \
-            s += 2;                                                     \
-            base = 16;                                                  \
+        if (any < 0 || acc > cutoff || (acc == cutoff && c > cutlim)) { \
+            any = -1;                                                   \
         }                                                               \
-                                                                        \
-        acc = any = 0;                                                  \
-                                                                        \
-        cutoff = __max;                                                 \
-        cutlim = cutoff % base;                                         \
-        cutoff /= base;                                                 \
-                                                                        \
-        for ( ; ; c = *s++) {                                           \
-            if (c >= '0' && c <= '9')                                   \
-                c -= '0';                                               \
-            else if (c >= 'A' && c <= 'Z')                              \
-                c -= 'A' - 10;                                          \
-            else if (c >= 'a' && c <= 'z')                              \
-                c -= 'a' - 10;                                          \
-            else                                                        \
-                break;                                                  \
-                                                                        \
-            if (c >= base) {                                            \
-                break;                                                  \
-            }                                                           \
-                                                                        \
-            if (any < 0 || acc > cutoff || (acc == cutoff && c > cutlim)) { \
-                any = -1;                                               \
-            }                                                           \
-            else {                                                      \
-                any = 1;                                                \
-                acc *= base;                                            \
-                acc += c;                                               \
-            }                                                           \
+        else {                                                          \
+            any = 1;                                                    \
+            acc *= base;                                                \
+            acc += c;                                                   \
         }                                                               \
+    }                                                                   \
                                                                         \
-        if (any < 0) { /*overflow*/                                     \
-            return -1;                                                  \
-        } else if (!any) { /*no data*/                                  \
-            return -1;                                                  \
-        }                                                               \
+    if (any < 0) { /*overflow*/                                         \
+        return -1;                                                      \
+    } else if (!any) { /*no data*/                                      \
+        return -1;                                                      \
+    }                                                                   \
                                                                         \
-        *((uint ## __bit ## _t*)output) = acc;                          \
+    *((uint ## __bit ## _t*)output) = acc;                              \
                                                                         \
-        return *(s - 1) == 0 ? 0 : -1;                                  \
+    return *(s - 1) == 0 ? 0 : -1;                                      \
 }
 
 #ifndef INT64_MIN
