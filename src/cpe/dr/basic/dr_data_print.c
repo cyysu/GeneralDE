@@ -112,6 +112,18 @@ int dr_ctype_print_to_stream(write_stream_t output, const void * input, int type
     }
 }
 
+const char * dr_ctype_to_string(mem_buffer_t buffer, const void * input, int type) {
+    struct write_stream_buffer stream = CPE_WRITE_STREAM_BUFFER_INITIALIZER(buffer);
+
+    mem_buffer_clear_data(buffer);
+
+    dr_ctype_print_to_stream((write_stream_t)&stream, input, type, NULL);
+
+    stream_putc((write_stream_t)&stream, 0);
+
+    return mem_buffer_make_continuous(buffer, 0);
+}
+
 const char * dr_entry_to_string(mem_buffer_t buffer, const void * input, LPDRMETAENTRY entry) {
     struct write_stream_buffer stream = CPE_WRITE_STREAM_BUFFER_INITIALIZER(buffer);
 
