@@ -49,6 +49,32 @@ void * cpe_sorted_vector_upper_bound(cpe_sorted_vector_t v, void const * key) {
     return cpe_upper_bound(v->m_head, v->m_size, key, v->m_width, v->m_compar);
 }
 
+void * cpe_sorted_vector_find_first(cpe_sorted_vector_t v, void const * key) {
+    void * end = cpe_sorted_vector_end(v);
+    void * r = cpe_sorted_vector_lower_bound(v, key);
+
+    if (r == end || v->m_compar(r, key) != 0) return NULL;
+
+    return r;
+}
+
+void cpe_sorted_vector_erase(cpe_sorted_vector_t v, void * data) {
+    void * end;
+    size_t left;
+
+    end = cpe_sorted_vector_end(v);
+
+    assert(data >= v->m_head && data < end);
+
+    left = ((char*)end) - ((char*)data);
+
+    assert((left % v->m_width) == 0);
+    assert(left >= v->m_width);
+
+    memmove(data, ((char*)data) + v->m_width, left - v->m_width);
+    v->m_size--;
+}
+
 int cpe_sorted_vector_insert_at(cpe_sorted_vector_t v, void * insert_pos, void const * key) {
     void * end;
 
