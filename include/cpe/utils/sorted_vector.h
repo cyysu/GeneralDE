@@ -30,6 +30,10 @@ void * cpe_sorted_vector_end(cpe_sorted_vector_t v);
 void * cpe_sorted_vector_lower_bound(cpe_sorted_vector_t v, void const * key);
 void * cpe_sorted_vector_upper_bound(cpe_sorted_vector_t v, void const * key);
 
+void * cpe_sorted_vector_find_first(cpe_sorted_vector_t v, void const * key);
+
+void cpe_sorted_vector_erase(cpe_sorted_vector_t v, void * data);
+
 int cpe_sorted_vector_insert_at(cpe_sorted_vector_t v, void * insert_pos, void const * key);
 int cpe_sorted_vector_insert_unique(cpe_sorted_vector_t v, void const * key);
 
@@ -37,7 +41,7 @@ int cpe_sorted_vector_insert_unique(cpe_sorted_vector_t v, void const * key);
     cpe_sorted_vector_init(v, (__array), CPE_ARRAY_SIZE(__array), 0, sizeof((__array)[0]), __compar);
 
 #ifdef __cplusplus
-extern "C" {
+}
 #endif
 
 #endif
