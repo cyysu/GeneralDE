@@ -10,13 +10,15 @@
 #include "ui_sprite_anim_sch_i.h"
 #include "ui_sprite_anim_show_animation_i.h"
 #include "ui_sprite_anim_show_template_i.h"
-#include "ui_sprite_anim_show_track_i.h"
 #include "ui_sprite_anim_camera_touch_i.h"
 #include "ui_sprite_anim_camera_move_i.h"
+#include "ui_sprite_anim_camera_follow_i.h"
+#include "ui_sprite_anim_camera_contain_i.h"
 #include "ui_sprite_anim_camera_scale_i.h"
 #include "ui_sprite_anim_camera_shake_i.h"
-#include "ui_sprite_anim_camera_in_area_i.h"
+#include "ui_sprite_anim_camera_trace_in_line_i.h"
 #include "ui_sprite_anim_camera_wait_stop_i.h"
+#include "ui_sprite_anim_lock_on_screen_i.h"
 
 extern char g_metalib_ui_sprite_anim[];
 static void ui_sprite_anim_module_clear(nm_node_t node);
@@ -34,13 +36,15 @@ static struct {
     { "animation-sch", ui_sprite_anim_sch_regist, ui_sprite_anim_sch_unregist }
     , { "show-animation", ui_sprite_anim_show_animation_regist, ui_sprite_anim_show_animation_unregist }
     , { "show-template", ui_sprite_anim_show_template_regist, ui_sprite_anim_show_template_unregist }
-	, { "show-track", ui_sprite_anim_show_track_regist, ui_sprite_anim_show_track_unregist }
     , { "camera-touch", ui_sprite_anim_camera_touch_regist, ui_sprite_anim_camera_touch_unregist }
     , { "camera-move", ui_sprite_anim_camera_move_regist, ui_sprite_anim_camera_move_unregist }
+    , { "camera-follow", ui_sprite_anim_camera_follow_regist, ui_sprite_anim_camera_follow_unregist }
+    , { "camera-contain", ui_sprite_anim_camera_contain_regist, ui_sprite_anim_camera_contain_unregist }
     , { "camera-scale", ui_sprite_anim_camera_scale_regist, ui_sprite_anim_camera_scale_unregist }
     , { "camera-shake", ui_sprite_anim_camera_shake_regist, ui_sprite_anim_camera_shake_unregist }
-	, { "camera-in-area", ui_sprite_anim_camera_in_area_regist, ui_sprite_anim_camera_in_area_unregist }
+	, { "camera-trace-in-line", ui_sprite_anim_camera_trace_in_line_regist, ui_sprite_anim_camera_trace_in_line_unregist }
     , { "camera-wait-stop", ui_sprite_anim_camera_wait_stop_regist, ui_sprite_anim_camera_wait_stop_unregist }
+    , { "lock-on-screen", ui_sprite_anim_lock_on_screen_regist, ui_sprite_anim_lock_on_screen_unregist }
 };
 
 ui_sprite_anim_module_t
@@ -53,6 +57,8 @@ ui_sprite_anim_module_create(
     int8_t component_pos = 0;
 
     assert(app);
+
+    if (name == NULL) name = "ui_sprite_anim_module";
 
     module_node = nm_group_create(gd_app_nm_mgr(app), name, sizeof(struct ui_sprite_anim_module));
     if (module_node == NULL) return NULL;

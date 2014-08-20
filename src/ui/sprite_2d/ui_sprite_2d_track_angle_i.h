@@ -9,7 +9,6 @@ extern "C" {
 struct ui_sprite_2d_track_angle {
 	ui_sprite_2d_module_t m_module;
 
-    uint8_t m_track_pos;
     UI_SPRITE_2D_PAIR m_pre_pos;
 };
 

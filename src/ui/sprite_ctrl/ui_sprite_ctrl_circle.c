@@ -156,32 +156,99 @@ float ui_sprite_ctrl_circle_screen_min(ui_sprite_ctrl_circle_t ctrl) {
     return ctrl->m_screen_min;
 }
 
-void ui_sprite_ctrl_circle_set_screen_min(ui_sprite_ctrl_circle_t ctrl, float _min) {
-    ctrl->m_screen_min = _min;
-}
-
 float ui_sprite_ctrl_circle_screen_max(ui_sprite_ctrl_circle_t ctrl) {
     return ctrl->m_screen_max;
 }
 
-void ui_sprite_ctrl_circle_set_screen_max(ui_sprite_ctrl_circle_t ctrl, float _max) {
+int ui_sprite_ctrl_circle_set_screen_range(ui_sprite_ctrl_circle_t ctrl, float _min, float _max) {
+    ui_sprite_ctrl_module_t module = ctrl->m_module;
+
+    if (_min >= _max || _min < 0.0f) {
+        CPE_ERROR(module->m_em, "ctrl-circle: screen range [%f ~ %f] error!", _min, _max);
+        return -1;
+    }
+
+    ctrl->m_screen_min = _min;
     ctrl->m_screen_max = _max;
+
+    return 0;
 }
 
-float ui_sprite_ctrl_circle_logic_scale(ui_sprite_ctrl_circle_t ctrl) {
-    return ctrl->m_logic_scale;
+float ui_sprite_ctrl_circle_logic_min(ui_sprite_ctrl_circle_t ctrl) {
+    return ctrl->m_logic_min;
 }
 
-void ui_sprite_ctrl_circle_set_logic_scale(ui_sprite_ctrl_circle_t ctrl, float scale) {
-    ctrl->m_logic_scale = scale;
+float ui_sprite_ctrl_circle_logic_max(ui_sprite_ctrl_circle_t ctrl) {
+    return ctrl->m_logic_max;
 }
 
-float ui_sprite_ctrl_circle_max_percent(ui_sprite_ctrl_circle_t ctrl) {
-    return ctrl->m_max_percent;
+int ui_sprite_ctrl_circle_set_logic_range(ui_sprite_ctrl_circle_t ctrl, float _min, float _max) {
+    ui_sprite_ctrl_module_t module = ctrl->m_module;
+
+    if (_min >= _max || _min < 0.0f) {
+        CPE_ERROR(module->m_em, "ctrl-circle: logic range [%f ~ %f] error!", _min, _max);
+        return -1;
+    }
+
+    ctrl->m_logic_min = _min;
+    ctrl->m_logic_max = _max;
+
+    return 0;
 }
 
-void ui_sprite_ctrl_circle_set_max_percent(ui_sprite_ctrl_circle_t ctrl, float max_percent) {
-    ctrl->m_max_percent = max_percent;
+float ui_sprite_ctrl_circle_angle_min(ui_sprite_ctrl_circle_t ctrl) {
+    return ctrl->m_angle_min;
+}
+
+float ui_sprite_ctrl_circle_angle_max(ui_sprite_ctrl_circle_t ctrl) {
+    return ctrl->m_angle_max;
+}
+
+int ui_sprite_ctrl_circle_set_angle_range(ui_sprite_ctrl_circle_t ctrl, float _min, float _max) {
+    ui_sprite_ctrl_module_t module = ctrl->m_module;
+
+    if (_min >= _max || _min < -180.0f || _max > 180.0f) {
+        CPE_ERROR(module->m_em, "ctrl-circle: logic range [%f ~ %f] error!", _min, _max);
+        return -1;
+    }
+
+    ctrl->m_angle_min = _min;
+    ctrl->m_angle_max = _max;
+
+    return 0;
+}
+
+float ui_sprite_ctrl_circle_logic_base(ui_sprite_ctrl_circle_t ctrl) {
+    return ctrl->m_logic_base;
+}
+
+void ui_sprite_ctrl_circle_set_logic_base(ui_sprite_ctrl_circle_t ctrl, float base_value) {
+    ctrl->m_logic_base = base_value;
+}
+
+float ui_sprite_ctrl_circle_cancel_distance(ui_sprite_ctrl_circle_t ctrl) {
+    return ctrl->m_cancel_distance;
+}
+
+void ui_sprite_ctrl_circle_set_cancel_distance(ui_sprite_ctrl_circle_t ctrl, float cancel_distance) {
+    ctrl->m_cancel_distance = cancel_distance;
+}
+
+static void ui_sprite_ctrl_circle_on_begin_event(void * ctx, ui_sprite_event_t evt) {
+    ui_sprite_ctrl_circle_t ctrl = ctx;
+
+    if (ctrl->m_is_working) return;
+
+    ctrl->m_is_working = 1;
+    ctrl->m_last_send_time = 0.0f;
+    ctrl->m_max_distance = 0.0f;
+
+    if (ctrl->m_on_begin) {
+        ui_sprite_fsm_action_build_and_send_event(
+            ui_sprite_fsm_action_from_data(ctrl), ctrl->m_on_begin, NULL);
+    }
+
+    ui_sprite_ctrl_circle_sync_update(ctrl);
 }
 
 static void ui_sprite_ctrl_circle_on_move_event(void * ctx, ui_sprite_event_t evt) {
@@ -190,40 +257,56 @@ static void ui_sprite_ctrl_circle_on_move_event(void * ctx, ui_sprite_event_t ev
     ui_sprite_entity_t entity = ui_sprite_fsm_action_to_entity(ui_sprite_fsm_action_from_data(ctx));
     ui_sprite_2d_transform_t trans = ui_sprite_2d_transform_find(entity);
     struct dr_data_source data_source[1];
-    float real_distance = 0.0f;
+    float distance = 0.0f;
     UI_SPRITE_EVT_CTRL_CIRCLE_MOVE const * evt_data = evt->data;
 
+    if (!ctrl->m_is_working) return;
+
     assert(ctrl->m_screen_max > 0.0f);
-
-    real_distance = cpe_math_distance(evt_data->center_pos.x, evt_data->center_pos.y, evt_data->cur_pos.x, evt_data->cur_pos.y);
-
-    ctrl->m_state.center_pos = evt_data->center_pos;
-    ctrl->m_state.cur_pos = evt_data->cur_pos;
-
-    ctrl->m_state.percent = real_distance / ctrl->m_screen_max;
-    if (ctrl->m_max_percent > 0.0f && ctrl->m_state.percent > ctrl->m_max_percent) {
-        ctrl->m_state.percent = ctrl->m_max_percent;
-    }
-
-    /*计算distance */
-    if (ctrl->m_screen_min > 0.0f && real_distance < ctrl->m_screen_min) {
-        ctrl->m_state.distance = 0.0f;
-    }
-    else {
-        ctrl->m_state.distance = ctrl->m_screen_max * ctrl->m_state.percent * ctrl->m_logic_scale;
-    }
-
-    if (ctrl->m_state.distance > 0) {
-        ctrl->m_state.angle = 
-            ctrl->m_negative
-            ? cpe_math_angle(evt_data->cur_pos.x, evt_data->cur_pos.y, evt_data->center_pos.x, evt_data->center_pos.y)
-            : cpe_math_angle(evt_data->center_pos.x, evt_data->center_pos.y, evt_data->cur_pos.x, evt_data->cur_pos.y);
-    }
 
     data_source[0].m_data.m_meta = module->m_meta_circle_state;
     data_source[0].m_data.m_data = &ctrl->m_state;
     data_source[0].m_data.m_size = sizeof(ctrl->m_state);
     data_source[0].m_next = NULL;
+
+    distance = cpe_math_distance(evt_data->center_pos.x, evt_data->center_pos.y, evt_data->cur_pos.x, evt_data->cur_pos.y);
+    if (distance > ctrl->m_max_distance) {
+        ctrl->m_max_distance = distance;
+    }
+    else if (ctrl->m_cancel_distance > 0 && ((ctrl->m_max_distance - distance) > ctrl->m_cancel_distance)) {
+        if (ctrl->m_on_cancel) {
+            ui_sprite_fsm_action_build_and_send_event(
+                ui_sprite_fsm_action_from_data(ctrl), ctrl->m_on_cancel, data_source);
+        }
+
+        ctrl->m_is_working = 0;
+        ui_sprite_ctrl_circle_sync_update(ctrl);
+        return;
+    }
+
+    ctrl->m_state.center_pos = evt_data->center_pos;
+    ctrl->m_state.cur_pos = evt_data->cur_pos;
+
+    if (distance < ctrl->m_screen_min) {
+        ctrl->m_state.percent = 0.0f;
+    }
+    else {
+        if (distance > ctrl->m_screen_max) distance = ctrl->m_screen_max;
+        ctrl->m_state.percent = (distance - ctrl->m_screen_min) / (ctrl->m_screen_max - ctrl->m_screen_min);
+    }
+
+    ctrl->m_state.logic_percent = ctrl->m_logic_min + (ctrl->m_logic_max - ctrl->m_logic_min) * ctrl->m_state.percent;
+    ctrl->m_state.logic_value = ctrl->m_logic_base * ctrl->m_state.logic_percent;
+
+    if (ctrl->m_state.percent > 0) {
+        ctrl->m_state.angle = 
+            ctrl->m_negative
+            ? cpe_math_angle(evt_data->cur_pos.x, evt_data->cur_pos.y, evt_data->center_pos.x, evt_data->center_pos.y)
+            : cpe_math_angle(evt_data->center_pos.x, evt_data->center_pos.y, evt_data->cur_pos.x, evt_data->cur_pos.y);
+
+        if (ctrl->m_state.angle < ctrl->m_angle_min) ctrl->m_state.angle = ctrl->m_angle_min;
+        if (ctrl->m_state.angle > ctrl->m_angle_max) ctrl->m_state.angle = ctrl->m_angle_max;
+    }
 
     if (ctrl->m_do_rotate) {
         if (trans == NULL) {
@@ -237,29 +320,13 @@ static void ui_sprite_ctrl_circle_on_move_event(void * ctx, ui_sprite_event_t ev
     }
 
     if (ctrl->m_do_scale) {
-        if (ctrl->m_screen_max <= 0.0f) {
-            CPE_ERROR(
-                module->m_em, "entity %d(%s): ctrl-circle: do scale: no max screen scale!",
-                ui_sprite_entity_id(entity), ui_sprite_entity_name(entity));
-        }
-        else if (trans == NULL) { 
+        if (trans == NULL) { 
             CPE_ERROR(
                 module->m_em, "entity %d(%s): ctrl-circle: do scale: no trans!",
                 ui_sprite_entity_id(entity), ui_sprite_entity_name(entity));
         }
         else {
-            UI_SPRITE_2D_PAIR scale;
-            scale.y = scale.x = ctrl->m_state.percent;
-            ui_sprite_2d_transform_set_scale(trans, scale);
-        }
-    }
-
-    if (!ctrl->m_is_working) {
-        ctrl->m_is_working = 1;
-
-        if (ctrl->m_on_begin) {
-            ui_sprite_fsm_action_build_and_send_event(
-                ui_sprite_fsm_action_from_data(ctrl), ctrl->m_on_begin, data_source);
+            ui_sprite_2d_transform_set_scale(trans, ctrl->m_state.logic_percent);
         }
     }
 
@@ -278,13 +345,14 @@ static void ui_sprite_ctrl_circle_on_complete_event(void * ctx, ui_sprite_event_
     ui_sprite_ctrl_module_t module = ctrl->m_module;
     struct dr_data_source data_source[1];
 
+    if (!ctrl->m_is_working) return;
 
     data_source[0].m_data.m_meta = module->m_meta_circle_state;
     data_source[0].m_data.m_data = &ctrl->m_state;
     data_source[0].m_data.m_size = sizeof(ctrl->m_state);
     data_source[0].m_next = NULL;
 
-    if (ctrl->m_state.distance < ctrl->m_screen_min * ctrl->m_logic_scale) {
+    if (ctrl->m_state.percent <= 0.0f) {
         if (ctrl->m_on_cancel) {
             ui_sprite_fsm_action_build_and_send_event(
                 ui_sprite_fsm_action_from_data(ctrl), ctrl->m_on_cancel, data_source);
@@ -297,7 +365,6 @@ static void ui_sprite_ctrl_circle_on_complete_event(void * ctx, ui_sprite_event_
         }
     }
 
-    ctrl->m_last_send_time = 0.0f;
     ctrl->m_is_working = 0;
     ui_sprite_ctrl_circle_sync_update(ctrl);
 }
@@ -306,17 +373,18 @@ static int ui_sprite_ctrl_circle_enter(ui_sprite_fsm_action_t fsm_action, void *
     ui_sprite_ctrl_circle_t ctrl = ui_sprite_fsm_action_data(fsm_action);
     ui_sprite_ctrl_module_t module = ctx;
 
-    if (ui_sprite_fsm_action_add_event_handler(
-            fsm_action, ui_sprite_event_scope_self, 
-            "ui_sprite_evt_ctrl_circle_move", ui_sprite_ctrl_circle_on_move_event, ctrl) != 0)
-    {
-        CPE_ERROR(module->m_em, "camera ctrl enter: add eventer handler fail!");
-        return -1;
-    }
+    ctrl->m_max_distance = 0.0f;
 
     if (ui_sprite_fsm_action_add_event_handler(
+            fsm_action, ui_sprite_event_scope_self, 
+            "ui_sprite_evt_ctrl_circle_begin", ui_sprite_ctrl_circle_on_begin_event, ctrl) != 0
+        || ui_sprite_fsm_action_add_event_handler(
+            fsm_action, ui_sprite_event_scope_self, 
+            "ui_sprite_evt_ctrl_circle_move", ui_sprite_ctrl_circle_on_move_event, ctrl) != 0
+        || ui_sprite_fsm_action_add_event_handler(
             fsm_action, ui_sprite_event_scope_self,
-            "ui_sprite_evt_ctrl_circle_complete", ui_sprite_ctrl_circle_on_complete_event, ctrl) != 0)
+            "ui_sprite_evt_ctrl_circle_complete", ui_sprite_ctrl_circle_on_complete_event, ctrl) != 0
+        )
     {
         CPE_ERROR(module->m_em, "camera ctrl enter: add eventer handler fail!");
         return -1;
@@ -362,8 +430,10 @@ static int ui_sprite_ctrl_circle_init(ui_sprite_fsm_action_t fsm_action, void * 
     bzero(ctrl, sizeof(*ctrl));
 
     ctrl->m_module = ctx;
-    ctrl->m_logic_scale = 1.0f;
+    ctrl->m_logic_base = 1.0f;
     ctrl->m_negative = 1;
+    ctrl->m_angle_min = -180.0f;
+    ctrl->m_angle_max = 180.0f;
 
     return 0;
 }
@@ -385,11 +455,21 @@ static int ui_sprite_ctrl_circle_copy(ui_sprite_fsm_action_t to, ui_sprite_fsm_a
 
     if (ui_sprite_ctrl_circle_init(to, ctx)) return -1;
 
+    to_ctrl->m_do_rotate = from_ctrl->m_do_rotate;
+    to_ctrl->m_do_scale = from_ctrl->m_do_scale;
+    to_ctrl->m_negative = from_ctrl->m_negative;
     to_ctrl->m_keep_send_span = from_ctrl->m_keep_send_span;
     to_ctrl->m_on_begin = from_ctrl->m_on_begin ? cpe_str_mem_dup(module->m_alloc, from_ctrl->m_on_begin) : NULL;
     to_ctrl->m_on_move = from_ctrl->m_on_move ? cpe_str_mem_dup(module->m_alloc, from_ctrl->m_on_move) : NULL;
     to_ctrl->m_on_done = from_ctrl->m_on_done ? cpe_str_mem_dup(module->m_alloc, from_ctrl->m_on_done) : NULL;
     to_ctrl->m_on_cancel = from_ctrl->m_on_cancel ? cpe_str_mem_dup(module->m_alloc, from_ctrl->m_on_cancel) : NULL;
+    to_ctrl->m_screen_min = from_ctrl->m_screen_min;
+    to_ctrl->m_screen_max = from_ctrl->m_screen_max;
+    to_ctrl->m_logic_min = from_ctrl->m_logic_min;
+    to_ctrl->m_logic_max = from_ctrl->m_logic_max;
+    to_ctrl->m_angle_min = from_ctrl->m_angle_min;
+    to_ctrl->m_angle_max = from_ctrl->m_angle_max;
+    to_ctrl->m_logic_base = from_ctrl->m_logic_base;
 
     return 0;
 }

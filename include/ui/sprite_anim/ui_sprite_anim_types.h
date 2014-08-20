@@ -10,14 +10,12 @@ extern "C" {
 #endif
 
 #define UI_SPRITE_INVALID_ANIM_ID ((uint32_t)0)
-#define UI_SPRITE_INVALID_CAMERA_OP_ID ((uint32_t)0)
 
 typedef struct ui_sprite_anim_module * ui_sprite_anim_module_t;
 typedef struct ui_sprite_anim_backend * ui_sprite_anim_backend_t;
 
 /*camera*/
 typedef struct ui_sprite_anim_camera * ui_sprite_anim_camera_t;
-typedef struct ui_sprite_anim_camera_restrict * ui_sprite_anim_camera_restrict_t;
 
 /*animation*/
 typedef struct ui_sprite_anim_sch * ui_sprite_anim_sch_t;
@@ -34,10 +32,15 @@ typedef struct ui_sprite_anim_show_track * ui_sprite_anim_show_track_t;
 
 typedef struct ui_sprite_anim_camera_touch * ui_sprite_anim_camera_touch_t;
 typedef struct ui_sprite_anim_camera_move * ui_sprite_anim_camera_move_t;
+typedef struct ui_sprite_anim_camera_follow * ui_sprite_anim_camera_follow_t;
+typedef struct ui_sprite_anim_camera_contain * ui_sprite_anim_camera_contain_t;
 typedef struct ui_sprite_anim_camera_scale * ui_sprite_anim_camera_scale_t;
-typedef struct ui_sprite_anim_camera_in_area * ui_sprite_anim_camera_in_area_t;
 typedef struct ui_sprite_anim_camera_shake * ui_sprite_anim_camera_shake_t;
 typedef struct ui_sprite_anim_camera_wait_stop * ui_sprite_anim_camera_wait_stop_t;
+
+typedef struct ui_sprite_anim_camera_trace_in_line * ui_sprite_anim_camera_trace_in_line_t;
+
+typedef struct ui_sprite_anim_lock_on_screen * ui_sprite_anim_lock_on_screen_t;
 
 #ifdef __cplusplus
 }

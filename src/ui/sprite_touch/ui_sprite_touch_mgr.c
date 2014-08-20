@@ -15,6 +15,7 @@
 #include "ui_sprite_touch_touchable_i.h"
 #include "ui_sprite_touch_move_i.h"
 #include "ui_sprite_touch_click_i.h"
+#include "ui_sprite_touch_scale_i.h"
 #include "ui_sprite_touch_trace_i.h"
 
 extern char g_metalib_ui_sprite_touch[];
@@ -33,6 +34,7 @@ static struct {
     { "Touchable", ui_sprite_touch_touchable_regist, ui_sprite_touch_touchable_unregist }
     , { "touch-move", ui_sprite_touch_move_regist, ui_sprite_touch_move_unregist }
     , { "touch-click", ui_sprite_touch_click_regist, ui_sprite_touch_click_unregist }
+    , { "touch-scale", ui_sprite_touch_scale_regist, ui_sprite_touch_scale_unregist }
 };
 
 #define UI_SPRITE_TOUCH_MGR_LOAD_META(__arg, __name) \
@@ -65,7 +67,7 @@ ui_sprite_touch_mgr_create(
     module->m_dft_threshold = 3;
 
     UI_SPRITE_TOUCH_MGR_LOAD_META(m_meta_move_state, "ui_sprite_touch_move_state");
-    //UI_SPRITE_TOUCH_MGR_LOAD_META(m_meta_scale_state, "ui_sprite_touch_scale_state");
+    UI_SPRITE_TOUCH_MGR_LOAD_META(m_meta_scale_state, "ui_sprite_touch_scale_state");
 
     TAILQ_INIT(&module->m_touch_traces);
     TAILQ_INIT(&module->m_active_responsers);
@@ -203,12 +205,10 @@ static void ui_sprite_touch_process_trace_begin(ui_sprite_touch_mgr_t mgr, ui_sp
         UI_SPRITE_2D_PAIR world_pt = ui_sprite_touch_logic_to_world(responser->m_touchable, screen_pt);
 
         if (ui_sprite_touch_touchable_is_point_in(responser->m_touchable, world_pt)) {
-            uint8_t binding_pos;
             ui_sprite_touch_responser_binding_t binding;
 
-            binding_pos = ui_sprite_touch_responser_bind_tracer(responser, trace);
-
-            binding = &responser->m_bindings[binding_pos];
+            binding = ui_sprite_touch_responser_bind_tracer(responser, trace);
+            if (binding == NULL) continue;
 
             binding->m_start_screen_pt = screen_pt;
             binding->m_start_world_pt = world_pt;
@@ -217,7 +217,7 @@ static void ui_sprite_touch_process_trace_begin(ui_sprite_touch_mgr_t mgr, ui_sp
             binding->m_cur_screen_pt = screen_pt;
             binding->m_cur_world_pt = world_pt;
 
-            ui_sprite_touch_responser_on_begin(responser, binding_pos);
+            ui_sprite_touch_responser_on_begin(responser);
 
             if (responser->m_is_start && responser->m_is_grab) {
                 ui_sprite_touch_mgr_cancel_other_active(mgr, responser);
@@ -229,15 +229,9 @@ static void ui_sprite_touch_process_trace_begin(ui_sprite_touch_mgr_t mgr, ui_sp
     }
 }
 
-static void ui_sprite_touch_process_trace_update_one(
-    ui_sprite_touch_responser_t  responser, int8_t binding_pos, UI_SPRITE_2D_PAIR screen_pt)
-{
-    ui_sprite_touch_responser_binding_t binding;
+static void ui_sprite_touch_process_trace_update_one(ui_sprite_touch_responser_binding_t binding, UI_SPRITE_2D_PAIR screen_pt) {
+    ui_sprite_touch_responser_t  responser = binding->m_responser;
     UI_SPRITE_2D_PAIR world_pt = ui_sprite_touch_logic_to_world(responser->m_touchable, screen_pt);
-
-    assert(binding_pos >= 0 && binding_pos < responser->m_binding_count);
-
-    binding = &responser->m_bindings[binding_pos];
 
     binding->m_pre_screen_pt = binding->m_cur_screen_pt;
     binding->m_pre_world_pt = binding->m_cur_world_pt;
@@ -245,42 +239,41 @@ static void ui_sprite_touch_process_trace_update_one(
     binding->m_cur_world_pt = world_pt;
         
     if (responser->m_is_capture || ui_sprite_touch_touchable_is_point_in(responser->m_touchable, world_pt)) {
-        ui_sprite_touch_responser_on_move(responser, binding_pos);
+        ui_sprite_touch_responser_on_move(responser);
     }
     else {
-        ui_sprite_touch_responser_on_end(responser, binding_pos);
-        ui_sprite_touch_responser_unbind_tracer(responser, binding->m_trace);
+        ui_sprite_touch_responser_unbind_tracer(binding);
+        ui_sprite_touch_responser_on_end(responser);
     }
 }
 
 static void ui_sprite_touch_process_trace_update(ui_sprite_touch_mgr_t mgr, ui_sprite_touch_trace_t trace, UI_SPRITE_2D_PAIR screen_pt) {
     ui_sprite_touch_responser_t  responser;
-    
+    ui_sprite_touch_responser_binding_t binding;
+
     if ((responser = ui_sprite_touch_mgr_find_grab_active_responser(mgr))) {
-        int8_t binding_pos = ui_sprite_touch_responser_binding_find(responser, trace);
-        if (binding_pos < 0) return;
-        ui_sprite_touch_process_trace_update_one(responser, binding_pos, screen_pt);
+        binding = ui_sprite_touch_responser_binding_find(responser, trace);
+        if (binding == NULL) return;
+        ui_sprite_touch_process_trace_update_one(binding, screen_pt);
         return;
     }
 
-    for(responser = TAILQ_FIRST(&trace->m_active_responsers);
-        responser != TAILQ_END(&trace->m_active_responsers);
+    for(binding = TAILQ_FIRST(&trace->m_bindings);
+        binding != TAILQ_END(&trace->m_bindings);
         )
     {
-        ui_sprite_touch_responser_t next;
-        int8_t binding_pos = ui_sprite_touch_responser_binding_find(responser, trace);
-        assert(binding_pos >= 0);
+        ui_sprite_touch_responser_binding_t next;
+        next = TAILQ_NEXT(binding, m_next_for_trace);
 
-        next = TAILQ_NEXT(responser, m_bindings[binding_pos].m_next);
-
-        ui_sprite_touch_process_trace_update_one(responser, binding_pos, screen_pt);
+        responser = binding->m_responser;
+        ui_sprite_touch_process_trace_update_one(binding, screen_pt);
 
         if (responser->m_is_start && responser->m_is_grab) {
-            ui_sprite_touch_mgr_cancel_other_active(mgr, responser);
+            ui_sprite_touch_mgr_cancel_other_active(mgr, binding->m_responser);
             return;
         }
         else {
-            responser = next;
+            binding = next;
         }
     }
 }
@@ -290,13 +283,15 @@ tl_time_t ui_sprite_touch_mgr_cur_time(ui_sprite_touch_mgr_t mgr) {
 }
 
 static void ui_sprite_touch_process_trace_end(ui_sprite_touch_trace_t trace) {
-    while(!TAILQ_EMPTY(&trace->m_active_responsers)) {
-        ui_sprite_touch_responser_t responser = TAILQ_FIRST(&trace->m_active_responsers);
-        int8_t binding_pos = ui_sprite_touch_responser_binding_find(responser, trace);
-        assert(binding_pos >= 0 && binding_pos < responser->m_binding_count);
+    while(!TAILQ_EMPTY(&trace->m_bindings)) {
+        ui_sprite_touch_responser_binding_t binding = TAILQ_FIRST(&trace->m_bindings);
+        ui_sprite_touch_responser_t responser;
+        assert(binding);
 
-        ui_sprite_touch_responser_on_end(responser, binding_pos);
-        ui_sprite_touch_responser_unbind_tracer(responser, trace);
+        responser = binding->m_responser;
+
+        ui_sprite_touch_responser_unbind_tracer(binding);
+        ui_sprite_touch_responser_on_end(responser);
     }
 }
 

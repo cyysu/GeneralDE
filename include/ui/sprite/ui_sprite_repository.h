@@ -3,6 +3,7 @@
 #include "cpe/utils/memory.h"
 #include "cpe/utils/error.h"
 #include "cpe/utils/hash_string.h"
+#include "cpe/xcalc/xcalc_types.h"
 #include "gd/app/app_types.h"
 #include "ui_sprite_types.h"
 
@@ -19,6 +20,8 @@ ui_sprite_repository_t ui_sprite_repository_find_nc(gd_app_context_t app, const 
 
 gd_app_context_t ui_sprite_repository_app(ui_sprite_repository_t repo);
 const char * ui_sprite_repository_name(ui_sprite_repository_t repo);
+
+xcomputer_t ui_sprite_repository_computer(ui_sprite_repository_t repo);
 
 int ui_sprite_repository_register_event(ui_sprite_repository_t repo, LPDRMETA meta);
 void ui_sprite_repository_unregister_event(ui_sprite_repository_t repo, const char * name);

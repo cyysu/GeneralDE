@@ -21,7 +21,20 @@ ui_sprite_fsm_state_t ui_sprite_fsm_current_state(ui_sprite_fsm_ins_t fsm);
 int ui_sprite_fsm_is_in_state(ui_sprite_fsm_ins_t fsm, const char * state_path);
 const char * ui_sprite_fsm_dump_path(ui_sprite_fsm_ins_t fsm, mem_buffer_t buffer);
 
+int ui_sprite_fsm_ins_copy(ui_sprite_fsm_ins_t to_fsm, ui_sprite_fsm_ins_t from_fsm);
+void ui_sprite_fsm_ins_states(ui_sprite_fsm_state_it_t it, ui_sprite_fsm_ins_t fsm);
+
+void ui_sprite_fsm_ins_visit_actions(
+    ui_sprite_fsm_ins_t fsm,
+    void (*visitor)(void * ctx, ui_sprite_fsm_action_t action), void * ctx);
+
 /*state operations*/
+struct ui_sprite_fsm_state_it {
+    ui_sprite_fsm_state_t (*next)(struct ui_sprite_fsm_state_it * it);
+    char m_data[64];
+};
+#define ui_sprite_fsm_state_it_next(it) ((it)->next ? (it)->next(it) : NULL)
+
 ui_sprite_fsm_state_t ui_sprite_fsm_state_create(ui_sprite_fsm_ins_t fsm, const char * name);
 ui_sprite_fsm_state_t ui_sprite_fsm_state_clone(ui_sprite_fsm_ins_t fsm, ui_sprite_fsm_state_t from);
 void ui_sprite_fsm_state_free(ui_sprite_fsm_state_t fsm_state);
@@ -32,15 +45,27 @@ ui_sprite_fsm_state_t ui_sprite_fsm_state_find_by_id(ui_sprite_fsm_ins_t fsm, ui
 ui_sprite_fsm_ins_t ui_sprite_fsm_state_fsm(ui_sprite_fsm_state_t fsm_state);
 uint16_t ui_sprite_fsm_state_id(ui_sprite_fsm_state_t fsm_state);
 const char * ui_sprite_fsm_state_name(ui_sprite_fsm_state_t fsm_state);
+ui_sprite_event_t ui_sprite_fsm_state_enter_event(ui_sprite_fsm_state_t fsm_state);
+void ui_sprite_fsm_state_actions(ui_sprite_fsm_state_it_t it, ui_sprite_fsm_ins_t fsm);
+ui_sprite_fsm_state_t ui_sprite_fsm_state_return_to(ui_sprite_fsm_state_t fsm_state);
 
 /*action operations*/
+struct ui_sprite_fsm_action_it {
+    ui_sprite_fsm_action_t (*next)(struct ui_sprite_fsm_action_it * it);
+    char m_data[64];
+};
+#define ui_sprite_fsm_action_it_next(it) ((it)->next ? (it)->next(it) : NULL)
+
 ui_sprite_fsm_action_t ui_sprite_fsm_action_create(ui_sprite_fsm_state_t fsm_state, const char * name, const char * type_name);
 ui_sprite_fsm_action_t ui_sprite_fsm_action_clone(ui_sprite_fsm_state_t fsm_state, ui_sprite_fsm_action_t from);
 void ui_sprite_fsm_action_free(ui_sprite_fsm_action_t fsm_action);
 
+ui_sprite_fsm_action_t ui_sprite_fsm_action_find_by_name(ui_sprite_fsm_state_t fsm_state, const char * name);
+
 ui_sprite_component_t ui_sprite_fsm_action_to_component(ui_sprite_fsm_action_t fsm_action);
 ui_sprite_entity_t ui_sprite_fsm_action_to_entity(ui_sprite_fsm_action_t fsm_action);
 ui_sprite_world_t ui_sprite_fsm_action_to_world(ui_sprite_fsm_action_t fsm_action);
+ui_sprite_fsm_action_meta_t ui_sprite_fsm_action_meta(ui_sprite_fsm_action_t fsm_action);
 
 ui_sprite_fsm_action_t ui_sprite_fsm_action_find(ui_sprite_fsm_state_t fsm_state, const char * name);
 
@@ -51,6 +76,9 @@ ui_sprite_fsm_action_state_t ui_sprite_fsm_action_runing_state(ui_sprite_fsm_act
 ui_sprite_fsm_state_t ui_sprite_fsm_action_state(ui_sprite_fsm_action_t fsm_action);
 const char * ui_sprite_fsm_action_name(ui_sprite_fsm_action_t fsm_action);
 const char * ui_sprite_fsm_action_type_name(ui_sprite_fsm_action_t fsm_action);
+
+uint8_t ui_sprite_fsm_action_apply_enter_evt(ui_sprite_fsm_action_t fsm_action);
+void ui_sprite_fsm_action_set_apply_enter_evt(ui_sprite_fsm_action_t fsm_action, uint8_t apply_enter_evt);
 
 const char * ui_sprite_fsm_action_work(ui_sprite_fsm_action_t fsm_action);
 int ui_sprite_fsm_action_set_work(ui_sprite_fsm_action_t fsm_action, const char * work);
@@ -93,11 +121,37 @@ ui_sprite_fsm_action_life_circle_t ui_sprite_fsm_action_life_circle(ui_sprite_fs
 int ui_sprite_fsm_action_set_life_circle(ui_sprite_fsm_action_t fsm_action, ui_sprite_fsm_action_life_circle_t  life_circle);
 
 float ui_sprite_fsm_action_duration(ui_sprite_fsm_action_t fsm_action);
+float ui_sprite_fsm_action_runing_time(ui_sprite_fsm_action_t fsm_action);
 int ui_sprite_fsm_action_set_duration(ui_sprite_fsm_action_t fsm_action, float duration);
+int ui_sprite_fsm_action_set_condition(ui_sprite_fsm_action_t fsm_action, const char * condition);
 
 void * ui_sprite_fsm_action_data(ui_sprite_fsm_action_t fsm_action);
 size_t ui_sprite_fsm_action_data_size(ui_sprite_fsm_action_t fsm_action);
 ui_sprite_fsm_action_t ui_sprite_fsm_action_from_data(void * data);
+
+struct ui_sprite_fsm_action_addition_source_ctx {
+    UI_SPRITE_FSM_STATE_ENTER_EVENT m_enter_event;
+    dr_data_source_t * m_last_source;
+    struct dr_data_source m_append_sources[64];
+};
+
+void ui_sprite_fsm_action_append_addition_source(
+    ui_sprite_fsm_action_t fsm_action, 
+    dr_data_source_t * data_source,
+    struct ui_sprite_fsm_action_addition_source_ctx * ctx);
+
+/*convertor*/
+ui_sprite_fsm_convertor_t
+ui_sprite_fsm_convertor_create(
+    ui_sprite_fsm_action_t action,
+    const char * event, const char * condition, const char * convert_to);
+
+ui_sprite_fsm_convertor_t
+ui_sprite_fsm_convertor_clone(
+    ui_sprite_fsm_action_t action, ui_sprite_fsm_convertor_t from);
+
+void ui_sprite_fsm_convertor_free(ui_sprite_fsm_convertor_t convertor);
+
 
 /*transaction*/
 ui_sprite_fsm_transition_t

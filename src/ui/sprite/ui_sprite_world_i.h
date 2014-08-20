@@ -5,11 +5,26 @@
 #include "ui/sprite/ui_sprite_world.h"
 #include "ui_sprite_repository_i.h"
 #include "ui_sprite_event_i.h"
-#include "ui_sprite_updator_i.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+typedef struct ui_sprite_world_updator * ui_sprite_world_updator_t;
+
+typedef TAILQ_HEAD(ui_sprite_update_node_list, ui_sprite_update_node) ui_sprite_update_node_list_t;
+typedef struct ui_sprite_update_node * ui_sprite_update_node_t;
+
+struct ui_sprite_update_node {
+    ui_sprite_component_list_t m_components;
+    TAILQ_ENTRY(ui_sprite_update_node) m_next;
+};
+
+struct ui_sprite_world_updator {
+    int8_t m_update_priority;
+    ui_sprite_world_update_fun_t m_fun;
+    void * m_ctx;
+};
 
 struct ui_sprite_world {
     ui_sprite_repository_t m_repo;
@@ -30,10 +45,17 @@ struct ui_sprite_world {
     struct cpe_sorted_vector m_evt_processed_entities;
     tl_manage_t m_tl_mgr;
     cpe_timer_mgr_t m_timer_mgr;
-    ui_sprite_world_updator_list_t m_updators;
-    ui_sprite_component_list_t m_updating_components;
+    uint8_t m_updator_count;
+    struct ui_sprite_world_updator m_updators[64];
+    ui_sprite_update_node_list_t m_updating_components;
+    struct ui_sprite_update_node m_updating_nodes[256];
     tl_time_t m_last_update_time;
 };
+
+void ui_sprite_component_enqueue(ui_sprite_world_t world, ui_sprite_component_t component, int8_t priority);
+void ui_sprite_component_dequeue(ui_sprite_world_t world, ui_sprite_component_t component, int8_t priority);
+
+void ui_sprite_world_update_components(ui_sprite_world_t world, void * ctx, float delta_s);
 
 #ifdef __cplusplus
 }

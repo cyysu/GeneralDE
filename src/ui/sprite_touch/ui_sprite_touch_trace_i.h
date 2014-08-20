@@ -7,18 +7,10 @@
 extern "C" {
 #endif
 
-/*trace operations*/
-enum ui_sprite_touch_trace_state {
-    ui_sprite_touch_trace_new
-    , ui_sprite_touch_trace_moving
-    , ui_sprite_touch_trace_end
-};
-
 struct ui_sprite_touch_trace {
     int32_t m_id;
-    enum ui_sprite_touch_trace_state m_state;
     TAILQ_ENTRY(ui_sprite_touch_trace) m_next_for_mgr;
-    ui_sprite_touch_responser_list_t m_active_responsers;
+    ui_sprite_touch_responser_binding_list_t m_bindings;
 };
 
 ui_sprite_touch_trace_t

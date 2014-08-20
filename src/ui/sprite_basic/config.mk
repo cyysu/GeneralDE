@@ -1,6 +1,6 @@
 product:=ui_sprite_basic
 $(product).type:=cpe-dr lib
-$(product).depends:=ui_sprite ui_sprite_fsm
+$(product).depends:=cpe_xcalc ui_sprite ui_sprite_fsm
 $(product).c.libraries:=
 $(product).c.sources:=$(wildcard $(product-base)/*.c)
 $(product).product.c.output-includes:=inc

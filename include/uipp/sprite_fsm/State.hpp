@@ -17,6 +17,9 @@ public:
     uint16_t id(void) const { return ui_sprite_fsm_state_id(*this); }
     const char * name(void) const { return ui_sprite_fsm_state_name(*this); }
 
+    State * returnTo(void) { return (State *) ui_sprite_fsm_state_return_to(*this); }
+    State const * returnTo(void) const { return (State const *) ui_sprite_fsm_state_return_to(*this); }
+
     Action & createAction(const char * name, const char * type_name);
 
     template<typename T>

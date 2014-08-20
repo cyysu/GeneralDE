@@ -27,6 +27,23 @@ void ui_sprite_anim_sch_free(ui_sprite_anim_sch_t anim_sch) {
     }
 }
 
+float ui_sprite_anim_sch_render_priority(ui_sprite_anim_sch_t anim_sch) {
+    return anim_sch->m_render_priority;
+}
+
+void ui_sprite_anim_sch_set_render_priority(ui_sprite_anim_sch_t anim_sch, float render_priority) {
+    if (anim_sch->m_render_priority == render_priority) return;
+
+    anim_sch->m_render_priority = render_priority;
+
+    if (ui_sprite_component_is_active(ui_sprite_component_from_data(anim_sch))) {
+        ui_sprite_anim_group_t group;
+        TAILQ_FOREACH(group, &anim_sch->m_groups, m_next_for_sch) {
+            ui_sprite_anim_group_set_render_priority(group);            
+        }
+    }
+}
+
 uint32_t ui_sprite_anim_sch_start_anim(
     ui_sprite_anim_sch_t anim_sch, const char * group_name,
     const char * res, uint8_t is_loop, int32_t start, int32_t end)
@@ -94,11 +111,8 @@ static void ui_sprite_anim_sch_on_transform_update(void * ctx) {
     }
 }
 
-static int ui_sprite_anim_sch_init(ui_sprite_component_t component, void * ctx) {
-    ui_sprite_anim_module_t module = ctx;
-    ui_sprite_entity_t entity = ui_sprite_component_entity(component);
+static int ui_sprite_anim_sch_do_init(ui_sprite_anim_module_t module, ui_sprite_anim_sch_t sch, ui_sprite_entity_t entity) {
     ui_sprite_world_t world = ui_sprite_entity_world(entity);
-    ui_sprite_anim_sch_t sch = ui_sprite_component_data(component);
 
     ui_sprite_anim_backend_t backend = ui_sprite_anim_backend_find(world);
     if (backend == NULL) {
@@ -110,11 +124,22 @@ static int ui_sprite_anim_sch_init(ui_sprite_component_t component, void * ctx) 
 
     sch->m_backend = backend;
     sch->m_default_layer[0] = 0;
+    sch->m_render_priority = 0;
 
     TAILQ_INIT(&sch->m_runings);
     TAILQ_INIT(&sch->m_defs);
     TAILQ_INIT(&sch->m_groups);
     TAILQ_INIT(&sch->m_templates);
+
+    return 0;
+}
+
+static int ui_sprite_anim_sch_init(ui_sprite_component_t component, void * ctx) {
+    ui_sprite_anim_module_t module = ctx;
+    ui_sprite_entity_t entity = ui_sprite_component_entity(component);
+    ui_sprite_anim_sch_t sch = ui_sprite_component_data(component);
+
+    if (ui_sprite_anim_sch_do_init(module, sch, entity) != 0) return -1;
 
     if (ui_sprite_anim_group_create(sch, "") == NULL) {
         CPE_ERROR(
@@ -155,7 +180,7 @@ static int ui_sprite_anim_sch_copy(ui_sprite_component_t to, ui_sprite_component
     ui_sprite_anim_group_t from_anim_group;
     ui_sprite_anim_template_t from_anim_template;
 
-    if (ui_sprite_anim_sch_init(to, ctx) != 0) return -1;
+    if (ui_sprite_anim_sch_do_init(module, to_anim_sch, entity) != 0) return -1;
 
     TAILQ_FOREACH(from_anim_def, &from_anim_sch->m_defs, m_next_for_sch) {
         if (ui_sprite_anim_def_create(
@@ -245,7 +270,7 @@ static int ui_sprite_anim_sch_enter(ui_sprite_component_t component, void * ctx)
     if (ui_sprite_2d_transform_find(entity)) {
         if (ui_sprite_component_add_attr_monitor(
                 component,
-                "transform.pos,transform.scale,transform.angle",
+                "transform.pos,transform.scale,transform.angle,transform.flip_x,transform.flip_y",
                 ui_sprite_anim_sch_on_transform_update,
                 anim_sch)
             == NULL)

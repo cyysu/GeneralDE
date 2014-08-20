@@ -9,6 +9,13 @@
 #include "ui/sprite_fsm/ui_sprite_fsm_module.h"
 #include "ui_sprite_ctrl_module_i.h"
 #include "ui_sprite_ctrl_circle_i.h"
+#include "ui_sprite_ctrl_turntable_i.h"
+#include "ui_sprite_ctrl_turntable_member_i.h"
+#include "ui_sprite_ctrl_turntable_join_i.h"
+#include "ui_sprite_ctrl_turntable_touch_i.h"
+#include "ui_sprite_ctrl_turntable_active_i.h"
+#include "ui_sprite_ctrl_track_follow_i.h"
+#include "ui_sprite_ctrl_track_manip_i.h"
 
 extern char g_metalib_ui_sprite_ctrl[];
 static void ui_sprite_ctrl_module_clear(nm_node_t node);
@@ -24,6 +31,13 @@ static struct {
     void (*fini)(ui_sprite_ctrl_module_t module);
 } s_auto_reg_products[] = {
     { "ctrl-circle", ui_sprite_ctrl_circle_regist, ui_sprite_ctrl_circle_unregist }
+    , { "ctrl-turntable", ui_sprite_ctrl_turntable_regist, ui_sprite_ctrl_turntable_unregist }
+    , { "ctrl-turntable-member", ui_sprite_ctrl_turntable_member_regist, ui_sprite_ctrl_turntable_member_unregist }
+    , { "ctrl-turntable-join", ui_sprite_ctrl_turntable_join_regist, ui_sprite_ctrl_turntable_join_unregist }
+    , { "ctrl-turntable-touch", ui_sprite_ctrl_turntable_touch_regist, ui_sprite_ctrl_turntable_touch_unregist }
+    , { "ctrl-turntable-active", ui_sprite_ctrl_turntable_active_regist, ui_sprite_ctrl_turntable_active_unregist }
+    , { "ctrl-track-manip", ui_sprite_ctrl_track_manip_regist, ui_sprite_ctrl_track_manip_unregist }
+    , { "ctrl-track-follow", ui_sprite_ctrl_track_follow_regist, ui_sprite_ctrl_track_follow_unregist }
 };
 
 #define UI_SPRITE_CTRL_MODULE_LOAD_META(__arg, __name) \
@@ -54,6 +68,7 @@ ui_sprite_ctrl_module_create(
     module->m_debug = 0;
 
     UI_SPRITE_CTRL_MODULE_LOAD_META(m_meta_circle_state, "ui_sprite_ctrl_circle_state");
+    UI_SPRITE_CTRL_MODULE_LOAD_META(m_meta_turntable_data, "ui_sprite_ctrl_turntable_data");
 
     if (ui_sprite_repository_register_events_by_prefix(
             repo, (LPDRMETALIB)g_metalib_ui_sprite_ctrl, "ui_sprite_evt") != 0)

@@ -1,0 +1,31 @@
+#ifndef UI_SPRITE_ANIM_LOCK_ON_SCREEN_H
+#define UI_SPRITE_ANIM_LOCK_ON_SCREEN_H
+#include "ui_sprite_anim_types.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+extern const char * UI_SPRITE_ANIM_LOCK_ON_SCREEN_NAME;
+
+ui_sprite_anim_lock_on_screen_t ui_sprite_anim_lock_on_screen_create(ui_sprite_fsm_state_t fsm_state, const char * name);
+void ui_sprite_anim_lock_on_screen_free(ui_sprite_anim_lock_on_screen_t shake);
+
+UI_SPRITE_2D_PAIR ui_sprite_anim_lock_on_screen_pos(ui_sprite_anim_lock_on_screen_t lock_on_screen);
+void ui_sprite_anim_lock_on_screen_set_pos(ui_sprite_anim_lock_on_screen_t lock_on_screen, UI_SPRITE_2D_PAIR pos);
+float ui_sprite_anim_lock_on_screen_scale(ui_sprite_anim_lock_on_screen_t lock_on_screen);
+void ui_sprite_anim_lock_on_screen_set_scale(ui_sprite_anim_lock_on_screen_t lock_on_screen, float scale);
+
+float ui_sprite_anim_lock_on_screen_max_speed(ui_sprite_anim_lock_on_screen_t lock_on_screen);
+void ui_sprite_anim_lock_on_screen_set_max_speed(ui_sprite_anim_lock_on_screen_t lock_on_screen, float max_speed);
+
+float ui_sprite_anim_lock_on_screen_max_speed(ui_sprite_anim_lock_on_screen_t lock_on_screen);
+void ui_sprite_anim_lock_on_screen_set_max_speed(ui_sprite_anim_lock_on_screen_t lock_on_screen, float max_speed);
+
+int ui_sprite_anim_lock_on_screen_set_decorator(ui_sprite_anim_lock_on_screen_t lock_on_screen, const char * decorator);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif

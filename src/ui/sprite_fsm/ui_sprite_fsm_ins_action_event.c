@@ -13,13 +13,7 @@
 #include "ui_sprite_fsm_ins_attr_binding_i.h"
 #include "ui_sprite_fsm_action_meta_i.h"
 
-struct ui_sprite_fsm_action_addition_source_ctx {
-    UI_SPRITE_FSM_STATE_ENTER_EVENT m_enter_event;
-    dr_data_source_t * m_last_source;
-    struct dr_data_source m_append_sources[64];
-};
-
-static void ui_sprite_fsm_action_append_addition_source(
+void ui_sprite_fsm_action_append_addition_source(
     ui_sprite_fsm_action_t fsm_action, 
     dr_data_source_t * data_source,
     struct ui_sprite_fsm_action_addition_source_ctx * ctx)
@@ -34,6 +28,17 @@ static void ui_sprite_fsm_action_append_addition_source(
         ctx->m_last_source = &(*ctx->m_last_source)->m_next;
     }
     insert_pos = ctx->m_last_source;
+
+    if (fsm_action->m_addition_event) {
+        /*append addition event data*/
+        ctx->m_append_sources[append_source_pos].m_data.m_meta = fsm_action->m_addition_event->meta;
+        ctx->m_append_sources[append_source_pos].m_data.m_data = (void*)fsm_action->m_addition_event->data;
+        ctx->m_append_sources[append_source_pos].m_data.m_size = fsm_action->m_addition_event->size;
+        ctx->m_append_sources[append_source_pos].m_next = NULL;
+
+        *insert_pos = &ctx->m_append_sources[append_source_pos++];
+        insert_pos = &((*insert_pos)->m_next);
+    }
 
     /*数据只有当前action会有 */
     if (fsm_action->m_meta->m_data_meta) {

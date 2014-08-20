@@ -1,6 +1,6 @@
 product:=ui_sprite_anim
 $(product).type:=cpe-dr lib
-$(product).depends:=ui_sprite ui_sprite_fsm ui_sprite_2d
+$(product).depends:=ui_sprite ui_utils ui_sprite_fsm ui_sprite_2d
 $(product).c.libraries:=
 $(product).c.sources:=$(wildcard $(product-base)/*.c)
 $(product).product.c.output-includes:=inc

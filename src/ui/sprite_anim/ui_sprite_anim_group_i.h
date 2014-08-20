@@ -15,6 +15,7 @@ struct ui_sprite_anim_group {
     UI_SPRITE_2D_PAIR m_pos_adj;
     uint8_t m_accept_scale;
     uint8_t m_adj_accept_scale;
+    float m_adj_render_priority;
     TAILQ_ENTRY(ui_sprite_anim_group) m_next_for_sch;
 };
 
@@ -24,6 +25,8 @@ int ui_sprite_anim_group_enter(ui_sprite_anim_group_t group);
 void ui_sprite_anim_group_exit(ui_sprite_anim_group_t group);
 
 void ui_sprite_anim_group_update(ui_sprite_anim_group_t group, ui_sprite_2d_transform_t transform);
+
+void ui_sprite_anim_group_set_render_priority(ui_sprite_anim_group_t group);
 
 #ifdef __cplusplus
 }

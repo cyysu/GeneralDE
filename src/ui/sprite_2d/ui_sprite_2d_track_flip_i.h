@@ -11,7 +11,6 @@ struct ui_sprite_2d_track_flip {
 	uint8_t m_process_x;
 	uint8_t m_process_y;
 
-    uint8_t m_track_pos;
     UI_SPRITE_2D_PAIR m_pre_pos;
 };
 

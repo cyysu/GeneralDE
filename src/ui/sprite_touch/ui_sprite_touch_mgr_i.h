@@ -16,6 +16,9 @@ typedef TAILQ_HEAD(ui_sprite_touch_box_list, ui_sprite_touch_box) ui_sprite_touc
 
 typedef TAILQ_HEAD(ui_sprite_touch_trace_list, ui_sprite_touch_trace) ui_sprite_touch_trace_list_t;
 
+typedef struct ui_sprite_touch_responser_binding * ui_sprite_touch_responser_binding_t;
+typedef TAILQ_HEAD(ui_sprite_touch_responser_binding_list, ui_sprite_touch_responser_binding) ui_sprite_touch_responser_binding_list_t;
+
 struct ui_sprite_touch_mgr {
     gd_app_context_t m_app;
     mem_allocrator_t m_alloc;

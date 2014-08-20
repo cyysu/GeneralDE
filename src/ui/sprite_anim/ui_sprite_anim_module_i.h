@@ -9,10 +9,6 @@
 extern "C" {
 #endif
 
-typedef struct ui_sprite_anim_camera_op * ui_sprite_anim_camera_op_t;
-typedef TAILQ_HEAD(ui_sprite_anim_camera_op_list, ui_sprite_anim_camera_op) ui_sprite_anim_camera_op_list_t;
-typedef TAILQ_HEAD(ui_sprite_anim_camera_restrict_list, ui_sprite_anim_camera_restrict) ui_sprite_anim_camera_restrict_list_t;
-
 typedef TAILQ_HEAD(ui_sprite_anim_def_list, ui_sprite_anim_def) ui_sprite_anim_def_list_t;
 
 typedef TAILQ_HEAD(ui_sprite_anim_group_list, ui_sprite_anim_group) ui_sprite_anim_group_list_t;

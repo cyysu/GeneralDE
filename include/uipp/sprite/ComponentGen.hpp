@@ -54,7 +54,7 @@ public:
     void sendEvent(LPDRMETA meta, void const * data, size_t data_size) { ui_sprite_component_send_event(m_component, meta, data, data_size); }
 
     template<typename T>
-    void sendEvent(T const & data) {
+    void sendEvent(T const & data = T()) {
         sendEvent(Cpe::Dr::MetaTraits<T>::META, &data, Cpe::Dr::MetaTraits<T>::data_size(data));
     }
 
