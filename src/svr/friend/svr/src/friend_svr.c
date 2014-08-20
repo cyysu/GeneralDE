@@ -41,6 +41,9 @@ struct logic_op_register_def g_friend_ops[] = {
     , { "friend_op_remove", 
       friend_svr_op_remove_send,
       friend_svr_op_remove_recv }
+    , { "friend_op_ack", 
+      friend_svr_op_ack_send,
+      friend_svr_op_ack_recv }
     , { "friend_op_sync", 
       friend_svr_op_sync_send,
       friend_svr_op_sync_recv }
@@ -79,6 +82,29 @@ friend_svr_create(
     svr->m_rsp_manage = rsp_manage;
     svr->m_db = db;
     svr->m_debug = 0;
+    svr->m_runing_mode = friend_svr_runing_mode_one_way;
+
+    mem_buffer_init(&svr->m_record_metalib, alloc);
+    svr->m_record_meta = NULL;
+    svr->m_record_size = 0;
+    svr->m_record_id_entry = NULL;
+    svr->m_record_id_start_pos = 0;
+    svr->m_record_id_capacity = 0;
+    svr->m_record_uid_entry = NULL;
+    svr->m_record_uid_start_pos = 0;
+    svr->m_record_fuid_entry = NULL;
+    svr->m_record_fuid_start_pos = 0;
+    svr->m_record_list_meta = NULL;
+    svr->m_record_data_start_pos = 0;
+    svr->m_record_list_count_entry = NULL;
+    svr->m_record_list_data_entry = NULL;
+
+    svr->m_data_meta = NULL;
+    svr->m_data_fuid_entry = NULL;
+    svr->m_data_fuid_start_pos = 0;
+    svr->m_data_size = 0;
+
+    FRIEND_SVR_LOAD_META(m_meta_op_add_ctx, "svr_friend_op_add_ctx");
 
     mem_buffer_init(&svr->m_record_metalib, alloc);
     svr->m_record_meta = NULL;
@@ -184,19 +210,43 @@ uint32_t friend_svr_cur_time(friend_svr_t svr) {
     return tl_manage_time_sec(gd_app_tl_mgr(svr->m_app));
 }
 
-int friend_svr_set_record_id(friend_svr_t svr, void * record) {
-    uint64_t uid;
+uint64_t friend_svr_record_fuid(friend_svr_t svr, void * record) {
     uint64_t fuid;
+    int r = dr_entry_try_read_uint64(&fuid, ((char *)record) + svr->m_record_fuid_start_pos, svr->m_record_fuid_entry, svr->m_em);
+    assert(r == 0);
+    return fuid;
+}
 
-    if (dr_entry_try_read_uint64(&uid, ((char *)record) + svr->m_record_uid_start_pos, svr->m_record_uid_entry, svr->m_em) != 0) {
-        CPE_ERROR(svr->m_em, "%s: set_record_id: read uid fail!", friend_svr_name(svr));
-        return -1;
-    }
+void friend_svr_record_set_fuid(friend_svr_t svr, uint64_t fuid,void * record) {
+    int r = dr_entry_set_from_uint64((char*)record + svr->m_record_fuid_start_pos, fuid, svr->m_record_fuid_entry, svr->m_em);
+    assert(r == 0);
+}
 
-    if (dr_entry_try_read_uint64(&fuid, ((char *)record) + svr->m_record_fuid_start_pos, svr->m_record_fuid_entry, svr->m_em) != 0) {
-        CPE_ERROR(svr->m_em, "%s: set_record_id: read fuid fail!", friend_svr_name(svr));
-        return -1;
-    }
+uint64_t friend_svr_record_uid(friend_svr_t svr, void * record) {
+    return ((SVR_FRIEND_RECORD *)record)->user_id;
+    /* uint64_t uid; */
+    /* int r = dr_entry_try_read_uint64(&uid, ((char *)record) + svr->m_record_uid_start_pos, svr->m_record_uid_entry, svr->m_em); */
+    /* assert(r == 0); */
+    /* return uid; */
+}
+
+void friend_svr_record_set_uid(friend_svr_t svr, uint64_t uid,void * record) {
+    ((SVR_FRIEND_RECORD *)record)->user_id = uid;
+    /* int r = dr_entry_set_from_uint64((char *)record + svr->m_record_uid_start_pos, uid, svr->m_record_uid_entry, svr->m_em); */
+    /* assert(r == 0); */
+}
+
+uint8_t friend_svr_record_state(friend_svr_t svr, void * record) {
+    return ((SVR_FRIEND_RECORD *)record)->state;
+}
+
+void friend_svr_record_set_state(friend_svr_t svr, uint8_t state, void * record) {
+    ((SVR_FRIEND_RECORD *)record)->state = state;
+}
+
+int friend_svr_record_build_id(friend_svr_t svr, void * record) {
+    uint64_t uid = friend_svr_record_uid(svr, record);
+    uint64_t fuid = friend_svr_record_fuid(svr, record);
 
     if (uid == 0) {
         CPE_ERROR(svr->m_em, "%s: set_record_id: uid is 0!", friend_svr_name(svr));

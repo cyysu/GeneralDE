@@ -159,6 +159,7 @@ static LPDRMETA friend_svr_load_meta(friend_svr_t svr, const char * str_meta) {
 static int friend_svr_load_def(friend_svr_t svr, cfg_t cfg) {
     const char * str_meta;
     const char * str_fuid_entry;
+    const char * runing_mode;
 
     str_meta = cfg_get_string(cfg, "meta", NULL);
     if (str_meta == NULL) {
@@ -184,6 +185,23 @@ static int friend_svr_load_def(friend_svr_t svr, cfg_t cfg) {
     }
 
     svr->m_data_fuid_start_pos = dr_entry_data_start_pos(svr->m_data_fuid_entry, 0);
+
+    runing_mode = cfg_get_string(cfg, "runing-mode", NULL);
+    if (runing_mode == NULL) {
+        CPE_ERROR(svr->m_em, "%s: create: runing-mode not configured.", friend_svr_name(svr));
+        return -1;
+    }
+
+    if (strcmp(runing_mode, "one-way") == 0) {
+        svr->m_runing_mode = friend_svr_runing_mode_one_way;
+    }
+    else if (strcmp(runing_mode, "ack") == 0) {
+        svr->m_runing_mode = friend_svr_runing_mode_ack;
+    }
+    else {
+        CPE_ERROR(svr->m_em, "%s: create: runing-mode %s is unknown.", friend_svr_name(svr), runing_mode);
+        return -1;
+    }
 
     return 0;
 }
