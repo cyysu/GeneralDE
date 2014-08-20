@@ -14,6 +14,11 @@ ui_sprite_anim_group_t ui_sprite_anim_group_create(ui_sprite_anim_sch_t anim_sch
     size_t name_len = strlen(name) + 1;
     char * p;
 
+    if (ui_sprite_anim_group_find_by_name(anim_sch, name) != NULL) {
+        CPE_ERROR(module->m_em, "crate anim group %s: name duplicate!", name);
+        return NULL;
+    }
+
     anim_group = mem_alloc(module->m_alloc, sizeof(struct ui_sprite_anim_group) + name_len);
     if (anim_group == NULL) {
         CPE_ERROR(module->m_em, "crate anim group %s: alloc fail!", name);
@@ -31,6 +36,7 @@ ui_sprite_anim_group_t ui_sprite_anim_group_create(ui_sprite_anim_sch_t anim_sch
     anim_group->m_pos_adj.y = 0.0f;
     anim_group->m_accept_scale = 1;
     anim_group->m_adj_accept_scale = 1;
+    anim_group->m_adj_render_priority = 0.0f;
 
     TAILQ_INSERT_TAIL(&anim_sch->m_groups, anim_group, m_next_for_sch);
 
@@ -40,10 +46,13 @@ ui_sprite_anim_group_t ui_sprite_anim_group_create(ui_sprite_anim_sch_t anim_sch
 ui_sprite_anim_group_t ui_sprite_anim_group_clone(ui_sprite_anim_sch_t anim_sch, ui_sprite_anim_group_t o) {
     ui_sprite_anim_group_t group = ui_sprite_anim_group_create(anim_sch, o->m_name);
 
+    if (group == NULL) return NULL;
+ 
     group->m_base_pos_of_entity = o->m_base_pos_of_entity;
     group->m_pos_adj = o->m_pos_adj;
     group->m_accept_scale = o->m_accept_scale;
     group->m_adj_accept_scale = o->m_adj_accept_scale;
+    group->m_adj_render_priority = o->m_adj_render_priority;
 
     return group;
 }
@@ -72,6 +81,14 @@ ui_sprite_anim_group_t ui_sprite_anim_group_find_by_name(ui_sprite_anim_sch_t an
     return NULL;
 }
 
+void ui_sprite_anim_group_set_render_priority(ui_sprite_anim_group_t anim_group) {
+    ui_sprite_anim_sch_t anim_sch = anim_group->m_anim_sch;
+    ui_sprite_anim_backend_t backend = anim_sch->m_backend;
+    backend->m_def.m_set_group_priority_fun(
+        backend->m_def.m_ctx, anim_group->m_group_id,
+        anim_sch->m_render_priority + anim_group->m_adj_render_priority);
+}
+
 int ui_sprite_anim_group_enter(ui_sprite_anim_group_t group) {
     ui_sprite_anim_sch_t anim_sch = group->m_anim_sch;
     ui_sprite_anim_backend_t backend = anim_sch->m_backend;
@@ -87,7 +104,8 @@ int ui_sprite_anim_group_enter(ui_sprite_anim_group_t group) {
 
     group->m_group_id = 
         anim_sch->m_backend->m_def.m_create_group_fun(
-            anim_sch->m_backend->m_def.m_ctx, anim_sch->m_default_layer);
+            anim_sch->m_backend->m_def.m_ctx, anim_sch->m_default_layer, ui_sprite_entity_id(entity),
+            anim_sch->m_render_priority + group->m_adj_render_priority);
     if (group->m_group_id == UI_SPRITE_INVALID_ANIM_ID) {
         CPE_ERROR(
             module->m_em, "entity %d(%s): group %s: enter: create group fail!",
@@ -141,11 +159,22 @@ void ui_sprite_anim_group_set_adj_accept_scale(ui_sprite_anim_group_t group, uin
     group->m_adj_accept_scale = adj_accept_scale;
 }
 
+float ui_sprite_anim_group_adj_render_priority(ui_sprite_anim_group_t group) {
+    return group->m_adj_render_priority;
+}
+
+void ui_sprite_anim_group_set_adj_render_priority(ui_sprite_anim_group_t group, float adj_render_priority) {
+    group->m_adj_render_priority = adj_render_priority;
+}
+
 void ui_sprite_anim_group_update(ui_sprite_anim_group_t group, ui_sprite_2d_transform_t transform) {
     ui_sprite_anim_backend_t backend = group->m_anim_sch->m_backend;
-    UI_SPRITE_2D_PAIR scale = ui_sprite_2d_transform_scale(transform);
-    UI_SPRITE_2D_PAIR pos = ui_sprite_2d_transform_pos(transform, group->m_base_pos_of_entity);
-    float angle = ui_sprite_2d_transform_angle(transform);
+    UI_SPRITE_2D_PAIR scale = ui_sprite_2d_transform_scale_pair(transform);
+    UI_SPRITE_2D_PAIR pos;
+    float angle;
+
+    angle = ui_sprite_2d_transform_angle(transform);
+    pos = ui_sprite_2d_transform_world_pos(transform, group->m_base_pos_of_entity, UI_SPRITE_2D_TRANSFORM_POS_ADJ_ALL);
 
     if (group->m_adj_accept_scale) {
         pos.x += group->m_pos_adj.x * scale.x;
@@ -163,4 +192,5 @@ void ui_sprite_anim_group_update(ui_sprite_anim_group_t group, ui_sprite_2d_tran
     backend->m_def.m_pos_update_fun(backend->m_def.m_ctx, group->m_group_id, pos);
     backend->m_def.m_scale_update_fun(backend->m_def.m_ctx, group->m_group_id, scale);
     backend->m_def.m_angle_update_fun(backend->m_def.m_ctx, group->m_group_id, angle);
+    backend->m_def.m_flip_update_fun(backend->m_def.m_ctx, group->m_group_id, ui_sprite_2d_transform_flip_x(transform), ui_sprite_2d_transform_flip_y(transform));
 }

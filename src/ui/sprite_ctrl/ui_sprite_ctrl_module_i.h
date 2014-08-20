@@ -18,6 +18,7 @@ struct ui_sprite_ctrl_module {
     int m_debug;
 
     LPDRMETA m_meta_circle_state;
+    LPDRMETA m_meta_turntable_data;
 };
 
 #ifdef __cplusplus

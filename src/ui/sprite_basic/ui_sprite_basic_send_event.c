@@ -55,10 +55,9 @@ const char * ui_sprite_basic_send_event_on_exit(ui_sprite_basic_send_event_t sen
 
 static int ui_sprite_basic_send_event_enter(ui_sprite_fsm_action_t fsm_action, void * ctx) {
     ui_sprite_basic_send_event_t send_event = ui_sprite_fsm_action_data(fsm_action);
-    ui_sprite_entity_t entity = ui_sprite_fsm_action_to_entity(fsm_action);
 
     if (send_event->m_on_enter) {
-        ui_sprite_entity_build_and_send_event(entity, send_event->m_on_enter, NULL);
+        ui_sprite_fsm_action_build_and_send_event(fsm_action, send_event->m_on_enter, NULL);
     }
 
     return 0;
@@ -66,10 +65,9 @@ static int ui_sprite_basic_send_event_enter(ui_sprite_fsm_action_t fsm_action, v
 
 static void ui_sprite_basic_send_event_exit(ui_sprite_fsm_action_t fsm_action, void * ctx) {
     ui_sprite_basic_send_event_t send_event = ui_sprite_fsm_action_data(fsm_action);
-    ui_sprite_entity_t entity = ui_sprite_fsm_action_to_entity(fsm_action);
 
     if (send_event->m_on_exit) {
-        ui_sprite_entity_build_and_send_event(entity, send_event->m_on_exit, NULL);
+        ui_sprite_fsm_action_build_and_send_event(fsm_action, send_event->m_on_exit, NULL);
     }
 
 }

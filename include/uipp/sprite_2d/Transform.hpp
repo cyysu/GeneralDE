@@ -11,24 +11,38 @@ class Transform : Cpe::Utils::SimulateObject {
 public:
     operator ui_sprite_2d_transform_t () const { return (ui_sprite_2d_transform_t)this; }
 
-    Pair pos(PosPolicy policy) const { return ui_sprite_2d_transform_pos(*this, (uint8_t)policy); }
-    void setPos(Pair const & pos) { ui_sprite_2d_transform_set_pos(*this, pos); }
+    Pair localPos(PosPolicy policy, uint8_t adj_type) const { return ui_sprite_2d_transform_local_pos(*this, (uint8_t)policy, adj_type); }
+    Pair worldPos(PosPolicy policy, uint8_t adj_type) const { return ui_sprite_2d_transform_world_pos(*this, (uint8_t)policy, adj_type); }
+    Pair originPos(void) const { return ui_sprite_2d_transform_world_pos(*this, Origin, 0); }
+    void setOriginPos(Pair const & pos) { ui_sprite_2d_transform_set_origin_pos(*this, pos); }
 
-    Pair scale(void) const { return ui_sprite_2d_transform_scale(*this); }
-    void setScale(Pair const & scale) { ui_sprite_2d_transform_set_scale(*this, scale); }
+    float scale(void) const { return ui_sprite_2d_transform_scale(*this); }
+    void setScale(float scale) { ui_sprite_2d_transform_set_scale(*this, scale); }
+
+    Pair scalePair(void) const { return ui_sprite_2d_transform_scale_pair(*this); }
+    void setScalePair(Pair const & scale) { ui_sprite_2d_transform_set_scale_pair(*this, scale); }
 
     float angle(void) const { return ui_sprite_2d_transform_angle(*this); }
     void setAngle(float angle) { ui_sprite_2d_transform_set_angle(*this, angle); }
 
-    Pair rectLt(void) const { return ui_sprite_2d_transform_rect_lt(*this); }
-    Pair rectRb(void) const { return ui_sprite_2d_transform_rect_rb(*this); }
-    void mergeRect(Pair const & lt, Pair const & rb) { ui_sprite_2d_transform_merge_rect(*this, lt, rb); }
+    Rect const & rect(void) const { return *ui_sprite_2d_transform_rect(*this); }
+    void mergeRect(Rect const & rect) { ui_sprite_2d_transform_merge_rect(*this, &rect); }
 
     uint8_t flipX(void) const { return ui_sprite_2d_transform_flip_x(*this); }
-    void setFlipX(uint8_t flip_x) { ui_sprite_2d_transform_set_flip_x(*this, flip_x); }
-
     uint8_t flipY(void) const { return ui_sprite_2d_transform_flip_y(*this); }
-    void setFlipY(uint8_t flip_y) { ui_sprite_2d_transform_set_flip_y(*this, flip_y); }
+    void setFlip(uint8_t flip_x, uint8_t flip_y) { ui_sprite_2d_transform_set_flip(*this, flip_x, flip_y); }
+
+    float adjAngleByFlip(float angle) const {
+        return ui_sprite_2d_transform_adj_angle_by_flip(*this, angle);
+    }
+
+    Pair adjWorldPos(Pair const & pt, uint8_t adj_type) const {
+        return ui_sprite_2d_transform_adj_world_pos(*this, pt, adj_type);
+    }
+
+    Pair adjLocalPos(Pair const & pt, uint8_t adj_type) const {
+        return ui_sprite_2d_transform_adj_local_pos(*this, pt, adj_type);
+    }
 
     static const char * NAME;
 };

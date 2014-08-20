@@ -1,7 +1,9 @@
 #include <assert.h>
 #include "cpe/pal/pal_stdio.h"
 #include "cpe/utils/string_utils.h"
+#include "cpe/dr/dr_ctypes_op.h"
 #include "cpe/dr/dr_data.h"
+#include "cpe/dr/dr_json.h"
 #include "cpe/dr/dr_data_entry.h"
 #include "cpe/dr/dr_metalib_manage.h"
 #include "ui/sprite/ui_sprite_entity_attr.h"
@@ -115,10 +117,18 @@ static int ui_sprite_entity_set_attr_one(ui_sprite_repository_t repo, ui_sprite_
     }
 
     if (ui_sprite_entity_debug(entity)) {
-        CPE_INFO(
-            repo->m_em, "entity %d(%s): attr %s ==> %s",
-            entity->m_id, entity->m_name, arg_name,
-            dr_entry_to_string(&repo->m_dump_buffer, to->m_data, to->m_entry));
+        if (dr_entry_type(to->m_entry) > CPE_DR_TYPE_COMPOSITE) {
+            CPE_INFO(
+                repo->m_em, "entity %d(%s): attr %s ==> %s",
+                entity->m_id, entity->m_name, arg_name,
+                dr_entry_to_string(&repo->m_dump_buffer, to->m_data, to->m_entry));
+        }
+        else {
+            CPE_INFO(
+                repo->m_em, "entity %d(%s): attr %s ==> %s",
+                entity->m_id, entity->m_name, arg_name,
+                dr_json_dump_inline(&repo->m_dump_buffer, to->m_data, to->m_size, dr_entry_ref_meta(to->m_entry)));
+        }
     }
 
     ui_sprite_entity_notify_attr_updated_one(entity, arg_name);
@@ -240,7 +250,7 @@ int ui_sprite_entity_bulk_set_attrs(
     }
 
     tmp_args = allocked_tmp_args;
-    while((p = strchr(tmp_args, ','))) {
+    while((p = (char*)cpe_str_char_not_in_pair(tmp_args, ',', "{[(", ")]}"))) {
         char * arg_begin = tmp_args;
         char * arg_end = (char*)cpe_str_trim_tail(p, arg_begin);
 
@@ -392,3 +402,79 @@ int ui_sprite_entity_set_attr_string(ui_sprite_entity_t entity, const char * pat
     return 0;
 }
 
+int ui_sprite_entity_set_attr_bin(ui_sprite_entity_t entity, const char * path, const void * v, LPDRMETA meta) {
+    struct dr_data_entry buff;
+    LPDRMETA des_meta;
+    dr_data_entry_t attr = ui_sprite_entity_find_attr(&buff, entity, path);
+    if (attr == NULL) {
+        CPE_ERROR(
+            entity->m_world->m_repo->m_em, "entity %d(%s): set attr: attr %s: attr not exist!",
+            entity->m_id, entity->m_name, path);
+        return -1;
+    }
+
+    des_meta = dr_entry_ref_meta(attr->m_entry);
+    if (des_meta == NULL) {
+        CPE_ERROR(
+            entity->m_world->m_repo->m_em, "entity %d(%s): set attr: attr %s: attr is not composide, can`t set from bin!",
+            entity->m_id, entity->m_name, path);
+        return -1;
+    }
+
+    if (dr_meta_copy_same_entry(attr->m_data, attr->m_size, des_meta, v, dr_meta_size(meta), meta, 0, entity->m_world->m_repo->m_em) <= 0) {
+        CPE_ERROR(
+            entity->m_world->m_repo->m_em, "entity %d(%s): set attr: attr %s: copy same entry fail!",
+            entity->m_id, entity->m_name, path);
+        return -1;
+    }
+
+    if (ui_sprite_entity_debug(entity)) {
+        CPE_INFO(
+            entity->m_world->m_repo->m_em, "entity %d(%s): attr %s ==> %s",
+            entity->m_id, entity->m_name, path,
+            dr_json_dump_inline(&entity->m_world->m_repo->m_dump_buffer, v, dr_meta_size(meta), meta));
+    }
+
+    ui_sprite_attr_monitor_notify(entity->m_world, entity->m_id, path);
+
+    return 0;
+}
+
+int ui_sprite_entity_set_attr_value(ui_sprite_entity_t entity, const char * path, dr_value_t value) {
+    ui_sprite_repository_t repo = entity->m_world->m_repo;
+    struct dr_data_entry buff;
+
+    dr_data_entry_t attr = ui_sprite_entity_find_attr(&buff, entity, path);
+    if (attr == NULL) {
+        CPE_ERROR(
+            repo->m_em, "entity %d(%s): set attr: attr %s: attr not exist!",
+            entity->m_id, entity->m_name, path);
+        return -1;
+    }
+
+    if (dr_data_entry_set_from_value(attr, value, repo->m_em) != 0) {
+        CPE_ERROR(
+            repo->m_em, "entity %d(%s): set attr: attr %s: set from value fail!",
+            entity->m_id, entity->m_name, path);
+        return -1;
+    }
+
+    if (ui_sprite_entity_debug(entity)) {
+        if (value->m_type > CPE_DR_TYPE_COMPOSITE) {
+            CPE_INFO(
+                repo->m_em, "entity %d(%s): attr %s ==> %s",
+                entity->m_id, entity->m_name, path,
+                dr_ctype_to_string(&repo->m_dump_buffer, value->m_data, value->m_type));
+        }
+        else {
+            CPE_INFO(
+                repo->m_em, "entity %d(%s): attr %s ==> %s",
+                entity->m_id, entity->m_name, path,
+                dr_json_dump_inline(&repo->m_dump_buffer, value->m_data, value->m_size, value->m_meta));
+        }
+    }
+
+    ui_sprite_attr_monitor_notify(entity->m_world, entity->m_id, path);
+
+    return 0;
+}

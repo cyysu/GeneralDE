@@ -59,7 +59,7 @@ int ui_sprite_2d_wait_switchback_enter(ui_sprite_fsm_action_t fsm_action, void *
 
     ui_sprite_fsm_action_start_update(fsm_action);
 
-    wait_switchback->m_pre_pos = ui_sprite_2d_transform_pos(transform, wait_switchback->m_track_pos);
+    wait_switchback->m_pre_pos = ui_sprite_2d_transform_world_pos(transform, UI_SPRITE_2D_TRANSFORM_POS_ORIGIN, 0);
     wait_switchback->m_moving_x = 0;
     wait_switchback->m_moving_y = 0;
 
@@ -81,7 +81,9 @@ void ui_sprite_2d_wait_switchback_update(ui_sprite_fsm_action_t fsm_action, void
         return;
     }
 
-    cur_pos = ui_sprite_2d_transform_pos(transform, wait_switchback->m_track_pos);
+    cur_pos = ui_sprite_2d_transform_world_pos(
+        transform, wait_switchback->m_track_pos,
+        UI_SPRITE_2D_TRANSFORM_POS_ADJ_BY_FLIP | UI_SPRITE_2D_TRANSFORM_POS_ADJ_BY_ANGLE);
 
     if (wait_switchback->m_process_x && fabs(cur_pos.x - wait_switchback->m_pre_pos.x) > 0.5f) {
         int8_t moving_x = cur_pos.x > wait_switchback->m_pre_pos.x ? 0 : 1;

@@ -6,4 +6,26 @@
         <entry name="creator_name" type="string" size="64" id="2"/>
     </struct>
 
+    <!-- value generator -->
+    <macrosgroup name="ui_sprite_basic_value_geneartor_type">
+        <macro name="UI_SPRITE_BASIC_VALUE_GENEARTOR_TYPE_IN_RANGE" value="1"/>
+    </macrosgroup>
+
+    <struct name="ui_sprite_basic_value_geneartor_def_in_range" version="1">
+        <entry name="min" type="string" size="128" id="1"/>
+        <entry name="max" type="string" size="128" id="2"/>
+    </struct>
+
+    <union name="ui_sprite_basic_value_geneartor_def_data" version="1">
+        <entry name="in_range" type="ui_sprite_basic_value_geneartor_def_in_range" id="UI_SPRITE_BASIC_VALUE_GENEARTOR_TYPE_IN_RANGE"/>
+    </union>
+
+    <struct name="ui_sprite_basic_value_geneartor_def" version="1">
+        <entry name="once_gen_count" type="string" size="64" id="1"/>
+        <entry name="supply_count" type="uint8" id="2"/>
+        <entry name="supplies" type="string" size="64" count="10" refer="supply_count" id="3"/>
+        <entry name="type" type="uint8" id="4" bindmacrosgroup="ui_sprite_basic_value_geneartor_type"/>
+        <entry name="data" type="ui_sprite_basic_value_geneartor_def_data" id="5" select="type"/>
+    </struct>
+
 </metalib>

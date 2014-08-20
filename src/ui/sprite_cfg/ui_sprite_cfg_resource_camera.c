@@ -27,9 +27,9 @@ ui_sprite_world_res_t ui_sprite_cfg_load_resource_camera(void * ctx, ui_sprite_w
 
     camera = ui_sprite_anim_camera_create(anim_module, world);
     if (camera == NULL) {
-        CPE_ERROR(loader->m_em, "%s: create camera resource: limit  (%f,%f) - (%f,%f) error!",
-            ui_sprite_cfg_loader_name(loader), limit_lt.x, limit_lt.y, limit_rb.x, limit_rb.y);
-        ui_sprite_anim_camera_free(camera);
+        CPE_ERROR(
+            loader->m_em, "%s: create camera resource: create camera fail!",
+            ui_sprite_cfg_loader_name(loader));
         return NULL;
     }
 
@@ -47,6 +47,11 @@ ui_sprite_world_res_t ui_sprite_cfg_load_resource_camera(void * ctx, ui_sprite_w
     }
 
     ui_sprite_anim_camera_set_limit(camera, limit_lt, limit_rb);
+
+    ui_sprite_anim_camera_set_scale_range(
+        camera, 
+        cfg_get_float(cfg, "scale.min", ui_sprite_anim_camera_scale_min(camera)),
+        cfg_get_float(cfg, "scale.max", ui_sprite_anim_camera_scale_min(camera)));
 
     return ui_sprite_world_res_from_data(camera);
 }

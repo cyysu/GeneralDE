@@ -4,7 +4,7 @@
 #include "ui/sprite/ui_sprite_types.h"
 #include "ui/sprite_2d/ui_sprite_2d_types.h"
 #include "ui/sprite_fsm/ui_sprite_fsm_types.h"
-#include "protocol/ui/sprite_touch/ui_sprite_touch_evt.h"
+#include "protocol/ui/sprite_touch/ui_sprite_touch_data.h"
 
 #ifdef __cplusplus
 extern "C" {

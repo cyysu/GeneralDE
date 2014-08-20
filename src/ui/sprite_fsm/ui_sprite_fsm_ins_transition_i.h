@@ -1,6 +1,5 @@
 #ifndef UI_SPRITE_FSM_INS_TRANSITION_I_H
 #define UI_SPRITE_FSM_INS_TRANSITION_I_H
-#include "cpe/xcalc/xcalc_types.h"
 #include "ui_sprite_fsm_ins_i.h"
 
 #ifdef __cplusplus
@@ -13,7 +12,7 @@ struct ui_sprite_fsm_transition {
     const char * m_event;
     const char * m_to_state;
     const char * m_call_state;
-    xpredicate_t m_condition;
+    const char * m_condition;
     TAILQ_ENTRY(ui_sprite_fsm_transition) m_next_for_state;
 };
 

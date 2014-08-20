@@ -2,6 +2,7 @@
 #define UI_SPRITE_TOUCH_MOVE_I_H
 #include "ui/sprite_touch/ui_sprite_touch_move.h"
 #include "ui_sprite_touch_responser_i.h"
+#include "protocol/ui/sprite_touch/ui_sprite_touch_evt.h"
 
 #ifdef __cplusplus
 extern "C" {

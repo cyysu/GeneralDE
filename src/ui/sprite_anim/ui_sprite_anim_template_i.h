@@ -11,7 +11,6 @@ struct ui_sprite_anim_template {
     ui_sprite_anim_sch_t m_anim_sch;
     const char * m_name;
     const char * m_res;
-    const char * m_group;
     ui_sprite_anim_template_binding_list_t m_bindings;
     TAILQ_ENTRY(ui_sprite_anim_template) m_next_for_sch;
 };

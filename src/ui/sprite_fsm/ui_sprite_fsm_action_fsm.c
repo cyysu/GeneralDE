@@ -62,6 +62,19 @@ static void ui_sprite_fsm_action_fsm_on_run_fsm(void * ctx, ui_sprite_event_t ev
         return;
     }
 
+    ui_sprite_fsm_ins_check(fsm);
+    if (fsm->m_cur_state == NULL) {
+        if (ui_sprite_entity_debug(entity)) {
+            CPE_INFO(
+                module->m_em, "entity %d(%s): %s: action %s(%s) load fsm from %s: all action done!",
+                ui_sprite_entity_id(entity), ui_sprite_entity_name(entity), ui_sprite_fsm_ins_path(fsm),
+                fsm_action->m_meta->m_name, fsm_action->m_name, evt_data->load_from);
+        }
+        ui_sprite_fsm_ins_reinit(fsm);
+        action_fsm->m_auto_clear = 0;
+        return;
+    }
+
     if (ui_sprite_fsm_action_start_update(fsm_action) != 0) {
         CPE_ERROR(
             module->m_em, "entity %d(%s): %s: action %s(%s) load fsm from %s: start update fail!",
@@ -92,10 +105,23 @@ static int ui_sprite_fsm_action_fsm_enter(ui_sprite_fsm_action_t fsm_action, voi
         return -1;
 	}
 
-    if (!TAILQ_EMPTY(&fsm->m_states)) {
-        if (ui_sprite_fsm_ins_enter(fsm) != 0) return -1;
-        if (ui_sprite_fsm_action_start_update(fsm_action) != 0) return -1;
+    if (TAILQ_EMPTY(&fsm->m_states)) return 0;
+
+    if (ui_sprite_fsm_ins_enter(fsm) != 0) return -1;
+
+    ui_sprite_fsm_ins_check(fsm);
+
+    if (fsm->m_cur_state == NULL) {
+        if (ui_sprite_entity_debug(entity)) {
+            CPE_INFO(
+                module->m_em, "entity %d(%s): %s: action %s(%s) all actions done",
+                ui_sprite_entity_id(entity), ui_sprite_entity_name(entity), ui_sprite_fsm_ins_path(fsm),
+                fsm_action->m_meta->m_name, fsm_action->m_name);
+        }
+        return 0;
     }
+
+    if (ui_sprite_fsm_action_start_update(fsm_action) != 0) return -1;
 
     return 0;
 }

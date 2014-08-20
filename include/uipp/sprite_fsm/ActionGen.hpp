@@ -6,6 +6,7 @@
 #include "gdpp/app/Log.hpp"
 #include "Action.hpp"
 #include "Repository.hpp"
+#include "uipp/sprite/World.hpp"
 #include "uipp/sprite/Entity.hpp"
 
 namespace UI { namespace Sprite { namespace Fsm {
@@ -32,7 +33,11 @@ public:
     World & world(void) { return entity().world(); }
     World const & world(void) const { return entity().world(); }
 
+    State & state(void) { return m_action.state(); }
+    State const & state(void) const { m_action.state(); }
+
     const char * name(void) const { return m_action.name(); }
+    ui_sprite_fsm_action_life_circle_t lifeCircle(void) const { return m_action.lifeCircle(); }
 
     bool isActive(void) const { return m_action.isActive(); }
     bool isUpdate(void) const { return m_action.isUpdate(); }
@@ -44,7 +49,7 @@ public:
     void sendEvent(LPDRMETA meta, void const * data, size_t data_size) { ui_sprite_fsm_action_send_event(m_action, meta, data, data_size); }
 
     template<typename T>
-    void sendEvent(T const & data) {
+    void sendEvent(T const & data = T()) {
         sendEvent(Cpe::Dr::MetaTraits<T>::META, &data, Cpe::Dr::MetaTraits<T>::data_size(data));
     }
 

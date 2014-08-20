@@ -19,14 +19,6 @@ void ui_sprite_2d_track_angle_free(ui_sprite_2d_track_angle_t show_anim) {
     ui_sprite_fsm_action_free(ui_sprite_fsm_action_from_data(show_anim));
 }
 
-uint8_t ui_sprite_2d_track_angle_pos(ui_sprite_2d_track_angle_t track_angle) {
-    return track_angle->m_track_pos;
-}
-
-void ui_sprite_2d_track_angle_set_pos(ui_sprite_2d_track_angle_t track_angle, uint8_t pos_policy) {
-    track_angle->m_track_pos = pos_policy;
-}
-
 int ui_sprite_2d_track_angle_enter(ui_sprite_fsm_action_t fsm_action, void * ctx) {
     ui_sprite_2d_module_t module = ctx;
 	ui_sprite_2d_track_angle_t track_angle = ui_sprite_fsm_action_data(fsm_action);
@@ -42,14 +34,13 @@ int ui_sprite_2d_track_angle_enter(ui_sprite_fsm_action_t fsm_action, void * ctx
 
     ui_sprite_fsm_action_start_update(fsm_action);
 
-    track_angle->m_pre_pos = ui_sprite_2d_transform_pos(transform, track_angle->m_track_pos);
+    track_angle->m_pre_pos = ui_sprite_2d_transform_world_pos(transform, UI_SPRITE_2D_TRANSFORM_POS_ORIGIN, 0);
 
     return 0;
 }
 
 void ui_sprite_2d_track_angle_update(ui_sprite_fsm_action_t fsm_action, void * ctx, float delta) {
     ui_sprite_2d_module_t module = ctx;
-	ui_sprite_2d_track_angle_t track_angle = ui_sprite_fsm_action_data(fsm_action);
 	ui_sprite_entity_t entity = ui_sprite_fsm_action_to_entity(fsm_action);
 	ui_sprite_2d_transform_t transform = ui_sprite_2d_transform_find(entity);
     UI_SPRITE_2D_PAIR cur_pos;
@@ -62,7 +53,7 @@ void ui_sprite_2d_track_angle_update(ui_sprite_fsm_action_t fsm_action, void * c
         return;
     }
 
-    cur_pos = ui_sprite_2d_transform_pos(transform, track_angle->m_track_pos);
+    cur_pos = ui_sprite_2d_transform_world_pos(transform, UI_SPRITE_2D_TRANSFORM_POS_ORIGIN, 0);
 }
 
 void ui_sprite_2d_track_angle_exit(ui_sprite_fsm_action_t fsm_action, void * ctx) {
@@ -73,19 +64,12 @@ int ui_sprite_2d_track_angle_init(ui_sprite_fsm_action_t fsm_action, void * ctx)
 
 	bzero(track_angle, sizeof(*track_angle));
 	track_angle->m_module = ctx;
-    track_angle->m_track_pos = UI_SPRITE_2D_TRANSFORM_POS_ORIGIN;
 
 	return 0;
 }
 
 int ui_sprite_2d_track_angle_copy(ui_sprite_fsm_action_t to, ui_sprite_fsm_action_t from, void * ctx) {
-    ui_sprite_2d_track_angle_t to_track_angle_to = ui_sprite_fsm_action_data(to);
-    ui_sprite_2d_track_angle_t from_track_angle_to = ui_sprite_fsm_action_data(from);
-
     ui_sprite_2d_track_angle_init(to, ctx);
-
-    to_track_angle_to->m_track_pos = from_track_angle_to->m_track_pos;
-
     return 0;
 }
 

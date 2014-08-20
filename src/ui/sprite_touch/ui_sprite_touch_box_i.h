@@ -10,9 +10,8 @@ extern "C" {
 
 struct ui_sprite_touch_box {
     ui_sprite_touch_touchable_t m_touchable;
-    UI_SPRITE_2D_PAIR m_lt;
-    UI_SPRITE_2D_PAIR m_rb;
-    uint32_t m_box_id;
+    UI_SPRITE_TOUCH_SHAPE m_shape;
+    uint32_t m_box_anim_id;
 
     TAILQ_ENTRY(ui_sprite_touch_box) m_next_for_touchable;
 };

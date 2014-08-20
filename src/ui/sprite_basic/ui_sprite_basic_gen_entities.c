@@ -1,6 +1,7 @@
 #include <assert.h>
 #include "cpe/pal/pal_strings.h"
 #include "cpe/utils/string_utils.h"
+#include "cpe/dr/dr_metalib_manage.h"
 #include "ui/sprite/ui_sprite_world.h"
 #include "ui/sprite/ui_sprite_entity.h"
 #include "ui/sprite/ui_sprite_entity_attr.h"
@@ -71,6 +72,13 @@ uint8_t ui_sprite_basic_gen_entities_do_destory(ui_sprite_basic_gen_entities_t g
     return gen_entities->m_do_destory;
 }
 
+ui_sprite_basic_value_generator_t 
+ui_sprite_basic_gen_entities_create_generator(
+    ui_sprite_basic_gen_entities_t gen_entities, UI_SPRITE_BASIC_VALUE_GENEARTOR_DEF const * def)
+{
+    return ui_sprite_basic_value_generator_create(gen_entities->m_module, &gen_entities->m_generators, def);
+}
+
 static void ui_sprite_basic_gen_entities_sync_update(ui_sprite_basic_gen_entities_t gen_entities) {
     ui_sprite_fsm_action_t action = ui_sprite_fsm_action_from_data(gen_entities);
 
@@ -133,7 +141,9 @@ static int ui_sprite_basic_gen_entities_do_gen(
         if (gen_entities->m_attrs) {
             struct dr_data_source data_source_buf[64];
             dr_data_source_t data_source = data_source_buf;
+            dr_data_source_t * next_data_source;
             UI_SPRITE_BASIC_GEN_ENTITIES_DATA gen_data;
+            struct ui_sprite_fsm_action_addition_source_ctx action_source_ctx;
 
             gen_data.creator_id = ui_sprite_entity_id(entity);
             strncpy(gen_data.creator_name, ui_sprite_entity_name(entity), sizeof(gen_data.creator_name));
@@ -141,8 +151,15 @@ static int ui_sprite_basic_gen_entities_do_gen(
             data_source->m_data.m_meta = module->m_meta_gen_entities_data;
             data_source->m_data.m_data = &gen_data;
             data_source->m_data.m_size = sizeof(gen_data);
-            data_source->m_next =
-                ui_sprite_entity_build_data_source(entity, data_source_buf + 1, sizeof(data_source_buf) - 1);
+            data_source->m_next = NULL;
+
+            ui_sprite_fsm_action_append_addition_source(fsm_action, &data_source, &action_source_ctx);
+
+            next_data_source = &data_source->m_next;
+            while(*next_data_source) {
+                next_data_source = &(*next_data_source)->m_next;
+            }
+            *next_data_source = ui_sprite_entity_build_data_source(entity, data_source_buf + 1, sizeof(data_source_buf) - 1);
 
             if (ui_sprite_entity_bulk_set_attrs(gened_entity, gen_entities->m_attrs, data_source) != 0) {
                 CPE_ERROR(
@@ -152,6 +169,14 @@ static int ui_sprite_basic_gen_entities_do_gen(
                 ui_sprite_entity_free(gened_entity);
                 return -1;
             }
+        }
+
+        if (ui_sprite_basic_value_generator_supply_all(&gen_entities->m_generators, gened_entity, NULL) != 0) {
+            CPE_ERROR(
+                module->m_em, "entity %d(%s): gen entity: entity %d() process generators fail!",
+                ui_sprite_entity_id(entity), ui_sprite_entity_name(entity), ui_sprite_entity_id(gened_entity));
+            ui_sprite_entity_free(gened_entity);
+            return -1;
         }
 
         if (ui_sprite_entity_enter(gened_entity) != 0) {
@@ -186,18 +211,33 @@ static void ui_sprite_basic_gen_entities_on_gen_event(void * ctx, ui_sprite_even
     ui_sprite_fsm_action_t action = ui_sprite_fsm_action_from_data(ctx);
     ui_sprite_entity_t entity = ui_sprite_fsm_action_to_entity(action);
     UI_SPRITE_EVT_BASIC_GEN_ENTITIES const * evt_data = evt->data;
- 
-    if (strcmp(ui_sprite_fsm_action_name(action), evt_data->generator_name) != 0) return;
 
+    gen_entities->m_generated_count = 0;
+    gen_entities->m_generated_duration = 0.0f;
     gen_entities->m_gen_count = evt_data->generate_count;
     gen_entities->m_gen_duration = evt_data->generate_duration;
+
+    if (!TAILQ_EMPTY(&gen_entities->m_generators)) {
+        struct ui_sprite_fsm_action_addition_source_ctx action_source_ctx;
+        dr_data_source_t data_source = NULL;
+
+        ui_sprite_fsm_action_append_addition_source(action, &data_source, &action_source_ctx);
+
+        if (ui_sprite_basic_value_generator_init_all(&gen_entities->m_generators, entity, data_source) != 0) {
+            CPE_ERROR(
+                module->m_em, "entity %d(%s): gen entity: on-gen-event: init generators fail!",
+                ui_sprite_entity_id(entity), ui_sprite_entity_name(entity));
+            ui_sprite_fsm_action_sync_update(action, 0);
+            return;
+        }
+    }
 
     if (gen_entities->m_gen_duration <= 0.0f) {
         if (ui_sprite_basic_gen_entities_do_gen(action, gen_entities, gen_entities->m_gen_count) != 0) {
             CPE_ERROR(
                 module->m_em, "entity %d(%s): gen entity: on-gen-event: gen entities fail!",
                 ui_sprite_entity_id(entity), ui_sprite_entity_name(entity));
-            ui_sprite_basic_gen_entities_sync_update(gen_entities);
+            ui_sprite_fsm_action_sync_update(action, 0);
             return;
         }
     }
@@ -262,6 +302,9 @@ static int ui_sprite_basic_gen_entities_init(ui_sprite_fsm_action_t fsm_action, 
     ui_sprite_basic_gen_entities_t gen_entities = ui_sprite_fsm_action_data(fsm_action);
     bzero(gen_entities, sizeof(*gen_entities));
     gen_entities->m_module = ctx;
+
+    TAILQ_INIT(&gen_entities->m_generators);
+
     return 0;
 }
 
@@ -282,6 +325,8 @@ static void ui_sprite_basic_gen_entities_clear(ui_sprite_fsm_action_t fsm_action
         mem_free(module->m_alloc, gen_entities->m_attrs);
         gen_entities->m_attrs = NULL;
     }
+
+    ui_sprite_basic_value_generator_free_all(&gen_entities->m_generators);
 }
 
 static int ui_sprite_basic_gen_entities_copy(ui_sprite_fsm_action_t to, ui_sprite_fsm_action_t from, void * ctx) {
@@ -311,6 +356,19 @@ static int ui_sprite_basic_gen_entities_copy(ui_sprite_fsm_action_t to, ui_sprit
         }
     }
 
+    if (ui_sprite_basic_value_generator_clone_all(
+            module, &to_gen_entities->m_generators, &from_gen_entities->m_generators) != 0)
+    {
+        ui_sprite_entity_t to_entity = ui_sprite_fsm_action_to_entity(to);
+
+        CPE_ERROR(
+            module->m_em, "entity %d(%s): clone gen_entities: copy generators fail!",
+            ui_sprite_entity_id(to_entity), ui_sprite_entity_name(to_entity));
+
+        ui_sprite_basic_gen_entities_clear(to, ctx);
+        return -1;
+    }
+
     return 0;
 }
 
@@ -322,10 +380,11 @@ static void ui_sprite_basic_gen_entities_update(ui_sprite_fsm_action_t fsm_actio
 
     gen_entities->m_generated_duration += delta;
     if (gen_entities->m_generated_count < gen_entities->m_gen_count) {
-        uint16_t require_gen_count =
+        float percent = 
             gen_entities->m_generated_duration >= gen_entities->m_gen_duration
-            ? gen_entities->m_gen_count
-            : (gen_entities->m_gen_count * gen_entities->m_generated_duration / gen_entities->m_gen_duration);
+            ? 1.0f
+            : gen_entities->m_generated_duration / gen_entities->m_gen_duration;
+        uint16_t require_gen_count = gen_entities->m_gen_count * gen_entities->m_gen_count * percent;
 
         if (ui_sprite_basic_gen_entities_do_gen(fsm_action, gen_entities, require_gen_count) != 0) {
             CPE_ERROR(

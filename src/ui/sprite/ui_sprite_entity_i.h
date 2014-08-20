@@ -15,6 +15,7 @@ struct ui_sprite_entity {
     uint8_t m_is_active;
     uint8_t m_is_wait_destory;
     uint8_t m_debug;
+    int8_t m_update_priority;
     ui_sprite_world_t m_world;
     ui_sprite_group_binding_list_t m_join_groups;
     ui_sprite_component_list_t m_components;

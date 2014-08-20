@@ -16,6 +16,8 @@ typedef void (*ui_sprite_fsm_action_update_fun_t)(ui_sprite_fsm_action_t to, voi
 ui_sprite_fsm_action_meta_t
 ui_sprite_fsm_action_meta_create(ui_sprite_fsm_module_t module, const char * name, uint16_t data_size);
 
+const char * ui_sprite_fsm_action_meta_name(ui_sprite_fsm_action_meta_t meta);
+
 void ui_sprite_fsm_action_meta_free(ui_sprite_fsm_action_meta_t fsm_action_meta);
 
 ui_sprite_fsm_action_meta_t ui_sprite_fsm_action_meta_find(ui_sprite_fsm_module_t module, const char * name);

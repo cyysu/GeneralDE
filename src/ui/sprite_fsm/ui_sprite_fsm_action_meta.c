@@ -47,6 +47,10 @@ void ui_sprite_fsm_action_meta_free(ui_sprite_fsm_action_meta_t meta) {
     mem_free(module->m_alloc, meta);
 }
 
+const char * ui_sprite_fsm_action_meta_name(ui_sprite_fsm_action_meta_t meta) {
+    return meta->m_name;
+}
+
 ui_sprite_fsm_action_meta_t
 ui_sprite_fsm_action_meta_find(ui_sprite_fsm_module_t module, const char * name) {
     struct ui_sprite_fsm_action_meta key;

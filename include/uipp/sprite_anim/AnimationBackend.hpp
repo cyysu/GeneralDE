@@ -21,14 +21,19 @@ public:
         return p->m_screen_size_fun(p->m_ctx);
     }
 
-    uint32_t createGroup(const char * layer) {
+    uint32_t createGroup(const char * layer, uint32_t entity_id, int8_t render_priority) {
         ui_sprite_anim_backend_def const * p = def();
-        return p->m_create_group_fun(p->m_ctx, layer);
+        return p->m_create_group_fun(p->m_ctx, layer, entity_id, render_priority);
     }
 
     void removeGroup(uint32_t group_id) {
         ui_sprite_anim_backend_def const * p = def();
         p->m_remove_group_fun(p->m_ctx, group_id);
+    }
+
+    void setGroupPriority(uint32_t group_id, float render_priority) {
+        ui_sprite_anim_backend_def const * p = def();
+        p->m_set_group_priority_fun(p->m_ctx, group_id, render_priority);
     }
 
     void setPos(uint32_t group_id, UI_SPRITE_2D_PAIR const & new_pos) {
@@ -39,6 +44,11 @@ public:
     void setScale(uint32_t group_id, UI_SPRITE_2D_PAIR const & new_scale) {
         ui_sprite_anim_backend_def const * p = def();
         p->m_scale_update_fun(p->m_ctx, group_id, new_scale);
+    }
+
+    void setFlip(uint32_t group_id, uint8_t flip_x, uint8_t flip_y) {
+        ui_sprite_anim_backend_def const * p = def();
+        p->m_flip_update_fun(p->m_ctx, group_id, flip_x, flip_y);
     }
 
     void setAngle(uint32_t group_id, float new_angle) {

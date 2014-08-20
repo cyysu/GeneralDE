@@ -43,18 +43,15 @@ int ui_sprite_fsm_ins_copy(ui_sprite_fsm_ins_t to, ui_sprite_fsm_ins_t from) {
 
     TAILQ_FOREACH(from_fsm_state, &from->m_states, m_next_for_ins) {
         ui_sprite_fsm_state_t state = ui_sprite_fsm_state_clone(to, from_fsm_state);
-        if (state == NULL) {
-            ui_sprite_fsm_ins_fini(to);
-            return -1;
-        }
+        if (state == NULL) return -1;
     }
 
     if (from->m_init_state) {
-        to->m_init_state = ui_sprite_fsm_state_find_by_id(to, from->m_init_state->m_id);
+        to->m_init_state = ui_sprite_fsm_state_find_by_name(to, from->m_init_state->m_name);
     }
 
     if (from->m_init_call_state) {
-        to->m_init_call_state = ui_sprite_fsm_state_find_by_id(to, from->m_init_call_state->m_id);
+        to->m_init_call_state = ui_sprite_fsm_state_find_by_name(to, from->m_init_call_state->m_name);
     }
 
     return 0;
@@ -182,7 +179,7 @@ int ui_sprite_fsm_ins_enter(ui_sprite_fsm_ins_t fsm) {
     if (ui_sprite_fsm_state_enter(state) != 0) {
         CPE_ERROR(
             fsm->m_module->m_em, "entity %d(%s): fsm enter: state %s enter fail!",
-            ui_sprite_entity_id(entity), ui_sprite_entity_name(entity), fsm->m_cur_state->m_name);
+            ui_sprite_entity_id(entity), ui_sprite_entity_name(entity), state->m_name);
         state->m_return_to = NULL;
         assert(fsm->m_cur_state == NULL);
         return -1;
@@ -193,6 +190,76 @@ int ui_sprite_fsm_ins_enter(ui_sprite_fsm_ins_t fsm) {
     }
 
     assert(fsm->m_cur_state == state);
+
+    return 0;
+}
+
+int ui_sprite_fsm_ins_set_state(ui_sprite_fsm_ins_t fsm, const char * switch_to, const char * call) {
+    ui_sprite_entity_t entity = ui_sprite_fsm_to_entity(fsm);
+    ui_sprite_fsm_state_t switch_to_state = ui_sprite_fsm_state_find_by_name(fsm, switch_to);
+    ui_sprite_fsm_state_t call_state = call ? ui_sprite_fsm_state_find_by_name(fsm, call) : NULL;
+    ui_sprite_fsm_state_t enter_state;
+
+    if (switch_to_state == NULL) {
+        CPE_ERROR(
+            fsm->m_module->m_em, "entity %d(%s): %s: set state: switch to state %s not exist!",
+            ui_sprite_entity_id(entity), ui_sprite_entity_name(entity),
+            ui_sprite_fsm_ins_path(fsm), switch_to);
+        return -1;
+    }
+
+    if (call && call_state == NULL) {
+        CPE_ERROR(
+            fsm->m_module->m_em, "entity %d(%s): %s: set state: call state %s not exist!",
+            ui_sprite_entity_id(entity), ui_sprite_entity_name(entity),
+            ui_sprite_fsm_ins_path(fsm), call);
+        return -1;
+    }
+
+    if (fsm->m_cur_state) {
+        if (ui_sprite_entity_debug(entity)) {
+            CPE_INFO(
+                fsm->m_module->m_em, "entity %d(%s): %s: set state: exit old state!",
+                ui_sprite_entity_id(entity), ui_sprite_entity_name(entity),
+                ui_sprite_fsm_ins_path(fsm));
+        }
+
+        ui_sprite_fsm_state_exit(fsm->m_cur_state);
+        assert(fsm->m_cur_state == NULL);
+
+        if (fsm->m_parent) {
+            TAILQ_REMOVE(&fsm->m_parent->m_childs, fsm, m_next_for_parent);
+        }
+    }
+
+    if (call_state) {
+        enter_state = call_state;
+        enter_state->m_return_to = switch_to_state;
+    }
+    else {
+        assert(switch_to_state);
+        enter_state = switch_to_state;
+    }
+
+    assert(enter_state);
+
+    if (ui_sprite_fsm_state_enter(enter_state) != 0) {
+        CPE_ERROR(
+            fsm->m_module->m_em, "entity %d(%s): fsm enter: switch: state %s enter fail!",
+            ui_sprite_entity_id(entity), ui_sprite_entity_name(entity), enter_state->m_name);
+        enter_state->m_return_to = NULL;
+        assert(fsm->m_cur_state == NULL);
+        return -1;
+    }
+
+    assert(fsm->m_cur_state == enter_state);
+
+    if (ui_sprite_entity_debug(entity)) {
+        CPE_INFO(
+            fsm->m_module->m_em, "entity %d(%s): %s: set state: enter state %s success",
+            ui_sprite_entity_id(entity), ui_sprite_entity_name(entity),
+            ui_sprite_fsm_ins_path(fsm), enter_state->m_name);
+    }
 
     return 0;
 }
@@ -217,9 +284,39 @@ void ui_sprite_fsm_ins_exit(ui_sprite_fsm_ins_t fsm) {
     }
 }
 
+void ui_sprite_fsm_ins_check(ui_sprite_fsm_ins_t fsm) {
+    uint16_t runing_action_count;
+
+    assert(fsm->m_cur_state);
+
+INS_CHECK_AGAIN:
+    runing_action_count = ui_sprite_fsm_state_check_actions(fsm->m_cur_state);
+    if (runing_action_count > 0) return;
+
+    ui_sprite_fsm_state_process_complete(fsm->m_cur_state);
+    if (fsm->m_cur_state) goto INS_CHECK_AGAIN;
+}
+
 void ui_sprite_fsm_ins_update(ui_sprite_fsm_ins_t fsm, float delta) {
     if (fsm->m_cur_state) {
         ui_sprite_fsm_state_update(fsm->m_cur_state, delta);
+    }
+}
+
+void ui_sprite_fsm_ins_visit_actions(
+    ui_sprite_fsm_ins_t fsm,
+    void (*visitor)(void * ctx, ui_sprite_fsm_action_t action), void * ctx)
+{
+    ui_sprite_fsm_state_t state;
+
+    TAILQ_FOREACH(state, &fsm->m_states, m_next_for_ins) {
+        ui_sprite_fsm_action_t action;
+        TAILQ_FOREACH(action, &state->m_actions, m_next_for_state) {
+            visitor(ctx, action);
+            if (strcmp(action->m_meta->m_name, "run-fsm") == 0) {
+                ui_sprite_fsm_ins_visit_actions((ui_sprite_fsm_ins_t)ui_sprite_fsm_action_data(action), visitor, ctx);
+            }
+        }
     }
 }
 
