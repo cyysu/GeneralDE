@@ -119,6 +119,7 @@ public:
     T & as(void) { return *(T *)data(); }
 
     bool is_valid(void) const { return m_data ? true : false; }
+    bool is_valid(const char * name) const;
     void dump_data(write_stream_t stream) const;
     const char * dump_data(mem_buffer_t buffer) const;
 
