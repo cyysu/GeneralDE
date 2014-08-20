@@ -1,6 +1,8 @@
 #include "cpe/utils/stream_file.h"
 #include "FileTest.hpp"
 
+#ifndef TARGET_IPHONE_SIMULATOR
+
 class FileStreamTest : public FileTest {
 public:
     FileStreamTest() : m_fp(NULL) {
@@ -67,3 +69,5 @@ TEST_F(FileStreamTest, write_basic) {
 
     EXPECT_STREQ("abcd", t_file_to_str("a.txt"));
 }
+
+#endif

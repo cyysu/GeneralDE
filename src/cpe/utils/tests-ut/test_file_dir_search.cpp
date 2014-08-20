@@ -1,6 +1,8 @@
 #include <sstream>
 #include "SearchDirTest.hpp"
 
+#ifndef TARGET_IPHONE_SIMULATOR
+
 TEST_F(SearchDirTest, file_go) {
     expectFile("b.txt", dir_visit_next_go);
     expectFile("a.txt", dir_visit_next_go);
@@ -125,3 +127,4 @@ TEST_F(SearchDirTest, dir_alloc_count) {
     EXPECT_EQ(1, t_alloc_count());
 }
 
+#endif
