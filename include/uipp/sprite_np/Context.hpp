@@ -31,6 +31,8 @@ public:
 	virtual void unregisterExternCtrl(NPGUIControl * ctrl) = 0;
 	virtual void clearExternCtrls(void) = 0;
 
+    virtual void setUpdatorPriority(int8_t priority) = 0;
+
     virtual ~Context();
 
     static const char * NAME;
