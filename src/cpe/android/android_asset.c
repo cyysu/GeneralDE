@@ -1,5 +1,6 @@
 #ifdef ANDROID
 
+#include <stdlib.h>
 #include <android/asset_manager.h>
 #include <android/asset_manager_jni.h>
 #include "cpe/android/android_asset.h"

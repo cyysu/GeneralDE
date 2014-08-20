@@ -194,14 +194,22 @@ int gd_app_cfg_reload(gd_app_context_t context) {
     }
 
     mem_buffer_init(&tbuf, context->m_alloc);
-    /*
+
     mem_buffer_strcat(&tbuf, context->m_root);
     mem_buffer_strcat(&tbuf, "/etc.bc");
     if (file_exist((char*)mem_buffer_make_continuous(&tbuf, 0), NULL)) {
         rv = cfg_read_bin_file(context->m_cfg, (char*)mem_buffer_make_continuous(&tbuf, 0), context->m_em);
+
+        if (rv == 0) {
+            mem_buffer_clear_data(&tbuf);
+            mem_buffer_strcat(&tbuf, context->m_root);
+            mem_buffer_strcat(&tbuf, "/etc.ios.bc");
+            if (file_exist((char*)mem_buffer_make_continuous(&tbuf, 0), NULL)) {
+                rv = cfg_read_bin_file(context->m_cfg, (char*)mem_buffer_make_continuous(&tbuf, 0), context->m_em);
+            }
+        }
         goto READ_COMPLETE;
     }
-    //*/
 
     mem_buffer_clear_data(&tbuf);
     mem_buffer_strcat(&tbuf, context->m_root);
@@ -212,6 +220,19 @@ int gd_app_cfg_reload(gd_app_context_t context) {
             (char*)mem_buffer_make_continuous(&tbuf, 0),
             cfg_merge_use_new,
             context->m_em);
+
+        if (rv == 0) {
+            mem_buffer_clear_data(&tbuf);
+            mem_buffer_strcat(&tbuf, context->m_root);
+            mem_buffer_strcat(&tbuf, "/etc.ios.yml");
+            if (file_exist((char*)mem_buffer_make_continuous(&tbuf, 0), NULL)) {
+                rv = cfg_read_file(
+                    context->m_cfg,
+                    (char*)mem_buffer_make_continuous(&tbuf, 0),
+                    cfg_merge_use_new,
+                    context->m_em);
+            }
+        }
         goto READ_COMPLETE;
     }
 
@@ -226,6 +247,20 @@ int gd_app_cfg_reload(gd_app_context_t context) {
         context->m_em,
         context->m_alloc);
 
+    if (rv == 0) {
+        mem_buffer_clear_data(&tbuf);
+        mem_buffer_strcat(&tbuf, context->m_root);
+        mem_buffer_strcat(&tbuf, "/etc.ios");
+
+        if (dir_exist((char*)mem_buffer_make_continuous(&tbuf, 0), NULL)){
+            rv = cfg_read_dir(
+                context->m_cfg,
+                (char*)mem_buffer_make_continuous(&tbuf, 0),
+                cfg_merge_use_new,
+                context->m_em,
+                context->m_alloc);
+        }
+    }
 READ_COMPLETE:
     if (rv == 0) {
         if (context->m_debug) {
