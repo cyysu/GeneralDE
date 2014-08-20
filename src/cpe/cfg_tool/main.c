@@ -20,12 +20,12 @@ int combine_cfg(const char * input_dir, const char * output_file_name, error_mon
         goto COMBINE_CFG_COMPLETE;
     }
     
-    if (cfg_read_dir(cfg, input_dir, cfg_replace, em, NULL) != 0) {
+    if (cfg_read_dir(cfg, input_dir, cfg_merge_use_new, em, NULL) != 0) {
         CPE_ERROR(em, "conbine cfg: read from dir %s fail!", input_dir);
         goto COMBINE_CFG_COMPLETE;
     }
 
-    output_file = file_stream_open(output_file_name, "w", em);
+    output_file = file_stream_open(output_file_name, "wb", em);
     if (output_file == NULL) {
         CPE_ERROR(em, "conbine cfg: create output file %s fail!", output_file_name);
         goto COMBINE_CFG_COMPLETE;
