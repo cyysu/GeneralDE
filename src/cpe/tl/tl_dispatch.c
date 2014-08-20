@@ -91,7 +91,7 @@ static int tl_manage_dispatch_event(tl_manage_t tm, int maxCount) {
             }
 
             if (node->m_repeatCount != 0) {
-                node->m_execute_time += node->m_span;
+                node->m_execute_time += (tl_time_span_t)((float)node->m_span / tm->m_rate);
                 if (tl_event_node_insert(node) != 0) {
                     tl_event_node_free(node);
                 }
@@ -110,6 +110,22 @@ static int tl_manage_dispatch_event(tl_manage_t tm, int maxCount) {
     return rv == 0 ? count : rv;
 }
 
+static void tl_manage_check_rate(tl_manage_t tm) {
+    struct tl_event_node * event_node;
+    if (tm->m_rate != tm->m_to_rate)
+    {
+        tm->m_rate = tm->m_to_rate;
+
+        event_node = TAILQ_FIRST(&tm->m_event_queue);
+        while(event_node != TAILQ_END(&tm->m_event_queue))
+        {
+            event_node->m_execute_time = tm->m_time_current + (tl_time_span_t)((float)(tl_time_span_t)(event_node->m_execute_time - tm->m_time_current) / tm->m_to_rate);
+            //event_node->m_span = event_node->m_span;
+            event_node = TAILQ_NEXT(event_node, m_next);
+        }
+    }
+}
+
 ptr_int_t tl_manage_tick(tl_manage_t tm, ptr_int_t count) {
     int leftCount;
 
@@ -119,6 +135,8 @@ ptr_int_t tl_manage_tick(tl_manage_t tm, ptr_int_t count) {
     if (count < 0) count = INT_MAX;
 
     tl_manage_update_time(tm);
+
+    tl_manage_check_rate(tm);
 
     leftCount = count;
     while(leftCount > 0) {
