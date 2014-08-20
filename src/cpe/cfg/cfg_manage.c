@@ -329,20 +329,24 @@ cfg_t cfg_struct_add_value_from_string_auto(cfg_t s, const char * name, const ch
     int32_t v32;
 	int64_t v64;
 
-    if (dr_ctype_set_from_string(&v32, CPE_DR_TYPE_INT32, value, NULL) == 0) {
-        return cfg_struct_add_int32(s, name, v32, policy);
-    }
+    while(value[0] && isspace((unsigned char)value[0])) value++;
 
-    if (dr_ctype_set_from_string(&v64, CPE_DR_TYPE_INT64, value, NULL) == 0) {
-        return cfg_struct_add_int64(s, name, v64, policy);
-    }
+    if (value[0] == '-' || value[0] == '.'  || value[0] == '+' || (value[0] >= '0' && value[0] <= '9')) {
+        if (dr_ctype_set_from_string(&v32, CPE_DR_TYPE_INT32, value, NULL) == 0) {
+            return cfg_struct_add_int32(s, name, v32, policy);
+        }
 
-    if (dr_ctype_set_from_string(&f, CPE_DR_TYPE_FLOAT, value, NULL) == 0) {
-        return cfg_struct_add_float(s, name, f, policy);
-    }
+        if (dr_ctype_set_from_string(&v64, CPE_DR_TYPE_INT64, value, NULL) == 0) {
+            return cfg_struct_add_int64(s, name, v64, policy);
+        }
 
-    if (dr_ctype_set_from_string(&d, CPE_DR_TYPE_DOUBLE, value, NULL) == 0) {
-        return cfg_struct_add_double(s, name, d, policy);
+        if (dr_ctype_set_from_string(&f, CPE_DR_TYPE_FLOAT, value, NULL) == 0) {
+            return cfg_struct_add_float(s, name, f, policy);
+        }
+
+        if (dr_ctype_set_from_string(&d, CPE_DR_TYPE_DOUBLE, value, NULL) == 0) {
+            return cfg_struct_add_double(s, name, d, policy);
+        }
     }
 
     return cfg_struct_add_string(s, name, value, policy);
@@ -354,20 +358,22 @@ cfg_t cfg_seq_add_value_from_string_auto(cfg_t s, const char * value) {
     int32_t v32;
     int64_t v64;
 
-	if (dr_ctype_set_from_string(&v32, CPE_DR_TYPE_INT32, value, NULL) == 0) {
-        return cfg_seq_add_int32(s, v32);
-    }
+    if (value[0] == '-' || value[0] == '.'  || value[0] == '+' || (value[0] >= '0' && value[0] <= '9')) {
+        if (dr_ctype_set_from_string(&v32, CPE_DR_TYPE_INT32, value, NULL) == 0) {
+            return cfg_seq_add_int32(s, v32);
+        }
 
-    if (dr_ctype_set_from_string(&v64, CPE_DR_TYPE_INT64, value, NULL) == 0) {
-        return cfg_seq_add_int64(s, v64);
-    }
+        if (dr_ctype_set_from_string(&v64, CPE_DR_TYPE_INT64, value, NULL) == 0) {
+            return cfg_seq_add_int64(s, v64);
+        }
 
-    if (dr_ctype_set_from_string(&f, CPE_DR_TYPE_FLOAT, value, NULL) == 0) {
-        return cfg_seq_add_float(s, f);
-    }
+        if (dr_ctype_set_from_string(&f, CPE_DR_TYPE_FLOAT, value, NULL) == 0) {
+            return cfg_seq_add_float(s, f);
+        }
 
-    if (dr_ctype_set_from_string(&d, CPE_DR_TYPE_DOUBLE, value, NULL) == 0) {
-        return cfg_seq_add_double(s, d);
+        if (dr_ctype_set_from_string(&d, CPE_DR_TYPE_DOUBLE, value, NULL) == 0) {
+            return cfg_seq_add_double(s, d);
+        }
     }
 
     return cfg_seq_add_string(s, value);

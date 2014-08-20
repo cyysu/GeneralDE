@@ -29,6 +29,13 @@ typedef struct dr_idx_entry_info * dr_idx_entry_info_t;
 typedef struct dr_index_info * dr_index_info_t;
 typedef struct dr_index_entry_info * dr_index_entry_info_t;
 
+typedef struct dr_value {
+    uint8_t m_type;
+    LPDRMETA m_meta;
+    void * m_data;
+    size_t m_size;
+} * dr_value_t;
+
 typedef struct dr_data {
     LPDRMETA m_meta;
     void * m_data;
