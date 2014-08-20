@@ -94,19 +94,19 @@ void cpe_error_monitor_remove_node(error_monitor_t monitor, struct error_monitor
 
 #ifdef _MSC_VER //for msvc
 #define CPE_INFO(monitor, format, ...)                                  \
-    _CPE_DO_ERROR_NOTIFY(monitor, CPE_EL_INFO, 0, format, __VA_ARGS__)
+    _CPE_DO_ERROR_NOTIFY(monitor, CPE_EL_INFO, 0, __FILE__ "(%d): " format, __LINE__, __VA_ARGS__)
 
 #define CPE_WARNING(monitor, format, ...)                               \
-    _CPE_DO_ERROR_NOTIFY(monitor, CPE_EL_WARNING, -1, format, __VA_ARGS__)
+    _CPE_DO_ERROR_NOTIFY(monitor, CPE_EL_WARNING, -1, __FILE__ "(%d): " format, __LINE__, __VA_ARGS__)
 
 #define CPE_ERROR(monitor, format, ...)                                 \
-    _CPE_DO_ERROR_NOTIFY(monitor, CPE_EL_ERROR, -1, format, __VA_ARGS__)
+    _CPE_DO_ERROR_NOTIFY(monitor, CPE_EL_ERROR, -1, __FILE__ "(%d): " format, __LINE__, __VA_ARGS__)
 
 #define CPE_WARNING_EX(monitor, en, format, ...)                        \
-    _CPE_DO_ERROR_NOTIFY(monitor, CPE_EL_WARNING, en, format, __VA_ARGS__)
+    _CPE_DO_ERROR_NOTIFY(monitor, CPE_EL_WARNING, en, __FILE__ "(%d): " format, __LINE__, __VA_ARGS__)
 
 #define CPE_ERROR_EX(monitor, en, format, ...)                          \
-    _CPE_DO_ERROR_NOTIFY(monitor, CPE_EL_ERROR, en, format, __VA_ARGS__)
+    _CPE_DO_ERROR_NOTIFY(monitor, CPE_EL_ERROR, en, __FILE__ "(%d): " format, __LINE__, __VA_ARGS__)
 #else //for other(gcc)
 #define CPE_INFO(monitor, format, args...)                          \
     _CPE_DO_ERROR_NOTIFY(monitor, CPE_EL_INFO, 0, format, ##args)
