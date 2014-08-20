@@ -248,7 +248,7 @@ void Meta::copy_same_entries_part(
         policy, em);
 }
 
-size_t Meta::calc_dyn_size(size_t record_count) {
+size_t Meta::calc_dyn_size(size_t record_count) const{
     ssize_t r = dr_meta_calc_dyn_size(*this, record_count);
     if (r < 0) {
         ::std::ostringstream os;

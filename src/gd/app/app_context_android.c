@@ -103,21 +103,40 @@ int gd_app_cfg_reload(gd_app_context_t context) {
         CPE_ERROR(context->m_em, "load config from %s:assets/etc: open apk fail!", apk_name);
         return -1;
     }
-    /*
+    //*
     if ((zip_file = cpe_unzip_file_find(zip_context, "assets/etc.bc", context->m_em))) {
+      CPE_INFO(context->m_em, "etc.bc found");
         rv = cfg_read_zip_bin_file(
             context->m_cfg,
             zip_file,
             cfg_merge_use_new,
             context->m_em);
 
-        if (rv == 0) {
+        if (rv == 0){
             if (context->m_debug) {
                 CPE_INFO(context->m_em, "load config from %s:assets/etc.bc success!", apk_name);
             }
+
+            if ((zip_file = cpe_unzip_file_find(zip_context, "assets/etc.android.bc", context->m_em))) {
+                CPE_INFO(context->m_em, "etc.android.bc found");
+                rv = cfg_read_zip_bin_file(
+                    context->m_cfg,
+                    zip_file,
+                    cfg_merge_use_new,
+                    context->m_em);
+                if (rv == 0){
+                    if (context->m_debug) {
+                        CPE_INFO(context->m_em, "load config from %s:assets/etc.android.bc success!", apk_name);
+                    }
+                }else{
+                    CPE_INFO(context->m_em, "etc.android.bc load failed");
+                }
+            }
+        }else{
+            CPE_INFO(context->m_em, "etc.bc load failed");
         }
     }
-    else */
+    else //*/
     if ((zip_file = cpe_unzip_file_find(zip_context, "assets/etc.yml", context->m_em))) {
         rv = cfg_read_zip_file(
             context->m_cfg,
@@ -129,6 +148,23 @@ int gd_app_cfg_reload(gd_app_context_t context) {
             if (context->m_debug) {
                 CPE_INFO(context->m_em, "load config from %s:assets/etc.yml success!", apk_name);
             }
+            if ((zip_file = cpe_unzip_file_find(zip_context, "assets/etc.android.yml", context->m_em))) {
+                rv = cfg_read_zip_file(
+                    context->m_cfg,
+                    zip_file,
+                    cfg_merge_use_new,
+                    context->m_em);
+                if (rv == 0) {
+                    if (context->m_debug) {
+                        CPE_INFO(context->m_em, "load config from %s:assets/etc.android.yml success!", apk_name);
+                    }
+                }else{
+
+                    CPE_INFO(context->m_em, "etc.android.yml load failed");
+                }
+            }
+        }else{
+            CPE_INFO(context->m_em, "etc.yml load failed");
         }
     }
     else if ((zip_dir = cpe_unzip_dir_find(zip_context, "assets/etc", context->m_em))) {
@@ -143,12 +179,29 @@ int gd_app_cfg_reload(gd_app_context_t context) {
             if (context->m_debug) {
                 CPE_INFO(context->m_em, "load config from %s:assets/etc success!", apk_name);
             }
+            if ((zip_dir = cpe_unzip_dir_find(zip_context, "assets/etc.android", context->m_em))) {
+                rv = cfg_read_zip_dir(
+                    context->m_cfg,
+                    zip_dir,
+                    cfg_merge_use_new,
+                    context->m_em,
+                    context->m_alloc);
+                if (rv == 0) {
+                    if (context->m_debug) {
+                        CPE_INFO(context->m_em, "load config from %s:assets/etc.android success!", apk_name);
+                    }
+                }else{
+                    CPE_INFO(context->m_em, "etc.android load failed");
+                }
+            }
+        }else{
+            CPE_INFO(context->m_em, "etc load failed");
         }
     }
     else {
-        if (context->m_debug) {
+      //if (context->m_debug) {
             CPE_INFO(context->m_em, "load config from %s:assets/etc: dir not exist, skip!", apk_name);
-        }
+	    // }
         rv = 0;
     }
 

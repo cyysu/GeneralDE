@@ -20,6 +20,7 @@ tl_manage_t tl_manage_create(mem_allocrator_t alloc) {
     tm->m_time_current = tm->m_time_get(tm->m_time_ctx);
     tm->m_state = tl_manage_state_runing;
     tm->m_time_pause_eat = 0;
+    tm->m_to_rate = tm->m_rate = 1.f;
 
     tm->m_action_begin_pos = tm->m_action_end_pos = 0;
 
@@ -236,4 +237,8 @@ int tl_set_opt(tl_t tl, tl_option_t opt, ...) {
     va_end(ap);
 
     return rv;
+}
+
+void tl_manage_rate(tl_manage_t tm, float rate) {
+    tm->m_to_rate = rate;
 }
