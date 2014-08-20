@@ -116,7 +116,10 @@ protected:
     ::std::pair<ElementT const *, ElementT const *>
     find_range(ElementT const & key) const {
         if (m_elements.empty()) {
-            return  ::std::pair<ElementT const *, ElementT const *>(NULL, NULL);
+            ::std::pair<ElementT const *, ElementT const *> r;
+            r.first = NULL;
+            r.second = NULL;
+            return  r;
         }
         else {
             ElementT const * all_begin = &m_elements[0];
@@ -145,7 +148,7 @@ protected:
     }
 
     template<typename RangeT, typename CmpT>
-    RangeT find_range(ElementT const & key) const {
+    RangeT find_range(ElementT const & key, CmpT cmp = CmpT()) const {
         if (m_elements.empty()) {
             RangeT r = { NULL, NULL };
             return r;
@@ -154,8 +157,8 @@ protected:
             ElementT const * all_begin = &m_elements[0];
             ElementT const * all_end = all_begin + m_elements.size();
             RangeT r = {
-                ::std::lower_bound(all_begin, all_end, key, CmpT()),
-                ::std::upper_bound(all_begin, all_end, key, CmpT())
+                ::std::lower_bound(all_begin, all_end, key, cmp),
+                ::std::upper_bound(all_begin, all_end, key, cmp)
             };
             return r;
         }
