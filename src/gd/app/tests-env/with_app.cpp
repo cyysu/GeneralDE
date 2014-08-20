@@ -168,7 +168,7 @@ void with_app::t_app_set_timer_source_last_event(void) {
 }
 
 int with_app::t_app_tick(int count) {
-    return tl_manage_tick(gd_app_tl_mgr(t_app()), count);
+    return gd_app_tick(t_app());
 }
 
 void with_app::t_app_net_run(void) {
