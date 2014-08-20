@@ -9,7 +9,7 @@ ssize_t file_write_from_buf(const char * file, const void * buf, size_t size, er
     ssize_t totalSize;
     FILE * fp;
     
-    fp = file_stream_open(file, "w", em);
+    fp = file_stream_open(file, "wb", em);
     if (fp == NULL) return -1;
 
     totalSize = file_stream_write_from_buf(fp, buf, size, em);
@@ -27,7 +27,7 @@ ssize_t file_write_from_stream(const char * file, read_stream_t stream, error_mo
     ssize_t totalSize;
     FILE * fp;
 
-    fp = file_stream_open(file, "w", em);
+    fp = file_stream_open(file, "wb", em);
     if (fp == NULL) return -1;
 
     totalSize = file_stream_write_from_stream(fp, stream, em);
@@ -41,7 +41,7 @@ ssize_t file_append_from_buf(const char * file, const void * buf, size_t size, e
     ssize_t totalSize;
     FILE * fp;
 
-    fp = file_stream_open(file, "a", em);
+    fp = file_stream_open(file, "ab", em);
     if (fp == NULL) return -1;
 
     totalSize = file_stream_write_from_buf(fp, buf, size, em);
@@ -59,7 +59,7 @@ ssize_t file_append_from_stream(const char * file, read_stream_t stream, error_m
     FILE * fp;
     ssize_t totalSize;
 
-    fp = file_stream_open(file, "a", em);
+    fp = file_stream_open(file, "ab", em);
     if (fp == NULL) return -1;
 
     totalSize = file_stream_write_from_stream(fp, stream, em);
@@ -384,4 +384,46 @@ const char * file_name_append_base(mem_buffer_t tbuf, const char * input) {
         mem_buffer_set_size(tbuf, mem_buffer_size(tbuf) - 1);
         return file_name_base(input, tbuf);
     }
+}
+
+int file_copy(const char * output, const char * input, mode_t mode, error_monitor_t em) {
+    ssize_t totalSize;
+    size_t writeSize;
+    size_t writeOkSize;
+    size_t size;
+    FILE * fp_i;
+    FILE * fp_o;
+    char buf[512];
+
+    fp_i = file_stream_open(input, "rb", em);
+    if (fp_i == NULL) return -1;
+
+    fp_o = file_stream_open(output, "wb", em);
+    if (fp_o == NULL) {
+        file_stream_close(fp_i, em);
+        return -1;
+    }
+
+    totalSize = 0;
+    while((size = fread(buf, 1, sizeof(buf), fp_i)) > 0) {
+        writeOkSize = 0;
+        while(size > writeOkSize
+              && (writeSize = fwrite(buf + writeOkSize, 1, size - writeOkSize, fp_o)) > 0)
+        {
+            writeOkSize += writeSize;
+        }
+
+        totalSize += writeOkSize;
+
+        if (writeOkSize < size) break;
+    }
+
+    if (ferror(fp_o)) {
+        totalSize = -1;
+    }
+
+    file_stream_close(fp_i, em);
+    file_stream_close(fp_o, em);
+    
+    return totalSize;
 }
