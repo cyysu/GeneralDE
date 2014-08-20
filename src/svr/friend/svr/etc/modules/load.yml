@@ -40,6 +40,8 @@
 
 - name: dr_store_manage
 
+- include: metalibs
+
 - name: svr_friend_lib
   type: dr_store_loader
   load-from-symbol: g_metalib_svr_friend_pro
