@@ -274,7 +274,7 @@ int cfg_read_bin(cfg_t cfg, void const  * input, size_t input_len, error_monitor
     return cfg_read_bin_with_name(cfg, NULL, input, input_len, em);
 }
 
-int cfg_read_bin_file(cfg_t cfg, void const  * path, error_monitor_t em) {
+int cfg_read_bin_file(cfg_t cfg, const char * path, error_monitor_t em) {
     struct mem_buffer buffer;
     ssize_t sz;
 
