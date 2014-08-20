@@ -99,6 +99,9 @@ struct tl_manage {
     /*event*/
     struct tl_event_node_queue m_event_queue;
     struct tl_event_node_queue m_event_building_queue;
+
+    float m_rate;
+    float m_to_rate;
 };
 
 #ifdef __cplusplus
