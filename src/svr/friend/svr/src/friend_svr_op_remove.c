@@ -14,7 +14,6 @@ friend_svr_op_remove_send(
     logic_context_t ctx, logic_stack_node_t stack, void * user_data, cfg_t cfg)
 {
     friend_svr_t svr = user_data;
-    logic_require_t require;
     logic_data_t req_data;
     SVR_FRIEND_REQ_REMOVE const * req;
 
@@ -26,14 +25,7 @@ friend_svr_op_remove_send(
     }
     req = logic_data_data(req_data);
 
-    require = logic_require_create(stack, "remove");
-    if (require == NULL) {
-        APP_CTX_ERROR(logic_context_app(ctx), "%s: remove: create logic require fail!", friend_svr_name(svr));
-        logic_context_errno_set(ctx, SVR_FRIEND_ERRNO_INTERNAL);
-        return logic_op_exec_result_false;
-    }
-
-    if (friend_svr_db_send_remove(svr, require, req->user_id, req->friend_id) != 0) {
+    if (friend_svr_db_send_remove(svr, stack, "remove", req->user_id, req->friend_id) != 0) {
         logic_context_errno_set(ctx, SVR_FRIEND_ERRNO_INTERNAL);
         return logic_op_exec_result_false;
     }

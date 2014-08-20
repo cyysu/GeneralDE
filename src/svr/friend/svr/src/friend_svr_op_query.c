@@ -15,9 +15,8 @@ friend_svr_op_query_send(
     logic_context_t ctx, logic_stack_node_t stack, void * user_data, cfg_t cfg)
 {
     friend_svr_t svr = user_data;
-    logic_require_t require;
     logic_data_t req_data;
-    SVR_FRIEND_REQ_QUERY const * req;
+    SVR_FRIEND_REQ_QUERY * req;
 
     req_data = logic_context_data_find(ctx, "svr_friend_req_query");
     if (req_data == NULL) {
@@ -27,14 +26,7 @@ friend_svr_op_query_send(
     }
     req = logic_data_data(req_data);
 
-    require = logic_require_create(stack, "query");
-    if (require == NULL) {
-        APP_CTX_ERROR(logic_context_app(ctx), "%s: query: create logic require fail!", friend_svr_name(svr));
-        logic_context_errno_set(ctx, SVR_FRIEND_ERRNO_INTERNAL);
-        return logic_op_exec_result_false;
-    }
-
-    if (friend_svr_db_send_query(svr, require, req->user_id) != 0) {
+    if (friend_svr_db_send_query(svr, stack, "query", req->user_id, req->state_count, req->states) != 0) {
         logic_context_errno_set(ctx, SVR_FRIEND_ERRNO_INTERNAL);
         return logic_op_exec_result_false;
     }
@@ -113,21 +105,14 @@ friend_svr_op_query_recv(
     res->friend_count = record_count;
 
     for(i = 0; i < record_count && data_capacity > 0; ++i) {
-        const uint8_t * query_record;
+        uint8_t * query_record;
+        SVR_FRIEND_DATA * result_record;
+
         query_record = query_result + dr_entry_data_start_pos(svr->m_record_list_data_entry, i);
-        
-        if (dr_entry_try_read_uint64(
-                res->friends + i, 
-                query_record + svr->m_record_fuid_start_pos,
-                svr->m_record_fuid_entry,
-                svr->m_em)
-            != 0)
-        {
-            APP_CTX_ERROR(logic_context_app(ctx), "%s: %s: read uid fail!", friend_svr_name(svr), logic_require_name(require));
-            logic_context_errno_set(ctx, SVR_FRIEND_ERRNO_INTERNAL);
-            return logic_op_exec_result_false;
-        }
-            
+        result_record = res->friends + i;
+
+        result_record->user_id = friend_svr_record_fuid(svr, query_record);
+        result_record->state = friend_svr_record_state(svr, query_record);
     }
     
     return logic_op_exec_result_true;

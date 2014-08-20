@@ -13,6 +13,11 @@
   operations:
     - friend_op_remove
 
+- name: friend_ack
+  respons-to: SVR_FRIEND_CMD_REQ_ACK
+  operations:
+    - friend_op_ack
+
 - name: friend_sync
   respons-to: SVR_FRIEND_CMD_REQ_SYNC
   operations:
