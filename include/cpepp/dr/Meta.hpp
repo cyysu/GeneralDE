@@ -88,7 +88,7 @@ public:
     void load_from_pbuf(void * data, size_t capacity, const void * pbuf, size_t pbuf_size) const;
     bool try_load_from_pbuf(void * data, size_t capacity, const void * pbuf, size_t pbuf_size, error_monitor_t em = 0) const;
 
-    size_t calc_dyn_size(size_t record_count);
+    size_t calc_dyn_size(size_t record_count) const;
 
     /*operations of data format cfg*/
     void load_from_cfg(void * data, size_t capacity, cfg_t cfg, int policy = DR_CFG_READ_CHECK_NOT_EXIST_ATTR) const;
