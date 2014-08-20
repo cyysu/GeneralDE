@@ -103,23 +103,6 @@ int friend_svr_app_init(gd_app_context_t app, gd_app_module_t module, cfg_t cfg)
         CPE_INFO(gd_app_em(app), "%s: create: done.", gd_app_module_name(module));
     }
 
-    runing_mode = cfg_get_string(cfg, "runing-mode", NULL);
-    if (runing_mode == NULL) {
-        CPE_ERROR(svr->m_em, "%s: create: runing-mode not configured.", friend_svr_name(svr));
-        return -1;
-    }
-
-    if (strcmp(runing_mode, "one-way") == 0) {
-        svr->m_runing_mode = friend_svr_runing_mode_one_way;
-    }
-    else if (strcmp(runing_mode, "ack") == 0) {
-        svr->m_runing_mode = friend_svr_runing_mode_ack;
-    }
-    else {
-        CPE_ERROR(svr->m_em, "%s: create: runing-mode %s is unknown.", friend_svr_name(svr), runing_mode);
-        return -1;
-    }
-
     return 0;
 }
 

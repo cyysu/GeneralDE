@@ -41,9 +41,6 @@ struct logic_op_register_def g_friend_ops[] = {
     , { "friend_op_remove", 
       friend_svr_op_remove_send,
       friend_svr_op_remove_recv }
-    , { "friend_op_ack", 
-      friend_svr_op_ack_send,
-      friend_svr_op_ack_recv }
     , { "friend_op_sync", 
       friend_svr_op_sync_send,
       friend_svr_op_sync_recv }
@@ -82,7 +79,6 @@ friend_svr_create(
     svr->m_rsp_manage = rsp_manage;
     svr->m_db = db;
     svr->m_debug = 0;
-    svr->m_runing_mode = friend_svr_runing_mode_one_way;
 
     mem_buffer_init(&svr->m_record_metalib, alloc);
     svr->m_record_meta = NULL;
