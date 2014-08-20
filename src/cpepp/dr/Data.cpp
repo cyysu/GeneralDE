@@ -412,8 +412,28 @@ ConstData::ConstData(DataElement const & element)
 {
 }
 
+bool ConstData::is_valid(const char * name) const
+{
+    if (m_meta == NULL) return false;
+
+    LPDRMETAENTRY entry;
+    int32_t off = dr_meta_path_to_off(m_meta, name, &entry);
+    if (off < 0 || entry == NULL) {
+        return false;
+    }
+
+    if ((size_t)off >= m_capacity) {
+        ::std::ostringstream os;
+        os << "meta " << dr_meta_name(m_meta) << " entry " << name
+            << " off " << off << " overflow, capacity is " << m_capacity << "!";
+        throw ::std::runtime_error(os.str());
+    }
+
+    return true;
+}
+
 ConstDataElement ConstData::operator[](const char * name) const {
-    if (m_meta == NULL) throw ::std::runtime_error("Data::operator[]: meta not exist!");
+    if (m_meta == NULL) throw ::std::runtime_error("ConstData::operator[]: meta not exist!");
 
     LPDRMETAENTRY entry;
     int32_t off = dr_meta_path_to_off(m_meta, name, &entry);
