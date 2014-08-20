@@ -2,6 +2,7 @@
 #define UI_SPRITE_BASIC_TYPES_H
 #include "ui/sprite/ui_sprite_types.h"
 #include "ui/sprite_fsm/ui_sprite_fsm_types.h"
+#include "protocol/ui/sprite_basic/ui_sprite_basic_data.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -16,6 +17,9 @@ typedef struct ui_sprite_basic_noop * ui_sprite_basic_noop_t;
 typedef struct ui_sprite_basic_debug * ui_sprite_basic_debug_t;
 typedef struct ui_sprite_basic_join_group * ui_sprite_basic_join_group_t;
 typedef struct ui_sprite_basic_set_attrs * ui_sprite_basic_set_attrs_t;
+
+/*utils*/
+typedef struct ui_sprite_basic_value_generator * ui_sprite_basic_value_generator_t;
 
 #ifdef __cplusplus
 }

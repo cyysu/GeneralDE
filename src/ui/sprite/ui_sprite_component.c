@@ -28,6 +28,7 @@ static ui_sprite_component_t ui_sprite_component_create_i(ui_sprite_entity_t ent
     component->m_meta = meta;
     component->m_is_active = 0;
     component->m_is_update = 0;
+    component->m_need_process = 0;
     TAILQ_INIT(&component->m_event_handlers);
     TAILQ_INIT(&component->m_attr_monitors);
 
@@ -51,7 +52,6 @@ static void ui_sprite_component_free_i(ui_sprite_component_t component) {
     if (component->m_is_active) {
         ui_sprite_component_exit(component);
     }
-    assert(!entity->m_is_active);
     assert(!component->m_is_update);
 
     ui_sprite_event_handler_clear_all(entity->m_world, &component->m_event_handlers);
@@ -259,7 +259,7 @@ void ui_sprite_component_send_event_to(
 
     targets = cpe_str_mem_dup(repo->m_alloc, input_targets);
 
-    if (ui_sprite_event_analize_targets(processing_evt, entity->m_world, entity,  targets) != 0) {
+    if (ui_sprite_event_analize_targets(processing_evt, entity->m_world, entity,  targets, NULL) != 0) {
         ui_sprite_pending_event_free(entity->m_world, processing_evt);
     }
 
@@ -287,8 +287,9 @@ int ui_sprite_component_start_update(ui_sprite_component_t component) {
         return -1;
     }
 
-    TAILQ_INSERT_TAIL(&world->m_updating_components, component, m_next_for_updating);
+    ui_sprite_component_enqueue(world, component, entity->m_update_priority);
     component->m_is_update = 1;
+    component->m_need_process = 0;
 
     return 0;
 }
@@ -299,8 +300,9 @@ void ui_sprite_component_stop_update(ui_sprite_component_t component) {
 
     if (!component->m_is_update) return;
 
-    TAILQ_REMOVE(&world->m_updating_components, component, m_next_for_updating);
+    ui_sprite_component_dequeue(world, component, entity->m_update_priority);
     component->m_is_update = 0;
+    component->m_need_process = 0;
 }
 
 void ui_sprite_component_sync_update(ui_sprite_component_t component, uint8_t is_start) {

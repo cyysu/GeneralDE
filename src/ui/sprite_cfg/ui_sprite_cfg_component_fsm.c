@@ -209,12 +209,15 @@ static int ui_sprite_cfg_do_load_fsm(ui_sprite_cfg_loader_t loader, ui_sprite_fs
             default_call_state = cfg_as_string(child_cfg, NULL);
         }
         else {
-            ui_sprite_fsm_state_t fsm_state = ui_sprite_fsm_state_create(fsm, name);
+            ui_sprite_fsm_state_t fsm_state = ui_sprite_fsm_state_find_by_name(fsm, name);
             if (fsm_state == NULL) {
-                CPE_ERROR(
-                    loader->m_em, "%s: do load fsm: create state %s fail!",
-                    ui_sprite_cfg_loader_name(loader), name);
-                return -1;
+                fsm_state = ui_sprite_fsm_state_create(fsm, name);
+                if (fsm_state == NULL) {
+                    CPE_ERROR(
+                        loader->m_em, "%s: do load fsm: create state %s fail!",
+                        ui_sprite_cfg_loader_name(loader), name);
+                    return -1;
+                }
             }
 
             if (ui_sprite_cfg_do_load_fsm_actions(loader, fsm_state, cfg_find_cfg(child_cfg, "Actions")) != 0) return -1;

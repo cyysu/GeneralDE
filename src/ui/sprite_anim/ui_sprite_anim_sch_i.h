@@ -13,6 +13,7 @@ struct ui_sprite_anim_sch {
     ui_sprite_anim_def_list_t m_defs;
     ui_sprite_anim_group_list_t m_groups;
     ui_sprite_anim_template_list_t m_templates;
+    float m_render_priority;
     char m_default_layer[64];
 };
 

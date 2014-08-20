@@ -1,12 +1,11 @@
 #include <assert.h>
+#include "cpe/utils/math_ex.h"
 #include "ui/sprite/ui_sprite_world_res.h"
 #include "ui/sprite/ui_sprite_world.h"
 #include "ui/sprite/ui_sprite_entity.h"
 #include "ui/sprite_2d/ui_sprite_2d_transform.h"
 #include "ui_sprite_anim_camera_i.h"
 #include "ui_sprite_anim_module_i.h"
-#include "ui_sprite_anim_camera_restrict_i.h"
-#include "ui_sprite_anim_camera_op_i.h"
 #include "ui_sprite_anim_backend_i.h"
 
 static void ui_sprite_anim_camera_clear(ui_sprite_world_res_t world_res, void * ctx);
@@ -20,7 +19,6 @@ ui_sprite_anim_camera_create(ui_sprite_anim_module_t module, ui_sprite_world_t w
     camera = ui_sprite_world_res_data(world_res);
 
     camera->m_module = module;
-    camera->m_updating = 0;
     camera->m_camera_pos.x = 0.0f;
     camera->m_camera_pos.y = 0.0f;
     camera->m_camera_scale = 1.0f;
@@ -39,9 +37,9 @@ ui_sprite_anim_camera_create(ui_sprite_anim_module_t module, ui_sprite_world_t w
     camera->m_limit_rb.y = 0.0f;
 
     camera->m_max_op_id = 0;
-    TAILQ_INIT(&camera->m_ops);
+    camera->m_curent_op_id = 0;
 
-    TAILQ_INIT(&camera->m_restricts);
+    camera->m_trace_type = ui_sprite_anim_camera_trace_none;
 
     ui_sprite_world_res_set_free_fun(world_res, ui_sprite_anim_camera_clear, module);
 
@@ -53,19 +51,6 @@ static void ui_sprite_anim_camera_clear(ui_sprite_world_res_t world_res, void * 
 
 void ui_sprite_anim_camera_free(ui_sprite_anim_camera_t camera) {
     ui_sprite_world_res_t world_res = ui_sprite_world_res_from_data(camera);
-
-    if (camera->m_updating) {
-        ui_sprite_world_remove_updator(ui_sprite_world_res_world(world_res), camera);
-        camera->m_updating = 0;
-    }
-
-    while(!TAILQ_EMPTY(&camera->m_restricts)) {
-        ui_sprite_anim_camera_restrict_free(TAILQ_FIRST(&camera->m_restricts));
-    }
-
-    while(!TAILQ_EMPTY(&camera->m_ops)) {
-        ui_sprite_anim_camera_op_free(TAILQ_FIRST(&camera->m_ops));
-    }
 
     ui_sprite_world_res_free(world_res);
 }
@@ -94,11 +79,69 @@ UI_SPRITE_2D_PAIR ui_sprite_anim_camera_limit_rb(ui_sprite_anim_camera_t camera)
     return camera->m_limit_rb;
 }
 
-void ui_sprite_anim_camera_set_limit(ui_sprite_anim_camera_t camera, UI_SPRITE_2D_PAIR limit_lt, UI_SPRITE_2D_PAIR limit_rb) {
+static float ui_sprite_anim_camera_scale_max_for_limit(ui_sprite_anim_camera_t camera) {
+    float scale_max_x;
+    float scale_max_y;
+
+    scale_max_x = (camera->m_limit_rb.x - camera->m_limit_lt.x) / camera->m_screen_size.x;
+    scale_max_y = (camera->m_limit_rb.y - camera->m_limit_lt.y) / camera->m_screen_size.y;
+
+    return scale_max_x < scale_max_y ? scale_max_x : scale_max_y;
+}
+
+int ui_sprite_anim_camera_set_limit(ui_sprite_anim_camera_t camera, UI_SPRITE_2D_PAIR limit_lt, UI_SPRITE_2D_PAIR limit_rb) {
+    float scale_max;
+
+    if (limit_lt.x >= limit_rb.x || limit_lt.y >= limit_rb.y) {
+        CPE_ERROR(
+            camera->m_module->m_em, "camera set limit: lt=(%f,%f), rb=(%f,%f) is error!",
+            limit_lt.x, limit_lt.y, limit_rb.x, limit_rb.y);
+        return -1;
+    }
+
     camera->m_limit_lt = limit_lt;
     camera->m_limit_rb = limit_rb;
 
-    ui_sprite_anim_camera_set_pos_and_scale(camera, camera->m_camera_pos, camera->m_camera_scale);
+    scale_max = ui_sprite_anim_camera_scale_max_for_limit(camera);
+    if (scale_max < camera->m_scale_max) camera->m_scale_max = scale_max;
+
+    return 0;
+}
+
+int8_t ui_sprite_anim_camera_have_limit(ui_sprite_anim_camera_t camera) {
+    return camera->m_limit_lt.x < camera->m_limit_rb.x;
+}
+
+int ui_sprite_anim_camera_set_scale_range(ui_sprite_anim_camera_t camera, float scale_min, float scale_max) {
+    if (scale_min > 0.0f && scale_max > 0.0f) {
+        if (scale_min >= scale_max) {
+            CPE_ERROR(camera->m_module->m_em, "camera set scale range: %f ~ %f is error!", scale_min, scale_max);
+            return -1;
+        }
+    }
+
+    if (ui_sprite_anim_camera_have_limit(camera)) {
+        float limit_max_scale = ui_sprite_anim_camera_scale_max_for_limit(camera);
+        if (scale_max > limit_max_scale) {
+            CPE_ERROR(
+                camera->m_module->m_em, "camera set scale range: %f ~ %f is error, max scale for limit is %f!",
+                scale_min, scale_max, limit_max_scale);
+            return -1;
+        }
+    }
+
+    camera->m_scale_min = scale_min;
+    if (scale_max > 0.0f) camera->m_scale_max = scale_max;
+
+    return 0;
+}
+
+float ui_sprite_anim_camera_scale_min(ui_sprite_anim_camera_t camera) {
+    return camera->m_scale_min;
+}
+
+float ui_sprite_anim_camera_scale_max(ui_sprite_anim_camera_t camera) {
+    return camera->m_scale_max;
 }
 
 UI_SPRITE_2D_PAIR ui_sprite_anim_camera_pos(ui_sprite_anim_camera_t camera) {
@@ -116,10 +159,10 @@ UI_SPRITE_2D_PAIR ui_sprite_anim_camera_scale_pair(ui_sprite_anim_camera_t camer
 void ui_sprite_anim_camera_set_pos_and_scale(ui_sprite_anim_camera_t camera, UI_SPRITE_2D_PAIR pos, float scale) {
     ui_sprite_anim_backend_t backend;
 
+    assert(scale > 0.0f);
+
     camera->m_camera_scale = scale;
     camera->m_camera_pos = pos;
-
-    ui_sprite_anim_camera_restrict_adj(camera, &camera->m_camera_pos, &camera->m_camera_scale);
 
     camera->m_camera_scale_pair.x = 1.0f / camera->m_camera_scale;
     camera->m_camera_scale_pair.y = 1.0f /camera->m_camera_scale;
@@ -133,22 +176,11 @@ void ui_sprite_anim_camera_set_pos_and_scale(ui_sprite_anim_camera_t camera, UI_
     }
 }
 
-void ui_sprite_anim_camera_set_pos_and_scale_no_adj(ui_sprite_anim_camera_t camera, UI_SPRITE_2D_PAIR pos, float scale) {
-    ui_sprite_anim_backend_t backend;
-
-    camera->m_camera_scale = scale;
-    camera->m_camera_pos = pos;
-
-    camera->m_camera_scale_pair.x = 1.0f / camera->m_camera_scale;
-    camera->m_camera_scale_pair.y = 1.0f /camera->m_camera_scale;
-
-    backend =
-        ui_sprite_anim_backend_find(
-            ui_sprite_world_res_world(
-                ui_sprite_world_res_from_data(camera)));
-    if (backend) {
-        backend->m_def.m_camera_update_fun(backend->m_def.m_ctx, camera->m_camera_pos, camera->m_camera_scale_pair);
-    }
+void ui_sprite_anim_camera_rect(ui_sprite_anim_camera_t camera, UI_SPRITE_2D_RECT * rect) {
+    rect->lt = camera->m_camera_pos;
+    rect->rb = camera->m_camera_pos;
+    rect->rb.x += camera->m_screen_size.x * camera->m_camera_scale;
+    rect->rb.y += camera->m_screen_size.y * camera->m_camera_scale;
 }
 
 UI_SPRITE_2D_PAIR ui_sprite_anim_camera_center_pos(ui_sprite_anim_camera_t camera) {
@@ -178,86 +210,6 @@ UI_SPRITE_2D_PAIR ui_sprite_anim_camera_world_to_screen(ui_sprite_anim_camera_t 
     return pos;
 }
 
-static void ui_sprite_anim_camera_update_fun(ui_sprite_world_t world, void * ctx, float delta_s) {
-    ui_sprite_anim_camera_t camera = ctx;
-    ui_sprite_anim_module_t module = camera->m_module;
-    ui_sprite_anim_camera_op_t op;
-
-    op = TAILQ_FIRST(&camera->m_ops);
-
-    if (op && !op->m_is_done) {
-        switch(op->m_op.type) {
-        case UI_SPRITE_ANIM_CAMERA_OP_TYPE_MOVE_TO_TARGET:
-            ui_sprite_anim_camera_op_update_move_to_target(op, delta_s);
-            break;
-        case UI_SPRITE_ANIM_CAMERA_OP_TYPE_MOVE_BY_SPEED:
-            ui_sprite_anim_camera_op_update_move_by_speed(op, delta_s);
-            break;
-        default:
-            CPE_ERROR(
-                module->m_em, "%s: camera update: top op %d type %d is unknown!",
-                ui_sprite_anim_module_name(module), op->m_op_id, op->m_op.type);
-            ui_sprite_anim_camera_op_free(op);
-            break;
-        }
-
-        if (op->m_is_done) {
-            switch(op->m_complete_policy) {
-            case ui_sprite_anim_camera_op_complete_remove:
-                ui_sprite_anim_camera_op_free(op);
-                break;
-            case ui_sprite_anim_camera_op_complete_keep:
-                break;
-            default:
-                CPE_ERROR(
-                    module->m_em, "%s: camera update: top op %d complete policy %d is unknown!",
-                    ui_sprite_anim_module_name(module), op->m_op_id, op->m_complete_policy);
-                ui_sprite_anim_camera_op_free(op);
-                break;
-            }
-        }
-    }
-
-    ui_sprite_anim_camera_sync_update(camera);
-}
-
-void ui_sprite_anim_camera_sync_update(ui_sprite_anim_camera_t camera) {
-    uint8_t need_update;
-
-    need_update = 
-        TAILQ_EMPTY(&camera->m_ops)
-        ? 0
-        : (TAILQ_FIRST(&camera->m_ops)->m_is_done
-           ? 0
-           : 1)
-        ;
-
-    if (need_update != camera->m_updating) {
-        ui_sprite_anim_module_t module = camera->m_module;
-        ui_sprite_world_t world = ui_sprite_world_res_world(ui_sprite_world_res_from_data(camera));
-
-        if (camera->m_updating) {
-            assert(need_update == 0);
-            ui_sprite_world_remove_updator(world, camera);
-            camera->m_updating = 0;
-        }
-        else {
-            assert(need_update == 1);
-
-            if (ui_sprite_world_add_updator(world, ui_sprite_anim_camera_update_fun, camera) != 0) {
-                CPE_ERROR(
-                    module->m_em, "%s: camera sync update: add world updator fail!",
-                    ui_sprite_anim_module_name(module));
-                return;
-            }
-            else {
-                camera->m_updating = 1;
-            }
-        }
-
-    }
-}
-
 UI_SPRITE_2D_PAIR
 ui_sprite_anim_camera_calc_pos_from_pos_in_screen(
     ui_sprite_anim_camera_t camera, UI_SPRITE_2D_PAIR pos_in_world, UI_SPRITE_2D_PAIR pos_of_screen, float scale)
@@ -284,9 +236,110 @@ int ui_sprite_anim_camera_pos_of_entity(UI_SPRITE_2D_PAIR * pos, ui_sprite_world
     transform = ui_sprite_2d_transform_find(entity);
     if (transform == NULL) return -1;
 
-    *pos = ui_sprite_2d_transform_pos(transform, pos_of_entity);
+    *pos = ui_sprite_2d_transform_world_pos(transform, pos_of_entity, UI_SPRITE_2D_TRANSFORM_POS_ADJ_ALL);
 
     return 0;
+}
+
+int ui_sprite_anim_camera_set_trace(
+    ui_sprite_anim_camera_t camera, enum ui_sprite_anim_camera_trace_type type,
+    UI_SPRITE_2D_PAIR screen_pos, UI_SPRITE_2D_PAIR world_pos_a, UI_SPRITE_2D_PAIR world_pos_b)
+{
+    if (type != ui_sprite_anim_camera_trace_by_x && type != ui_sprite_anim_camera_trace_by_y) {
+        CPE_ERROR(camera->m_module->m_em, "camera set trace: trace type %d not support", type);
+        return -1;
+    }
+
+    if (type == ui_sprite_anim_camera_trace_by_x) {
+        if ((world_pos_b.x - world_pos_a.x) < 1.0f) {
+            CPE_ERROR(
+                camera->m_module->m_em, "camera set trace: trace by x, diff in x too small, a=(%f,%f), b=(%f,%f)",
+                world_pos_a.x, world_pos_a.y, world_pos_b.x, world_pos_b.y);
+            return -1;
+        }
+
+        camera->m_trace_line.m_by_x.m_dy_dx = (world_pos_b.y - world_pos_a.y) / (world_pos_b.x - world_pos_a.x);
+        camera->m_trace_line.m_by_x.m_base_y = screen_pos.y - screen_pos.x * camera->m_trace_line.m_by_x.m_dy_dx;
+
+        /* printf( */
+        /*     "set trace: input=(%f,%f)-(%f,%f), base: %f-%f, dy_dx=%f\n", */
+        /*     world_pos_a.x, world_pos_a.y, world_pos_b.x, world_pos_b.y, */
+        /*     camera->m_trace_line.m_by_x.m_base_y,  */
+        /*     camera->m_trace_line.m_by_x.m_base_y + camera->m_trace_line.m_by_x.m_dy_dx, */
+        /*     camera->m_trace_line.m_by_x.m_dy_dx); */
+
+    }
+    else if (type == ui_sprite_anim_camera_trace_by_y) {
+        if ((world_pos_b.y - world_pos_a.y) < 1.0f) {
+            CPE_ERROR(
+                camera->m_module->m_em, "camera set trace: trace by y, diff in y too small, a=(%f,%f), b=(%f,%f)",
+                world_pos_a.x, world_pos_a.y, world_pos_b.x, world_pos_b.y);
+            return -1;
+        }
+
+        camera->m_trace_line.m_by_y.m_dx_dy = (world_pos_b.x - world_pos_a.x) / (world_pos_b.y - world_pos_a.y);
+        camera->m_trace_line.m_by_y.m_base_x = screen_pos.x - screen_pos.y * camera->m_trace_line.m_by_y.m_dx_dy;
+    }
+
+    camera->m_trace_type = type;
+    camera->m_trace_screen_pos = screen_pos;
+    camera->m_trace_world_pos = world_pos_a;
+
+    return 0;
+}
+
+void ui_sprite_anim_camera_remove_trace(ui_sprite_anim_camera_t camera) {
+    camera->m_trace_type = ui_sprite_anim_camera_trace_none;
+}
+
+uint32_t ui_sprite_anim_camera_start_op(ui_sprite_anim_camera_t camera) {
+    camera->m_curent_op_id = ++camera->m_max_op_id;
+    return camera->m_curent_op_id;
+}
+
+void ui_sprite_anim_camera_stop_op(ui_sprite_anim_camera_t camera, uint32_t op_id) {
+    if (camera->m_curent_op_id == op_id) {
+        camera->m_curent_op_id = 0;
+    }
+}
+
+float ui_sprite_anim_camera_trace_x2y(ui_sprite_anim_camera_t camera, float camera_x, float scale) {
+    float line_pos_y;
+
+    assert(camera->m_trace_type == ui_sprite_anim_camera_trace_by_x);
+
+    line_pos_y = camera->m_trace_world_pos.y + (camera_x - camera->m_trace_world_pos.x) * camera->m_trace_line.m_by_x.m_dy_dx;
+
+    return line_pos_y - camera->m_screen_size.y * scale * camera->m_trace_screen_pos.y;
+}
+
+float ui_sprite_anim_camera_trace_y2x(ui_sprite_anim_camera_t camera, float camera_y, float scale) {
+    float line_pos_x;
+
+    assert(camera->m_trace_type == ui_sprite_anim_camera_trace_by_y);
+
+    line_pos_x = camera->m_trace_world_pos.x + (camera_y - camera->m_trace_world_pos.y) * camera->m_trace_line.m_by_y.m_dx_dy;
+
+    return line_pos_x - camera->m_screen_size.x * scale * camera->m_trace_screen_pos.x;
+}
+
+float ui_sprite_anim_camera_screen_x2y_lock_x(ui_sprite_anim_camera_t camera, float screen_x, UI_SPRITE_2D_PAIR world_pos, float scale) {
+    float lock_pos_x;
+    float lock_pos_y;
+
+    assert(camera->m_trace_type == ui_sprite_anim_camera_trace_by_x);
+
+    lock_pos_x = world_pos.x - camera->m_screen_size.x * (screen_x - camera->m_trace_screen_pos.x) * scale;
+    lock_pos_y = camera->m_trace_world_pos.y + (lock_pos_x - camera->m_trace_world_pos.x) * camera->m_trace_line.m_by_x.m_dy_dx;
+
+    if (fabs(world_pos.x - lock_pos_x) < 0.49) {
+        return camera->m_trace_screen_pos.y + (world_pos.y - lock_pos_y) / camera->m_screen_size.y / scale;
+    }
+    else {
+        float d = (world_pos.y - lock_pos_y) / (world_pos.x - lock_pos_x);
+
+        return camera->m_trace_screen_pos.y + (screen_x - camera->m_trace_screen_pos.x) * d;
+    }
 }
 
 const char * UI_SPRITE_ANIM_CAMERA_TYPE_NAME = "AnimationCamera";

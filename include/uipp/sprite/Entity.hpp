@@ -81,8 +81,12 @@ public:
     /*event operations*/
     void sendEvent(LPDRMETA meta, void const * data, size_t data_size) { ui_sprite_entity_send_event(*this, meta, data, data_size); }
 
+    void buildAndSendEvent(const char * event_def, dr_data_source_t data_source = NULL) {
+        ui_sprite_entity_build_and_send_event(*this,  event_def, data_source);
+    }
+
     template<typename T>
-    void sendEvent(T const & data) {
+    void sendEvent(T const & data = T()) {
         sendEvent(Cpe::Dr::MetaTraits<T>::META, &data, Cpe::Dr::MetaTraits<T>::data_size(data));
     }
 };

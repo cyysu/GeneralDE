@@ -8,6 +8,7 @@ namespace UI { namespace Sprite { namespace Fsm {
 
 class ActionMeta : public Cpe::Utils::SimulateObject {
 public:
+    const char * name(void) const { return ui_sprite_fsm_action_meta_name(*this); } 
     operator ui_sprite_fsm_action_meta_t () const { return (ui_sprite_fsm_action_meta_t)this; }
 };
 

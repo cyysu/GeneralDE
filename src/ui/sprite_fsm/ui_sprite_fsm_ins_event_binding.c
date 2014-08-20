@@ -32,17 +32,3 @@ void ui_sprite_fsm_action_event_binding_free_all(ui_sprite_fsm_action_t action) 
         ui_sprite_fsm_action_event_binding_free(action, TAILQ_FIRST(&action->m_event_bindings));
     }
 }
-
-ui_sprite_fsm_action_event_binding_t
-ui_sprite_fsm_action_event_binding_find(ui_sprite_fsm_action_t action, const char * event_name) {
-    ui_sprite_fsm_action_event_binding_t binding;
-
-    TAILQ_FOREACH(binding, &action->m_event_bindings, m_next) {
-        if (strcmp(ui_sprite_event_handler_process_event(binding->m_handler), event_name) == 0) {
-            return binding;
-        }
-    }
-
-    return NULL;
-}
-

@@ -41,19 +41,26 @@ void ui_sprite_ctrl_circle_set_do_rotate(ui_sprite_ctrl_circle_t ctrl, uint8_t d
 
 /*最小屏幕距离，小于这个不改变数值 */
 float ui_sprite_ctrl_circle_screen_min(ui_sprite_ctrl_circle_t ctrl);
-void ui_sprite_ctrl_circle_set_screen_min(ui_sprite_ctrl_circle_t ctrl, float _min);
-
-/*最大屏幕距离，用这个进行比例换算 */
 float ui_sprite_ctrl_circle_screen_max(ui_sprite_ctrl_circle_t ctrl);
-void ui_sprite_ctrl_circle_set_screen_max(ui_sprite_ctrl_circle_t ctrl, float _max);
+int ui_sprite_ctrl_circle_set_screen_range(ui_sprite_ctrl_circle_t ctrl, float _min, float _max);
+
+/*角度限制 */
+float ui_sprite_ctrl_circle_angle_min(ui_sprite_ctrl_circle_t ctrl);
+float ui_sprite_ctrl_circle_angle_max(ui_sprite_ctrl_circle_t ctrl);
+int ui_sprite_ctrl_circle_set_angle_range(ui_sprite_ctrl_circle_t ctrl, float _min, float _max);
 
 /*最大  */
-float ui_sprite_ctrl_circle_max_percent(ui_sprite_ctrl_circle_t ctrl);
-void ui_sprite_ctrl_circle_set_max_percent(ui_sprite_ctrl_circle_t ctrl, float max_percent);
+float ui_sprite_ctrl_circle_logic_min(ui_sprite_ctrl_circle_t ctrl);
+float ui_sprite_ctrl_circle_logic_max(ui_sprite_ctrl_circle_t ctrl);
+int ui_sprite_ctrl_circle_set_logic_range(ui_sprite_ctrl_circle_t ctrl, float _min, float _max);
 
 /*逻辑距离的scale */
-float ui_sprite_ctrl_circle_logic_scale(ui_sprite_ctrl_circle_t ctrl);
-void ui_sprite_ctrl_circle_set_logic_scale(ui_sprite_ctrl_circle_t ctrl, float scale);
+float ui_sprite_ctrl_circle_logic_base(ui_sprite_ctrl_circle_t ctrl);
+void ui_sprite_ctrl_circle_set_logic_base(ui_sprite_ctrl_circle_t ctrl, float base_value);
+
+/*逆向取消的距离 */
+float ui_sprite_ctrl_circle_cancel_distance(ui_sprite_ctrl_circle_t ctrl);
+void ui_sprite_ctrl_circle_set_cancel_distance(ui_sprite_ctrl_circle_t ctrl, float cancel_distance);
 
 #ifdef __cplusplus
 }

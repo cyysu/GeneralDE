@@ -27,7 +27,7 @@ public:
     void stopUpdate(void) { ui_sprite_component_stop_update(*this); }
     void syncUpdate(bool is_update) { ui_sprite_component_sync_update(*this, is_update ? 1 : 0); }
 
-    int enter(void) { return ui_sprite_component_enter(*this); }
+    void enter(void);
     void exit(void) { ui_sprite_component_exit(*this); }
 
     void * data(void) { return ui_sprite_component_data(*this); }

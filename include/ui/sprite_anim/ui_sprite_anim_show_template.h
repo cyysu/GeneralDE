@@ -14,6 +14,9 @@ void ui_sprite_anim_show_template_free(ui_sprite_anim_show_template_t show_templ
 const char * ui_sprite_anim_show_template_template(ui_sprite_anim_show_template_t show_template);
 void ui_sprite_anim_show_template_set_template(ui_sprite_anim_show_template_t show_template, const char * res);
 
+const char * ui_sprite_anim_show_template_group(ui_sprite_anim_show_template_t show_template);
+void ui_sprite_anim_show_template_set_group(ui_sprite_anim_show_template_t show_template, const char * group);
+
 #ifdef __cplusplus
 }
 #endif

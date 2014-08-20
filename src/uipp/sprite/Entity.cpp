@@ -52,7 +52,7 @@ Component & Entity::createComponent(const char * name) {
 }
 
 void Entity::removeComponent(const char * name) {
-    ui_sprite_component_t component = ui_sprite_component_create(*this, name);
+    ui_sprite_component_t component = ui_sprite_component_find(*this, name);
     if (component) {
         ui_sprite_component_free(component);
     }

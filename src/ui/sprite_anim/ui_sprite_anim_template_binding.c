@@ -2,6 +2,7 @@
 #include "cpe/dr/dr_data.h"
 #include "ui/sprite/ui_sprite_entity.h"
 #include "ui/sprite/ui_sprite_entity_attr.h"
+#include "ui/sprite/ui_sprite_entity_calc.h"
 #include "ui/sprite/ui_sprite_component.h"
 #include "ui_sprite_anim_template_binding_i.h"
 #include "ui_sprite_anim_template_i.h"
@@ -19,21 +20,10 @@ ui_sprite_anim_template_binding_create(
 
     size_t ctrl_name_len = strlen(ctrl_name) + 1;
     size_t attr_name_len = strlen(attr_name) + 1;
-    size_t attr_value_len;
+    size_t attr_value_len = strlen(attr_value) + 1;
+    char * p;
 
     ui_sprite_anim_template_binding_t binding;
-    char * p;
-    enum ui_sprite_anim_template_binding_attr_type attr_type;
-
-    if (attr_value[0] == '@') {
-        attr_type = ui_sprite_anim_template_binding_attr_type_attr;
-        attr_value = attr_value + 1;
-    }
-    else {
-        attr_type = ui_sprite_anim_template_binding_attr_type_value;
-    }
-
-    attr_value_len = strlen(attr_value) + 1;
 
     binding = mem_alloc(module->m_alloc, sizeof(struct ui_sprite_anim_template_binding) + ctrl_name_len + attr_name_len + attr_value_len);
     if (binding == NULL) {
@@ -57,8 +47,6 @@ ui_sprite_anim_template_binding_create(
     binding->m_attr_value = p;
     p += attr_value_len;
 
-    binding->m_attr_type = attr_type;
-
     TAILQ_INSERT_TAIL(&tpl->m_bindings, binding, m_next_for_template);
 
     return binding;
@@ -79,72 +67,34 @@ int ui_sprite_anim_template_binding_set_value(
 {
     ui_sprite_anim_module_t module = tpl->m_anim_sch->m_backend->m_module;
     ui_sprite_anim_backend_t backend = tpl->m_anim_sch->m_backend;
+    const char * attr_value;
 
-    switch(binding->m_attr_type) {
-    case ui_sprite_anim_template_binding_attr_type_attr: {
-        struct dr_data_entry attr_buff;
-        dr_data_entry_t attr;
-        const char * attr_value;
-
-        attr = ui_sprite_entity_find_attr(&attr_buff, entity, binding->m_attr_value);
-        if (attr == NULL) {
-            CPE_ERROR(
-                module->m_em, "entity %d(%s): template %s: attr %s.%s: attr %s not exist",
-                ui_sprite_entity_id(entity), ui_sprite_entity_name(entity), tpl->m_name,
-                binding->m_control, binding->m_attr_name, binding->m_attr_value);
-            return -1;
-        }
-
-        attr_value = dr_entry_to_string(&module->m_dump_buffer, attr->m_data, attr->m_entry);
-
-        if (backend->m_def.m_set_template_value(
-                backend->m_def.m_ctx, anim_id,
-                binding->m_control, binding->m_attr_name, attr_value)
-            != 0)
-        {
-            CPE_ERROR(
-                module->m_em, "entity %d(%s): template %s: attr %s.%s: set value %s fail",
-                ui_sprite_entity_id(entity), ui_sprite_entity_name(entity), tpl->m_name,
-                binding->m_control, binding->m_attr_name, attr_value);
-            return -1;
-        }
-
-        if (ui_sprite_entity_debug(entity)) {
-            CPE_INFO(
-                module->m_em, "entity %d(%s): template %s: attr %s.%s ==> %s",
-                ui_sprite_entity_id(entity), ui_sprite_entity_name(entity), tpl->m_name,
-                binding->m_control, binding->m_attr_name, attr_value);
-        }
-
-        break;
-    }
-    case ui_sprite_anim_template_binding_attr_type_value:
-        if (backend->m_def.m_set_template_value(
-                backend->m_def.m_ctx, anim_id,
-                binding->m_control, binding->m_attr_name, binding->m_attr_value)
-            != 0)
-        {
-            CPE_ERROR(
-                module->m_em, "entity %d(%s): template %s: attr %s.%s: set value %s fail",
-                ui_sprite_entity_id(entity), ui_sprite_entity_name(entity), tpl->m_name,
-                binding->m_control, binding->m_attr_name, binding->m_attr_value);
-            return -1;
-        }
-
-        if (ui_sprite_entity_debug(entity)) {
-            CPE_INFO(
-                module->m_em, "entity %d(%s): template %s: attr %s.%s ==> %s",
-                ui_sprite_entity_id(entity), ui_sprite_entity_name(entity), tpl->m_name,
-                binding->m_control, binding->m_attr_name, binding->m_attr_value);
-        }
-
-        break;
-    default:
+    attr_value = ui_sprite_entity_try_calc_str(&module->m_dump_buffer, binding->m_attr_value, entity, NULL, module->m_em);
+    if (attr_value == NULL) {
         CPE_ERROR(
-            module->m_em, "entity %d(%s): template %s: attr %s.%s: value type %d unknown",
+            module->m_em, "entity %d(%s): template %s: attr %s.%s: calc %s fail",
             ui_sprite_entity_id(entity), ui_sprite_entity_name(entity), tpl->m_name,
-            binding->m_control, binding->m_attr_name, binding->m_attr_type);
+            binding->m_control, binding->m_attr_name, binding->m_attr_value);
         return -1;
+    }
+
+    if (backend->m_def.m_set_template_value(
+            backend->m_def.m_ctx, anim_id,
+            binding->m_control, binding->m_attr_name, attr_value)
+        != 0)
+    {
+        CPE_ERROR(
+            module->m_em, "entity %d(%s): template %s: attr %s.%s: set value %s fail",
+            ui_sprite_entity_id(entity), ui_sprite_entity_name(entity), tpl->m_name,
+            binding->m_control, binding->m_attr_name, attr_value);
+        return -1;
+    }
+
+    if (ui_sprite_entity_debug(entity)) {
+        CPE_INFO(
+            module->m_em, "entity %d(%s): template %s: attr %s.%s ==> %s",
+            ui_sprite_entity_id(entity), ui_sprite_entity_name(entity), tpl->m_name,
+            binding->m_control, binding->m_attr_name, attr_value);
     }
 
     return 0;

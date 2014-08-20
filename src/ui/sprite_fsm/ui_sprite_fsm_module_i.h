@@ -12,6 +12,7 @@ extern "C" {
 
 typedef TAILQ_HEAD(ui_sprite_fsm_action_list, ui_sprite_fsm_action) ui_sprite_fsm_action_list_t;
 typedef TAILQ_HEAD(ui_sprite_fsm_transition_list, ui_sprite_fsm_transition) ui_sprite_fsm_transition_list_t;
+typedef TAILQ_HEAD(ui_sprite_fsm_convertor_list, ui_sprite_fsm_convertor) ui_sprite_fsm_convertor_list_t;
 
 struct ui_sprite_fsm_module {
     gd_app_context_t m_app;

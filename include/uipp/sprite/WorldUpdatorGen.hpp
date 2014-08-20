@@ -24,6 +24,10 @@ public:
         m_world.removeUpdator((void*)Cpe::Utils::calc_cast<OuterT>(this));
     }
 
+    void setUpdatorPriority(int8_t priority) {
+        m_world.setUpdatorPriority((void*)Cpe::Utils::calc_cast<OuterT>(this), priority);
+    }
+
     World & m_world;
 };
 

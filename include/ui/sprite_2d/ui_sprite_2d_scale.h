@@ -11,6 +11,7 @@ extern const char * UI_SPRITE_2D_SCALE_NAME;
 ui_sprite_2d_scale_t ui_sprite_2d_scale_create(ui_sprite_fsm_state_t fsm_state, const char * name);
 void ui_sprite_2d_scale_free(ui_sprite_2d_scale_t scale);
 
+int ui_sprite_2d_scale_contain_set_decorator(ui_sprite_2d_scale_t show_anim, const char * decorator);
 #ifdef __cplusplus
 }
 #endif

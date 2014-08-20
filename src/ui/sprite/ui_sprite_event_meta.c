@@ -124,7 +124,7 @@ int ui_sprite_event_meta_build_event(
 {
     char * p;
 
-    while((p = strchr(event_args, ','))) {
+    while((p = (char*)cpe_str_char_not_in_pair(event_args, ',', "{[(", ")]}"))) {
         char * arg_begin = event_args;
         char * arg_end = (char*)cpe_str_trim_tail(p, arg_begin);
 

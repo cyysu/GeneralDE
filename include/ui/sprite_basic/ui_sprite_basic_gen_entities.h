@@ -23,6 +23,9 @@ int ui_sprite_basic_gen_entities_set_attrs(ui_sprite_basic_gen_entities_t gen_ei
 uint8_t ui_sprite_basic_gen_entities_do_destory(ui_sprite_basic_gen_entities_t gen_eitities);
 void ui_sprite_basic_gen_entities_set_do_destory(ui_sprite_basic_gen_entities_t gen_eitities, uint8_t do_destory);
 
+ui_sprite_basic_value_generator_t 
+ui_sprite_basic_gen_entities_create_generator(ui_sprite_basic_gen_entities_t gen_eitities, UI_SPRITE_BASIC_VALUE_GENEARTOR_DEF const * def);
+
 #ifdef __cplusplus
 }
 #endif

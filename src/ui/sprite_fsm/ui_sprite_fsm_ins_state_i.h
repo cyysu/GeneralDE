@@ -26,6 +26,8 @@ int ui_sprite_fsm_state_enter(ui_sprite_fsm_state_t state);
 void ui_sprite_fsm_state_exit(ui_sprite_fsm_state_t state);
 
 void ui_sprite_fsm_state_update(ui_sprite_fsm_state_t fsm_state, float delta);
+uint16_t ui_sprite_fsm_state_check_actions(ui_sprite_fsm_state_t fsm_state);
+void ui_sprite_fsm_state_process_complete(ui_sprite_fsm_state_t fsm_state);
 
 #ifdef __cplusplus
 }

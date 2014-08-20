@@ -7,6 +7,14 @@
 
 namespace UI { namespace Sprite {
 
+void Component::enter(void) {
+    if (ui_sprite_component_enter(*this) != 0) {
+        APP_CTX_THROW_EXCEPTION(
+            entity().world().app(), ::std::runtime_error,
+            "component enter fail!");
+    }
+}
+
 void Component::startUpdate(void) {
     if (ui_sprite_component_start_update(*this) != 0) {
         APP_CTX_THROW_EXCEPTION(

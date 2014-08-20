@@ -10,6 +10,8 @@ class Action : public Cpe::Utils::SimulateObject {
 public:
     operator ui_sprite_fsm_action_t () const { return (ui_sprite_fsm_action_t)this; }
 
+    ActionMeta const & meta(void) const { return *(ActionMeta const *)ui_sprite_fsm_action_meta(*this); }
+
     Entity & entity(void) { return *(Entity*)ui_sprite_fsm_action_to_entity(*this); }
     Entity const & entity(void) const { return *(Entity*)ui_sprite_fsm_action_to_entity(*this); }
 
@@ -21,6 +23,7 @@ public:
 
     const char * name(void) const { return ui_sprite_fsm_action_name(*this); }
     ui_sprite_fsm_action_state_t runingState(void) const { return ui_sprite_fsm_action_runing_state(*this); }
+    ui_sprite_fsm_action_life_circle_t lifeCircle(void) const { return ui_sprite_fsm_action_life_circle(*this); }
 
     bool isActive(void) const { return ui_sprite_fsm_action_is_active(*this) ? true : false; }
     bool isUpdate(void) const { return ui_sprite_fsm_action_is_update(*this) ? true : false; }

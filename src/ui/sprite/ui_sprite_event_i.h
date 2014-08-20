@@ -84,7 +84,8 @@ void ui_sprite_pending_event_free(
 int ui_sprite_event_add_target(
     ui_sprite_pending_event_t processing_evt,
     ui_sprite_entity_t from_entity,
-    ui_sprite_world_t world, const char * target);
+    ui_sprite_world_t world, const char * target,
+    dr_data_source_t data_source);
 
 void ui_sprite_event_build_and_enqueue(
     ui_sprite_world_t world, ui_sprite_entity_t from_entity,
@@ -96,7 +97,8 @@ int ui_sprite_event_analize_head(
 
 int ui_sprite_event_analize_targets(
     ui_sprite_pending_event_t processing_evt,
-    ui_sprite_world_t world, ui_sprite_entity_t from_entity, char * targets);
+    ui_sprite_world_t world, ui_sprite_entity_t from_entity, char * targets,
+    dr_data_source_t data_source);
 
 #ifdef __cplusplus
 }
