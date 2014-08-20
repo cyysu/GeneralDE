@@ -38,14 +38,7 @@
         <entry name="friend_gid" type="uint64" id="2"/>
     </struct>
 
-    <!-- 响应好友请求 -->
-    <struct name="svr_friend_req_ack" version="1">
-        <entry name="user_id" type="uint64" id="1"/>
-        <entry name="friend_id" type="uint64" id="2"/>
-        <entry name="accept" type="uint8" id="3"/>
-    </struct>
-
-    <!-- 根据帐号列表同步好友 -->
+    <!--  -->
     <struct name="svr_friend_req_sync" version="1">
         <entry name="gid" type="uint64" id="1"/>
         <entry name="friend_count" type="uint16" id="2"/>
@@ -79,8 +72,6 @@
         <entry name="svr_friend_res_query" type="svr_friend_res_query" id="SVR_FRIEND_CMD_RES_QUERY"/>
 
         <entry name="svr_friend_req_add" type="svr_friend_req_add" id="SVR_FRIEND_CMD_REQ_ADD"/>
-
-        <entry name="svr_friend_req_ack" type="svr_friend_req_ack" id="SVR_FRIEND_CMD_REQ_ACK"/>
 
         <entry name="svr_friend_req_remove" type="svr_friend_req_remove" id="SVR_FRIEND_CMD_REQ_REMOVE"/>
 
