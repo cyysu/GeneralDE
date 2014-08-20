@@ -23,6 +23,8 @@ public:
     void addObjType(::std::string const & type_name);
     uint16_t obyType(::std::string const & type_name) const;
 
+    void setUpdatorPriority(int8_t priority);
+
     ~B2World();
 
     static const char * NAME;
