@@ -140,6 +140,7 @@ YAJL_API void yajl_tree_free (yajl_val v);
  * No it wouldn't be fast, but that's not what this API is about.
  */
 YAJL_API yajl_val yajl_tree_get(yajl_val parent, const char ** path, yajl_type type);
+YAJL_API yajl_val yajl_tree_get_2(yajl_val parent, const char * path, yajl_type type);
 
 /* Various convenience macros to check the type of a `yajl_val` */
 #define YAJL_IS_STRING(v) (((v) != NULL) && ((v)->type == yajl_t_string))
@@ -151,6 +152,10 @@ YAJL_API yajl_val yajl_tree_get(yajl_val parent, const char ** path, yajl_type t
 #define YAJL_IS_TRUE(v)   (((v) != NULL) && ((v)->type == yajl_t_true  ))
 #define YAJL_IS_FALSE(v)  (((v) != NULL) && ((v)->type == yajl_t_false ))
 #define YAJL_IS_NULL(v)   (((v) != NULL) && ((v)->type == yajl_t_null  ))
+
+const char * yajl_get_string(yajl_val v);
+long long yajl_get_integer(yajl_val v);
+double yajl_get_double(yajl_val v);
 
 /** Given a yajl_val_string return a ptr to the bare string it contains,
  *  or NULL if the value is not a string. */
