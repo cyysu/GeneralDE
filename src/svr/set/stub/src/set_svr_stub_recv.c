@@ -129,7 +129,7 @@ ptr_int_t set_svr_stub_tick(void * ctx, ptr_int_t arg) {
                 goto NEXT_PKG;
             }
 
-            if (dp_dispatch_by_string(stub->m_request_dispatch_to, body, stub->m_em) != 0) {
+            if (dp_dispatch_by_string(stub->m_request_dispatch_to, dp_req_mgr(body), body, stub->m_em) != 0) {
                 CPE_ERROR(
                     stub->m_em, "%s: svr %s.%d: <== recv one pkg from %d.%d: request-dispatch-to %s fail!",
                     set_svr_stub_name(stub), stub->m_svr_type->m_svr_type_name, stub->m_svr_id,
@@ -152,7 +152,7 @@ ptr_int_t set_svr_stub_tick(void * ctx, ptr_int_t arg) {
                 goto NEXT_PKG;
             }
 
-            if (dp_dispatch_by_string(dispatch_to, body, stub->m_em) != 0) {
+            if (dp_dispatch_by_string(dispatch_to, dp_req_mgr(body), body, stub->m_em) != 0) {
                 CPE_ERROR(
                     stub->m_em, "%s: svr %s.%d: <== recv one pkg from %d.%d: response-dispatch-to %s fail!",
                     set_svr_stub_name(stub), stub->m_svr_type->m_svr_type_name, stub->m_svr_id,
@@ -176,7 +176,7 @@ ptr_int_t set_svr_stub_tick(void * ctx, ptr_int_t arg) {
                 goto NEXT_PKG;
             }
 
-            if (dp_dispatch_by_string(dispatch_to, body, stub->m_em) != 0) {
+            if (dp_dispatch_by_string(dispatch_to, dp_req_mgr(body), body, stub->m_em) != 0) {
                 CPE_ERROR(
                     stub->m_em, "%s: svr %s.%d: <== recv one pkg from %d.%d: notify-dispatch-to %s fail!",
                     set_svr_stub_name(stub), stub->m_svr_type->m_svr_type_name, stub->m_svr_id,
