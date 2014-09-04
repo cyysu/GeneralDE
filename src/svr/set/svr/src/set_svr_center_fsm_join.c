@@ -8,7 +8,7 @@ static void set_svr_center_fsm_join_enter(fsm_machine_t fsm, fsm_def_state_t sta
     SVR_CENTER_PKG * pkg;
     SVR_CENTER_REQ_JOIN * join;
     size_t pkg_capacity;
-    set_svr_svr_t svr_svr;
+    set_svr_svr_binding_t svr_binding;
 
     set_svr_center_start_state_timer(center, 30000);
 
@@ -25,10 +25,10 @@ static void set_svr_center_fsm_join_enter(fsm_machine_t fsm, fsm_def_state_t sta
     pkg->cmd = SVR_CENTER_CMD_REQ_JOIN;
 
     join->count = 0;
-    TAILQ_FOREACH(svr_svr, &svr->m_local_svrs, m_next_for_local) {
+    TAILQ_FOREACH(svr_binding, &svr->m_local_svrs, m_next_for_local) {
         SVR_CENTER_SVR_RUNING * runing_svr = &join->data[join->count++];
-        runing_svr->id.svr_type = svr_svr->m_svr_type_id;
-        runing_svr->id.svr_id = svr_svr->m_svr_id;
+        runing_svr->id.svr_type = svr_binding->m_svr_type->m_svr_type_id;
+        runing_svr->id.svr_id = svr_binding->m_svr_ins->m_svr_id;
         runing_svr->port = svr->m_router_port;
     }
 

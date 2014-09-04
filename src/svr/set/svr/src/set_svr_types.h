@@ -22,10 +22,12 @@ typedef struct set_svr * set_svr_t;
 typedef struct set_svr_router * set_svr_router_t;
 typedef struct set_svr_router_conn * set_svr_router_conn_t;
 typedef struct set_svr_svr_type * set_svr_svr_type_t;
-typedef struct set_svr_svr * set_svr_svr_t;
 typedef struct set_svr_center * set_svr_center_t;
+typedef struct set_svr_svr_ins * set_svr_svr_ins_t;
+typedef struct set_svr_svr_binding * set_svr_svr_binding_t;
 
-typedef TAILQ_HEAD(set_svr_svr_list, set_svr_svr) set_svr_svr_list_t;
+typedef TAILQ_HEAD(set_svr_svr_binding_list, set_svr_svr_binding) set_svr_svr_binding_list_t;
+typedef TAILQ_HEAD(set_svr_svr_ins_list, set_svr_svr_ins) set_svr_svr_ins_list_t;
 typedef TAILQ_HEAD(set_svr_router_conn_list, set_svr_router_conn) set_svr_router_conn_list_t;
 
 struct set_svr {
@@ -57,8 +59,9 @@ struct set_svr {
     ringbuffer_t m_ringbuf;
     
     uint16_t m_local_svr_count;
-    set_svr_svr_list_t m_local_svrs;
-    struct cpe_hash_table m_svrs;
+    set_svr_svr_binding_list_t m_local_svrs;
+    struct cpe_hash_table m_svr_bindings;
+    set_svr_svr_ins_list_t m_svr_instances;
 
     struct cpe_hash_table m_svr_types_by_id;
     struct cpe_hash_table m_svr_types_by_name;
@@ -81,7 +84,7 @@ struct set_svr_svr_type {
 
     LPDRMETA m_pkg_meta;
 
-    set_svr_svr_list_t m_svrs;
+    set_svr_svr_binding_list_t m_runing_bindings;
 
     struct cpe_hash_entry m_hh_by_id;
     struct cpe_hash_entry m_hh_by_name;
@@ -92,21 +95,28 @@ enum set_svr_svr_category {
     , set_svr_svr_remote = 2
 };
 
-struct set_svr_svr {
-    set_svr_t m_svr;
+struct set_svr_svr_binding {
     set_svr_svr_type_t m_svr_type;
-    enum set_svr_svr_category m_category;
-    uint16_t m_svr_type_id;
-    uint16_t m_svr_id;
-
+    set_svr_svr_ins_t m_svr_ins;
     set_chanel_t m_chanel;
-    set_svr_router_t m_router;
 
-    TAILQ_ENTRY(set_svr_svr) m_next_for_type;
-    TAILQ_ENTRY(set_svr_svr) m_next_for_local;
-    TAILQ_ENTRY(set_svr_svr) m_next_for_router;
+    TAILQ_ENTRY(set_svr_svr_binding) m_next_for_svr_type;
+    TAILQ_ENTRY(set_svr_svr_binding) m_next_for_svr_ins;
+    TAILQ_ENTRY(set_svr_svr_binding) m_next_for_local;
 
     struct cpe_hash_entry m_hh;
+};
+
+struct set_svr_svr_ins {
+    set_svr_t m_svr;
+    set_svr_svr_binding_list_t m_binding_types;
+    enum set_svr_svr_category m_category;
+    uint16_t m_svr_id;
+
+    set_svr_router_t m_router;
+
+    TAILQ_ENTRY(set_svr_svr_ins) m_next_for_router;
+    TAILQ_ENTRY(set_svr_svr_ins) m_next_for_svr;
 };
 
 #endif

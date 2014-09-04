@@ -187,7 +187,7 @@ static int set_svr_router_conn_established_process_data(set_svr_router_conn_t co
     int rv;
     SET_PKG_HEAD * head_buf;
     SET_PKG_HEAD * input_head_buf;
-    set_svr_svr_t to_svr;
+    set_svr_svr_binding_t to_svr_binding;
     LPDRMETA pkg_meta;
 
     while(conn->m_rb) {
@@ -263,8 +263,8 @@ static int set_svr_router_conn_established_process_data(set_svr_router_conn_t co
         CPE_COPY_NTOH16(&head_buf->flags, &input_head_buf->flags);
 
         /*监测目标服务*/
-        to_svr = set_svr_svr_find(svr, head_buf->to_svr_type, head_buf->to_svr_id);
-        if (to_svr == NULL) {
+        to_svr_binding = set_svr_svr_binding_find(svr, head_buf->to_svr_type, head_buf->to_svr_id);
+        if (to_svr_binding == NULL) {
             CPE_ERROR(
                 svr->m_em, "%s: conn %d: router %d-%d.%d: receive one pkg, to svr %d.%d not exist!",
                 set_svr_name(svr), conn->m_fd, router->m_id, router->m_ip, router->m_port,
@@ -273,7 +273,7 @@ static int set_svr_router_conn_established_process_data(set_svr_router_conn_t co
             continue;
         }
 
-        if (to_svr->m_category != set_svr_svr_local) { /*不是发送到本地服务 */
+        if (to_svr_binding->m_svr_ins->m_category != set_svr_svr_local) { /*不是发送到本地服务 */
             CPE_ERROR(
                 svr->m_em, "%s: conn %d: router %d-%d.%d: receive one pkg, to svr %d.%d not at local!",
                 set_svr_name(svr), conn->m_fd, router->m_id, router->m_ip, router->m_port,
@@ -285,7 +285,7 @@ static int set_svr_router_conn_established_process_data(set_svr_router_conn_t co
         /*根据包类型获取包所属的服务类型*/
         switch(set_pkg_category(head)) {
         case set_pkg_request:
-            pkg_meta = to_svr->m_svr_type->m_pkg_meta;
+            pkg_meta = to_svr_binding->m_svr_type->m_pkg_meta;
             assert(pkg_meta);
             break;
         case set_pkg_response:
@@ -340,7 +340,7 @@ static int set_svr_router_conn_established_process_data(set_svr_router_conn_t co
                 dp_req_dump(body, &svr->m_dump_buffer_body));
         }
 
-        rv = set_chanel_r_write(to_svr->m_chanel, body, NULL, svr->m_em);
+        rv = set_chanel_r_write(to_svr_binding->m_chanel, body, NULL, svr->m_em);
         if (rv != 0) {
             CPE_ERROR(
                 svr->m_em, "%s: conn %d: router %d-%d.%d: write to chanel fail, error=%d (%s)!",
