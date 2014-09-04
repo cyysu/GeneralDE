@@ -6,5 +6,6 @@ $(product).c.sources:=$(wildcard $(product-base)/*.cc)
 $(product).c.includes:=3rdTools/gtest
 $(product).product.c.libraries:=pthread
 $(product).mac.product.c.defs:=GTEST_USE_OWN_TR1_TUPLE
+$(product).ios.product.c.defs:=GTEST_USE_OWN_TR1_TUPLE
 
 $(eval $(call product-def,$(product)))
