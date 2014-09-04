@@ -10,8 +10,12 @@ void set_svr_mon_free(set_svr_mon_t mon);
 /*operations of set_svr_mon_app*/
 set_svr_mon_app_t set_svr_mon_app_create(
     set_svr_mon_t mon,
-    set_svr_svr_type_t svr_type, const char * bin, const char * pidfile,
+    const char * name,
+    const char * bin, const char * pidfile,
     uint64_t rq_size, uint64_t wq_size);
+
+int set_svr_mon_app_add_svr_type(
+    set_svr_mon_app_t set_svr_mon_app_t, set_svr_svr_type_t svr_type);
 
 void set_svr_mon_app_free(set_svr_mon_app_t mon_app);
 set_svr_mon_app_t set_svr_mon_app_find_by_pid(set_svr_mon_t mon, int pid);
