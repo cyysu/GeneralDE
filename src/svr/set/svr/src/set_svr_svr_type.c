@@ -79,7 +79,7 @@ set_svr_svr_type_create(set_svr_t svr, const char * svr_type_name) {
     type->m_svr_type_name = (char*)(type + 1);
     type->m_pkg_meta = pkg_meta;
 
-    TAILQ_INIT(&type->m_svrs);
+    TAILQ_INIT(&type->m_runing_bindings);
 
     memcpy(type->m_svr_type_name, svr_type_name, name_len);
 
@@ -108,8 +108,15 @@ set_svr_svr_type_create(set_svr_t svr, const char * svr_type_name) {
 void set_svr_svr_type_free(set_svr_svr_type_t type) {
     set_svr_t svr = type->m_svr;
 
-    while(!TAILQ_EMPTY(&type->m_svrs)) {
-        set_svr_svr_free(TAILQ_FIRST(&type->m_svrs));
+    while(!TAILQ_EMPTY(&type->m_runing_bindings)) {
+        set_svr_svr_binding_t svr_binding = TAILQ_FIRST(&type->m_runing_bindings);
+        set_svr_svr_ins_t svr_ins = svr_binding->m_svr_ins;
+
+        set_svr_svr_binding_free(svr_binding);
+
+        if (TAILQ_EMPTY(&svr_ins->m_binding_types)) {
+            set_svr_svr_ins_free(svr_ins);
+        }
     }
 
     cpe_hash_table_remove_by_ins(&svr->m_svr_types_by_id, type);
