@@ -40,7 +40,9 @@ struct set_svr_mon_app_fsm_evt {
 
 struct set_svr_mon_app {
     set_svr_mon_t m_mon;
-    set_svr_svr_type_t m_svr_type;
+    uint8_t m_svr_type_count;
+    set_svr_svr_type_t m_svr_types[16];
+    char * m_name;
     char * m_bin;
     char * m_pidfile;
     char ** m_args;
