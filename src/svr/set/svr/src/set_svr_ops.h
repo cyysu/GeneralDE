@@ -42,16 +42,19 @@ int set_svr_svr_type_eq_by_name(set_svr_svr_type_t l, set_svr_svr_type_t r);
 
 int set_svr_set_pkg_meta(set_svr_t svr, dp_req_t body, set_svr_svr_type_t to_svr_type, set_svr_svr_type_t from_svr_type);
 
-/*operations of set_svr_svr*/
-set_svr_svr_t set_svr_svr_create(set_svr_t svr, set_svr_svr_type_t type, uint16_t svr_id, enum set_svr_svr_category category);
-void set_svr_svr_free(set_svr_svr_t svr_svr);
-void set_svr_svr_free_all(set_svr_t svr);
+/*operations of set_svr_ins*/
+set_svr_svr_ins_t set_svr_svr_ins_create(set_svr_t svr, uint16_t svr_id, enum set_svr_svr_category category);
+void set_svr_svr_ins_free(set_svr_svr_ins_t svr_svr);
+void set_svr_svr_ins_free_all(set_svr_t svr);
 
-void set_svr_svr_set_category(set_svr_svr_t svr_svr, enum set_svr_svr_category category);
+void set_svr_svr_ins_set_category(set_svr_svr_ins_t svr_svr, enum set_svr_svr_category category);
 
-set_svr_svr_t set_svr_svr_find(set_svr_t svr, uint16_t svr_type_id, uint16_t svr_id);
+/*operations of set_svr_binding*/
+set_svr_svr_binding_t set_svr_svr_binding_create(set_svr_svr_ins_t svr_ins, set_svr_svr_type_t type);
+set_svr_svr_binding_t set_svr_svr_binding_find(set_svr_t svr, uint16_t svr_type_id, uint16_t svr_id);
+void set_svr_svr_binding_free(set_svr_svr_binding_t svr_binding);
 
-uint32_t set_svr_svr_hash(set_svr_svr_t o);
-int set_svr_svr_eq(set_svr_svr_t l, set_svr_svr_t r);
+uint32_t set_svr_svr_binding_hash(set_svr_svr_binding_t o);
+int set_svr_svr_binding_eq(set_svr_svr_binding_t l, set_svr_svr_binding_t r);
 
 #endif

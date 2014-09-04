@@ -13,7 +13,7 @@
 #include "set_svr_mon_ops.h"
 
 static int set_svr_all_root(const char * app_bin, char * buf, size_t buf_capacity, error_monitor_t em);
-static int set_svr_mon_app_sync_svr(set_svr_mon_app_t mon_app, set_svr_svr_type_t svr_type, uint16_t svr_id);
+static int set_svr_mon_app_create_svr_ins(set_svr_mon_app_t mon_app, uint16_t svr_id);
 static int set_svr_app_init_load_local_env(set_svr_mon_t mon, cfg_t g_env);
 static int set_svr_app_init_create_app(set_svr_mon_t mon, const char * all_root, cfg_t g_env, const char * app_name, cfg_t app_args);
 
@@ -96,71 +96,71 @@ INIT_MON_FAIL:
     return -1;
 }
 
-static int set_svr_mon_app_sync_svr(set_svr_mon_app_t mon_app, set_svr_svr_type_t svr_type, uint16_t svr_id) {
+static int set_svr_mon_app_create_svr_ins(set_svr_mon_app_t mon_app, uint16_t svr_id) {
     set_svr_mon_t mon = mon_app->m_mon;
     set_svr_t svr = mon->m_svr;
-    set_svr_svr_t svr_svr;
+    set_svr_svr_ins_t svr_ins;
     int shmid;
-    cfg_t svr_cfg;
+    uint8_t i;
 
-    svr_svr = set_svr_svr_find(svr, svr_type->m_svr_type_id, svr_id);
-    if (svr_svr) {
-        if (svr_svr->m_category == set_svr_svr_local) {
-            if (svr->m_debug >= 2) {
-                CPE_INFO(
-                    svr->m_em, "%s: on find svr %s.%d: already exist, ignore!",
-                    set_svr_name(svr), svr_type->m_svr_type_name, svr_id);
-            }
+    svr_ins = set_svr_svr_ins_create(svr, svr_id, set_svr_svr_local);
+    if (svr_ins == NULL) {
+        CPE_ERROR(
+            svr->m_em, "%s: on find svr %s(%d): create fail!",
+            set_svr_name(svr), mon_app->m_name, svr_id);
+        return -1;
+    }
+
+    char shm_tag = 'a';
+    for(i = 0; i < mon_app->m_svr_type_count; ++i, ++shm_tag) {
+        set_svr_svr_type_t svr_type = mon_app->m_svr_types[i];
+        set_svr_svr_binding_t svr_binding;
+        cfg_t svr_cfg;
+
+        assert(svr_type);
+
+        svr_cfg = cfg_find_cfg(gd_app_cfg(svr->m_app), "svr_types");
+        svr_cfg = cfg_find_cfg(svr_cfg, svr_type->m_svr_type_name);
+        if (svr_cfg == NULL) {
+            CPE_ERROR(
+                svr->m_em, "%s: on find svr %s(%d): config of svr_type %s not exist!",
+                set_svr_name(svr), mon_app->m_name, svr_id, svr_type->m_svr_type_name);
+            set_svr_svr_ins_free(svr_ins);
+            return -1;
         }
-        else {
-            CPE_INFO(
-                svr->m_em, "%s: on find svr %s.%d: already exist, update to local!",
-                set_svr_name(svr), svr_type->m_svr_type_name, svr_id);
 
-            set_svr_svr_set_category(svr_svr, set_svr_svr_local);
+        svr_binding = set_svr_svr_binding_create(svr_ins, svr_type);
+        if (svr_binding == NULL) {
+            CPE_ERROR(
+                svr->m_em, "%s: on find svr %s(%d): create binding of svr ty pe %s fail!",
+                set_svr_name(svr), mon_app->m_name, svr_id, svr_type->m_svr_type_name);
+            set_svr_svr_ins_free(svr_ins);
+            return -1;
         }
 
-        return 0;
-    }
+        shmid = cpe_shm_key_gen(mon_app->m_pidfile, shm_tag);
+        if (shmid == -1) {
+            CPE_ERROR(
+                svr->m_em, "%s: on find svr %s(%d): get shmid at %s(%c) fail!",
+                set_svr_name(svr), mon_app->m_name, svr_id, mon_app->m_pidfile, shm_tag);
+            set_svr_svr_ins_free(svr_ins);
+            return -1;
+        }
 
-    svr_cfg = cfg_find_cfg(gd_app_cfg(svr->m_app), "svr_types");
-    svr_cfg = cfg_find_cfg(svr_cfg, svr_type->m_svr_type_name);
-    if (svr_cfg == NULL) {
-        CPE_ERROR(
-            svr->m_em, "%s: on find svr %s.%d: config of svr_type not exist!",
-            set_svr_name(svr), svr_type->m_svr_type_name, svr_id);
-        return -1;
-    }
-
-    shmid = cpe_shm_key_gen(mon_app->m_pidfile, 'a');
-    if (shmid == -1) {
-        CPE_ERROR(
-            svr->m_em, "%s: on find svr %s.%d: get shmid at %s fail!",
-            set_svr_name(svr), svr_type->m_svr_type_name, svr_id, mon_app->m_pidfile);
-        return -1;
-    }
-
-    svr_svr = set_svr_svr_create(svr, svr_type, svr_id, set_svr_svr_local);
-    if (svr_svr == NULL) {
-        CPE_ERROR(
-            svr->m_em, "%s: on find svr %s.%d: create fail!",
-            set_svr_name(svr), svr_type->m_svr_type_name, svr_id);
-        return -1;
-    }
-
-    svr_svr->m_chanel = set_chanel_shm_init(shmid, mon_app->m_wq_size, mon_app->m_rq_size, svr->m_em);
-    if (svr_svr->m_chanel == NULL) {
-        CPE_ERROR(
-            svr->m_em, "%s: on find svr %s.%d: attach chanel fail!",
-            set_svr_name(svr), svr_type->m_svr_type_name, svr_id);
-        set_svr_svr_free(svr_svr);
-        return -1;
+        svr_binding->m_chanel = set_chanel_shm_init(shmid, mon_app->m_wq_size, mon_app->m_rq_size, svr->m_em);
+        if (svr_binding->m_chanel == NULL) {
+            CPE_ERROR(
+                svr->m_em, "%s: on find svr %s(%d): svr type %s: attach chanel fail!",
+                set_svr_name(svr), mon_app->m_name, svr_id, svr_type->m_svr_type_name);
+            set_svr_svr_ins_free(svr_ins);
+            return -1;
+        }
     }
 
     if (svr->m_debug) {
         CPE_INFO(
-            svr->m_em, "%s: on find svr %s.%d: found new svr!",
-            set_svr_name(svr), svr_type->m_svr_type_name, svr_id);
+            svr->m_em, "%s: on find svr %s(%d): found new svr!",
+            set_svr_name(svr), mon_app->m_name, svr_id);
     }
 
     return 0;
@@ -219,7 +219,6 @@ static int set_svr_app_init_create_app(set_svr_mon_t mon, const char * all_root,
     set_svr_t svr = mon->m_svr;
     const char * base;
     const char * bin;
-    const char * svr_type_name;
     struct cfg_it arg_it;
     const char * str_rq_size;
     uint64_t rq_size;
@@ -229,12 +228,14 @@ static int set_svr_app_init_create_app(set_svr_mon_t mon, const char * all_root,
     char app_root[256];
     char app_bin[256];
     char pidfile[256];
-    set_svr_svr_type_t svr_type;
     set_svr_mon_app_t mon_app;
     cfg_t app_cfg;
     cfg_t app_env;
     char buf[128];
     char set_id[25];
+    cfg_t svr_type_cfg;
+    const char * svr_type_name;
+    set_svr_svr_type_t svr_type;
 
     snprintf(buf, sizeof(buf), "apps.%s", app_name);
     app_cfg = cfg_find_cfg(gd_app_cfg(svr->m_app), buf);
@@ -243,6 +244,12 @@ static int set_svr_app_init_create_app(set_svr_mon_t mon, const char * all_root,
         return -1;
     }
     app_env = cfg_find_cfg(app_args, "env");
+
+    svr_type_cfg = cfg_find_cfg(app_cfg, "svr-type");
+    if (svr_type_cfg == NULL) {
+        CPE_ERROR(svr->m_em, "%s: load app %s: svr-type not configured", set_svr_name(svr), app_name);
+        return -1;
+    }
 
     base = set_svr_app_read_value(svr, g_env, app_env, cfg_get_string(app_cfg, "base", NULL), NULL, 0);
     if (base == NULL) {
@@ -253,18 +260,6 @@ static int set_svr_app_init_create_app(set_svr_mon_t mon, const char * all_root,
     bin = set_svr_app_read_value(svr, g_env, app_env, cfg_get_string(app_cfg, "bin", NULL), NULL, 0);
     if (bin == NULL) {
         CPE_ERROR(svr->m_em, "%s: load app %s: bin not configured", set_svr_name(svr), app_name);
-        return -1;
-    }
-
-    svr_type_name = cfg_get_string(app_cfg, "svr-type", NULL);
-    if (svr_type_name == NULL) {
-        CPE_ERROR(svr->m_em, "%s: load app %s: svr-type not configured", set_svr_name(svr), app_name);
-        return -1;
-    }
-
-    svr_type = set_svr_svr_type_find_by_name(svr, svr_type_name);
-    if (svr_type == NULL) {
-        CPE_ERROR(svr->m_em, "%s: load app %s: svr-type %s not exist", set_svr_name(svr), app_name, svr_type_name);
         return -1;
     }
 
@@ -304,8 +299,55 @@ static int set_svr_app_init_create_app(set_svr_mon_t mon, const char * all_root,
         return -1;
     }
 
-    mon_app = set_svr_mon_app_create(mon, svr_type, app_bin, pidfile, rq_size, wq_size);
+    mon_app = set_svr_mon_app_create(mon, app_name, app_bin, pidfile, rq_size, wq_size);
     if (mon_app == NULL) return -1;
+
+    if ((svr_type_name = cfg_as_string(svr_type_cfg, NULL))) {
+        svr_type = set_svr_svr_type_find_by_name(svr, svr_type_name);
+        if (svr_type == NULL) {
+            CPE_ERROR(svr->m_em, "%s: load app %s: svr-type %s not exist", set_svr_name(svr), app_name, svr_type_name);
+            return -1;
+        }
+
+        if (set_svr_mon_app_add_svr_type(mon_app, svr_type) != 0) {
+            CPE_ERROR(svr->m_em, "%s: load app %s: add svr-type %s fail", set_svr_name(svr), app_name, svr_type_name);
+            return -1;
+        }
+    }
+    else if (cfg_type(svr_type_cfg) == CPE_CFG_TYPE_SEQUENCE) {
+        struct cfg_it child_it;
+        cfg_t child_cfg;
+
+        cfg_it_init(&child_it, svr_type_cfg);
+
+        while((child_cfg = cfg_it_next(&child_it))) {
+            svr_type_name = cfg_as_string(child_cfg, NULL);
+            if (svr_type_name == NULL) {
+                CPE_ERROR(svr->m_em, "%s: load app %s: svr-type format error", set_svr_name(svr), app_name);
+                return -1;
+            }
+
+            svr_type = set_svr_svr_type_find_by_name(svr, svr_type_name);
+            if (svr_type == NULL) {
+                CPE_ERROR(svr->m_em, "%s: load app %s: svr-type %s not exist", set_svr_name(svr), app_name, svr_type_name);
+                return -1;
+            }
+
+            if (set_svr_mon_app_add_svr_type(mon_app, svr_type) != 0) {
+                CPE_ERROR(svr->m_em, "%s: load app %s: add svr-type %s fail", set_svr_name(svr), app_name, svr_type_name);
+                return -1;
+            }
+        }
+
+        if (mon_app->m_svr_type_count == 0) {
+            CPE_ERROR(svr->m_em, "%s: load app %s: no svr type", set_svr_name(svr), app_name);
+            return -1;
+        }
+    }
+    else {
+        CPE_ERROR(svr->m_em, "%s: load app %s: svr-type configure type format error", set_svr_name(svr), app_name);
+        return -1;
+    }
 
     if (set_svr_mon_app_add_arg(mon_app, app_bin) != 0) {
         CPE_ERROR(svr->m_em, "%s: load app: add ap_bin arg fail", set_svr_name(svr));
@@ -384,7 +426,7 @@ static int set_svr_app_init_create_app(set_svr_mon_t mon, const char * all_root,
         return -1;
     }
 
-    if (set_svr_mon_app_sync_svr(mon_app, mon_app->m_svr_type, svr->m_set_id) != 0) return -1;
+    if (set_svr_mon_app_create_svr_ins(mon_app, svr->m_set_id) != 0) return -1;
 
     CPE_INFO(svr->m_em, "%s: load app %s: success", set_svr_name(svr), app_name);
 
