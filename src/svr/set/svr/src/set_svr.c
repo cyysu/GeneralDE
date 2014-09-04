@@ -87,11 +87,27 @@ set_svr_create(
     }
 
     if (cpe_hash_table_init(
-            &svr->m_svrs,
+            &svr->m_svr_bindings,
             alloc,
-            (cpe_hash_fun_t) set_svr_svr_hash,
-            (cpe_hash_cmp_t) set_svr_svr_eq,
-            CPE_HASH_OBJ2ENTRY(set_svr_svr, m_hh),
+            (cpe_hash_fun_t) set_svr_svr_binding_hash,
+            (cpe_hash_cmp_t) set_svr_svr_binding_eq,
+            CPE_HASH_OBJ2ENTRY(set_svr_svr_binding, m_hh),
+            -1) != 0)
+    {
+        cpe_hash_table_fini(&svr->m_svr_types_by_id);
+        cpe_hash_table_fini(&svr->m_svr_types_by_name);
+        nm_node_free(svr_node);
+        return NULL;
+    }
+
+    TAILQ_INIT(&svr->m_svr_instances);
+
+    if (cpe_hash_table_init(
+            &svr->m_svr_bindings,
+            alloc,
+            (cpe_hash_fun_t) set_svr_svr_binding_hash,
+            (cpe_hash_cmp_t) set_svr_svr_binding_eq,
+            CPE_HASH_OBJ2ENTRY(set_svr_svr_binding, m_hh),
             -1) != 0)
     {
         cpe_hash_table_fini(&svr->m_svr_types_by_id);
@@ -110,7 +126,7 @@ set_svr_create(
     {
         cpe_hash_table_fini(&svr->m_svr_types_by_id);
         cpe_hash_table_fini(&svr->m_svr_types_by_name);
-        cpe_hash_table_fini(&svr->m_svrs);
+        cpe_hash_table_fini(&svr->m_svr_bindings);
         nm_node_free(svr_node);
         return NULL;
     }
@@ -125,7 +141,7 @@ set_svr_create(
     {
         cpe_hash_table_fini(&svr->m_svr_types_by_id);
         cpe_hash_table_fini(&svr->m_svr_types_by_name);
-        cpe_hash_table_fini(&svr->m_svrs);
+        cpe_hash_table_fini(&svr->m_svr_bindings);
         cpe_hash_table_fini(&svr->m_routers_by_id);
         nm_node_free(svr_node);
         return NULL;
@@ -139,7 +155,7 @@ set_svr_create(
     if (svr->m_center == NULL) {
         cpe_hash_table_fini(&svr->m_svr_types_by_id);
         cpe_hash_table_fini(&svr->m_svr_types_by_name);
-        cpe_hash_table_fini(&svr->m_svrs);
+        cpe_hash_table_fini(&svr->m_svr_bindings);
         cpe_hash_table_fini(&svr->m_routers_by_id);
         cpe_hash_table_fini(&svr->m_routers_by_addr);
         nm_node_free(svr_node);
@@ -150,7 +166,7 @@ set_svr_create(
     if (svr->m_mon == NULL) {
         cpe_hash_table_fini(&svr->m_svr_types_by_id);
         cpe_hash_table_fini(&svr->m_svr_types_by_name);
-        cpe_hash_table_fini(&svr->m_svrs);
+        cpe_hash_table_fini(&svr->m_svr_bindings);
         cpe_hash_table_fini(&svr->m_routers_by_id);
         cpe_hash_table_fini(&svr->m_routers_by_addr);
         set_svr_center_free(svr->m_center);
@@ -163,7 +179,7 @@ set_svr_create(
         CPE_ERROR(em, "%s: create: create router_conn_fsm_def fail!", name);
         cpe_hash_table_fini(&svr->m_svr_types_by_id);
         cpe_hash_table_fini(&svr->m_svr_types_by_name);
-        cpe_hash_table_fini(&svr->m_svrs);
+        cpe_hash_table_fini(&svr->m_svr_bindings);
         cpe_hash_table_fini(&svr->m_routers_by_id);
         cpe_hash_table_fini(&svr->m_routers_by_addr);
         set_svr_center_free(svr->m_center);
@@ -176,7 +192,7 @@ set_svr_create(
         CPE_ERROR(em, "%s: create: add dispatch tick fail!", name);
         cpe_hash_table_fini(&svr->m_svr_types_by_id);
         cpe_hash_table_fini(&svr->m_svr_types_by_name);
-        cpe_hash_table_fini(&svr->m_svrs);
+        cpe_hash_table_fini(&svr->m_svr_bindings);
         cpe_hash_table_fini(&svr->m_routers_by_id);
         cpe_hash_table_fini(&svr->m_routers_by_addr);
         set_svr_center_free(svr->m_center);
@@ -209,8 +225,10 @@ static void set_svr_clear(nm_node_t node) {
     cpe_hash_table_fini(&svr->m_routers_by_id);
     cpe_hash_table_fini(&svr->m_routers_by_addr);
 
-    set_svr_svr_free_all(svr);
-    cpe_hash_table_fini(&svr->m_svrs);
+    set_svr_svr_ins_free_all(svr);
+    assert(TAILQ_EMPTY(&svr->m_svr_instances));
+    assert(cpe_hash_table_count(&svr->m_svr_bindings));
+    cpe_hash_table_fini(&svr->m_svr_bindings);
 
     set_svr_svr_type_free_all(svr);
     cpe_hash_table_fini(&svr->m_svr_types_by_id);
