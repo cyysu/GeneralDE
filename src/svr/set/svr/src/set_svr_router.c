@@ -19,7 +19,7 @@ set_svr_router_t set_svr_router_create(set_svr_t svr, uint32_t ip, uint16_t port
     router->m_conn = NULL;
     router->m_wb = NULL;
 
-    TAILQ_INIT(&router->m_svr_svrs);
+    TAILQ_INIT(&router->m_svr_instances);
 
     cpe_hash_entry_init(&router->m_hh_by_id);
     if (cpe_hash_table_insert_unique(&svr->m_routers_by_id, router) != 0) {
