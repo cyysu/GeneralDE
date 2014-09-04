@@ -35,7 +35,7 @@ struct set_svr_router {
     ringbuffer_block_t m_wb;
 
     set_svr_router_conn_t m_conn;
-    set_svr_svr_list_t m_svr_svrs;
+    set_svr_svr_ins_list_t m_svr_instances;
 
     struct cpe_hash_entry m_hh_by_addr;
     struct cpe_hash_entry m_hh_by_id;
