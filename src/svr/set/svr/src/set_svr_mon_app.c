@@ -14,7 +14,7 @@
 
 set_svr_mon_app_t
 set_svr_mon_app_create(
-    set_svr_mon_t mon, set_svr_svr_type_t svr_type, const char * bin, const char * pidfile,
+    set_svr_mon_t mon, const char * name, const char * bin, const char * pidfile,
     uint64_t rq_size, uint64_t wq_size)
 {
     set_svr_t svr = mon->m_svr;
@@ -26,11 +26,19 @@ set_svr_mon_app_create(
         return NULL;
     }
 
-    mon_app->m_svr_type = svr_type;
+    mon_app->m_svr_type_count = 0;
+
+    mon_app->m_name = cpe_str_mem_dup(svr->m_alloc, name);
+    if (mon_app->m_name == NULL) {
+        CPE_ERROR(svr->m_em, "%s: mon_app: alloc name fail!", set_svr_name(svr));
+        mem_free(svr->m_alloc, mon_app);
+        return NULL;
+    }
 
     mon_app->m_bin = cpe_str_mem_dup(svr->m_alloc, bin);
     if (mon_app->m_bin == NULL) {
         CPE_ERROR(svr->m_em, "%s: mon_app: alloc bin fail!", set_svr_name(svr));
+        mem_free(svr->m_alloc, mon_app->m_name);
         mem_free(svr->m_alloc, mon_app);
         return NULL;
     }
@@ -39,6 +47,7 @@ set_svr_mon_app_create(
     if (mon_app->m_pidfile == NULL) {
         CPE_ERROR(svr->m_em, "%s: mon_app: alloc bin fail!", set_svr_name(svr));
         mem_free(svr->m_alloc, mon_app->m_bin);
+        mem_free(svr->m_alloc, mon_app->m_name);
         mem_free(svr->m_alloc, mon_app);
         return NULL;
     }
@@ -57,6 +66,7 @@ set_svr_mon_app_create(
     if (mon_app->m_args == NULL) {
         CPE_ERROR(svr->m_em, "%s: mon_app: alloc args buff fail", set_svr_name(svr))
         mem_free(svr->m_alloc, mon_app->m_bin);
+        mem_free(svr->m_alloc, mon_app->m_name);
         mem_free(svr->m_alloc, mon_app->m_pidfile);
         mem_free(svr->m_alloc, mon_app);
         return NULL;
@@ -67,6 +77,7 @@ set_svr_mon_app_create(
         CPE_ERROR(svr->m_em, "%s: mon_app: init fsm fail!", set_svr_name(svr));
         mem_free(svr->m_alloc, mon_app->m_args);
         mem_free(svr->m_alloc, mon_app->m_bin);
+        mem_free(svr->m_alloc, mon_app->m_name);
         mem_free(svr->m_alloc, mon_app->m_pidfile);
         mem_free(svr->m_alloc, mon_app);
         return NULL;
@@ -75,10 +86,27 @@ set_svr_mon_app_create(
     TAILQ_INSERT_TAIL(&mon->m_mon_apps, mon_app, m_next);
 
     if (mon->m_debug) {
-        CPE_INFO(svr->m_em, "%s: mon app %s: create", set_svr_name(svr), mon_app->m_bin);
+        CPE_INFO(svr->m_em, "%s: mon app %s: create", set_svr_name(svr), mon_app->m_name);
     }
 
     return mon_app;
+}
+
+int set_svr_mon_app_add_svr_type(
+    set_svr_mon_app_t mon_app, set_svr_svr_type_t svr_type)
+{
+    set_svr_mon_t mon = mon_app->m_mon;
+    set_svr_t svr = mon->m_svr;
+
+    assert(svr_type);
+
+    if (mon_app->m_svr_type_count >= CPE_ARRAY_SIZE(mon_app->m_svr_types)) {
+        CPE_ERROR(svr->m_em, "%s: mon app %s: add svr type %s: overflow!", set_svr_name(svr), mon_app->m_name, svr_type->m_svr_type_name);
+        return -1;
+    }
+
+    mon_app->m_svr_types[mon_app->m_svr_type_count++] = svr_type;
+    return 0;
 }
 
 void set_svr_mon_app_free(set_svr_mon_app_t mon_app) {
@@ -86,19 +114,19 @@ void set_svr_mon_app_free(set_svr_mon_app_t mon_app) {
     set_svr_t svr = mon->m_svr;
 
     if (mon->m_debug) {
-        CPE_INFO(svr->m_em, "%s: mon app %s: destory", set_svr_name(svr), mon_app->m_bin);
+        CPE_INFO(svr->m_em, "%s: mon app %s: destory", set_svr_name(svr), mon_app->m_name);
     }
 
     if (fsm_machine_curent_state(&mon_app->m_fsm) == set_svr_mon_app_state_runing) {
         if (kill(mon_app->m_pid, SIGHUP) != 0) {
             CPE_ERROR(
                 svr->m_em, "%s: mon app %s: send signal %d to %d fail, error=%d (%s)",
-                set_svr_name(svr), mon_app->m_bin, SIGHUP, mon_app->m_pid, errno, strerror(errno));
+                set_svr_name(svr), mon_app->m_name, SIGHUP, mon_app->m_pid, errno, strerror(errno));
         }
         else {
             CPE_INFO(
                 svr->m_em, "%s: mon app %s: send signal %d to %d success",
-                set_svr_name(svr), mon_app->m_bin, SIGHUP, mon_app->m_pid);
+                set_svr_name(svr), mon_app->m_name, SIGHUP, mon_app->m_pid);
         }
     }
 
@@ -116,6 +144,7 @@ void set_svr_mon_app_free(set_svr_mon_app_t mon_app) {
         mon_app->m_args = NULL;
     }
 
+    mem_free(svr->m_alloc, mon_app->m_name);
     mem_free(svr->m_alloc, mon_app->m_bin);
     mem_free(svr->m_alloc, mon_app->m_pidfile);
     mem_free(svr->m_alloc, mon_app);

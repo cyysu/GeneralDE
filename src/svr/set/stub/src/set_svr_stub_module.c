@@ -42,6 +42,8 @@ int set_svr_stub_app_init(gd_app_context_t app, gd_app_module_t module, cfg_t cf
     set_chanel_t chanel;
     cfg_t svr_types_cfg;
     dr_store_manage_t store_mgr;
+    const char * str_shm_tag;
+    char shm_tag;
 
     svr_types_cfg = cfg_find_cfg(gd_app_cfg(app), "svr_types");
 
@@ -59,9 +61,19 @@ int set_svr_stub_app_init(gd_app_context_t app, gd_app_module_t module, cfg_t cf
 
     gd_stop_on_signal(SIGUSR1);
 
-    shmid = cpe_shm_key_gen(pidfile, 'a');
+    shm_tag = 'a';
+    if ((str_shm_tag = cfg_get_string(cfg, "shm-tag", NULL))) {
+        if (strlen(str_shm_tag) != 1) {
+            CPE_ERROR(gd_app_em(app), "%s: create: shm-tag '%s' format error!", gd_app_module_name(module), str_shm_tag);
+            return -1;
+        }
+
+        shm_tag = str_shm_tag[0];
+    }
+
+    shmid = cpe_shm_key_gen(pidfile, shm_tag);
     if (shmid == -1) {
-        CPE_ERROR(gd_app_em(app), "%s: create: gen shm key fail, error=%d (%s)!", gd_app_module_name(module), errno, strerror(errno));
+        CPE_ERROR(gd_app_em(app), "%s: create: gen shm key fail, shm-tag=%c, error=%d (%s)!", gd_app_module_name(module), shm_tag, errno, strerror(errno));
         return -1;
     }
 
