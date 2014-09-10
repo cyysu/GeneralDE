@@ -1,7 +1,7 @@
 product-support-types+=cpe-dr
 product-def-all-items+=cpe-dr.modules
 
-cpe-dr-tool=$(CPDE_OUTPUT_ROOT)/$(tools.output)/bin/cpe_dr_tool
+cpe-dr-tool=$$(CPDE_OUTPUT_ROOT)/$$(r.cpe_dr_tool.tools.product)
 
 define product-def-rule-cpe-dr-c-module-validate
   $(call assert-not-null,$1.cpe-dr.$2.validate.output)
