@@ -111,6 +111,42 @@ void conn_http_svr_app_fini(gd_app_context_t app, gd_app_module_t module) {
     }
 }
 
+static int conn_http_svr_app_init_load_service_cmds_by_prefix(conn_http_svr_t svr, conn_http_service_t service, const char * prefix) {
+    LPDRMETAENTRY data_entry = set_svr_svr_info_pkg_data_entry(service->m_dispatch_to);
+    LPDRMETA data_meta = dr_entry_ref_meta(data_entry);
+    size_t i;
+
+    for(i = 0; i < dr_meta_entry_num(data_meta); i++) {
+        conn_http_cmd_t cmd;
+        LPDRMETAENTRY entry = dr_meta_entry_at(data_meta, i);
+        int id;
+        LPDRMETA cmd_meta;
+        const char * path;
+
+        cmd_meta = dr_entry_ref_meta(entry);
+        path = dr_meta_name(cmd_meta);
+        id = dr_entry_id(entry);
+
+        if (strstr(path, prefix) != path) continue;
+
+        cmd = conn_http_cmd_create(service, path, id, cmd_meta);
+        if (cmd == NULL) {
+            CPE_ERROR(
+                svr->m_em, "%s: create: load service %s: cmd %s: create cmd fail!",
+                conn_http_svr_name(svr), service->m_path, path);
+            return -1;
+        }
+
+        if (svr->m_debug) {
+            CPE_INFO(
+                svr->m_em, "%s: create: load service %s: cmd %s: id=%d, meta=%s!",
+                conn_http_svr_name(svr), service->m_path, path, id, cmd_meta ? dr_meta_name(cmd_meta) : "none");
+        }
+    }
+
+    return 0;
+}
+
 static int conn_http_svr_app_init_load_service_cmds(conn_http_svr_t svr, conn_http_service_t service, cfg_t cfg) {
     struct cfg_it cmd_it;
     cfg_t cmd_cfg;
@@ -174,6 +210,7 @@ static int conn_http_svr_app_init_load_services(conn_http_svr_t svr, cfg_t cfg) 
         const char * str_formator = cfg_get_string(service_cfg, "formator", NULL);
         set_svr_svr_info_t dispatch_to;
         conn_http_formator_t formator;
+        cfg_t cmd_prefixes_cfg;
 
         if (svr_path == NULL) {
             CPE_ERROR(
@@ -225,7 +262,55 @@ static int conn_http_svr_app_init_load_services(conn_http_svr_t svr, cfg_t cfg) 
             return -1;
         }
 
+        if ((cmd_prefixes_cfg = cfg_find_cfg(service_cfg, "cmd-prefix"))) {
+            const char * cmd_prefix;
+
+            if ((cmd_prefix = cfg_as_string(cmd_prefixes_cfg, NULL))) {
+                if (conn_http_svr_app_init_load_service_cmds_by_prefix(svr, service, cmd_prefix) != 0) {
+                    CPE_ERROR(
+                        svr->m_em, "%s: create: load service %s: load command of prefix %s fail!",
+                        conn_http_svr_name(svr), svr_name, cmd_prefix);
+                    conn_http_service_free(service);
+                    return -1;
+                }
+            }
+            else if (cfg_type(cmd_prefixes_cfg) == CPE_CFG_TYPE_SEQUENCE) {
+                struct cfg_it child_it;
+                cfg_t child_cfg;
+                cfg_it_init(&child_it, cmd_prefixes_cfg);
+                while((child_cfg = cfg_it_next(&child_it))) {
+                    const char * cmd_prefixe = cfg_as_string(child_cfg, NULL);
+                    if (cmd_prefixe == NULL) {
+                        CPE_ERROR(
+                            svr->m_em, "%s: create: load service %s: cmd-prefix format error!",
+                            conn_http_svr_name(svr), svr_name);
+                        conn_http_service_free(service);
+                        return -1;
+                    }
+
+                    if (conn_http_svr_app_init_load_service_cmds_by_prefix(svr, service, cmd_prefix) != 0) {
+                        CPE_ERROR(
+                            svr->m_em, "%s: create: load service %s: load command of prefix %s fail!",
+                            conn_http_svr_name(svr), svr_name, cmd_prefix);
+                        conn_http_service_free(service);
+                        return -1;
+                    }
+                }
+            }
+            else {
+                CPE_ERROR(
+                    svr->m_em, "%s: create: load service %s: cmd-prefix format error!",
+                    conn_http_svr_name(svr), svr_name);
+                conn_http_service_free(service);
+                return -1;
+            }
+        }
+
         if (conn_http_svr_app_init_load_service_cmds(svr, service, cfg_find_cfg(service_cfg, "cmds")) != 0) {
+            CPE_ERROR(
+                svr->m_em, "%s: create: load service %s: load cmds fail!",
+                conn_http_svr_name(svr), svr_name);
+                conn_http_service_free(service);
             return -1;
         }
 
