@@ -68,6 +68,7 @@ void ui_ed_obj_mgr_init_metas(ui_ed_mgr_t ed_mgr) {
 
     /*actor*/
     ui_ed_obj_meta_init(ui_ed_obj_actor, ui_data_actor_meta(ed_mgr->m_data_mgr));
+    ui_ed_obj_meta_set_id("id", ui_data_actor_set_id);
     ui_ed_obj_meta_set_delete(ui_data_actor_free);
     ui_ed_obj_meta_set_child(ui_ed_obj_actor_layer, ui_ed_obj_create_actor_layer);
 
