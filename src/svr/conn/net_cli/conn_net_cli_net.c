@@ -305,7 +305,7 @@ static int conn_net_cli_process_data(conn_net_cli_t cli) {
                         cli->m_em, "%s: %s: <== receive on response, sn=%d, pkg-size=%d: no response-send-to configured!",
                         conn_net_cli_name(cli), conn_net_cli_svr_stub_type_name(svr_stub), cli_pkg->m_sn, (int)pkg_data_len);
                 }
-                else if (dp_dispatch_by_string(svr_stub->m_response_dispatch_to, cli->m_incoming_body, cli->m_em) != 0) {
+                else if (dp_dispatch_by_string(svr_stub->m_response_dispatch_to, dp_req_mgr(cli->m_incoming_body), cli->m_incoming_body, cli->m_em) != 0) {
                     CPE_ERROR(
                         cli->m_em, "%s: %s: <== receive on response, sn=%d, pkg-size=%d: dispatch-to %s fail!",
                         conn_net_cli_name(cli), conn_net_cli_svr_stub_type_name(svr_stub),
@@ -325,7 +325,7 @@ static int conn_net_cli_process_data(conn_net_cli_t cli) {
                         cli->m_em, "%s: %s: <== receive on notify, pkg-size=%d: no notify-send-to configured!",
                         conn_net_cli_name(cli), conn_net_cli_svr_stub_type_name(svr_stub), (int)pkg_data_len);
                 }
-                else if (dp_dispatch_by_string(svr_stub->m_notify_dispatch_to, cli->m_incoming_body, cli->m_em) != 0) {
+                else if (dp_dispatch_by_string(svr_stub->m_notify_dispatch_to, dp_req_mgr(cli->m_incoming_body), cli->m_incoming_body, cli->m_em) != 0) {
                     CPE_ERROR(
                         cli->m_em, "%s: %s: <== receive on notify, pkg-size=%d: dispatch-to %s fail!",
                         conn_net_cli_name(cli), conn_net_cli_svr_stub_type_name(svr_stub),
