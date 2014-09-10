@@ -17,6 +17,8 @@ int mongo_cli_proxy_send(
     LPDRMETA result_meta, int result_count_init, const char * result_prefix,
     mongo_cli_pkg_parser parser, void * parser_ctx)
 {
+    dp_req_t dp_req;
+
     if (agent->m_outgoing_send_to == NULL) {
         CPE_ERROR(
             agent->m_em, "%s: send: no outgoing_send_to configured",
@@ -53,7 +55,8 @@ int mongo_cli_proxy_send(
         mongo_pkg_set_id(pkg, logic_require_id(require));
     }
 
-    if (dp_dispatch_by_string(agent->m_outgoing_send_to, dp_req_mgr(mongo_pkg_to_dp_req(pkg)), mongo_pkg_to_dp_req(pkg), agent->m_em) != 0) {
+    dp_req = mongo_pkg_to_dp_req(pkg);
+    if (dp_dispatch_by_string(agent->m_outgoing_send_to, dp_req_mgr(dp_req), dp_req, agent->m_em) != 0) {
         CPE_INFO(agent->m_em, "%s: send_request: dispatch return fail!", mongo_cli_proxy_name(agent));
         goto SEND_ERROR;
     }
@@ -82,6 +85,7 @@ int mongo_cli_proxy_send(
         /*查询请求有响应，其他请求需要单独获取响应 */
         if (mongo_pkg_op(pkg) != mongo_db_op_query && mongo_pkg_op(pkg) != mongo_db_op_get_more) {
             mongo_pkg_t cmd_pkg = mongo_cli_proxy_cmd_buf(agent);
+            dp_req_t dp_req;
 
             mongo_pkg_cmd_init(cmd_pkg);
             mongo_pkg_set_db(cmd_pkg, mongo_pkg_db(pkg));
@@ -95,7 +99,8 @@ int mongo_cli_proxy_send(
             keep_data.m_result_meta = agent->m_meta_lasterror;
             keep_data.m_result_count_init = 1;
 
-            if (dp_dispatch_by_string(agent->m_outgoing_send_to, dp_req_mgr(mongo_pkg_to_dp_req(cmd_pkg)), mongo_pkg_to_dp_req(cmd_pkg), agent->m_em) != 0) {
+            dp_req = mongo_pkg_to_dp_req(cmd_pkg);
+            if (dp_dispatch_by_string(agent->m_outgoing_send_to, dp_req_mgr(dp_req), dp_req, agent->m_em) != 0) {
                 CPE_INFO(agent->m_em, "%s: send_request: dispatch getLastError return fail!", mongo_cli_proxy_name(agent));
                 goto SEND_ERROR;
             }
