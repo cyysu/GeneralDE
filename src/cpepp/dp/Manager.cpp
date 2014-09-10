@@ -2,6 +2,7 @@
 #include <stdexcept>
 #include "cpe/pal/pal_stackbuf.h"
 #include "cpepp/utils/ErrorCollector.hpp"
+#include "cpe/dp/dp_request.h"
 #include "cpepp/dp/Manager.hpp"
 #include "cpepp/dp/Responser.hpp"
 
@@ -29,25 +30,30 @@ void Manager::unbind(dp_rsp_t rsp, const char * cmd) {
     dp_rsp_unbind_string(rsp, cmd);
 }
 
-void Manager::dispatch(const char * cmd, dp_req_t req) {
+void Manager::dispatch(const char * cmd, dp_req_t req, dp_mgr_t dm) {
     size_t cmdLen = strlen(cmd) + 1;
     char buf[CPE_STACK_BUF_LEN(cpe_hs_len_to_binary_len(cmdLen))];
     cpe_hs_init((cpe_hash_string_t)buf, sizeof(buf), cmd);
-    dispatch((cpe_hash_string_t)buf, req);
+
+    dispatch((cpe_hash_string_t)buf, req, dm);
 }
 
-void Manager::dispatch(cpe_hash_string_t cmd, dp_req_t req) {
+void Manager::dispatch(cpe_hash_string_t cmd, dp_req_t req, dp_mgr_t dm) {
     Cpe::Utils::ErrorCollector ec;
 
-    if (dp_dispatch_by_string(cmd, req, ec) != 0) {
+    if (dm == NULL) dm = dp_req_mgr(req);
+
+    if (dp_dispatch_by_string(cmd, dm, req, ec) != 0) {
         ec.checkThrowWithMsg< ::std::runtime_error>();
     }
 }
 
-void Manager::dispatch(int32_t cmd, dp_req_t req) {
+void Manager::dispatch(int32_t cmd, dp_req_t req, dp_mgr_t dm) {
     Cpe::Utils::ErrorCollector ec;
 
-    if (dp_dispatch_by_numeric(cmd, req, ec) != 0) {
+    if (dm == NULL) dm = dp_req_mgr(req);
+
+    if (dp_dispatch_by_numeric(cmd, dm, req, ec) != 0) {
         ec.checkThrowWithMsg< ::std::runtime_error>();
     }
 }
