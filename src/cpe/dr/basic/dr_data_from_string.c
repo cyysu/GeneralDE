@@ -267,7 +267,7 @@ static int dr_set_float_from_string(void * output, LPDRMETAENTRY entry, const ch
     b = strtof(s, &end);
 
     if (*end != 0) {
-        CPE_ERROR(em, "scan float from string %s fail, end point is %d", s, (end - s));
+        CPE_ERROR(em, "scan float from string %s fail, end point is %d", s, (int)(end - s));
         return -1;
     }
     else {
@@ -285,7 +285,7 @@ static int dr_set_double_from_string(void * output, LPDRMETAENTRY entry, const c
     b = strtod(s, &end);
 
     if (*end != 0) {
-        CPE_ERROR(em, "scan double from string %s fail, end point is %d", s, (end - s));
+        CPE_ERROR(em, "scan double from string %s fail, end point is %d", s, (int)(end - s));
         return -1;
     }
     else {

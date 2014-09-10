@@ -47,4 +47,14 @@ struct cfg_manage {
     struct cfg_struct m_root;
 };
 
+struct cfg_format_bin_head {
+    uint32_t m_magic;
+    uint32_t m_data_start;
+    uint32_t m_data_capacity;
+    uint32_t m_strpool_start;
+    uint32_t m_strpool_capacity;
+};
+
+#define CFG_FORMAT_BIN_MATIC 0x1D309C7A
+
 #endif
