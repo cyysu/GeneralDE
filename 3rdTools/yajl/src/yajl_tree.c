@@ -536,3 +536,15 @@ void yajl_tree_free (yajl_val v)
         free(v);
     }
 }
+
+const char * yajl_get_string(yajl_val v) {
+    return YAJL_GET_STRING(v);
+}
+
+long long yajl_get_integer(yajl_val v) {
+    return YAJL_GET_INTEGER(v);
+}
+
+double yajl_get_double(yajl_val v) {
+    return YAJL_GET_DOUBLE(v);
+}
