@@ -150,8 +150,10 @@ sub calc_col_fun {
             my $macro_cname = $macrogroup->{macro}->{$macro_name}->{cname} || "";
             my $macro_value = $macrogroup->{macro}->{$macro_name}->{value};
 
-            $row->{$resultColName} = $macro_value and return
-              if ($macro_cname eq $orig or $macro_name eq $orig);
+            if ($macro_cname eq $orig or $macro_name eq $orig) {
+              $row->{$resultColName} = $macro_value;
+              return;
+            }
           }
         }
 
@@ -228,11 +230,11 @@ sub calc_col_fun {
 }
 
 sub analize_entry_processor_union {
-  my ($meta, $entry, $cname_post_fix, $col_fun_derator) = @_;
+  my ($meta, $entry, $cname_pre_fix, $cname_post_fix, $col_fun_derator) = @_;
 
   return if (not exists $entry->{cname});
 
-  my $input_col_name = $entry->{cname} . $cname_post_fix;
+  my $input_col_name = $cname_pre_fix . $entry->{cname} . $cname_post_fix;
 
   if ($entry->{customattr} =~ /match\s*\(\s*'([^']*)'\s*\)/) {
     my $filter = $1;
@@ -244,6 +246,7 @@ sub analize_entry_processor_union {
     }
 
     analize_submeta($subMeta,
+                    $cname_pre_fix,
                     $cname_post_fix,
                     $entry,
                     sub {
@@ -269,11 +272,11 @@ sub analize_entry_processor_union {
 }
 
 sub analize_entry_processor_struct_seq_basic {
-  my ($meta, $entry, $cname_post_fix, $count, $col_fun_derator) = @_;
+  my ($meta, $entry, $cname_pre_fix, $cname_post_fix, $count, $col_fun_derator) = @_;
 
   return if not exists $entry->{cname};
 
-  my $input_col_name = $entry->{cname} . $cname_post_fix;
+  my $input_col_name = $cname_pre_fix . $entry->{cname} . $cname_post_fix;
 
   if ($entry->{customattr} && $entry->{customattr} =~ /split\s*\(\s*'([^']+)'\s*\)/) {
     my $sep = $1;
@@ -319,11 +322,37 @@ sub analize_entry_processor_struct_seq_basic {
       $col_fun = $col_fun_derator->($col_fun) if defined $col_fun_derator;
       add_col_processor($col_name, $col_fun);
     }
+  } elsif ($entry->{customattr} && $entry->{customattr} =~ /make_array_prefix\s*\(\s*'([^']+)'\s*\)/) {
+    my @prefixs = split(':', $1);
+
+    foreach my $pos ( 0 .. $#prefixs ) {
+      my $col_name = $prefixs[$pos] . $input_col_name;
+
+      my $col_fun = sub {
+        my ($row, $value, $input_row) = @_;
+
+        return if (not defined $value) or ($value eq "");
+
+        if ($value !~ m/^\s*$/) {
+          $row->{$entry->{name}} = []
+            if not exists $row->{$entry->{name}};
+
+          while ( @{$row->{$entry->{name}}} < $pos) {
+            push @{$row->{$entry->{name}}}, "";
+          }
+
+          ${$row->{$entry->{name}}}[$pos] = $value;
+        }
+      };
+
+      $col_fun = $col_fun_derator->($col_fun) if defined $col_fun_derator;
+      add_col_processor($col_name, $col_fun);
+    }
   }
 }
 
 sub analize_entry_processor_struct_seq_compose {
-  my ($meta, $entry, $cname_post_fix, $count, $col_fun_derator) = @_;
+  my ($meta, $entry, $cname_pre_fix, $cname_post_fix, $count, $col_fun_derator) = @_;
 
   my $subMeta = $metaLib{$entry->{type}};
   if (not $subMeta) {
@@ -332,7 +361,7 @@ sub analize_entry_processor_struct_seq_compose {
   }
 
   if ($subMeta->{meta_type} eq "union") {
-    analize_submeta($subMeta, $cname_post_fix, $entry, $col_fun_derator);
+    analize_submeta($subMeta, $cname_pre_fix, $cname_post_fix, $entry, $col_fun_derator);
     return;
   }
 
@@ -341,6 +370,7 @@ sub analize_entry_processor_struct_seq_compose {
   if ($entry->{customattr} eq "repeat") {
     foreach my $c ( 1 .. $count ) {
       analize_meta_processors($subMeta,
+                              $cname_pre_fix,
                               "$c$cname_post_fix",
                               sub {
                                 my $innerSub = shift;
@@ -368,6 +398,7 @@ sub analize_entry_processor_struct_seq_compose {
   } elsif ($entry->{customattr} =~ /split\s*\(\s*'([^']+)'\s*\)/) {
     my $sep = $1;
     analize_meta_processors($subMeta,
+                            $cname_pre_fix,
                             $cname_post_fix,
                             sub {
                               my $innerSub = shift;
@@ -400,7 +431,39 @@ sub analize_entry_processor_struct_seq_compose {
 
     foreach my $pos ( 0 .. $#postfixs ) {
       analize_meta_processors($subMeta,
+                              $cname_pre_fix,
                               "$postfixs[$pos]$cname_post_fix",
+                              sub {
+                                my $innerSub = shift;
+
+                                my $newSub = sub {
+                                  my ($row, $value, $input_row) = @_;
+
+                                  return if (not $value) or ($value eq "");
+
+                                  $row->{$entry->{name}} = []
+                                    if not exists $row->{$entry->{name}};
+
+                                  while ( @{$row->{$entry->{name}}} <= $pos) {
+                                    push @{$row->{$entry->{name}}}, {};
+                                  }
+
+                                  $innerSub->(${$row->{$entry->{name}}}[$pos], $value, $input_row);
+                                };
+
+                                $newSub = $col_fun_derator->($newSub) if $col_fun_derator;
+
+                                return $newSub;
+                              });
+    }
+  }
+  elsif ($entry->{customattr} && $entry->{customattr} =~ /make_array_prefix\s*\(\s*'([^']+)'\s*\)/) {
+    my @prefixs = split(':', $1);
+
+    foreach my $pos ( 0 .. $#prefixs ) {
+      analize_meta_processors($subMeta,
+                              $cname_pre_fix . $prefixs[$pos],
+                              $cname_post_fix,
                               sub {
                                 my $innerSub = shift;
 
@@ -431,7 +494,7 @@ sub analize_entry_processor_struct_seq_compose {
 }
 
 sub analize_entry_processor_struct {
-  my ($meta, $entry, $cname_post_fix, $col_fun_derator) = @_;
+  my ($meta, $entry, $cname_pre_fix, $cname_post_fix, $col_fun_derator) = @_;
 
   my $entry_count = $entry->{count};
   if (defined $entry_count and exists $macros{$entry_count}) {
@@ -440,17 +503,17 @@ sub analize_entry_processor_struct {
 
   if (defined $entry->{count} and $entry_count != 1) {
     if (is_entry_basic_type($entry)) {
-      return analize_entry_processor_struct_seq_basic($meta, $entry, $cname_post_fix, $entry_count, $col_fun_derator);
+      return analize_entry_processor_struct_seq_basic($meta, $entry, $cname_pre_fix, $cname_post_fix, $entry_count, $col_fun_derator);
     }
     else {
-      return analize_entry_processor_struct_seq_compose($meta, $entry, $cname_post_fix, $entry_count, $col_fun_derator);
+      return analize_entry_processor_struct_seq_compose($meta, $entry, $cname_pre_fix, $cname_post_fix, $entry_count, $col_fun_derator);
     }
   }
   else {
     if (is_entry_basic_type($entry)) {
       return if not exists $entry->{cname};
 
-      my $input_col_name = $entry->{cname} . $cname_post_fix;
+      my $input_col_name = $cname_pre_fix . $entry->{cname} . $cname_post_fix;
 
       my $col_fun = calc_col_fun($entry->{cname}, $entry->{name}, $entry->{customattr}, $entry);
 
@@ -467,15 +530,16 @@ sub analize_entry_processor_struct {
         return;
       }
 
-      analize_submeta($subMeta, $cname_post_fix, $entry, $col_fun_derator);
+      analize_submeta($subMeta, ( $entry->{cname} || "" ) . $cname_pre_fix, $cname_post_fix, $entry, $col_fun_derator);
     }
   }
 }
 
 sub analize_submeta {
-  my ($subMeta, $cname_post_fix, $entry, $col_fun_derator) = @_;
+  my ($subMeta, $cname_pre_fix, $cname_post_fix, $entry, $col_fun_derator) = @_;
 
     analize_meta_processors($subMeta,
+                            $cname_pre_fix,
                             $cname_post_fix,
                             sub {
                               my $innerSub = shift;
@@ -502,35 +566,35 @@ sub analize_submeta {
 }
 
 sub analize_meta_processors {
-  my ($meta, $cname_post_fix, $col_fun_derator) = @_;
+  my ($meta, $cname_pre_fix, $cname_post_fix, $col_fun_derator) = @_;
 
   my $type = $meta->{meta_type};
 
   if ($type eq "struct") {
     if (ref($meta->{entry}) eq "ARRAY") {
       foreach my $entry (@{$meta->{entry}}) {
-        analize_entry_processor_struct($meta, $entry, $cname_post_fix, $col_fun_derator);
+        analize_entry_processor_struct($meta, $entry, $cname_pre_fix, $cname_post_fix, $col_fun_derator);
       }
     }
     elsif (ref($meta->{entry}) eq "HASH") {
       my $entry = $meta->{entry};
-      analize_entry_processor_struct($meta, $entry, $cname_post_fix, $col_fun_derator);
+      analize_entry_processor_struct($meta, $entry, $cname_pre_fix, $cname_post_fix, $col_fun_derator);
     }
   }
   else {
     if (ref($meta->{entry}) eq "ARRAY") {
       foreach my $entry (@{$meta->{entry}}) {
-        analize_entry_processor_union($meta, $entry, $cname_post_fix, $col_fun_derator);
+        analize_entry_processor_union($meta, $entry, $cname_pre_fix, $cname_post_fix, $col_fun_derator);
       }
     }
     elsif (ref($meta->{entry}) eq "HASH") {
       my $entry = $meta->{entry};
-      analize_entry_processor_union($meta, $entry, $cname_post_fix, $col_fun_derator);
+      analize_entry_processor_union($meta, $entry, $cname_pre_fix, $cname_post_fix, $col_fun_derator);
     }
   }
 }
 
-analize_meta_processors($metaLib{$metaName}, "");
+analize_meta_processors($metaLib{$metaName}, "", "");
 
 my $parser =  Spreadsheet::ParseExcel->new();
 my $workbook = $parser->parse($inputFile);
