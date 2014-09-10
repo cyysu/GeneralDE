@@ -1,6 +1,7 @@
 #include <assert.h>
 #include "cpe/pal/pal_string.h"
 #include "cpe/dp/dp_manage.h"
+#include "cpe/dp/dp_request.h"
 #include "gd/app/app_context.h"
 #include "usf/mongo_driver/mongo_driver.h"
 #include "usf/mongo_driver/mongo_pkg.h"
@@ -53,7 +54,7 @@ static uint32_t mongo_server_fsm_master_trans(fsm_machine_t fsm, fsm_def_state_t
         mongo_server_start_watch(server);
         return FSM_KEEP_STATE;
     case mongo_server_fsm_evt_recv_pkg:
-        if (dp_dispatch_by_string(driver->m_incoming_send_to, mongo_pkg_to_dp_req(evt->m_pkg), driver->m_em) != 0) {
+        if (dp_dispatch_by_string(driver->m_incoming_send_to, dp_req_mgr(mongo_pkg_to_dp_req(evt->m_pkg)), mongo_pkg_to_dp_req(evt->m_pkg), driver->m_em) != 0) {
             CPE_ERROR(
                 driver->m_em, "%s: server %s %d: on read: dispatch to %s fail!",
                 mongo_driver_name(driver), server->m_ip, server->m_port, cpe_hs_data(driver->m_incoming_send_to));
