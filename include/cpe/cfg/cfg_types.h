@@ -52,6 +52,10 @@ typedef struct cfg_it {
 #define CPE_CFG_TYPE_FLOAT       CPE_DR_TYPE_FLOAT
 #define CPE_CFG_TYPE_DOUBLE      CPE_DR_TYPE_DOUBLE
 
+enum cfg_bin_write_error {
+    cfg_bin_write_error_not_enouth_output_buf = -2
+};
+
 #ifdef __cplusplus
 }
 #endif

@@ -3,6 +3,7 @@
 
 CfgTest::CfgTest()
     : m_root(NULL)
+    , m_test_attr_id(0)
 {
 }
 
@@ -39,3 +40,28 @@ const char * CfgTest::result(cfg_t cfg) {
 
     return (const char *)mem_buffer_make_exactly(&m_result_buffer);
 }
+
+cfg_t CfgTest::build(int typeId, const char * value) {
+    char name[128];
+
+    snprintf(name, sizeof(name), "test_%d", ++m_test_attr_id);
+
+    return cfg_struct_add_value_from_string(m_root, name, typeId, value, cfg_replace);
+}
+
+cfg_t CfgTest::build_dft(int typeId) {
+    char name[128];
+
+    snprintf(name, sizeof(name), "test_%d", ++m_test_attr_id);
+
+    return cfg_struct_add_value(m_root, name, typeId, cfg_replace);
+}
+
+cfg_t CfgTest::build(const char * value) {
+    char name[128];
+
+    snprintf(name, sizeof(name), "test_%d", ++m_test_attr_id);
+
+    return cfg_struct_add_value_from_string_auto(m_root, name, value, cfg_replace);
+}
+
