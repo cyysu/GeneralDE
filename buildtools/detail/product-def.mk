@@ -42,6 +42,11 @@ define product-def-for-domain
 
 $(eval $2.product-list+=$1)
 
+#copy variables
+$(foreach cn,$(product-def-all-items),\
+    $(if $($1.$2.$(cn)),$(eval r.$1.$2.$(cn):=$($1.$2.$(cn)))))
+
+
 .PHONY:$2.$1
 $1: $2.$1
 
