@@ -106,26 +106,6 @@ friend_svr_create(
 
     FRIEND_SVR_LOAD_META(m_meta_op_add_ctx, "svr_friend_op_add_ctx");
 
-    mem_buffer_init(&svr->m_record_metalib, alloc);
-    svr->m_record_meta = NULL;
-    svr->m_record_size = 0;
-    svr->m_record_id_entry = NULL;
-    svr->m_record_id_start_pos = 0;
-    svr->m_record_id_capacity = 0;
-    svr->m_record_uid_entry = NULL;
-    svr->m_record_uid_start_pos = 0;
-    svr->m_record_fuid_entry = NULL;
-    svr->m_record_fuid_start_pos = 0;
-    svr->m_record_list_meta = NULL;
-    svr->m_record_data_start_pos = 0;
-    svr->m_record_list_count_entry = NULL;
-    svr->m_record_list_data_entry = NULL;
-
-    svr->m_data_meta = NULL;
-    svr->m_data_fuid_entry = NULL;
-    svr->m_data_fuid_start_pos = 0;
-    svr->m_data_size = 0;
-
     FRIEND_SVR_LOAD_META(m_meta_res_query, "svr_friend_res_query");
 
     svr->m_op_register = logic_op_register_create(app, NULL, alloc, em);
