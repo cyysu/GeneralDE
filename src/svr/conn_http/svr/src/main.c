@@ -46,8 +46,9 @@ int main(int argc, char * argv[]) {
     struct arg_int *  run_app_id = arg_int0(NULL, "app-id", NULL,    "app id");
     struct arg_int *  run_port = arg_int1(NULL, "port", NULL,    "listen port");
     struct arg_str *  run_buf_size = arg_str1(NULL, "buf-size", NULL,    "data buf size");
+    struct arg_str *  run_svr_type = arg_str1(NULL, "svr-type", NULL,    "svr type");
     struct arg_end  * run_end = arg_end(20);
-    void* run_argtable[] = { run, run_pidfile, run_root, run_app_id, run_port, run_buf_size, run_end };
+    void* run_argtable[] = { run, run_pidfile, run_root, run_app_id, run_port, run_buf_size, run_svr_type, run_end };
     int run_nerrors;
 
     /*common*/
