@@ -3,9 +3,9 @@
 #include "cpe/dr/dr_metalib_init.h"
 #include "cpe/dr/dr_metalib_manage.h"
 #include "cpe/dr/dr_data.h"
-#include "cpe/dp/dp_manage.h"
 #include "cpe/dp/dp_request.h"
 #include "cpe/dp/dp_manage.h"
+#include "gd/app/app_context.h"
 #include "usf/logic/logic_context.h"
 #include "usf/logic/logic_data.h"
 #include "svr/set/share/set_pkg.h"
@@ -63,7 +63,7 @@ void set_logic_rsp_commit(logic_context_t op_context, void * user_data) {
         goto SEND_ERROR_RESPONSE;
     }
 
-    if (dp_dispatch_by_string(rsp_mgr->m_commit_to, dp_req_mgr(response_buf), response_buf, em) != 0) {
+    if (dp_dispatch_by_string(rsp_mgr->m_commit_to, gd_app_dp_mgr(rsp_mgr->m_app), response_buf, em) != 0) {
         CPE_ERROR(em, "%s.%s: set_logic_rsp_commit: dispatch fail!", set_logic_rsp_manage_name(rsp_mgr), set_logic_rsp_name(set_logic_rsp));
         goto SEND_ERROR_RESPONSE;
     }
@@ -79,7 +79,7 @@ SEND_ERROR_RESPONSE:
         return;
     }
 
-    if (dp_dispatch_by_string(rsp_mgr->m_commit_to, dp_req_mgr(response_buf), response_buf, em) != 0) {
+    if (dp_dispatch_by_string(rsp_mgr->m_commit_to, gd_app_dp_mgr(rsp_mgr->m_app), response_buf, em) != 0) {
         CPE_ERROR(em, "%s.%s: set_logic_rsp_commit: send error response fail!", set_logic_rsp_manage_name(rsp_mgr), set_logic_rsp_name(set_logic_rsp));
         set_logic_rsp_manage_free_context(rsp_mgr, op_context);
         return;
