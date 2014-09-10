@@ -1,8 +1,5 @@
-<<<<<<< HEAD
-=======
 #include "cpe/pal/pal_time.h"
 #include "cpe/pal/pal_stdio.h"
->>>>>>> refs/top-bases/master
 #include "cpe/utils/time_utils.h"
 
 time_t next_time_in_range_vn(
