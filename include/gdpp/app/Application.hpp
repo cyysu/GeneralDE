@@ -19,6 +19,8 @@ public:
     int argc(void) const { return gd_app_argc(*this); }
     char ** argv(void) const { return gd_app_argv(*this); }
 
+    const char * root(void) const { return gd_app_root(*this); }
+
     mem_allocrator_t allocrator(void) { return gd_app_alloc(*this); }
     error_monitor_t em(void) const { return gd_app_em(*this); }
     error_monitor_t em(const char * name) const { return gd_app_named_em(*this, name); }
