@@ -1,6 +1,6 @@
 #include "gdpp/app/Log.hpp"
 #include "gdpp/timer/TimerCenter.hpp"
-#include "NPGUIDesktop.h"
+#include "RGUIDesktop.h"
 #include "UIPopupPage.hpp"
 #include "EnvExt.hpp"
 #include "UICenterExt.hpp"
@@ -23,7 +23,7 @@ UIPopupPage::UIPopupPage(UICenterExt & center, UIPopupPageDef const & def)
     Show();
 
     if (def.duration() > 0.0f) {
-        tl_time_span_t delay = (def.duration() * 1000);
+        tl_time_span_t delay = (tl_time_span_t)(def.duration() * 1000);
 
         m_timerId =
             Gd::Timer::TimerCenter::instance(center.env().app())
@@ -35,7 +35,7 @@ UIPopupPage::UIPopupPage(UICenterExt & center, UIPopupPageDef const & def)
         }
     }
 
-    NPGUIDesktop::GetIns()->AddWindow(this);
+    RGUIDesktop::GetIns()->AddWindow(this);
 
     center.addPopupPage(*this);
 }
@@ -43,7 +43,7 @@ UIPopupPage::UIPopupPage(UICenterExt & center, UIPopupPageDef const & def)
 UIPopupPage::~UIPopupPage() {
     m_center.removePopupPage(*this);
 
-    NPGUIDesktop::GetIns()->DelChild(this, false);
+    RGUIDesktop::GetIns()->DelChild(this, false);
 
     if (m_timerId != 0) {
         Gd::Timer::TimerCenter::instance(m_center.env().app())

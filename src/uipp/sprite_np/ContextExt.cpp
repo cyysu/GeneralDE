@@ -1,7 +1,7 @@
 #include <vector>
-#include "NPRender.h"
-#include "NP2DSTransRef.h"
-#include "NP2DSActorRef.h"
+#include "RRender.h"
+#include "R2DSTransRef.h"
+#include "R2DSActorRef.h"
 #include "gdpp/app/Log.hpp"
 #include "gdpp/app/Application.hpp"
 #include "uipp/sprite/WorldResGen.hpp"
@@ -12,10 +12,10 @@
 #include "LayerExt.hpp"
 #include "ModuleExt.hpp"
 #include "AnimationFactory.hpp"
-#include "NPControlNode.hpp"
+#include "RControlNode.hpp"
 #include "GroupNode.hpp"
 
-namespace UI { namespace Sprite { namespace NP {
+namespace UI { namespace Sprite { namespace R {
 
 class ContextImpl
     : public WorldResGen<ContextExt, ContextImpl>
@@ -152,7 +152,7 @@ public:
     }
 
     struct CmpGroupPriority {
-        bool operator() (NPRenderObject const * const l, NPRenderObject const * const r) {
+        bool operator() (RRenderObject const * const l, RRenderObject const * const r) {
             return 
                 static_cast<GroupNode const *>(l)->m_priority
                 < static_cast<GroupNode const *>(r)->m_priority;
@@ -186,7 +186,7 @@ public:
     } 
 
     P2D::Pair screenSize(void) {
-        P2D::Pair screen_size = { (float)NPRender::GetIns()->GetResolutionW(), (float)NPRender::GetIns()->GetResolutionH() };
+        P2D::Pair screen_size = { (float)RRender::GetIns()->GetResolutionW(), (float)RRender::GetIns()->GetResolutionH() };
         return screen_size;
     }
 
@@ -231,7 +231,7 @@ public:
             return;
         }
 
-        NP2DSTransRef * group = pos->second;
+        R2DSTransRef * group = pos->second;
 
         assert(group->GetChildCount() == 0);
 
@@ -247,9 +247,9 @@ public:
 			return UI_SPRITE_INVALID_ANIM_ID;
         }
 
-        NP2DSTransRef * group = groupPos->second;
+        R2DSTransRef * group = groupPos->second;
 
-        NPNode * anim =
+        RNode * anim =
             AnimationFactory::instance().createAnimation(
                 m_module.app(), this, res, is_loop, start, end);
 		if (anim == NULL) {
@@ -272,7 +272,7 @@ public:
             return;
         }
 
-        NPNode * node = pos->second;
+        RNode * node = pos->second;
         node->GetParent()->DelChild(node, true);
         m_anims.erase(pos);
     }
@@ -281,11 +281,11 @@ public:
 		AnimsMap::iterator iter= m_anims.find(anim_id);
 		if(iter == m_anims.end()) return false;
 
-        NPNode * anim = iter->second;
-        if (NP2DSActorRef* actorRef = dynamic_cast<NP2DSActorRef*>(anim)) {
+        RNode * anim = iter->second;
+        if (R2DSActorRef* actorRef = dynamic_cast<R2DSActorRef*>(anim)) {
 			return actorRef->WasPlay();
         }
-		else if(NPControlNode* controlNode = dynamic_cast<NPControlNode*>(anim)){
+		else if(RControlNode* controlNode = dynamic_cast<RControlNode*>(anim)){
 			return controlNode->WasRuning();
 		}
         else{
@@ -301,11 +301,11 @@ public:
             return -1;
         }
 
-        NPNode * anim = iter->second;
-        NPControlNode * templateNode = dynamic_cast<NPControlNode *>(anim);
+        RNode * anim = iter->second;
+        RControlNode * templateNode = dynamic_cast<RControlNode *>(anim);
         if (templateNode == NULL) {
 			APP_CTX_ERROR(
-                m_module.app(), "setTemplateValue: anim "FMT_UINT32_T" is not NPControlNode", anim_id);
+                m_module.app(), "setTemplateValue: anim "FMT_UINT32_T" is not RControlNode", anim_id);
             return -1;
         }
 
@@ -319,8 +319,8 @@ public:
             return;
         }
 
-        NP2DSTransRef * group = pos->second;
-        group->SetWorldTrans(NPVector3(new_pos.x, new_pos.y, 0.0f));
+        R2DSTransRef * group = pos->second;
+        group->SetWorldTrans(RVector3(new_pos.x, new_pos.y, 0.0f));
 	}
 
 	void onGroupScaleUpdate(uint32_t group_id, P2D::Pair const & new_scale) {
@@ -330,8 +330,8 @@ public:
             return;
         }
 
-        NP2DSTransRef * group = pos->second;
-        group->SetWorldScale(NPVector3(new_scale.x, new_scale.y, 0.0f));
+        R2DSTransRef * group = pos->second;
+        group->SetWorldScale(RVector3(new_scale.x, new_scale.y, 0.0f));
 	}
 
 	void onGroupAngleUpdate(uint32_t group_id, float new_angle) {
@@ -341,7 +341,7 @@ public:
             return;
         }
 
-        NP2DSTransRef * group = pos->second;
+        R2DSTransRef * group = pos->second;
         group->SetWorldAngle(new_angle);
 	}
 
@@ -352,7 +352,7 @@ public:
             return;
         }
 
-        NP2DSTransRef * group = pos->second;
+        R2DSTransRef * group = pos->second;
         group->SetLocalFlips(flip_x | (flip_y << 1));
 	}
 
@@ -364,8 +364,8 @@ public:
             LayerExt * layer = *it;
 
             if (layer->isFree()) {
-                layer->root().SetLocalS(NPVector3(1.0f, 1.0f, 1.0f));
-                layer->root().SetLocalT(NPVector3(0.0f, 0.0f, 0.0f));
+                layer->root().SetLocalS(RVector3(1.0f, 1.0f, 1.0f));
+                layer->root().SetLocalT(RVector3(0.0f, 0.0f, 0.0f));
             }
             else {
                 P2D::Pair adj_pos = pos;
@@ -376,8 +376,8 @@ public:
                 adj_scale.x += layer->scaleAdj().x;
                 adj_scale.y += layer->scaleAdj().y;
 
-                NPVector3 new_pos(- adj_pos.x * adj_scale.x, - adj_pos.y * adj_scale.y, 0.0f);
-                NPVector3 new_scale(adj_scale.x, adj_scale.y, 0.0f);
+                RVector3 new_pos(- adj_pos.x * adj_scale.x, - adj_pos.y * adj_scale.y, 0.0f);
+                RVector3 new_scale(adj_scale.x, adj_scale.y, 0.0f);
 
                 layer->root().SetLocalS(new_scale);
                 layer->root().SetLocalT(new_pos);
@@ -385,17 +385,17 @@ public:
         }
 	}
 
-	virtual void registerExternCtrl(const char * name, NPGUIControl * ctrl) {
+	virtual void registerExternCtrl(const char * name, RGUIControl * ctrl) {
         assert(ctrl);
 		m_controls.insert(ControlMap::value_type(name, ctrl));
 	}
 
-	virtual NPGUIControl * findExternCtrl(const char * name){
+	virtual RGUIControl * findExternCtrl(const char * name){
 		ControlMap::iterator pos = m_controls.find(name);
         return pos == m_controls.end() ? NULL : pos->second;
 	}
 
-	virtual void unregisterExternCtrl(NPGUIControl * ctrl){
+	virtual void unregisterExternCtrl(RGUIControl * ctrl){
 		for(ControlMap::iterator iter = m_controls.begin();
             iter!=m_controls.end();
             )
@@ -422,8 +422,8 @@ public:
 
 private:
     typedef std::map< uint32_t, GroupNode * > GroupMap;
-	typedef std::map< uint32_t, NPNode * > AnimsMap;
-	typedef std::map< std::string, NPGUIControl *> ControlMap;
+	typedef std::map< uint32_t, RNode * > AnimsMap;
+	typedef std::map< std::string, RGUIControl *> ControlMap;
 
     uipp_sprite_np_ext & m_module;
     LayerExt * m_default_layer;
@@ -443,7 +443,7 @@ Context & Context::install(World & world) {
         world);
 }
 
-const char * Context::NAME = "NPContext";
+const char * Context::NAME = "RContext";
 
 }}}
 

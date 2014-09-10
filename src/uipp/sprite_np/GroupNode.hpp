@@ -1,12 +1,12 @@
 #ifndef UIPP_SPRITE_GROUP_NODE_H
 #define UIPP_SPRITE_GROUP_NODE_H
 #include "uipp/sprite_np/System.hpp"
-#include "NP2DSTransRef.h"
+#include "R2DSTransRef.h"
 
-namespace UI { namespace Sprite { namespace NP {
+namespace UI { namespace Sprite { namespace R {
 
 class LayerExt;
-class GroupNode : public NP2DSTransRef {
+class GroupNode : public R2DSTransRef {
 public:
 	explicit GroupNode(World & world, LayerExt & layer, uint32_t entity_id, float priority);
 

@@ -1,11 +1,13 @@
 product:=uipp_app
 $(product).type:=cpe-dr lib
-$(product).depends:=NPEngine gdpp_app gdpp_evt gd_dr_store uipp_sprite uipp_sprite_fsm uipp_sprite_2d
+$(product).depends:=drow_render gdpp_app gdpp_evt gd_dr_store uipp_sprite uipp_sprite_fsm uipp_sprite_2d uipp_sprite_touch
 $(product).c.flags.ld:=
 $(product).c.sources:=$(wildcard $(product-base)/*.cpp)
 $(product).product.c.output-includes:=inc
 
-$(product).ios.product.c.libraries:=$(wildcard $(product-base)/ios/*.mm)
+$(product).ios.c.sources:=$(wildcard $(product-base)/ios/*.mm) \
+                          $(wildcard $(product-base)/ios/*.m) \
+                          $(wildcard $(product-base)/ios/SKPSMTPMessage/*.m)
 
 $(product).cpe-dr.modules:=data
 $(product).cpe-dr.data.generate:=h c

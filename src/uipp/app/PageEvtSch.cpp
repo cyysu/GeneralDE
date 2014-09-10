@@ -1,7 +1,7 @@
-#include "NPGUIEventArg.h"
-#include "NPGUIListBoxAdvItem.h"
-#include "NPGUIListBoxRow.h"
-#include "NPGUIListBoxCol.h"
+#include "RGUIEventArg.h"
+#include "RGUIListBoxAdvItem.h"
+#include "RGUIListBoxRow.h"
+#include "RGUIListBoxCol.h"
 #include "gdpp/app/Log.hpp"
 #include "gdpp/app/Application.hpp"
 #include "uipp/app/Gen/PageEvtSch.hpp"
@@ -41,8 +41,8 @@ void PageEvtSch::addTrigger(Trigger const & trigger, ProcessFun const & fun) {
     }
 }
 
-void PageEvtSch::triggerAnimStop(NPGUIEventArgs & args) {
-    NPGUIAnimationEventArgs& animEventArgs = static_cast<NPGUIAnimationEventArgs&>(args);
+void PageEvtSch::triggerAnimStop(RGUIEventArgs & args) {
+    RGUIAnimationEventArgs& animEventArgs = static_cast<RGUIAnimationEventArgs&>(args);
 
     TriggerContainer need_executes;
 
@@ -56,8 +56,8 @@ void PageEvtSch::triggerAnimStop(NPGUIEventArgs & args) {
         }
 
         if (
-            (it->trigger.type == Trigger::TRIGGERTYPE_CONTROL_HIDEN && animEventArgs.fire == NPGUIEVENT_HIDE)
-            || (it->trigger.type == Trigger::TRIGGERTYPE_CONTROL_SHOW && animEventArgs.fire == NPGUIEVENT_SHOW)
+            (it->trigger.type == Trigger::TRIGGERTYPE_CONTROL_HIDEN && animEventArgs.fire == RGUIEVENT_HIDE)
+            || (it->trigger.type == Trigger::TRIGGERTYPE_CONTROL_SHOW && animEventArgs.fire == RGUIEVENT_SHOW)
             )
         {
             if (check_execute(*it, need_executes, &args)) {
@@ -78,7 +78,7 @@ void PageEvtSch::triggerAnimStop(NPGUIEventArgs & args) {
     }
 }
 
-void PageEvtSch::triggerByType(Trigger::TriggerType type, NPGUIEventArgs & args) {
+void PageEvtSch::triggerByType(Trigger::TriggerType type, RGUIEventArgs & args) {
     TriggerContainer need_executes;
 
     for(TriggerContainer::iterator it = m_triggers.begin(); it != m_triggers.end();) {
@@ -106,7 +106,7 @@ void PageEvtSch::triggerByType(Trigger::TriggerType type, NPGUIEventArgs & args)
     }
 }
 
-void PageEvtSch::triggerMouseClick(NPGUIEventArgs & args) {
+void PageEvtSch::triggerMouseClick(RGUIEventArgs & args) {
     TriggerContainer need_executes;
 
     for(TriggerContainer::iterator it = m_triggers.begin(); it != m_triggers.end();) {
@@ -129,12 +129,12 @@ void PageEvtSch::triggerMouseClick(NPGUIEventArgs & args) {
                 continue;
             }
 
-			NPGUIListBoxAdvItem* list_item = NULL;
-            if (NPGUIListBoxCol * list_control = NPDynamicCast(NPGUIListBoxCol, it->trigger.control)) {
-				list_item =  NPDynamicCast(NPGUIListBoxAdvItem, list_control->GetItem(args.sender) ) ;
+			RGUIListBoxAdvItem* list_item = NULL;
+            if (RGUIListBoxCol * list_control = RDynamicCast(RGUIListBoxCol, it->trigger.control)) {
+				list_item =  RDynamicCast(RGUIListBoxAdvItem, list_control->GetItem(args.sender) ) ;
 			}
-			else if (NPGUIListBoxRow * list_control = NPDynamicCast(NPGUIListBoxRow, it->trigger.control)) {
-				list_item =  NPDynamicCast(NPGUIListBoxAdvItem, list_control->GetItem(args.sender) ) ;
+			else if (RGUIListBoxRow * list_control = RDynamicCast(RGUIListBoxRow, it->trigger.control)) {
+				list_item =  RDynamicCast(RGUIListBoxAdvItem, list_control->GetItem(args.sender) ) ;
 			}
 
             assert(list_item);
@@ -187,7 +187,7 @@ void PageEvtSch::clearTriggers() {
     }
 }
 
-bool PageEvtSch::check_execute(TriggerNode & node, TriggerContainer & need_executes, NPGUIEventArgs * args) {
+bool PageEvtSch::check_execute(TriggerNode & node, TriggerContainer & need_executes, RGUIEventArgs * args) {
     if (node.trigger.delay_ms == 0) {
         need_executes.push_back(node);
         return node.trigger.category == Trigger::ONCE ? true : false;
@@ -202,7 +202,7 @@ bool PageEvtSch::check_execute(TriggerNode & node, TriggerContainer & need_execu
     }
 }
 
-bool PageEvtSch::haveTrigger(NPGUIControl const * control) const {
+bool PageEvtSch::haveTrigger(RGUIControl const * control) const {
     for(TriggerContainer::const_iterator it =  m_triggers.begin();
         it != m_triggers.end();
         ++it)
@@ -230,8 +230,8 @@ void PageEvtSch::on_timer(Gd::Timer::TimerID timerId) {
     }
 }
 
-NPGUIListBoxAdvItem * PageEvtSch::_cvt_to_list_item(NPGUIControl * control) {
-    return NPDynamicCast(NPGUIListBoxAdvItem, control);
+RGUIListBoxAdvItem * PageEvtSch::_cvt_to_list_item(RGUIControl * control) {
+    return RDynamicCast(RGUIListBoxAdvItem, control);
 }
 
 }}

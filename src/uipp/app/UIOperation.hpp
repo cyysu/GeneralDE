@@ -6,7 +6,7 @@ namespace UI { namespace App {
 
 class UIOperation {
 public:
-    virtual void execute(EnvExt & env, UIPageProxyExt & page, NPGUIControl & control) = 0;
+    virtual void execute(EnvExt & env, UIPageProxyExt & page, RGUIControl & control) = 0;
     virtual ~UIOperation();
 
     static ::std::auto_ptr<UIOperation> create(Cpe::Cfg::Node const & config);

@@ -16,6 +16,8 @@ public:
     virtual UIPhaseNodeExt & curentPhase(void) = 0;
     virtual UIPhaseNode const & curentPhase(void) const = 0;
 
+    virtual void initPhase(void) = 0;
+
     virtual void stopPopupPage(UIPopupPage * page) = 0;
 
     virtual void addPopupPage(UIPopupPage & page) = 0;

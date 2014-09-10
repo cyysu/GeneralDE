@@ -34,7 +34,7 @@ public:
 
 private:
     UIPageProxyExt * findPage(void);
-    const NPGUIActorKeyData * getAnimData(NPGUIControl * control);
+    const RGUIActorKeyData * getAnimData(RGUIControl * control);
 
     Cpe::Utils::ObjRef<EnvExt> m_env;
     ::std::string m_page_name;

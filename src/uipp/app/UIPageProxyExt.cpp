@@ -1,5 +1,5 @@
 #include <vector>
-#include "NPGUIDesktop.h"
+#include "RGUIDesktop.h"
 #include "cpe/pal/pal_strings.h"
 #include "cpepp/nm/Manager.hpp"
 #include "cpepp/cfg/Node.hpp"
@@ -243,11 +243,11 @@ private:
                 m_page.env().app(), ::std::runtime_error, "load page %s: load-from %s fail!", name(), load_from);
         }
 
-        NPGUIDesktop::GetIns()->AddWindow(&m_page);
+        RGUIDesktop::GetIns()->AddWindow(&m_page);
     }
 
     void removePage() {
-        NPGUIDesktop::GetIns()->DelChild(&m_page, false);
+        RGUIDesktop::GetIns()->DelChild(&m_page, false);
     }
 
     Sprite::Entity & entity(void) {

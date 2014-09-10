@@ -3,10 +3,11 @@
 #include <cassert>
 #include <sstream>
 #include "cpepp/utils/TypeUtils.hpp"
-#include "NPRTTI.h"
-#include "NPGUIInclude.h"
+#include "RRTTI.h"
+#include "RGUIInclude.h"
 #include "cpepp/utils/TypeUtils.hpp"
 #include "../Page.hpp"
+#include "../Env.hpp"
 #include "PageEvtSch.hpp"
 
 namespace UI { namespace App {
@@ -62,12 +63,12 @@ public:
             return *this;
         }
 
-        TriggerStubT & call(void (OuterT::*fun)(NPGUIEventArgs & args)) {
+        TriggerStubT & call(void (OuterT::*fun)(RGUIEventArgs & args)) {
             m_owner.schedule().addTrigger(m_trigger, m_owner.schedule()._make_fun(outer(), fun));
             return *this;
         }
 
-        TriggerStubT & call(void (OuterT::*fun)(NPGUIListBoxAdvItem * item, uint32_t idx)) {
+        TriggerStubT & call(void (OuterT::*fun)(RGUIListBoxAdvItem * item, uint32_t idx)) {
             m_owner.schedule().addTrigger(m_trigger, m_owner.schedule()._make_fun(outer(), fun));
             return *this;
         }
@@ -124,7 +125,7 @@ public:
         TriggerStubT bind_list_item_show(void) { return m_parent.bind_list_item_show(operator->()); }
         TriggerStubT bind_list_item_click(const char * name) { return m_parent.bind_list_item_click(operator->(), name); }
 
-        operator NPGUIControl * () {
+        operator RGUIControl * () {
             return m_control;
         }
 
@@ -142,19 +143,19 @@ public:
     }
 
 protected:
-    TriggerStubT on_hidden(NPGUIControl * control) {
+    TriggerStubT on_hidden(RGUIControl * control) {
         assert(control);
         Trigger trigger = { Trigger::TRIGGERTYPE_CONTROL_HIDEN, control, NULL, 0, Trigger::ONCE };
         return TriggerStubT(outer(), trigger);
     }
 
-    TriggerStubT on_show(NPGUIControl * control) {
+    TriggerStubT on_show(RGUIControl * control) {
         assert(control);
         Trigger trigger = { Trigger::TRIGGERTYPE_CONTROL_SHOW, control, NULL, 0, Trigger::ONCE };
         return TriggerStubT(outer(), trigger);
     }
 
-    TriggerStubT bind_show(NPGUIControl * control) {
+    TriggerStubT bind_show(RGUIControl * control) {
         assert(control);
         Trigger trigger = { Trigger::TRIGGERTYPE_CONTROL_SHOW, control, NULL, 0, Trigger::BINDING };
         return TriggerStubT(outer(), trigger);
@@ -164,7 +165,7 @@ protected:
         return bind_click(findChild(this, control_name));
     }
 
-    TriggerStubT bind_click(NPGUIControl * control) {
+    TriggerStubT bind_click(RGUIControl * control) {
         assert(control);
         Trigger trigger = { Trigger::TRIGGERTYPE_CONTROL_CLICK, control, NULL, 0, Trigger::BINDING };
         return TriggerStubT(outer(), trigger);
@@ -174,7 +175,7 @@ protected:
         return bind_list_item_show(findChild(this, control_name));
     }
 
-    TriggerStubT bind_list_item_show(NPGUIControl * control) {
+    TriggerStubT bind_list_item_show(RGUIControl * control) {
         assert(control);
         Trigger trigger = { Trigger::TRIGGERTYPE_CONTROL_ITEM_SHOW, control, NULL, 0, Trigger::BINDING };
         return TriggerStubT(outer(), trigger);
@@ -184,7 +185,7 @@ protected:
         return bind_list_item_click(findChild(this, control_name), name);
     }
 
-    TriggerStubT bind_list_item_click(NPGUIControl * control, const char * name) {
+    TriggerStubT bind_list_item_click(RGUIControl * control, const char * name) {
         assert(control);
         Trigger trigger = { Trigger::TRIGGERTYPE_CONTROL_ITEM_CLICK, control, name, 0, Trigger::BINDING };
         return TriggerStubT(outer(), trigger);

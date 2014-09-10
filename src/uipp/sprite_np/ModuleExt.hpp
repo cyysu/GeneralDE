@@ -1,8 +1,8 @@
-#ifndef UIPP_SPRITE_NP_MODULE_EXT_H
-#define UIPP_SPRITE_NP_MODULE_EXT_H
+#ifndef UIPP_SPRITE_R_MODULE_EXT_H
+#define UIPP_SPRITE_R_MODULE_EXT_H
 #include "uipp/sprite_np/Module.hpp"
 
-namespace UI { namespace Sprite { namespace NP {
+namespace UI { namespace Sprite { namespace R {
 
 class ContextExt;
 class uipp_sprite_np_ext : public uipp_sprite_np {

@@ -3,7 +3,7 @@
 #include "LayerExt.hpp"
 #include "ContextExt.hpp"
 
-namespace UI { namespace Sprite { namespace NP {
+namespace UI { namespace Sprite { namespace R {
 
 LayerExt::LayerExt(ContextExt & ctx, const char * name)
     : m_name(name)

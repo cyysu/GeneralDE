@@ -1,4 +1,4 @@
-#include "NPGUIControl.h"
+#include "RGUIControl.h"
 #include "cpe/utils/math_ex.h"
 #include "cpe/dr/dr_data.h"
 #include "gdpp/app/Log.hpp"
@@ -49,7 +49,7 @@ void UIAction_AlphaInOut::setAlphaWay(const char * alphaWay) {
 
 int UIAction_AlphaInOut::enter(void) {
 	Page & page = m_env.get().uiCenter().page(m_page_name.c_str()).page();
-	NPGUIControl * control = page.findChild(m_cotrol_name.c_str());
+	RGUIControl * control = page.findChild(m_cotrol_name.c_str());
 	if (control == NULL) {
 		APP_CTX_ERROR(
 			app(), "entity %d(%s): %s: enter: control %s not exist",
@@ -82,7 +82,7 @@ int UIAction_AlphaInOut::enter(void) {
 
 void UIAction_AlphaInOut::update(float delta) {
     Page & page = m_env.get().uiCenter().page(m_page_name.c_str()).page();
-	NPGUIControl * control = page.findChild(m_cotrol_name.c_str());
+	RGUIControl * control = page.findChild(m_cotrol_name.c_str());
 	if (control == NULL) {
 		APP_CTX_ERROR(
 			app(), "entity %d(%s): %s: alpha: control %s not exist",
@@ -105,7 +105,7 @@ void UIAction_AlphaInOut::update(float delta) {
 
 void UIAction_AlphaInOut::exit(void) {
 	Page & page = m_env.get().uiCenter().page(m_page_name.c_str()).page();
-	NPGUIControl * control = page.findChild(m_cotrol_name.c_str());
+	RGUIControl * control = page.findChild(m_cotrol_name.c_str());
 	if (control == NULL) {
 		APP_CTX_ERROR(
 			app(), "entity %d(%s): %s: update: control %s not exist",

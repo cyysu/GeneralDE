@@ -1,6 +1,6 @@
-#include "NPRTTI.h"
-#include "NPGUIProgressBar.h"
-#include "NPGUILabel.h"
+#include "RRTTI.h"
+#include "RGUIProgressBar.h"
+#include "RGUILabel.h"
 #include "cpe/utils/stream_mem.h"
 #include "cpepp/cfg/Node.hpp"
 #include "uipp/sprite_np/NpUtils.hpp"
@@ -49,7 +49,7 @@ bool UIPageBindings::loadBindings(Gd::App::Application & app, Cpe::Cfg::Node con
     return true;
 }
 
-void UIPageBindings::setData(Gd::App::Application & app, NPGUIControl * root, const char * msg, UICenter const & uiCenter) {
+void UIPageBindings::setData(Gd::App::Application & app, RGUIControl * root, const char * msg, UICenter const & uiCenter) {
     for( ::std::list<Binding>::iterator it = m_bindins.begin();
          it != m_bindins.end();
          ++it)
@@ -71,20 +71,20 @@ void UIPageBindings::setData(Gd::App::Application & app, NPGUIControl * root, co
 }
 
 void UIPageBindings::setData(
-    Gd::App::Application & app, NPGUIControl * root, LPDRMETA meta, void const * data, size_t data_size, UICenter const & uiCenter) {
+    Gd::App::Application & app, RGUIControl * root, LPDRMETA meta, void const * data, size_t data_size, UICenter const & uiCenter) {
 }
 
 int UIPageBindings::setControlValue(
     Gd::App::Application & app,
-    NPGUIControl * root, const char * ctrl_name, const char * attr, const char * value, UICenter const & uiCenter)
+    RGUIControl * root, const char * ctrl_name, const char * attr, const char * value, UICenter const & uiCenter)
 {
-	NPGUIControl * control = ctrl_name[0] ? Page::findChild(root, ctrl_name, uiCenter) : root;
+	RGUIControl * control = ctrl_name[0] ? Page::findChild(root, ctrl_name, uiCenter) : root;
     if (control == NULL) {
-        APP_CTX_ERROR(app, "NPControl(%s) not exist!", ctrl_name);
+        APP_CTX_ERROR(app, "RControl(%s) not exist!", ctrl_name);
         return -1;
     }
 
-	return UI::Sprite::NP::NpUtils::setAttr(control, attr, value);
+	return UI::Sprite::R::NpUtils::setAttr(control, attr, value);
 }
 
 }}

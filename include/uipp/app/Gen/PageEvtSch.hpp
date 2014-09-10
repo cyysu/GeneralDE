@@ -1,8 +1,8 @@
 #ifndef UIPP_APP_PAGE_CTRLSCHEDULE_H
 #define UIPP_APP_PAGE_CTRLSCHEDULE_H
 #include <vector>
-#include "NPType.h"
-#include "NPGUIEventArg.h"
+#include "RType.h"
+#include "RGUIEventArg.h"
 #include "gdpp/timer/TimerCenter.hpp"
 #include "../System.hpp"
 
@@ -30,7 +30,7 @@ public:
             BINDING
         };
 
-        NPGUIControl const * control;
+        RGUIControl const * control;
         const char * control_name;
         tl_time_span_t delay_ms;
         TriggerCategory category;
@@ -38,12 +38,12 @@ public:
 
     typedef void (PageEvtProcessor::*ProcessFun1)(void);
     typedef void (PageEvtProcessor::*ProcessFun2)(Trigger const & trigger);
-    typedef void (PageEvtProcessor::*ProcessFun3)(NPGUIEventArgs & args);
+    typedef void (PageEvtProcessor::*ProcessFun3)(RGUIEventArgs & args);
 
     struct ProcessFun {
         PageEvtProcessor * processor;
         char data[32];
-        void (*call)(TriggerNode const & node, NPGUIEventArgs * args);
+        void (*call)(TriggerNode const & node, RGUIEventArgs * args);
     };
 
     PageEvtSch();
@@ -51,11 +51,11 @@ public:
 
     void addTrigger(Trigger const & trigger, ProcessFun const & fun);
 
-    bool haveTrigger(NPGUIControl const * control) const;
+    bool haveTrigger(RGUIControl const * control) const;
 
-    void triggerAnimStop(NPGUIEventArgs & args);
-    void triggerByType(Trigger::TriggerType type, NPGUIEventArgs& args);
-    void triggerMouseClick(NPGUIEventArgs & args);
+    void triggerAnimStop(RGUIEventArgs & args);
+    void triggerByType(Trigger::TriggerType type, RGUIEventArgs& args);
+    void triggerMouseClick(RGUIEventArgs & args);
 
     void doTriggers();
     void clearTriggers();
@@ -109,11 +109,11 @@ public:
     }
 
     template<typename ProcessorT>
-    static ProcessFun _make_fun(ProcessorT & processor, void (ProcessorT::*f)(NPGUIListBoxAdvItem * item, uint32_t idx)) {
+    static ProcessFun _make_fun(ProcessorT & processor, void (ProcessorT::*f)(RGUIListBoxAdvItem * item, uint32_t idx)) {
         ProcessFun fun;
 
         struct ProcessFunUserDef {
-            void (ProcessorT::*fun)(NPGUIListBoxAdvItem * item, uint32_t idx);
+            void (ProcessorT::*fun)(RGUIListBoxAdvItem * item, uint32_t idx);
             ProcessorT * use_processor;
         };
 
@@ -133,11 +133,11 @@ public:
     }
 
     template<typename ProcessorT>
-    static ProcessFun _make_fun(ProcessorT & processor, void (ProcessorT::*f)(NPGUIEventArgs * args)) {
+    static ProcessFun _make_fun(ProcessorT & processor, void (ProcessorT::*f)(RGUIEventArgs * args)) {
         ProcessFun fun;
 
         struct ProcessFunUserDef {
-            void (ProcessorT::*fun)(NPGUIEventArgs * args);
+            void (ProcessorT::*fun)(RGUIEventArgs * args);
             ProcessorT * use_processor;
         };
 
@@ -218,7 +218,7 @@ private:
     }
 
     template<typename ProcessorT>
-    static void call_no_arg(TriggerNode const & node, NPGUIEventArgs * args) {
+    static void call_no_arg(TriggerNode const & node, RGUIEventArgs * args) {
         struct ProcessFunUserDef {
             void (ProcessorT::*fun)(void);
             ProcessorT * use_processor;
@@ -229,9 +229,9 @@ private:
     }
 
     template<typename ProcessorT>
-    static void call_with_evt_arg(TriggerNode const & node, NPGUIEventArgs * args) {
+    static void call_with_evt_arg(TriggerNode const & node, RGUIEventArgs * args) {
         struct ProcessFunUserDef {
-            void (ProcessorT::*fun)(NPGUIEventArgs * args);
+            void (ProcessorT::*fun)(RGUIEventArgs * args);
             ProcessorT * use_processor;
         };
 
@@ -240,7 +240,7 @@ private:
     }
 
     template<typename ProcessorT, typename ControlT>
-    static void call_with_control(TriggerNode const & node, NPGUIEventArgs * args) {
+    static void call_with_control(TriggerNode const & node, RGUIEventArgs * args) {
         struct ProcessFunUserDef {
             void (ProcessorT::*fun)(ControlT * control);
             ProcessorT * use_processor;
@@ -252,13 +252,13 @@ private:
     }
 
     template<typename ProcessorT>
-    static void call_with_list_item(TriggerNode const & node, NPGUIEventArgs * args) {
+    static void call_with_list_item(TriggerNode const & node, RGUIEventArgs * args) {
         struct ProcessFunUserDef {
-            void (ProcessorT::*fun)(NPGUIListBoxAdvItem * item, uint32_t idx);
+            void (ProcessorT::*fun)(RGUIListBoxAdvItem * item, uint32_t idx);
             ProcessorT * use_processor;
         };
 
-        NPGUIListBoxAdvItem * item = _cvt_to_list_item((NPGUIControl *)args->lParam);
+        RGUIListBoxAdvItem * item = _cvt_to_list_item((RGUIControl *)args->lParam);
         if (item == NULL) return;
 
         ProcessFunUserDef * fun_data = (ProcessFunUserDef *)(void*)&node.fun.data;
@@ -266,7 +266,7 @@ private:
     }
 
     template<typename ProcessorT, typename ArgT>
-    static void call_with_arg(TriggerNode const & node, NPGUIEventArgs * args) {
+    static void call_with_arg(TriggerNode const & node, RGUIEventArgs * args) {
         struct ProcessFunUserDef {
             void (ProcessorT::*fun)(ArgT args);
             ProcessorT * use_processor;
@@ -278,7 +278,7 @@ private:
     }
     
     template<typename ProcessorT, typename ArgT>
-    static void call_with_arg_ref(TriggerNode const & node, NPGUIEventArgs * args) {
+    static void call_with_arg_ref(TriggerNode const & node, RGUIEventArgs * args) {
         struct ProcessFunUserDef {
             void (ProcessorT::*fun)(ArgT args);
             ProcessorT * use_processor;
@@ -299,13 +299,13 @@ private:
 
     typedef ::std::vector<TriggerNode> TriggerContainer;
 
-    bool check_execute(TriggerNode & node, TriggerContainer & waitExecutes, NPGUIEventArgs * args);
+    bool check_execute(TriggerNode & node, TriggerContainer & waitExecutes, RGUIEventArgs * args);
 
     void on_timer(Gd::Timer::TimerID timerId);
     uint32_t m_max_id;
     TriggerContainer m_triggers;
 
-    static NPGUIListBoxAdvItem * _cvt_to_list_item(NPGUIControl * control);
+    static RGUIListBoxAdvItem * _cvt_to_list_item(RGUIControl * control);
 };
 
 }}

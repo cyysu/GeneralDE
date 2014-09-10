@@ -1,14 +1,14 @@
-#ifndef UIPP_SPRITE_NP_ANIMATIONFACTORY_H
-#define UIPP_SPRITE_NP_ANIMATIONFACTORY_H
+#ifndef UIPP_SPRITE_R_ANIMATIONFACTORY_H
+#define UIPP_SPRITE_R_ANIMATIONFACTORY_H
 #include "uipp/sprite_np/System.hpp"
-#include "NPNode.h"
+#include "RNode.h"
 
-namespace UI { namespace Sprite { namespace NP {
+namespace UI { namespace Sprite { namespace R {
 
 class ContextExt;
 class AnimationFactory {
 public:
-    virtual NPNode *
+    virtual RNode *
     createAnimation(
         Gd::App::Application & app,
         ContextExt * contextExt,

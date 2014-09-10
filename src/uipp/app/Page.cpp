@@ -1,14 +1,14 @@
 #include <map>
-#include "NPAudioManager.h"
+#include "RAudioManager.h"
 #include "cpe/pal/pal_string.h"
 #include "gd/app/app_log.h"
-#include "NP2DSFrameFileMgr.h"
-#include "NP2DSImageFileMgr.h"
-#include "NPGUILabel.h"
-#include "NPGUIPictureCondition.h"
-#include "NPGUILabelCondition.h"
-#include "NPGUIProgressBar.h"
-#include "NPGUIEditBox.h"
+#include "R2DSFrameFileMgr.h"
+#include "R2DSImageFileMgr.h"
+#include "RGUILabel.h"
+#include "RGUIPictureCondition.h"
+#include "RGUILabelCondition.h"
+#include "RGUIProgressBar.h"
+#include "RGUIEditBox.h"
 #include "cpepp/cfg/Node.hpp"
 #include "gdpp/app/Log.hpp"
 #include "uipp/sprite/Entity.hpp"
@@ -62,7 +62,7 @@ Gd::App::Application const & Page::app(void) const {
 
 void Page::SetVisible(bool flag) {
     if (WasVisible() != flag) {
-        NPGUIWindow::SetVisible(flag);
+        RGUIWindow::SetVisible(flag);
         assert(m_proxy);
         dynamic_cast<UIPageProxyExt*>(m_proxy)->onVisiableUpdate();
     }
@@ -84,22 +84,22 @@ void Page::showPopupErrorMsg(int error, const char * template_name) {
     uiCenter().showPopupErrorMsg(error, template_name);
 }
 
-void Page::OnShow(NPGUIEventArgs& args) {
-    NPGUIWindow::OnShow(args);
+void Page::OnShow(RGUIEventArgs& args) {
+    RGUIWindow::OnShow(args);
     m_schedule->triggerByType(PageEvtSch::Trigger::TRIGGERTYPE_CONTROL_SHOW, args);
 }
 
-void Page::OnEventMouseClick(NPGUIEventArgs& args) {
-	NPGUIWindow::OnEventMouseClick(args);
+void Page::OnEventMouseClick(RGUIEventArgs& args) {
+	RGUIWindow::OnEventMouseClick(args);
 	m_schedule->triggerMouseClick(args);
 }
 
-void Page::OnEventMouseDown(NPGUIEventArgs& args) {
-	NPGUIWindow::OnEventMouseDown(args);
+void Page::OnEventMouseDown(RGUIEventArgs& args) {
+	RGUIWindow::OnEventMouseDown(args);
 
     if (const char * sep = strrchr(args.sender->GetName().c_str(), '_')) {
         if (const char * audioRes = uiCenter().findAudioByPostfix(sep + 1)) {
-            NPAudioManager*	audioManager = NPAudioManager::GetIns();
+            RAudioManager*	audioManager = RAudioManager::GetIns();
             assert(audioManager);
 
             std::string tmp(audioRes);
@@ -115,16 +115,16 @@ void Page::OnEventMouseDown(NPGUIEventArgs& args) {
     }
 }
 
-void Page::OnEventListBoxItemShow(NPGUIEventArgs& args) {
-    NPGUIWindow::OnEventListBoxItemShow(args);
+void Page::OnEventListBoxItemShow(RGUIEventArgs& args) {
+    RGUIWindow::OnEventListBoxItemShow(args);
     m_schedule->triggerByType(PageEvtSch::Trigger::TRIGGERTYPE_CONTROL_ITEM_SHOW, args);
 }
 
-bool Page::haveTrigger(NPGUIControl const * control) const {
+bool Page::haveTrigger(RGUIControl const * control) const {
     return m_schedule->haveTrigger(control);
 }
 
-bool Page::isControlNameEq(NPGUIControl * control, const char * name, UICenter const & uiCenter) {
+bool Page::isControlNameEq(RGUIControl * control, const char * name, UICenter const & uiCenter) {
     const char * check_name = control->GetName().c_str();
     size_t name_len = strlen(name);
 
@@ -140,31 +140,31 @@ bool Page::isControlNameEq(NPGUIControl * control, const char * name, UICenter c
     return false;
 }
 
-bool Page::isControlNameEq(NPGUIControl * control, const char * name) const {
+bool Page::isControlNameEq(RGUIControl * control, const char * name) const {
     return isControlNameEq(control, name, uiCenter());
 }
 
-static NPGUIControl * findChildByName(NPGUIControl * p, const char * name, UICenter const & uiCenter) {
-	std::list<NPGUIControl*> & childs = p->GetChildren();
+static RGUIControl * findChildByName(RGUIControl * p, const char * name, UICenter const & uiCenter) {
+	std::list<RGUIControl*> & childs = p->GetChildren();
 
-	for(std::list<NPGUIControl*>::iterator it = childs.begin();
+	for(std::list<RGUIControl*>::iterator it = childs.begin();
         it != childs.end();
         ++it)
     {
-        NPGUIControl* check_control = *it;
+        RGUIControl* check_control = *it;
         if (Page::isControlNameEq(check_control, name, uiCenter)) {
             return check_control;
         }
 
-		NPGUIControl* result = findChildByName(check_control, name, uiCenter);
+		RGUIControl* result = findChildByName(check_control, name, uiCenter);
 		if (result) return result;
 	}
 
 	return NULL;
 }
 
-NPGUIControl *
-Page::findChild(NPGUIControl * control, const char * name, UICenter const & uiCenter) {
+RGUIControl *
+Page::findChild(RGUIControl * control, const char * name, UICenter const & uiCenter) {
     while(const char * sep = strchr(name, '.')) {
         char buf[64];
         size_t len = sep - name;
@@ -172,7 +172,7 @@ Page::findChild(NPGUIControl * control, const char * name, UICenter const & uiCe
         strncpy(buf, name, len);
         buf[len] = 0;
 
-        control = findChildByName(control, name, uiCenter);
+        control = findChildByName(control, buf, uiCenter);
         if (control == NULL) return NULL;
 
         name = sep + 1;
@@ -184,8 +184,8 @@ Page::findChild(NPGUIControl * control, const char * name, UICenter const & uiCe
     return control;
 }
 
-NPGUIControl *
-Page::findChild(NPGUIControl * control, const char * name) {
+RGUIControl *
+Page::findChild(RGUIControl * control, const char * name) {
     return findChild(control, name, uiCenter());
 }
 
@@ -194,91 +194,91 @@ void Page::addEventHandler(const char * event, EventHandlerScope scope, ui_sprit
     dynamic_cast<UIPageProxyExt *>(m_proxy)->addEventHandler(event, scope, fun, ctx);
 }
 
-void Page::setLabelText(NPGUIControl * control, const char * name, const char * text) {
-    if (NPGUILabel * c = NPDynamicCast(NPGUILabel, findChild(control, name))) {
+void Page::setLabelText(RGUIControl * control, const char * name, const char * text) {
+    if (RGUILabel * c = RDynamicCast(RGUILabel, findChild(control, name))) {
         c->SetTextA(text);
     }
 }
 
-void Page::setLabelText(NPGUIControl * control, const char * name, int value) {
+void Page::setLabelText(RGUIControl * control, const char * name, int value) {
     char buf[12];
     snprintf(buf, sizeof(buf), "%d", value);
     setLabelText(control, name, buf);
 }
 
-void Page::setIndex(NPGUIControl * control, const char * name, int index) {
-    if (NPGUIPictureCondition* pic = NPDynamicCast(NPGUIPictureCondition, findChild(control, name))) {
+void Page::setIndex(RGUIControl * control, const char * name, int index) {
+    if (RGUIPictureCondition* pic = RDynamicCast(RGUIPictureCondition, findChild(control, name))) {
         pic->SetIndex(index < 0 ? 0 : index);
     }
-	else if (NPGUILabelCondition* lab = NPDynamicCast(NPGUILabelCondition, findChild(control, name))) {
+	else if (RGUILabelCondition* lab = RDynamicCast(RGUILabelCondition, findChild(control, name))) {
 		lab->SetIndex(index < 0 ? 0 : index);
 	}
 }
 
-void Page::setProgress(NPGUIControl * control, const char * name, float percent) {
-    if (NPGUIProgressBar* progress = NPDynamicCast(NPGUIProgressBar, findChild(control, name))) {
+void Page::setProgress(RGUIControl * control, const char * name, float percent) {
+    if (RGUIProgressBar* progress = RDynamicCast(RGUIProgressBar, findChild(control, name))) {
         progress->SetProgress(percent);
     }
 }
 
-void Page::setShowAnimPlay(NPGUIControl * control, const char * name) {
-    if (NPGUIControl * c = findChild(control, name)) {
+void Page::setShowAnimPlay(RGUIControl * control, const char * name) {
+    if (RGUIControl * c = findChild(control, name)) {
         setShowAnimPlay(c);
     }
 }
 
-void Page::setShowAnimPlay(NPGUIControl * control) {
+void Page::setShowAnimPlay(RGUIControl * control) {
     assert(control);
     control->Hide();
     control->SetShowAnimPlay();
 }
 
-void Page::setHideAnimPlay(NPGUIControl * control, const char * name) {
-    if (NPGUIControl * c = findChild(control, name)) {
+void Page::setHideAnimPlay(RGUIControl * control, const char * name) {
+    if (RGUIControl * c = findChild(control, name)) {
         setHideAnimPlay(c);
     }
 }
 
-void Page::setHideAnimPlay(NPGUIControl * control) {
+void Page::setHideAnimPlay(RGUIControl * control) {
     assert(control);
     control->Show();
     control->SetHideAnimPlay();
 }
 
-void Page::setBackFrame(NPGUIControl * control, const char * name, const char * resource) {
-   if (NPGUIControl * c = findChild(control, name)) {
-	  UI::Sprite::NP::NpUtils::setBackFrame(c,resource);
+void Page::setBackFrame(RGUIControl * control, const char * name, const char * resource) {
+   if (RGUIControl * c = findChild(control, name)) {
+	  UI::Sprite::R::NpUtils::setBackFrame(c,resource);
    }
 }
 
-bool Page::isChildOf(NPGUIControl* control, const char * name) const{
-	for(NPGUIControl* p = control->GetParent(); p; p = p->GetParent()) {
+bool Page::isChildOf(RGUIControl* control, const char * name) const{
+	for(RGUIControl* p = control->GetParent(); p; p = p->GetParent()) {
 		if (strcmp(p->GetName().c_str(), name) == 0) return true;
 	}
 	return false;
 }
 
-bool Page::isControlNameWith(NPGUIControl* control, const char * str) const{
+bool Page::isControlNameWith(RGUIControl* control, const char * str) const{
 	return strstr(control->GetName().c_str(), str) != NULL;
 }
 
-void Page::setControlEnable(NPGUIControl * control, const char * name, bool is_enable) {
-	if (NPGUIControl * c = findChild(control, name)) {
+void Page::setControlEnable(RGUIControl * control, const char * name, bool is_enable) {
+	if (RGUIControl * c = findChild(control, name)) {
         c->SetEnable(is_enable);
     }
 }
 
-void Page::setControlVisible(NPGUIControl * control, const char * name, bool is_visiable) {
-    if (NPGUIControl * c = findChild(control, name)) {
+void Page::setControlVisible(RGUIControl * control, const char * name, bool is_visiable) {
+    if (RGUIControl * c = findChild(control, name)) {
         c->SetVisible(is_visiable);
     }
 }
 
-void Page::setListCount(NPGUIControl * control, const char * name, uint32_t item_count) {
+void Page::setListCount(RGUIControl * control, const char * name, uint32_t item_count) {
 }
 
-::std::string Page::getText(NPGUIControl * control, const char * name) {
-    if (NPGUIEditBox * ebox = NPDynamicCast(NPGUIEditBox, findChild(control, name))) {
+::std::string Page::getText(RGUIControl * control, const char * name) {
+    if (RGUIEditBox * ebox = RDynamicCast(RGUIEditBox, findChild(control, name))) {
         return ebox->GetTextA();
     }
     else {
@@ -286,12 +286,12 @@ void Page::setListCount(NPGUIControl * control, const char * name, uint32_t item
     }
 }
 
-void Page::setUserData(NPGUIControl * control, const char * data) {
+void Page::setUserData(RGUIControl * control, const char * data) {
     control->SetUserText(data);
 }
 
-void Page::setUserData(NPGUIControl * control, const char * name, const char * data) {
-    if (NPGUIControl * c = findChild(control, name)) {
+void Page::setUserData(RGUIControl * control, const char * name, const char * data) {
+    if (RGUIControl * c = findChild(control, name)) {
         setUserData(c, data);
     }
 }

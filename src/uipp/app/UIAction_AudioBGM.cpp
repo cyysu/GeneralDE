@@ -1,4 +1,4 @@
-#include "NPAudioManager.h"
+#include "RAudioManager.h"
 #include "gdpp/app/Log.hpp"
 #include "ui/sprite/ui_sprite_entity_attr.h"
 #include "uipp/sprite_fsm/ActionReg.hpp"
@@ -23,7 +23,7 @@ UIAction_AudioBGM::UIAction_AudioBGM(Sprite::Fsm::Action & action, UIAction_Audi
 }
 
 int UIAction_AudioBGM::enter(void) {
-	NPAudioManager*	audioManager = NPAudioManager::GetIns();
+	RAudioManager*	audioManager = RAudioManager::GetIns();
 	assert(audioManager);
 	m_Audio_id = audioManager->AddBGM(m_res);
 	assert(m_Audio_id != -1);

@@ -5,12 +5,13 @@
 #include "uipp/sprite_fsm/System.hpp"
 #include "uipp/app/System.hpp"
 
-class NPGUIActorKeyData;
+class RGUIActorKeyData;
 
 namespace UI { namespace App {
 
 class EnvExt;
 class SpritePlugin;
+class StringInfoMgr;
 
 class UICenterExt;
 class UIPhaseExt;

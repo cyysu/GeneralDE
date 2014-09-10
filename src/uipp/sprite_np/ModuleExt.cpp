@@ -14,7 +14,7 @@
 #include "ContextExt.hpp"
 #include "LayerExt.hpp"
 
-namespace UI { namespace Sprite { namespace NP {
+namespace UI { namespace Sprite { namespace R {
 
 class uipp_sprite_np_impl
     : public uipp_sprite_np_ext

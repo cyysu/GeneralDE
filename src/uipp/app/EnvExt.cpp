@@ -1,11 +1,11 @@
 #include "m3e.h"
-#include "NPRender.h"
-#include "NPFTDraw.h"
-#include "NP2DSLib.h"
-#include "NPGUILib.h"
-#include "NPAudio.h"
-#include "NPInput.h"
-#include "NPSystem.h"
+#include "RRender.h"
+#include "RFTDraw.h"
+#include "R2DSLib.h"
+#include "RGUILib.h"
+#include "RAudio.h"
+#include "RInput.h"
+#include "RSystem.h"
 #include "cpepp/nm/Manager.hpp"
 #include "gdpp/app/Log.hpp"
 #include "gdpp/app/ModuleDef.hpp"
@@ -16,23 +16,28 @@
 #include "EnvExt.hpp"
 #include "UICenterExt.hpp"
 #include "SpritePlugin.hpp"
+#include "StringInfoMgr.hpp"
 
 namespace UI { namespace App {
 
 EnvExt::EnvExt(Gd::App::Application & app, Gd::App::Module & module, Cpe::Cfg::Node & moduleCfg)
     : m_app(app)
-    , m_world(NULL)
+    , m_stringInfoMgr(::std::auto_ptr<StringInfoMgr>(new StringInfoMgr(*this)))
+    , m_device(::std::auto_ptr<DeviceExt>(new DeviceExt()))
+    , m_runing(::std::auto_ptr<RuningExt>(new RuningExt(*this)))
+    , m_language((Language)0)
     , m_debug(moduleCfg["debug"].dft((uint8_t)0))
+    , m_world(NULL)
 {
     m3eFileInit();
 
-    NPConfig::LoadConfig( "NPEngine.npConfig" );
-    NPRender::Init();
-    NP2DSLib::Init();
-    NPFTDraw::Init();
-    NPAudio::Init();
-    NPGUILib::Init();
-    NPInput::Init();
+    RConfig::LoadConfig( "NPEngine.npConfig" );
+    RRender::Init();
+    R2DSLib::Init();
+    RFTDraw::Init();
+    RAudio::Init();
+    RGUILib::Init();
+    RInput::Init();
 
     m_screenSize.x = 0.0f;
     m_screenSize.y = 0.0f;
@@ -63,6 +68,14 @@ uint8_t EnvExt::debug(void) const {
     return m_debug;
 }
 
+Language EnvExt::language(void) const {
+    if (m_language == 0) {
+        m_language = detectLanguage();
+    }
+
+    return m_language;
+}
+
 Gd::App::Application & EnvExt::app(void) {
     return m_app;
 }
@@ -79,6 +92,22 @@ UICenterExt const & EnvExt::uiCenter(void) const {
     return m_uiCenter;
 }
 
+DeviceExt & EnvExt::device(void) {
+    return m_device;
+}
+
+DeviceExt const & EnvExt::device(void) const {
+    return m_device;
+}
+
+RuningExt & EnvExt::runing(void) {
+    return m_runing;
+}
+
+RuningExt const & EnvExt::runing(void) const {
+    return m_runing;
+}
+
 Sprite::World & EnvExt::world(void) {
     return *(Sprite::World*)m_world;
 }
@@ -89,11 +118,19 @@ Sprite::World const & EnvExt::world(void) const {
     
 Sprite::P2D::Pair const & EnvExt::screenSize(void) const {
     if (m_screenSize.x == 0.0f) {
-        m_screenSize.x = (float)NPRender::GetIns()->GetResolutionW();
-        m_screenSize.y = (float)NPRender::GetIns()->GetResolutionH();
+        m_screenSize.x = (float)RRender::GetIns()->GetResolutionW();
+        m_screenSize.y = (float)RRender::GetIns()->GetResolutionH();
     }
 
     return m_screenSize;
+}
+
+const char * EnvExt::visiableMsg(uint32_t msg_id) const {
+    return m_stringInfoMgr.get().message(msg_id);
+}
+
+const char * EnvExt::visiableMsg(uint32_t msg_id, char * args) const {
+    return m_stringInfoMgr.get().message(msg_id, args);
 }
 
 void EnvExt::registerEvents(Sprite::Repository & repo, Cpe::Cfg::Node const & config) {
@@ -156,12 +193,12 @@ void EnvExt::doFini(void) {
 
     m_spritePlugin.clear();
 
-    NPFTDraw::ShutDown();	
-    NPGUILib::ShutDown();
-    NP2DSLib::ShutDown();
-    NPAudio::ShutDown();
-    NPInput::ShutDown();
-    NPRender::ShutDown();
+    RFTDraw::ShutDown();	
+    RGUILib::ShutDown();
+    R2DSLib::ShutDown();
+    RAudio::ShutDown();
+    RInput::ShutDown();
+    RRender::ShutDown();
 }
 
 Env::~Env() {
@@ -172,6 +209,18 @@ Env::instance(Gd::App::Application & app) {
     Env * r =
         dynamic_cast<Env *>(
             &Gd::App::Application::instance().nmManager().object(Env::NAME));
+    if (r == NULL) {
+        APP_THROW_EXCEPTION(::std::runtime_error, "Env cast fail!");
+    }
+
+    return *r;
+}
+
+EnvExt &
+EnvExt::instance(Gd::App::Application & app) {
+    EnvExt * r =
+        dynamic_cast<EnvExt *>(
+            &Gd::App::Application::instance().nmManager().object(EnvExt::NAME));
     if (r == NULL) {
         APP_THROW_EXCEPTION(::std::runtime_error, "Env cast fail!");
     }

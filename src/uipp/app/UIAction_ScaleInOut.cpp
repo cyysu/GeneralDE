@@ -1,4 +1,4 @@
-#include "NPGUIControl.h"
+#include "RGUIControl.h"
 #include "cpe/utils/math_ex.h"
 #include "cpe/dr/dr_data.h"
 #include "gdpp/app/Log.hpp"
@@ -46,7 +46,7 @@ void UIAction_ScaleInOut::setZoomWay(const char * zoom_way) {
 
 int UIAction_ScaleInOut::enter(void) {
 	Page & page = m_env.get().uiCenter().page(m_page_name.c_str()).page();
-	NPGUIControl * control = page.findChild(m_cotrol_name.c_str());
+	RGUIControl * control = page.findChild(m_cotrol_name.c_str());
 	if (control == NULL) {
 		APP_CTX_ERROR(
 			app(), "entity %d(%s): %s: enter: control %s not exist",
@@ -65,10 +65,10 @@ int UIAction_ScaleInOut::enter(void) {
 
 	m_pivot.x = control->GetPivot().x;
 	m_pivot.y = control->GetPivot().y;
-	control->SetPivot(NPVector2(0.5f, 0.5f));
+	control->SetPivot(RVector2(0.5f, 0.5f));
 
 	if(m_zoom_way == ZoomWay_In){
-		control->SetScale(NPVector2(0.0f, 0.0f));
+		control->SetScale(RVector2(0.0f, 0.0f));
 	}
     control->SetVisible(true);
 
@@ -79,7 +79,7 @@ int UIAction_ScaleInOut::enter(void) {
 
 void UIAction_ScaleInOut::update(float delta) {
     Page & page = m_env.get().uiCenter().page(m_page_name.c_str()).page();
-	NPGUIControl * control = page.findChild(m_cotrol_name.c_str());
+	RGUIControl * control = page.findChild(m_cotrol_name.c_str());
 	if (control == NULL) {
 		APP_CTX_ERROR(
 			app(), "entity %d(%s): %s: update: control %s not exist",
@@ -104,7 +104,7 @@ void UIAction_ScaleInOut::update(float delta) {
 		return;
 	}
 
-	control->SetScale(NPVector2(percent, percent));
+	control->SetScale(RVector2(percent, percent));
 
 	if (m_runing_time >= m_take_time) {
 		stopUpdate();
@@ -113,7 +113,7 @@ void UIAction_ScaleInOut::update(float delta) {
 
 void UIAction_ScaleInOut::exit(void) {
 	Page & page = m_env.get().uiCenter().page(m_page_name.c_str()).page();
-	NPGUIControl * control = page.findChild(m_cotrol_name.c_str());
+	RGUIControl * control = page.findChild(m_cotrol_name.c_str());
 	if (control == NULL) {
 		APP_CTX_ERROR(
 			app(), "entity %d(%s): %s: update: control %s not exist",
@@ -121,8 +121,8 @@ void UIAction_ScaleInOut::exit(void) {
 		return;
 	}
 
-	control->SetPivot(NPVector2(m_pivot.x, m_pivot.y));
-	control->SetScale(NPVector2(1.0f, 1.0f));
+	control->SetPivot(RVector2(m_pivot.x, m_pivot.y));
+	control->SetScale(RVector2(1.0f, 1.0f));
 	if(m_zoom_way == ZoomWay_Out){
 		control->SetVisible(false);
 	}

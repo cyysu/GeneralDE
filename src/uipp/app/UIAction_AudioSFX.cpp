@@ -1,4 +1,4 @@
-#include "NPAudioManager.h"
+#include "RAudioManager.h"
 #include "gdpp/app/Log.hpp"
 #include "ui/sprite/ui_sprite_entity_attr.h"
 #include "uipp/sprite_fsm/ActionReg.hpp"
@@ -21,7 +21,7 @@ namespace UI { namespace App {
 	}
 
 	int UIAction_AudioSFX::enter(void) {
-		NPAudioManager*	audioManager = NPAudioManager::GetIns();
+		RAudioManager*	audioManager = RAudioManager::GetIns();
 		assert(audioManager);
 		m_Audio_id = audioManager->AddSFX( m_res );
 		assert(m_Audio_id != -1);

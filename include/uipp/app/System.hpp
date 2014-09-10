@@ -3,14 +3,22 @@
 #include "gdpp/app/System.hpp"
 #include "uipp/sprite/System.hpp"
 
-class NPGUIWindow;
-class NPGUIControl;
-class NPGUIEventArgs;
-class NPGUIListBoxAdvItem;
+class RGUIWindow;
+class RGUIControl;
+class RGUIEventArgs;
+class RGUIListBoxAdvItem;
 
 namespace UI { namespace App {
 
+enum Language {
+    LANGUAGE_EN = 1,
+    LANGUAGE_CN = 2,
+    LANGUAGE_TW = 3,
+};
+
 class Env;
+class Device;
+class Runing;
 class Page;
 class UICenter;
 class UIPageProxy;

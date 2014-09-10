@@ -1,12 +1,12 @@
-#ifndef UIPP_SPRITE_NP_NPUTILS_H
-#define UIPP_SPRITE_NP_NPUTILS_H
+#ifndef UIPP_SPRITE_R_RUTILS_H
+#define UIPP_SPRITE_R_RUTILS_H
 #include "System.hpp"
-#include "NPRectangle.h"
+#include "RRectangle.h"
 #include "uipp/sprite_2d/System.hpp"
 #include "uipp/sprite/System.hpp"
-#include "NPGUIControl.h"
+#include "RGUIControl.h"
 
-namespace UI { namespace Sprite { namespace NP {
+namespace UI { namespace Sprite { namespace R {
 
 struct RectNode  
 {  
@@ -27,9 +27,9 @@ public:
 	 static	 void	  preloadResources(UI::Sprite::Entity & entity);
 	 static  int	  getRectNodeList(std::vector<RectNode> & rectNodeVer,  char * resName, UI::Sprite::Entity & entity);
 	 static  void	  setMerge(char * resName, UI::Sprite::World & world, UI::Sprite::Entity & entity);
-	 static  void     setBackFrame(NPGUIControl * control, const char * resource);
+	 static  void     setBackFrame(RGUIControl * control, const char * resource);
 	 static  bool	  readResId(char * res, int & id);
-	 static  int	  setAttr(NPGUIControl * control, const char * attr, const char * value);
+	 static  int	  setAttr(RGUIControl * control, const char * attr, const char * value);
 };
 
 }}}

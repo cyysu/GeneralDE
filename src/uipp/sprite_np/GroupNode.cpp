@@ -1,6 +1,6 @@
 #include "GroupNode.hpp"
 
-namespace UI { namespace Sprite { namespace NP {
+namespace UI { namespace Sprite { namespace R {
 
 GroupNode::GroupNode(World & world, LayerExt & layer, uint32_t entity_id, float priority)
     : m_world(world)

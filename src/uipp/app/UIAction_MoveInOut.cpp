@@ -1,4 +1,4 @@
-#include "NPGUIControl.h"
+#include "RGUIControl.h"
 #include "cpe/utils/math_ex.h"
 #include "cpe/dr/dr_data.h"
 #include "gdpp/app/Log.hpp"
@@ -48,7 +48,7 @@ void UIAction_MoveInOut::setMoveWay(const char * moveWay) {
 
 int UIAction_MoveInOut::enter(void) {
 	Page & page = m_env.get().uiCenter().page(m_page_name.c_str()).page();
-	NPGUIControl * control = page.findChild(m_cotrol_name.c_str());
+	RGUIControl * control = page.findChild(m_cotrol_name.c_str());
 	if (control == NULL) {
 		APP_CTX_ERROR(
 			app(), "entity %d(%s): %s: enter: control %s not exist",
@@ -64,8 +64,43 @@ int UIAction_MoveInOut::enter(void) {
     }
 
 	m_runing_time = 0.0f;
-	m_target_pos.x = control->GetRenderRealX();
-	m_target_pos.y = control->GetRenderRealY();
+    
+    switch (control->GetAlignHorz())
+    {
+    case AH_LEFT:
+        m_target_pos.x = control->GetParent()->GetRenderRealX();
+        break;
+    case AH_RIGHT:	{
+        m_target_pos.x = control->GetParent()->GetRenderRealX() + control->GetParent()->GetRenderRealW() - control->GetRenderRealW();
+        }
+        break;
+    case AH_CENTER:	{
+        m_target_pos.x = (control->GetParent()->GetRenderRealW() - control->GetRenderRealW()) /2;
+        }
+        break;
+    default:
+        m_target_pos.x = control->GetRenderRealX();
+        break;
+    }
+
+    switch (control->GetAlignVert())
+    {
+    case AV_TOP:
+        m_target_pos.y = control->GetParent()->GetRenderRealY();
+        break;
+    case AV_BOTTOM:	{
+        m_target_pos.y = control->GetParent()->GetRenderRealY() + control->GetParent()->GetRenderRealH() - control->GetRenderRealH();
+        }
+         break;
+    case AV_CENTER:	{
+        m_target_pos.y = (control->GetParent()->GetRenderRealH() - control->GetRenderRealH()) /2;
+        }
+        break;
+    default:
+        m_target_pos.y = control->GetRenderRealY();
+        break;
+    }
+
 	if(m_policy == "left"){
 		m_origin_pos.x = -1 * control->GetRenderRealW();
 		m_origin_pos.y = m_target_pos.y;
@@ -78,7 +113,7 @@ int UIAction_MoveInOut::enter(void) {
 		m_origin_pos.x = m_target_pos.x;
 		m_origin_pos.y = -1 * control->GetRenderRealH();
 	}
-	else if(m_policy == "buttom"){
+	else if(m_policy == "bottom"){
 		m_origin_pos.x = m_target_pos.x;
 		m_origin_pos.y = m_env.get().screenSize().y;
 	}
@@ -118,7 +153,7 @@ int UIAction_MoveInOut::enter(void) {
 
 void UIAction_MoveInOut::update(float delta) {
     Page & page = m_env.get().uiCenter().page(m_page_name.c_str()).page();
-	NPGUIControl * control = page.findChild(m_cotrol_name.c_str());
+	RGUIControl * control = page.findChild(m_cotrol_name.c_str());
 	if (control == NULL) {
 		APP_CTX_ERROR(
 			app(), "entity %d(%s): %s: update: control %s not exist",
@@ -132,7 +167,7 @@ void UIAction_MoveInOut::update(float delta) {
 
 	percent = ui_percent_decorator_decorate(&m_percent_decorator, percent);
 
-	NPVector2 putPos(
+	RVector2 putPos(
         m_origin_pos.x + (m_target_pos.x - m_origin_pos.x) * percent,
         m_origin_pos.y + (m_target_pos.y - m_origin_pos.y) * percent);
 	control->SetRenderRealPT(putPos);
@@ -144,7 +179,7 @@ void UIAction_MoveInOut::update(float delta) {
 
 void UIAction_MoveInOut::exit(void) {
 	Page & page = m_env.get().uiCenter().page(m_page_name.c_str()).page();
-	NPGUIControl * control = page.findChild(m_cotrol_name.c_str());
+	RGUIControl * control = page.findChild(m_cotrol_name.c_str());
 	if (control == NULL) {
 		APP_CTX_ERROR(
 			app(), "entity %d(%s): %s: update: control %s not exist",
@@ -153,10 +188,10 @@ void UIAction_MoveInOut::exit(void) {
 	}
 
 	if(m_move_way == MoveWay_In){
-		control->SetRenderRealPT(NPVector2(m_target_pos.x, m_target_pos.y));
+		control->SetRenderRealPT(RVector2(m_target_pos.x, m_target_pos.y));
 	}
 	else if(m_move_way == MoveWay_Out) {
-		control->SetRenderRealPT(NPVector2(m_origin_pos.x, m_origin_pos.y));
+		control->SetRenderRealPT(RVector2(m_origin_pos.x, m_origin_pos.y));
 		control->SetVisible(false);
 	}
 	else{

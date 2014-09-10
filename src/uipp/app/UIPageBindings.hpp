@@ -15,12 +15,12 @@ public:
     };
 
     bool loadBindings(Gd::App::Application & app, Cpe::Cfg::Node const & cfg);
-    void setData(Gd::App::Application & app, NPGUIControl * control, const char * msg, UICenter const & uiCenter);
-    void setData(Gd::App::Application & app, NPGUIControl * control, LPDRMETA meta, void const * data, size_t data_size, UICenter const & uiCenter);
+    void setData(Gd::App::Application & app, RGUIControl * control, const char * msg, UICenter const & uiCenter);
+    void setData(Gd::App::Application & app, RGUIControl * control, LPDRMETA meta, void const * data, size_t data_size, UICenter const & uiCenter);
 
     static int setControlValue(
         Gd::App::Application & app,
-        NPGUIControl * control, const char * control_name,
+        RGUIControl * control, const char * control_name,
         const char * attr, const char * value, UICenter const & uiCenter);
 
 private:

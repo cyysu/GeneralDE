@@ -9,14 +9,14 @@
 
 namespace UI { namespace App {
 
-class PlayAnimEventHandler : public NPGUIEventHandler {
+class PlayAnimEventHandler : public RGUIEventHandler {
 public:
     PlayAnimEventHandler(UIAction_PlayAnim & action)
         : m_action(action)
     {
     }
 
-	virtual void operator () (NPGUIEventArgs& args) {
+	virtual void operator () (RGUIEventArgs& args) {
         m_action.stopUpdate();
     }
 
@@ -53,7 +53,7 @@ int UIAction_PlayAnim::enter(void) {
         return -1;
     }
 
-    NPGUIControl * control = page->page().findChild(m_control_name.c_str());
+    RGUIControl * control = page->page().findChild(m_control_name.c_str());
     if (control == NULL) {
         APP_CTX_ERROR(
             app(), "entity %d(%s) ui-show-anim(%s.%s.%s): control not exist!",
@@ -61,7 +61,7 @@ int UIAction_PlayAnim::enter(void) {
         return -1;
     }
 
-    const NPGUIActorKeyData * animData = getAnimData(control);
+    const RGUIActorKeyData * animData = getAnimData(control);
     if (animData == NULL) {
         APP_CTX_ERROR(
             app(), "entity %d(%s) ui-show-anim(%s.%s.%s): anim is unknown!",
@@ -78,7 +78,7 @@ int UIAction_PlayAnim::enter(void) {
 
 	control->SetVisible(true);
     
-	NPGUIActorKeyCtrlMove * animCtrl = control->GetMoveAnimCtrl();
+	RGUIActorKeyCtrlMove * animCtrl = control->GetMoveAnimCtrl();
     assert(animCtrl);
 
     animCtrl->Clear();
@@ -103,7 +103,7 @@ void UIAction_PlayAnim::update(float delta) {
         return;
     }
 
-    NPGUIControl * control = page->page().findChild(m_control_name.c_str());
+    RGUIControl * control = page->page().findChild(m_control_name.c_str());
     if (control == NULL) {
         APP_CTX_ERROR(
             app(), "entity %d(%s) ui-show-anim(%s.%s.%s): update: control not exist!",
@@ -111,7 +111,7 @@ void UIAction_PlayAnim::update(float delta) {
         return;
     }
 
-	NPGUIActorKeyCtrlMove * animCtrl = control->GetMoveAnimCtrl();
+	RGUIActorKeyCtrlMove * animCtrl = control->GetMoveAnimCtrl();
     assert(animCtrl);
     PlayAnimEventHandler * handler = dynamic_cast<PlayAnimEventHandler *>(animCtrl->GetStopHandler());
 
@@ -131,7 +131,7 @@ void UIAction_PlayAnim::exit(void) {
         return;
     }
 
-    NPGUIControl * control = page->page().findChild(m_control_name.c_str());
+    RGUIControl * control = page->page().findChild(m_control_name.c_str());
     if (control == NULL) {
         APP_CTX_ERROR(
             app(), "entity %d(%s) ui-show-anim(%s.%s.%s): exit: control not exist!",
@@ -139,7 +139,7 @@ void UIAction_PlayAnim::exit(void) {
         return;
     }
 
-	NPGUIActorKeyCtrlMove * animCtrl = control->GetMoveAnimCtrl();
+	RGUIActorKeyCtrlMove * animCtrl = control->GetMoveAnimCtrl();
     if (animCtrl->WasPlay()) {
         if (PlayAnimEventHandler * handler = dynamic_cast<PlayAnimEventHandler *>(animCtrl->GetStopHandler())) {
             if (&handler->m_action == this) {
@@ -156,8 +156,8 @@ void UIAction_PlayAnim::exit(void) {
     }
 }
 
-const NPGUIActorKeyData * 
-UIAction_PlayAnim::getAnimData(NPGUIControl * control) {
+const RGUIActorKeyData * 
+UIAction_PlayAnim::getAnimData(RGUIControl * control) {
     if (strcmp(m_anim_name.c_str(), "show") == 0) {
         return &control->GetShowAnimData();
     }

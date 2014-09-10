@@ -1,10 +1,10 @@
 #include <vector>
 #include <map>
-#include "NPAudioManager.h"
-#include "NP2DSTextureCache.h"
-#include "NP2DSActorFileMgr.h"
-#include "NP2DSFrameFileMgr.h"
-#include "NP2DSImageFileMgr.h"
+#include "RAudioManager.h"
+#include "R2DSTextureCache.h"
+#include "R2DSActorFileMgr.h"
+#include "R2DSFrameFileMgr.h"
+#include "R2DSImageFileMgr.h"
 #include "cpe/pal/pal_stdio.h"
 #include "cpepp/cfg/Node.hpp"
 #include "uipp/sprite/World.hpp"
@@ -17,6 +17,7 @@
 #include "UIPhaseNodeExt.hpp"
 #include "UIPopupPageDef.hpp"
 #include "UIPopupPage.hpp"
+#include "StringInfoMgr.hpp"
 #include "protocol/ui/app/ui_app_evt.h"
 
 namespace UI { namespace App {
@@ -42,6 +43,10 @@ public:
     UICenterImpl(EnvExt & env, Cpe::Cfg::Node const & cfg)
         : Gd::Evt::EventResponserBase(Gd::Evt::EventCenter::instance(env.app()))
         , m_env(env)
+        , m_init_phase(cfg["ui-center.init-phase"].asString())
+        , m_error_msg_start(cfg["ui-center.error-msg-start"])
+        , m_error_msg_dft(cfg["ui-center.error-msg-dft"])
+        , m_error_msg_popup(cfg["ui-center.error-msg-popup"].dft("default"))
         , m_entity(env.world().createEntity("ui"))
     {
         m_entity.setDebug(env.debug());
@@ -237,9 +242,18 @@ public:
     }
 
     virtual void showPopupErrorMsg(int error, const char * template_name) {
-        char buf[64];
-        snprintf(buf, sizeof(buf), "%d", error);
-        showPopupPage(buf, template_name);
+        if (template_name == NULL) template_name = m_error_msg_popup.c_str();
+
+        if (error < 0) {
+            showPopupPage(
+                m_env.stringInfoMgr().message(m_error_msg_dft),
+                template_name);
+        }
+        else {
+            showPopupPage(
+                m_env.stringInfoMgr().message(error + m_error_msg_start),
+                template_name);
+        }
     }
 
     virtual void stopPopupPage(UIPopupPage * page) {
@@ -363,10 +377,10 @@ private:
             char * sep = strrchr(buf, '/');
             if (sep) {
                 *sep = 0;
-                id = NP2DSTextureCache::GetIns()->GetTextureID(buf, sep + 1, true );
+                id = R2DSTextureCache::GetIns()->GetTextureID(buf, sep + 1, true );
             }
             else {
-                id = NP2DSTextureCache::GetIns()->GetTextureID("", buf, true );
+                id = R2DSTextureCache::GetIns()->GetTextureID("", buf, true );
             }
 
             if (id != -1) {
@@ -388,7 +402,7 @@ private:
 		{
 			int id = -1;
 			std::string filename = it->c_str();
-			NPAudioManager*	audioManager = NPAudioManager::GetIns();
+			RAudioManager*	audioManager = RAudioManager::GetIns();
 			assert(audioManager);
 			id = audioManager->AddSFX( filename );
 
@@ -410,7 +424,7 @@ private:
 		{
 			int id = -1;
 			std::string filename = it->c_str();
-			NPAudioManager*	audioManager = NPAudioManager::GetIns();
+			RAudioManager*	audioManager = RAudioManager::GetIns();
 			assert(audioManager);
 			id = audioManager->AddBGM( filename );
 			if (id != -1) {
@@ -424,10 +438,10 @@ private:
 	}
 
 	void unloadTexturesExcept(UIPhaseExt const * exceptForPhase) {
-		NP2DSActorFileMgr::GetIns()->DelFileAll();
-		NP2DSFrameFileMgr::GetIns()->DelFileAll();
-		NP2DSImageFileMgr::GetIns()->DelFileAll();
-		NP2DSTextureCache* textureCache = NP2DSTextureCache::GetIns();
+		R2DSActorFileMgr::GetIns()->DelFileAll();
+		R2DSFrameFileMgr::GetIns()->DelFileAll();
+		R2DSImageFileMgr::GetIns()->DelFileAll();
+		R2DSTextureCache* textureCache = R2DSTextureCache::GetIns();
 
 		uint32_t textureCount = textureCache->GetTextureCount();
 
@@ -459,6 +473,10 @@ private:
             }
         }
 	}
+
+    void initPhase(void) {
+        doPhaseSwitch(m_init_phase.c_str());
+    }
 
     void onEvent(const char * oid, Gd::Evt::Event const & e) {
         if (e.type() == "ui_app_evt_switch_phase") {
@@ -590,6 +608,10 @@ private:
     }
 
     EnvExt & m_env;
+    ::std::string m_init_phase;
+    uint32_t m_error_msg_start;
+    uint32_t m_error_msg_dft;
+    ::std::string m_error_msg_popup;
     Sprite::Entity & m_entity;
     PageContainer m_pages;
     PhaseContainer m_phases;

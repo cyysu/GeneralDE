@@ -2,7 +2,7 @@
 #define UIPP_APP_PAGE_H
 #include <sstream>
 #include "cpepp/dr/Meta.hpp"
-#include "NPGUIWindow.h"
+#include "RGUIWindow.h"
 #include "cpepp/nm/Object.hpp"
 #include "gdpp/app/Application.hpp"
 #include "System.hpp"
@@ -12,7 +12,7 @@ namespace UI { namespace App {
 class UIPageProxyImpl;
 class Page
     : public Cpe::Nm::Object
-    , public NPGUIWindow
+    , public RGUIWindow
 {
 public:
     enum EventHandlerScope {
@@ -41,59 +41,59 @@ public:
 
     virtual void SetVisible(bool flag);
 
-    void setControlEnable(NPGUIControl * control, const char * name, bool is_enable);
+    void setControlEnable(RGUIControl * control, const char * name, bool is_enable);
     void setControlEnable(const char * name, bool is_enable) { setControlEnable(this, name, is_enable); } 
 
-    void setControlVisible(NPGUIControl * control, const char * name, bool is_visiable);
+    void setControlVisible(RGUIControl * control, const char * name, bool is_visiable);
     void setControlVisible(const char * name, bool is_visiable) { setControlVisible(this, name, is_visiable); }
 
-    void setLabelText(NPGUIControl * control, const char * name, const char * text);
+    void setLabelText(RGUIControl * control, const char * name, const char * text);
     void setLabelText(const char * name, const char * text) { setLabelText(this, name, text); }
 
-    void setLabelText(NPGUIControl * control, const char * name, int value);
+    void setLabelText(RGUIControl * control, const char * name, int value);
     void setLabelText(const char * name, int text) { setLabelText(this, name, text); }
 
-    void setIndex(NPGUIControl * control, const char * name, int index);
+    void setIndex(RGUIControl * control, const char * name, int index);
     void setIndex(const char * name, int index) { setIndex(this, name, index); }
 
-    void setListCount(NPGUIControl * control, const char * name, uint32_t item_count);
+    void setListCount(RGUIControl * control, const char * name, uint32_t item_count);
     void setListCount(const char * name, uint32_t item_count) { setListCount(this, name, item_count); }
 
-    void setProgress(NPGUIControl * control, const char * name, float percent);
+    void setProgress(RGUIControl * control, const char * name, float percent);
     void setProgress(const char * name, float percent) { setProgress(this, name, percent); }
 
-    void setUserData(NPGUIControl * control, const char * data);
-    void setUserData(NPGUIControl * control, const char * name, const char * data);
+    void setUserData(RGUIControl * control, const char * data);
+    void setUserData(RGUIControl * control, const char * name, const char * data);
 
-    void setShowAnimPlay(NPGUIControl * control, const char * name);
+    void setShowAnimPlay(RGUIControl * control, const char * name);
     void setShowAnimPlay(const char * name) { setShowAnimPlay(this, name); }
-    void setShowAnimPlay(NPGUIControl * control);
+    void setShowAnimPlay(RGUIControl * control);
 
-    void setHideAnimPlay(NPGUIControl * control, const char * name);
+    void setHideAnimPlay(RGUIControl * control, const char * name);
     void setHideAnimPlay(const char * name) { setHideAnimPlay(this, name); }
-    void setHideAnimPlay(NPGUIControl * control);
+    void setHideAnimPlay(RGUIControl * control);
 
-	void setBackFrame(NPGUIControl * control, const char * name, const char * resource);
+	void setBackFrame(RGUIControl * control, const char * name, const char * resource);
 	void setBackFrame(const char * name, const char * resource) { setBackFrame(this, name, resource); }
 
-	bool isChildOf(NPGUIControl* control, const char * name) const;
+	bool isChildOf(RGUIControl* control, const char * name) const;
 
-	bool isControlNameWith(NPGUIControl* control, const char * str) const;
+	bool isControlNameWith(RGUIControl* control, const char * str) const;
 
-    static NPGUIControl * findChild(NPGUIControl * control, const char * name, UICenter const & uiCenter);
-    NPGUIControl * findChild(NPGUIControl * control, const char * name);
-    NPGUIControl * findChild(const char * name) { return findChild(this, name); }
+    static RGUIControl * findChild(RGUIControl * control, const char * name, UICenter const & uiCenter);
+    RGUIControl * findChild(RGUIControl * control, const char * name);
+    RGUIControl * findChild(const char * name) { return findChild(this, name); }
 
-    static bool isControlNameEq(NPGUIControl * control, const char * name, UICenter const & uiCenter);
-    bool isControlNameEq(NPGUIControl * control, const char * name) const;
+    static bool isControlNameEq(RGUIControl * control, const char * name, UICenter const & uiCenter);
+    bool isControlNameEq(RGUIControl * control, const char * name) const;
 
-    ::std::string getText(NPGUIControl * control, const char * name);
+    ::std::string getText(RGUIControl * control, const char * name);
     ::std::string getText(const char * name) { return getText(this, name); }
 
-    bool haveTrigger(NPGUIControl const * control) const;
+    bool haveTrigger(RGUIControl const * control) const;
 
     template<typename T>
-    T getUserData(NPGUIControl * control) {
+    T getUserData(RGUIControl * control) {
         ::std::istringstream is(control->GetUserText());
         T v;
         is >> v;
@@ -101,21 +101,21 @@ public:
     }
 
     template<typename T>
-    T getUserData(NPGUIControl * control, const char * name) {
-        NPGUIControl * c = findChild(control, name);
+    T getUserData(RGUIControl * control, const char * name) {
+        RGUIControl * c = findChild(control, name);
         assert(c);
         return getUserData<T>(c);
     }
 
     template<typename T>
-    void setUserData(NPGUIControl * control, T const & data) {
+    void setUserData(RGUIControl * control, T const & data) {
         ::std::ostringstream os;
         os << data;
         setUserData(control, os.str().c_str());
     }
 
     template<typename T>
-    void setUserData(NPGUIControl * control, const char * name, T const & data) {
+    void setUserData(RGUIControl * control, const char * name, T const & data) {
         ::std::ostringstream os;
         os << data;
         setUserData(control, name, os.str().c_str());
@@ -153,10 +153,10 @@ public:
     }
 
 protected:
-    void OnShow(NPGUIEventArgs& args);
-    void OnEventMouseClick(NPGUIEventArgs& args);
-	void OnEventMouseDown(NPGUIEventArgs& args);
-    void OnEventListBoxItemShow(NPGUIEventArgs& args);
+    void OnShow(RGUIEventArgs& args);
+    void OnEventMouseClick(RGUIEventArgs& args);
+	void OnEventMouseDown(RGUIEventArgs& args);
+    void OnEventListBoxItemShow(RGUIEventArgs& args);
 	bool readResId(char * res, int & id);
 
 private:
