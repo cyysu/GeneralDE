@@ -24,6 +24,7 @@ $(product).c.sources:=$(addprefix $(product-base)/lib/, \
                            sharedbook.c \
                            lookup.c \
                            bitrate.c \
+                           vorbisfile.c \
                          )
 
 $(product).product.c.includes:=3rdTools/libvorbis/include
