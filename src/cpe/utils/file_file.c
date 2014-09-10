@@ -108,6 +108,32 @@ ssize_t file_stream_write_from_buf(FILE * fp, const void * buf, size_t size, err
     return totalSize;
 }
 
+ssize_t file_stream_write_from_buffer(FILE * fp, mem_buffer_t buffer, error_monitor_t em) {
+    ssize_t totalSize;
+    size_t writeSize;
+    struct mem_buffer_trunk * trunk;
+
+    totalSize = 0;
+
+    for(trunk = mem_buffer_trunk_first(buffer);
+        trunk;
+        trunk = mem_buffer_trunk_next(trunk))
+    {
+        char * buf = mem_trunk_data(trunk);
+        size_t size = mem_trunk_size(trunk);
+        while((writeSize = fwrite(buf, 1, size, fp)) > 0) {
+            size -= writeSize;
+            totalSize += writeSize;
+        }
+    }
+
+    if (ferror(fp)) {
+        totalSize = -1;
+    }
+
+    return totalSize;
+}
+
 ssize_t file_stream_write_from_str(FILE * fp, const char * str, error_monitor_t em) {
     return file_stream_write_from_buf(fp, str, strlen(str), em);
 }
