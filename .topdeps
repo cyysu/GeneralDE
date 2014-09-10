@@ -16,3 +16,4 @@ t/support/ui_b2
 t/3rdTools/freetype
 t/3rdTools/pthread
 t/3rdTools/libvorbis
+t/3rdTools/libpng
