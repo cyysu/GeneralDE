@@ -1,8 +1,8 @@
-#ifndef UIPP_SPRITE_NP_LAYER_H
-#define UIPP_SPRITE_NP_LAYER_H
+#ifndef UIPP_SPRITE_R_LAYER_H
+#define UIPP_SPRITE_R_LAYER_H
 #include "System.hpp"
 
-namespace UI { namespace Sprite { namespace NP {
+namespace UI { namespace Sprite { namespace R {
 
 class Layer {
 public:

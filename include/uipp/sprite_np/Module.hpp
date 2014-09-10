@@ -1,10 +1,10 @@
-#ifndef UIPP_SPRITE_NP_MODULE_H
-#define UIPP_SPRITE_NP_MODULE_H
+#ifndef UIPP_SPRITE_R_MODULE_H
+#define UIPP_SPRITE_R_MODULE_H
 #include "gdpp/app/System.hpp"
 #include "cpepp/nm/Object.hpp"
 #include "System.hpp"
 
-namespace UI { namespace Sprite { namespace NP {
+namespace UI { namespace Sprite { namespace R {
 
 class uipp_sprite_np : public Cpe::Nm::Object {
 public:

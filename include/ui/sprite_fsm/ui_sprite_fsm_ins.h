@@ -46,6 +46,7 @@ ui_sprite_fsm_ins_t ui_sprite_fsm_state_fsm(ui_sprite_fsm_state_t fsm_state);
 uint16_t ui_sprite_fsm_state_id(ui_sprite_fsm_state_t fsm_state);
 const char * ui_sprite_fsm_state_name(ui_sprite_fsm_state_t fsm_state);
 ui_sprite_event_t ui_sprite_fsm_state_enter_event(ui_sprite_fsm_state_t fsm_state);
+ui_sprite_event_t ui_sprite_fsm_state_local_enter_event(ui_sprite_fsm_state_t fsm_state);
 void ui_sprite_fsm_state_actions(ui_sprite_fsm_state_it_t it, ui_sprite_fsm_ins_t fsm);
 ui_sprite_fsm_state_t ui_sprite_fsm_state_return_to(ui_sprite_fsm_state_t fsm_state);
 
