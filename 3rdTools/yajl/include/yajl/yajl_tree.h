@@ -33,6 +33,10 @@
 
 #include <yajl/yajl_common.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /** possible data types that a yajl_val_s can hold */
 typedef enum {
     yajl_t_string = 1,
@@ -178,5 +182,9 @@ double yajl_get_double(yajl_val v);
 
 /** Get a pointer to a yajl_val_array or NULL if the value is not an object. */
 #define YAJL_GET_ARRAY(v)  (YAJL_IS_ARRAY(v)  ? &(v)->u.array  : NULL)
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* YAJL_TREE_H */
