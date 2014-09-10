@@ -2,6 +2,7 @@
 #include <limits.h>
 #include <string.h>
 #include "cpe/dr/dr_data.h"
+#include "cpe/dr/dr_ctypes_op.h"
 #include "../dr_internal_types.h"
 
 int dr_entry_set_from_ctype(void * output, const void * input, int input_type, LPDRMETAENTRY entry, error_monitor_t em) {
