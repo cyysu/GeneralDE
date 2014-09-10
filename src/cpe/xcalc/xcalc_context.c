@@ -3,7 +3,8 @@
 #include "cpe/pal/pal_stdlib.h"
 #include "cpe/utils/buffer.h"
 #include "cpe/utils/stream_buffer.h"
-#include "xcalc_scaner_i.h"
+#include "xcalc_context_i.h"
+#include "xcalc_computer_i.h"
 
 #define  __def_state(num) ((uint32_t)num)
 
@@ -19,11 +20,12 @@
 #define state_str1   __def_state(9)
 #define state_str2   __def_state(10)
 #define state_not1   __def_state(11)
-#define state_value  __def_state(12)
+#define state_sub    __def_state(12)
+#define state_var    __def_state(13)
 #define state_end    0x00008000u
 #define state_back   0x00004000u
 
-#define __state_num 13
+#define __state_num 14
 
 #define __make_node(state, token) ( state | (token << 16) )
 #define __make_node_back(state, token) ( state | (token << 16) | state_back )
@@ -35,7 +37,8 @@
 
 #define node_none       __make_node     (state_end, XTOKEN_ERROR)
 #define node_add        __make_node     (state_end, XTOKEN_ADD)
-#define node_sub        __make_node     (state_end, XTOKEN_SUB)
+#define node_sub        __make_node     (state_sub, 0)
+#define node_sub2       __make_node_back(state_end, XTOKEN_SUB)
 #define node_mul        __make_node     (state_end, XTOKEN_MUL)
 #define node_div        __make_node     (state_end, XTOKEN_DIV)
 #define node_eq1        __make_node     (state_eq, 0)
@@ -49,9 +52,9 @@
 #define node_lt_nb      __make_node     (state_end, XTOKEN_LT)
 #define node_le         __make_node     (state_end, XTOKEN_LE)
 #define node_and1       __make_node     (state_and, 0)
-#define node_and        __make_node_back(state_end, XTOKEN_AND)
+#define node_and        __make_node     (state_end, XTOKEN_AND)
 #define node_or1        __make_node     (state_or, 0)
-#define node_or         __make_node_back(state_end, XTOKEN_OR)
+#define node_or         __make_node     (state_end, XTOKEN_OR)
 #define node_not1       __make_node     (state_not1, 0)
 #define node_not        __make_node_back(state_end, XTOKEN_NOT)
 #define node_not_nb     __make_node     (state_end, XTOKEN_NOT)
@@ -70,16 +73,15 @@
 #define node_double     __make_node_back(state_end, XTOKEN_NUM_FLOAT)
 #define node_double_nb  __make_node     (state_end, XTOKEN_NUM_FLOAT)
 #define node_let1       __make_node     (state_letter, 0)
-#define node_val        __make_node_back(state_end, XTOKEN_VAL)
-#define node_val_nb     __make_node     (state_end, XTOKEN_VAL)
 #define node_str1       __make_node     (state_str1, 0)
 #define node_str2       __make_node     (state_str2, 0)
 #define node_str        __make_node     (state_end, XTOKEN_STRING)
+#define node_str_nb     __make_node_back(state_end, XTOKEN_STRING)
+#define node_var1       __make_node     (state_var, 0)
+#define node_var        __make_node_back(state_end, XTOKEN_VAL)
 #define node_begin      __make_node     (state_begin, 0)
-#define node_let2       __make_node     (state_value, 0)
-#define node_val2       __make_node     (state_end, XTOKEN_VAL2)
 
-static const uint32_t node_table[13][256] = {
+static const uint32_t node_table[__state_num][256] = {
     /*state_begin*/
     {
         /*  0*/ node_end      , node_none     , node_none     , node_none     , node_none     ,
@@ -89,12 +91,12 @@ static const uint32_t node_table[13][256] = {
         /* 20*/ node_none     , node_none     , node_none     , node_none     , node_none     ,
         /* 25*/ node_none     , node_none     , node_none     , node_none     , node_none     ,
         /* 30*/ node_none     , node_none     , node_begin    , node_not1     , node_str1     ,
-        /* 35*/ node_none     , node_let2     , node_none     , node_and1     , node_str2     ,
+        /* 35*/ node_none     , node_none     , node_none     , node_and1     , node_str2     ,
         /* 40*/ node_lbr      , node_rbr      , node_mul      , node_add      , node_comma    ,
         /* 45*/ node_sub      , node_none     , node_div      , node_num1     , node_num1     ,
         /* 50*/ node_num1     , node_num1     , node_num1     , node_num1     , node_num1     ,
         /* 55*/ node_num1     , node_num1     , node_num1     , node_colon    , node_none     ,
-        /* 60*/ node_lt1      , node_eq1      , node_bg1      , node_qes      , node_none     ,
+        /* 60*/ node_lt1      , node_eq1      , node_bg1      , node_qes      , node_var1     ,
         /* 65*/ node_let1     , node_let1     , node_let1     , node_let1     , node_let1     ,
         /* 70*/ node_let1     , node_let1     , node_let1     , node_let1     , node_let1     ,
         /* 75*/ node_let1     , node_let1     , node_let1     , node_let1     , node_let1     ,
@@ -313,7 +315,7 @@ static const uint32_t node_table[13][256] = {
         /* 20*/ node_none     , node_none     , node_none     , node_none     , node_none     ,
         /* 25*/ node_none     , node_none     , node_none     , node_none     , node_none     ,
         /* 30*/ node_none     , node_none     , node_none     , node_none     , node_none     ,
-        /* 35*/ node_none     , node_none     , node_none     , node_none     , node_and      ,
+        /* 35*/ node_none     , node_none     , node_none     , node_and      , node_none     ,
         /* 40*/ node_none     , node_none     , node_none     , node_none     , node_none     ,
         /* 45*/ node_none     , node_none     , node_none     , node_none     , node_none     ,
         /* 50*/ node_none     , node_none     , node_none     , node_none     , node_none     ,
@@ -530,32 +532,32 @@ static const uint32_t node_table[13][256] = {
     ,
     /*state_letter*/
     {
-        /*  0*/ node_val      , node_val      , node_val      , node_val      , node_val      ,
-        /*  5*/ node_val      , node_val      , node_val      , node_val      , node_val      ,
-        /* 10*/ node_val      , node_val      , node_val      , node_val      , node_val      ,
-        /* 15*/ node_val      , node_val      , node_val      , node_val      , node_val      ,
-        /* 20*/ node_val      , node_val      , node_val      , node_val      , node_val      ,
-        /* 25*/ node_val      , node_val      , node_val      , node_val      , node_val      ,
-        /* 30*/ node_val      , node_val      , node_val      , node_val      , node_val      ,
-        /* 35*/ node_val      , node_val      , node_val      , node_val      , node_val      ,
-        /* 40*/ node_func     , node_val      , node_val      , node_val      , node_val      ,
-        /* 45*/ node_val      , node_val      , node_val      , node_let1     , node_let1     ,
+        /*  0*/ node_str_nb      , node_str_nb      , node_str_nb      , node_str_nb      , node_str_nb      ,
+        /*  5*/ node_str_nb      , node_str_nb      , node_str_nb      , node_str_nb      , node_str_nb      ,
+        /* 10*/ node_str_nb      , node_str_nb      , node_str_nb      , node_str_nb      , node_str_nb      ,
+        /* 15*/ node_str_nb      , node_str_nb      , node_str_nb      , node_str_nb      , node_str_nb      ,
+        /* 20*/ node_str_nb      , node_str_nb      , node_str_nb      , node_str_nb      , node_str_nb      ,
+        /* 25*/ node_str_nb      , node_str_nb      , node_str_nb      , node_str_nb      , node_str_nb      ,
+        /* 30*/ node_str_nb      , node_str_nb      , node_str_nb      , node_str_nb      , node_str_nb      ,
+        /* 35*/ node_str_nb      , node_str_nb      , node_str_nb      , node_str_nb      , node_str_nb      ,
+        /* 40*/ node_func     , node_str_nb      , node_str_nb      , node_str_nb      , node_str_nb      ,
+        /* 45*/ node_let1      , node_str_nb      , node_str_nb      , node_let1     , node_let1     ,
         /* 50*/ node_let1     , node_let1     , node_let1     , node_let1     , node_let1     ,
-        /* 55*/ node_let1     , node_let1     , node_let1     , node_val      , node_val      ,
-        /* 60*/ node_val      , node_val      , node_val      , node_val      , node_val      ,
+        /* 55*/ node_let1     , node_let1     , node_let1     , node_str_nb      , node_str_nb      ,
+        /* 60*/ node_str_nb      , node_str_nb      , node_str_nb      , node_str_nb      , node_str_nb      ,
         /* 65*/ node_let1     , node_let1     , node_let1     , node_let1     , node_let1     ,
         /* 70*/ node_let1     , node_let1     , node_let1     , node_let1     , node_let1     ,
         /* 75*/ node_let1     , node_let1     , node_let1     , node_let1     , node_let1     ,
         /* 80*/ node_let1     , node_let1     , node_let1     , node_let1     , node_let1     ,
         /* 85*/ node_let1     , node_let1     , node_let1     , node_let1     , node_let1     ,
-        /* 90*/ node_let1     , node_val      , node_val      , node_val      , node_val      ,
-        /* 95*/ node_let1     , node_val      , node_val      , node_val      , node_val      ,
+        /* 90*/ node_let1     , node_let1     , node_let1     , node_let1     , node_let1     ,
+        /* 95*/ node_let1     , node_let1     , node_let1     , node_let1     , node_let1     ,
         /*100*/ node_let1     , node_let1     , node_let1     , node_let1     , node_let1     ,
         /*105*/ node_let1     , node_let1     , node_let1     , node_let1     , node_let1     ,
         /*110*/ node_let1     , node_let1     , node_let1     , node_let1     , node_let1     ,
         /*115*/ node_let1     , node_let1     , node_let1     , node_let1     , node_let1     ,
-        /*120*/ node_let1     , node_let1     , node_let1     , node_val      , node_val      ,
-        /*125*/ node_val      , node_val      , node_val      , node_let1     , node_let1     ,
+        /*120*/ node_let1     , node_let1     , node_let1     , node_str_nb   , node_str_nb   ,
+        /*125*/ node_str_nb   , node_str_nb   , node_str_nb   , node_let1     , node_let1     ,
         /*130*/ node_let1     , node_let1     , node_let1     , node_let1     , node_let1     ,
         /*135*/ node_let1     , node_let1     , node_let1     , node_let1     , node_let1     ,
         /*140*/ node_let1     , node_let1     , node_let1     , node_let1     , node_let1     ,
@@ -752,70 +754,136 @@ static const uint32_t node_table[13][256] = {
         /*255*/ node_not
     }
     ,
-    /*state_value*/
+    /*state_sub*/
     {
-        /*  0*/ node_none     , node_let2     , node_let2     , node_let2     , node_let2     ,
-        /*  5*/ node_let2     , node_let2     , node_let2     , node_let2     , node_let2     ,
-        /* 10*/ node_let2     , node_let2     , node_let2     , node_let2     , node_let2     ,
-        /* 15*/ node_let2     , node_let2     , node_let2     , node_let2     , node_let2     ,
-        /* 20*/ node_let2     , node_let2     , node_let2     , node_let2     , node_let2     ,
-        /* 25*/ node_let2     , node_let2     , node_let2     , node_let2     , node_let2     ,
-        /* 30*/ node_let2     , node_let2     , node_let2     , node_let2     , node_let2     ,
-        /* 35*/ node_let2     , node_val2     , node_let2     , node_let2     , node_let2     ,
-        /* 40*/ node_let2     , node_let2     , node_let2     , node_let2     , node_let2     ,
-        /* 45*/ node_let2     , node_let2     , node_let2     , node_let2     , node_let2     ,
-        /* 50*/ node_let2     , node_let2     , node_let2     , node_let2     , node_let2     ,
-        /* 55*/ node_let2     , node_let2     , node_let2     , node_let2     , node_let2     ,
-        /* 60*/ node_let2     , node_let2     , node_let2     , node_let2     , node_let2     ,
-        /* 65*/ node_let2     , node_let2     , node_let2     , node_let2     , node_let2     ,
-        /* 70*/ node_let2     , node_let2     , node_let2     , node_let2     , node_let2     ,
-        /* 75*/ node_let2     , node_let2     , node_let2     , node_let2     , node_let2     ,
-        /* 80*/ node_let2     , node_let2     , node_let2     , node_let2     , node_let2     ,
-        /* 85*/ node_let2     , node_let2     , node_let2     , node_let2     , node_let2     ,
-        /* 90*/ node_let2     , node_let2     , node_let2     , node_let2     , node_let2     ,
-        /* 95*/ node_let2     , node_let2     , node_let2     , node_let2     , node_let2     ,
-        /*100*/ node_let2     , node_let2     , node_let2     , node_let2     , node_let2     ,
-        /*105*/ node_let2     , node_let2     , node_let2     , node_let2     , node_let2     ,
-        /*110*/ node_let2     , node_let2     , node_let2     , node_let2     , node_let2     ,
-        /*115*/ node_let2     , node_let2     , node_let2     , node_let2     , node_let2     ,
-        /*120*/ node_let2     , node_let2     , node_let2     , node_let2     , node_let2     ,
-        /*125*/ node_let2     , node_let2     , node_let2     , node_let2     , node_let2     ,
-        /*130*/ node_let2     , node_let2     , node_let2     , node_let2     , node_let2     ,
-        /*135*/ node_let2     , node_let2     , node_let2     , node_let2     , node_let2     ,
-        /*140*/ node_let2     , node_let2     , node_let2     , node_let2     , node_let2     ,
-        /*145*/ node_let2     , node_let2     , node_let2     , node_let2     , node_let2     ,
-        /*150*/ node_let2     , node_let2     , node_let2     , node_let2     , node_let2     ,
-        /*155*/ node_let2     , node_let2     , node_let2     , node_let2     , node_let2     ,
-        /*160*/ node_let2     , node_let2     , node_let2     , node_let2     , node_let2     ,
-        /*165*/ node_let2     , node_let2     , node_let2     , node_let2     , node_let2     ,
-        /*170*/ node_let2     , node_let2     , node_let2     , node_let2     , node_let2     ,
-        /*175*/ node_let2     , node_let2     , node_let2     , node_let2     , node_let2     ,
-        /*180*/ node_let2     , node_let2     , node_let2     , node_let2     , node_let2     ,
-        /*185*/ node_let2     , node_let2     , node_let2     , node_let2     , node_let2     ,
-        /*190*/ node_let2     , node_let2     , node_let2     , node_let2     , node_let2     ,
-        /*195*/ node_let2     , node_let2     , node_let2     , node_let2     , node_let2     ,
-        /*200*/ node_let2     , node_let2     , node_let2     , node_let2     , node_let2     ,
-        /*205*/ node_let2     , node_let2     , node_let2     , node_let2     , node_let2     ,
-        /*210*/ node_let2     , node_let2     , node_let2     , node_let2     , node_let2     ,
-        /*215*/ node_let2     , node_let2     , node_let2     , node_let2     , node_let2     ,
-        /*220*/ node_let2     , node_let2     , node_let2     , node_let2     , node_let2     ,
-        /*225*/ node_let2     , node_let2     , node_let2     , node_let2     , node_let2     ,
-        /*230*/ node_let2     , node_let2     , node_let2     , node_let2     , node_let2     ,
-        /*235*/ node_let2     , node_let2     , node_let2     , node_let2     , node_let2     ,
-        /*240*/ node_let2     , node_let2     , node_let2     , node_let2     , node_let2     ,
-        /*245*/ node_let2     , node_let2     , node_let2     , node_let2     , node_let2     ,
-        /*250*/ node_let2     , node_let2     , node_let2     , node_let2     , node_let2     ,
-        /*255*/ node_let2
+        /*  0*/ node_sub2     , node_sub2     , node_sub2     , node_sub2     , node_sub2     ,
+        /*  5*/ node_sub2     , node_sub2     , node_sub2     , node_sub2     , node_sub2     ,
+        /* 10*/ node_sub2     , node_sub2     , node_sub2     , node_sub2     , node_sub2     ,
+        /* 15*/ node_sub2     , node_sub2     , node_sub2     , node_sub2     , node_sub2     ,
+        /* 20*/ node_sub2     , node_sub2     , node_sub2     , node_sub2     , node_sub2     ,
+        /* 25*/ node_sub2     , node_sub2     , node_sub2     , node_sub2     , node_sub2     ,
+        /* 30*/ node_sub2     , node_sub2     , node_sub2     , node_sub2     , node_sub2     ,
+        /* 35*/ node_sub2     , node_sub2     , node_sub2     , node_sub2     , node_sub2     ,
+        /* 40*/ node_sub2     , node_sub2     , node_sub2     , node_sub2     , node_sub2     ,
+        /* 45*/ node_sub2     , node_sub2     , node_sub2     , node_num1     , node_num1     ,
+        /* 50*/ node_num1     , node_num1     , node_num1     , node_num1     , node_num1     ,
+        /* 55*/ node_num1     , node_num1     , node_num1     , node_sub2     , node_sub2     ,
+        /* 60*/ node_sub2     , node_sub2     , node_sub2     , node_sub2     , node_sub2     ,
+        /* 65*/ node_sub2     , node_sub2     , node_sub2     , node_sub2     , node_sub2     ,
+        /* 70*/ node_sub2     , node_sub2     , node_sub2     , node_sub2     , node_sub2     ,
+        /* 75*/ node_sub2     , node_sub2     , node_sub2     , node_sub2     , node_sub2     ,
+        /* 80*/ node_sub2     , node_sub2     , node_sub2     , node_sub2     , node_sub2     ,
+        /* 85*/ node_sub2     , node_sub2     , node_sub2     , node_sub2     , node_sub2     ,
+        /* 90*/ node_sub2     , node_sub2     , node_sub2     , node_sub2     , node_sub2     ,
+        /* 95*/ node_sub2     , node_sub2     , node_sub2     , node_sub2     , node_sub2     ,
+        /*100*/ node_sub2     , node_sub2     , node_sub2     , node_sub2     , node_sub2     ,
+        /*105*/ node_sub2     , node_sub2     , node_sub2     , node_sub2     , node_sub2     ,
+        /*110*/ node_sub2     , node_sub2     , node_sub2     , node_sub2     , node_sub2     ,
+        /*115*/ node_sub2     , node_sub2     , node_sub2     , node_sub2     , node_sub2     ,
+        /*120*/ node_sub2     , node_sub2     , node_sub2     , node_sub2     , node_sub2     ,
+        /*125*/ node_sub2     , node_sub2     , node_sub2     , node_sub2     , node_sub2     ,
+        /*130*/ node_sub2     , node_sub2     , node_sub2     , node_sub2     , node_sub2     ,
+        /*135*/ node_sub2     , node_sub2     , node_sub2     , node_sub2     , node_sub2     ,
+        /*140*/ node_sub2     , node_sub2     , node_sub2     , node_sub2     , node_sub2     ,
+        /*145*/ node_sub2     , node_sub2     , node_sub2     , node_sub2     , node_sub2     ,
+        /*150*/ node_sub2     , node_sub2     , node_sub2     , node_sub2     , node_sub2     ,
+        /*155*/ node_sub2     , node_sub2     , node_sub2     , node_sub2     , node_sub2     ,
+        /*160*/ node_sub2     , node_sub2     , node_sub2     , node_sub2     , node_sub2     ,
+        /*165*/ node_sub2     , node_sub2     , node_sub2     , node_sub2     , node_sub2     ,
+        /*170*/ node_sub2     , node_sub2     , node_sub2     , node_sub2     , node_sub2     ,
+        /*175*/ node_sub2     , node_sub2     , node_sub2     , node_sub2     , node_sub2     ,
+        /*180*/ node_sub2     , node_sub2     , node_sub2     , node_sub2     , node_sub2     ,
+        /*185*/ node_sub2     , node_sub2     , node_sub2     , node_sub2     , node_sub2     ,
+        /*190*/ node_sub2     , node_sub2     , node_sub2     , node_sub2     , node_sub2     ,
+        /*195*/ node_sub2     , node_sub2     , node_sub2     , node_sub2     , node_sub2     ,
+        /*200*/ node_sub2     , node_sub2     , node_sub2     , node_sub2     , node_sub2     ,
+        /*205*/ node_sub2     , node_sub2     , node_sub2     , node_sub2     , node_sub2     ,
+        /*210*/ node_sub2     , node_sub2     , node_sub2     , node_sub2     , node_sub2     ,
+        /*215*/ node_sub2     , node_sub2     , node_sub2     , node_sub2     , node_sub2     ,
+        /*220*/ node_sub2     , node_sub2     , node_sub2     , node_sub2     , node_sub2     ,
+        /*225*/ node_sub2     , node_sub2     , node_sub2     , node_sub2     , node_sub2     ,
+        /*230*/ node_sub2     , node_sub2     , node_sub2     , node_sub2     , node_sub2     ,
+        /*235*/ node_sub2     , node_sub2     , node_sub2     , node_sub2     , node_sub2     ,
+        /*240*/ node_sub2     , node_sub2     , node_sub2     , node_sub2     , node_sub2     ,
+        /*245*/ node_sub2     , node_sub2     , node_sub2     , node_sub2     , node_sub2     ,
+        /*250*/ node_sub2     , node_sub2     , node_sub2     , node_sub2     , node_sub2     ,
+        /*255*/ node_sub2
+    },
+    /*state_var*/
+    {
+        /*  0*/ node_var      , node_var      , node_var      , node_var      , node_var      ,
+        /*  5*/ node_var      , node_var      , node_var      , node_var      , node_var      ,
+        /* 10*/ node_var      , node_var      , node_var      , node_var      , node_var      ,
+        /* 15*/ node_var      , node_var      , node_var      , node_var      , node_var      ,
+        /* 20*/ node_var      , node_var      , node_var      , node_var      , node_var      ,
+        /* 25*/ node_var      , node_var      , node_var      , node_var      , node_var      ,
+        /* 30*/ node_var      , node_var      , node_var      , node_var      , node_var      ,
+        /* 35*/ node_var      , node_var      , node_var      , node_var      , node_var      ,
+        /* 40*/ node_var      , node_var      , node_var      , node_var      , node_var      ,
+        /* 45*/ node_var1     , node_var1     , node_var      , node_var1     , node_var1     ,
+        /* 50*/ node_var1     , node_var1     , node_var1     , node_var1     , node_var1     ,
+        /* 55*/ node_var1     , node_var1     , node_var1     , node_var      , node_var      ,
+        /* 60*/ node_var      , node_var      , node_var      , node_var      , node_var1     ,
+        /* 65*/ node_var1     , node_var1     , node_var1     , node_var1     , node_var1     ,
+        /* 70*/ node_var1     , node_var1     , node_var1     , node_var1     , node_var1     ,
+        /* 75*/ node_var1     , node_var1     , node_var1     , node_var1     , node_var1     ,
+        /* 80*/ node_var1     , node_var1     , node_var1     , node_var1     , node_var1     ,
+        /* 85*/ node_var1     , node_var1     , node_var1     , node_var1     , node_var1     ,
+        /* 90*/ node_var1     , node_var1     , node_var      , node_var1     , node_var      ,
+        /* 95*/ node_var1     , node_var      , node_var1     , node_var1     , node_var1     ,
+        /*100*/ node_var1     , node_var1     , node_var1     , node_var1     , node_var1     ,
+        /*105*/ node_var1     , node_var1     , node_var1     , node_var1     , node_var1     ,
+        /*110*/ node_var1     , node_var1     , node_var1     , node_var1     , node_var1     ,
+        /*115*/ node_var1     , node_var1     , node_var1     , node_var1     , node_var1     ,
+        /*120*/ node_var1     , node_var1     , node_var1     , node_var1     , node_var      ,
+        /*125*/ node_var1     , node_var      , node_var      , node_var1     , node_var1     ,
+        /*130*/ node_var1     , node_var1     , node_var1     , node_var1     , node_var1     ,
+        /*135*/ node_var1     , node_var1     , node_var1     , node_var1     , node_var1     ,
+        /*140*/ node_var1     , node_var1     , node_var1     , node_var1     , node_var1     ,
+        /*145*/ node_var1     , node_var1     , node_var1     , node_var1     , node_var1     ,
+        /*150*/ node_var1     , node_var1     , node_var1     , node_var1     , node_var1     ,
+        /*155*/ node_var1     , node_var1     , node_var1     , node_var1     , node_var1     ,
+        /*160*/ node_var1     , node_var1     , node_var1     , node_var1     , node_var1     ,
+        /*165*/ node_var1     , node_var1     , node_var1     , node_var1     , node_var1     ,
+        /*170*/ node_var1     , node_var1     , node_var1     , node_var1     , node_var1     ,
+        /*175*/ node_var1     , node_var1     , node_var1     , node_var1     , node_var1     ,
+        /*180*/ node_var1     , node_var1     , node_var1     , node_var1     , node_var1     ,
+        /*185*/ node_var1     , node_var1     , node_var1     , node_var1     , node_var1     ,
+        /*190*/ node_var1     , node_var1     , node_var1     , node_var1     , node_var1     ,
+        /*195*/ node_var1     , node_var1     , node_var1     , node_var1     , node_var1     ,
+        /*200*/ node_var1     , node_var1     , node_var1     , node_var1     , node_var1     ,
+        /*205*/ node_var1     , node_var1     , node_var1     , node_var1     , node_var1     ,
+        /*210*/ node_var1     , node_var1     , node_var1     , node_var1     , node_var1     ,
+        /*215*/ node_var1     , node_var1     , node_var1     , node_var1     , node_var1     ,
+        /*220*/ node_var1     , node_var1     , node_var1     , node_var1     , node_var1     ,
+        /*225*/ node_var1     , node_var1     , node_var1     , node_var1     , node_var1     ,
+        /*230*/ node_var1     , node_var1     , node_var1     , node_var1     , node_var1     ,
+        /*235*/ node_var1     , node_var1     , node_var1     , node_var1     , node_var1     ,
+        /*240*/ node_var1     , node_var1     , node_var1     , node_var1     , node_var1     ,
+        /*245*/ node_var1     , node_var1     , node_var1     , node_var1     , node_var1     ,
+        /*250*/ node_var1     , node_var1     , node_var1     , node_var1     , node_var1     ,
+        /*255*/ node_var1
     }
 };
 
-int xscaner_get_token(xscaner_t scaner, xtoken_t token, error_monitor_t em) {
+int xcontext_get_token(xcontext_t context) {
     char * token_bg;
     uint32_t cur_node;
     uint32_t prv_node;
     int i;
+    xtoken_t token;
 
-    token_bg = scaner->m_cur_pos;
+    assert(context->m_cur_token == NULL);
+    context->m_cur_token = xcomputer_alloc_token(context->m_computer);
+    if (context->m_cur_token == NULL) {
+        CPE_ERROR(
+            context->m_computer->m_em, "xcontext_get_token: alloc token fail!");
+        return -1;
+    }
+
+    token = context->m_cur_token;
+
+    token_bg = context->m_cur_pos;
     cur_node = __make_node(state_begin, XTOKEN_END);
 
     for(i = 0; i < 50000; ++i) {
@@ -824,79 +892,83 @@ int xscaner_get_token(xscaner_t scaner, xtoken_t token, error_monitor_t em) {
         cur_node_state = __state(cur_node);
         assert(cur_node_state < __state_num);
 
-        cur_node = node_table[cur_node_state][(uint8_t)(*scaner->m_cur_pos++)];
+        cur_node = node_table[cur_node_state][(uint8_t)(*context->m_cur_pos++)];
 
         if (__is_end(cur_node)) {
             uint32_t cur_token_type = __token(cur_node);
             if (xtoken_type_index(cur_token_type) >= XTOKEN_ERROR) goto SCAN_ERROR;
 
+            token->m_type = cur_token_type;
             if (xtoken_type_is_data(cur_token_type)) {
                 if (cur_token_type == XTOKEN_NUM_INT) {
-                    uint8_t buf = *scaner->m_cur_pos;
-                    *scaner->m_cur_pos = 0;
+                    uint8_t buf = *context->m_cur_pos;
+                    *context->m_cur_pos = 0;
                     xtoken_set_int(token, atoi(token_bg));
-                    *scaner->m_cur_pos = buf;
+                    *context->m_cur_pos = buf;
                 }
                 else if (cur_token_type == XTOKEN_NUM_FLOAT) {
-                    uint8_t buf = *scaner->m_cur_pos;
-                    *scaner->m_cur_pos = 0;
+                    uint8_t buf = *context->m_cur_pos;
+                    *context->m_cur_pos = 0;
                     xtoken_set_double(token, atof(token_bg));
-                    *scaner->m_cur_pos = buf;
+                    *context->m_cur_pos = buf;
                 }
                 else if (cur_token_type == XTOKEN_STRING) {
-                    while(*token_bg != '"' && *token_bg != '\'') token_bg++;
-                    xtoken_set_str(token, token_bg + 1, scaner->m_cur_pos - 1);
-                }
-                else if (cur_token_type == XTOKEN_VAL2) {
-                    token->m_type = XTOKEN_VAL;
-                    xtoken_set_str(token, token_bg + 1, scaner->m_cur_pos - 1);
+                    while(*token_bg == ' ' || *token_bg == '\n' || *token_bg == '\r') token_bg++;
+                    if(*token_bg == '"' || *token_bg == '\'') {
+                        xtoken_set_str(token, token_bg + 1, context->m_cur_pos - 1);
+                    }
+                    else {
+                        xtoken_set_str(token, token_bg, context->m_cur_pos - 1);
+                    }
                 }
                 else {
                     assert(cur_token_type == XTOKEN_VAL);
-                    while(*token_bg == ' ' || *token_bg == '\t') token_bg++;                    
-                    xtoken_set_str(token, token_bg, scaner->m_cur_pos - 1);
+                    while(*token_bg == ' ' || *token_bg == '\t') token_bg++;
+                    xtoken_set_str(token, token_bg + 1, context->m_cur_pos - 1);
                 }
             }
             else if (cur_token_type == XTOKEN_FUNC) {
                 while(*token_bg == ' ' || *token_bg == '\t') token_bg++;
-                xtoken_set_str(token, token_bg, scaner->m_cur_pos - 1);
+                xtoken_set_str(token, token_bg, context->m_cur_pos - 1);
             }
 
             if (__need_back(cur_node)) {
-                scaner->m_cur_pos--;
+                context->m_cur_pos--;
             }
 
-            break;
+            return 0;
         }
     }
 
-    return 0;
-
 SCAN_ERROR:
-    if (em) {
+    assert(context->m_cur_token);
+    xcomputer_free_token(context->m_computer, context->m_cur_token);
+    context->m_cur_token = NULL;
+
+    if (context->m_computer->m_em) {
         char parsed_buf[128];
         char current_buf[128];
 
-        if (token_bg - scaner->m_buf + 1 > sizeof(parsed_buf)) {
+        if (token_bg - context->m_buf + 1 > sizeof(parsed_buf)) {
             memcpy(parsed_buf, token_bg - sizeof(parsed_buf) + 1, sizeof(parsed_buf) - 1);
             parsed_buf[sizeof(parsed_buf) - 1] = 0;
         }
         else {
-            memcpy(parsed_buf, scaner->m_buf, token_bg - scaner->m_buf);
-            parsed_buf[token_bg - scaner->m_buf] = 0;
+            memcpy(parsed_buf, context->m_buf, token_bg - context->m_buf);
+            parsed_buf[token_bg - context->m_buf] = 0;
         }
 
-        if (scaner->m_cur_pos - token_bg + 1 > sizeof(current_buf)) {
-            memcpy(current_buf, scaner->m_cur_pos - sizeof(current_buf) + 1, sizeof(current_buf) - 1);
+        if (context->m_cur_pos - token_bg + 1 > sizeof(current_buf)) {
+            memcpy(current_buf, context->m_cur_pos - sizeof(current_buf) + 1, sizeof(current_buf) - 1);
             current_buf[sizeof(current_buf) - 1] = 0;
         }
         else {
-            memcpy(current_buf, token_bg, scaner->m_cur_pos - token_bg);
-            current_buf[scaner->m_cur_pos - token_bg] = 0;
+            memcpy(current_buf, token_bg, context->m_cur_pos - token_bg);
+            current_buf[context->m_cur_pos - token_bg] = 0;
         }
 
         CPE_ERROR(
-            em,
+            context->m_computer->m_em,
             "lex error\n"
             "    parsed  -> <%s>\n"
             "    current -> <%s>\n"
@@ -905,7 +977,7 @@ SCAN_ERROR:
             "    cur state -> <%d:%d:%d>\n"
             ,
             parsed_buf, current_buf
-            , (int)(token_bg - scaner->m_buf), (int)(scaner->m_cur_pos - token_bg)
+            , (int)(token_bg - context->m_buf), (int)(context->m_cur_pos - token_bg)
             , __state(prv_node), xtoken_type_index(__token(prv_node)), (xtoken_type_is_data(__token(prv_node)) ? 1 : 0)
             , __state(cur_node), xtoken_type_index(__token(cur_node)), (xtoken_type_is_data(__token(cur_node)) ? 1 : 0)
             );
@@ -914,24 +986,113 @@ SCAN_ERROR:
     return -1;
 }
 
-xscaner_t xscaner_create(mem_allocrator_t alloc, const char * str) {
+xcontext_t xcontext_create(xcomputer_t computer, const char * str) {
     int len;
-	xscaner_t scaner;
+	xcontext_t context;
 
     len = strlen(str) + 1;
     
-    scaner = mem_alloc(alloc, sizeof(struct xscaner) + len);
-    if (scaner == NULL) return NULL;
+    context = mem_alloc(computer->m_alloc, sizeof(struct xcontext) + len);
+    if (context == NULL) return NULL;
 
-    scaner->m_alloc = alloc;
-    scaner->m_buf = (char*)(scaner + 1);
-    scaner->m_cur_pos = scaner->m_buf;
+    context->m_computer = computer;
+    context->m_buf = (char*)(context + 1);
+    context->m_cur_pos = context->m_buf;
+    context->m_cur_token = NULL;
+    TAILQ_INIT(&context->m_tokens);
+    context->m_sign_token = NULL;
 
-    memcpy(scaner->m_buf, str, len);
+    memcpy(context->m_buf, str, len);
 
-    return scaner;
+    return context;
 }
 
-void xscaner_free(xscaner_t scaner) {
-    mem_free(scaner->m_alloc, scaner);
+void xcontext_free(xcontext_t context) {
+    if (context->m_cur_token) {
+        xcomputer_free_token(context->m_computer, context->m_cur_token);
+        context->m_cur_token = NULL;
+    }
+
+    while(!TAILQ_EMPTY(&context->m_tokens)) {
+        xcomputer_free_token(context->m_computer, xcontext_pop_token(context));
+    }
+
+    mem_free(context->m_computer->m_alloc, context);
+}
+
+void xcontext_push_token(xcontext_t context) {
+    assert(context->m_cur_token);
+    TAILQ_INSERT_HEAD(&context->m_tokens, context->m_cur_token, m_next);
+
+    if (xtoken_is_sign(context->m_cur_token)) {
+        context->m_sign_token = context->m_cur_token;
+    }
+
+    context->m_cur_token = NULL;
+}
+
+xtoken_t xcontext_pop_token(xcontext_t context) {
+    xtoken_t r;
+
+    assert(!TAILQ_EMPTY(&context->m_tokens));
+
+    r = TAILQ_FIRST(&context->m_tokens);
+
+    TAILQ_REMOVE(&context->m_tokens, r, m_next);
+
+    if (context->m_sign_token == r) {
+        TAILQ_FOREACH(context->m_sign_token, &context->m_tokens, m_next) {
+            if (xtoken_is_sign(context->m_sign_token)) break;
+        }
+    }
+
+    return r;
+}
+
+void xcontext_update_sign_token(xcontext_t context) {
+    TAILQ_FOREACH(context->m_sign_token, &context->m_tokens, m_next) {
+        if (xtoken_is_sign(context->m_sign_token)) break;
+    }
+}
+
+xtoken_t xcontext_token_n(xcontext_t context, int n) {
+    xtoken_t r = TAILQ_FIRST(&context->m_tokens);
+
+    while(r && n > 0) {
+        r = TAILQ_NEXT(r, m_next);
+    }
+
+    return n == 0 ? r : NULL;
+}
+
+void xcontext_dump_stack(xcontext_t context) {
+    xtoken_t token;
+    struct mem_buffer buffer;
+    struct write_stream_buffer s = CPE_WRITE_STREAM_BUFFER_INITIALIZER(&buffer);
+
+    mem_buffer_init(&buffer, context->m_computer->m_alloc);
+
+    stream_printf((write_stream_t)&s, "=== dump stack");
+
+    TAILQ_FOREACH(token, &context->m_tokens, m_next) {
+        xtoken_t sub_token;
+
+        stream_putc((write_stream_t)&s, '\n');
+        stream_putc_count((write_stream_t)&s, ' ', 4);
+
+        xtoken_dump((write_stream_t)&s, token);
+
+        for(sub_token = token->m_sub; sub_token; sub_token = sub_token->m_sub) {
+            stream_printf((write_stream_t)&s, " ==> ");
+            xtoken_dump((write_stream_t)&s, sub_token);
+        }
+    }
+
+    stream_putc((write_stream_t)&s, 0);
+
+    CPE_INFO(
+        context->m_computer->m_em, "%s", 
+        (const char *)mem_buffer_make_continuous(&buffer, 0));
+
+    mem_buffer_clear(&buffer);
 }
