@@ -9,6 +9,8 @@
 extern "C" {
 #endif
 
+int64_t cur_time_ms(void);
+
 time_t next_time_in_range_vn(
     time_t after,
     uint32_t start_time_vn, uint32_t end_time_vn,
