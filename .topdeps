@@ -19,3 +19,4 @@ t/3rdTools/libvorbis
 t/3rdTools/libpng
 t/3rdTools/libjpg
 t/3rdTools/gles
+t/3rdTools/openal
