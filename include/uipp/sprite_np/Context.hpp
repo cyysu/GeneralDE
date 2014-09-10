@@ -1,11 +1,11 @@
 #ifndef UIPP_SPRITE_B2_CONTEXT_H
 #define UIPP_SPRITE_B2_CONTEXT_H
-#include "NP2DS.h"
+#include "R2DS.h"
 #include "uipp/sprite/WorldRes.hpp"
 #include "System.hpp"
-#include "NPGUIControl.h"
+#include "RGUIControl.h"
 
-namespace UI { namespace Sprite { namespace NP {
+namespace UI { namespace Sprite { namespace R {
 
 class Context {
 public:
@@ -26,10 +26,12 @@ public:
 
     virtual Layer & createLayer(const char * name, Layer * before = NULL) = 0;
 
-	virtual void registerExternCtrl(const char * name, NPGUIControl * ctrl) = 0;
-	virtual NPGUIControl * findExternCtrl(const char * name) = 0;
-	virtual void unregisterExternCtrl(NPGUIControl * ctrl) = 0;
+	virtual void registerExternCtrl(const char * name, RGUIControl * ctrl) = 0;
+	virtual RGUIControl * findExternCtrl(const char * name) = 0;
+	virtual void unregisterExternCtrl(RGUIControl * ctrl) = 0;
 	virtual void clearExternCtrls(void) = 0;
+
+    virtual void setUpdatorPriority(int8_t priority) = 0;
 
     virtual ~Context();
 
