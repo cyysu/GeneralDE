@@ -27,7 +27,9 @@ static ui_sprite_entity_t ui_sprite_entity_create_i(ui_sprite_world_t world, con
     entity->m_is_active = 0;
     entity->m_is_wait_destory = 0;
     entity->m_debug = 0;
+    entity->m_update_priority = 0;
     entity->m_name = (const char *)(entity + 1);
+    
     TAILQ_INIT(&entity->m_components);
     TAILQ_INIT(&entity->m_attr_monitors);
     TAILQ_INIT(&entity->m_event_handlers);
@@ -213,6 +215,29 @@ void ui_sprite_entity_set_debug(ui_sprite_entity_t entity, uint8_t debug) {
     entity->m_debug = debug;
 }
 
+int8_t ui_sprite_entity_update_priority(ui_sprite_entity_t entity) {
+    return entity->m_update_priority;
+}
+
+void ui_sprite_entity_set_update_priority(ui_sprite_entity_t entity, int8_t priority) {
+    ui_sprite_component_t component;
+
+    if (priority == entity->m_update_priority) return;
+
+    if (entity->m_is_active) {
+        ui_sprite_world_t world = entity->m_world;
+
+        TAILQ_FOREACH(component, &entity->m_components, m_next_for_entity) {
+            if (!component->m_is_update) continue;
+
+            ui_sprite_component_dequeue(world, component, entity->m_update_priority);
+            ui_sprite_component_enqueue(world, component, priority);
+        }    
+    }
+
+    entity->m_update_priority = priority; 
+}
+
 ui_sprite_entity_t ui_sprite_entity_proto_create(ui_sprite_world_t world, const char * proto_name) {
     return ui_sprite_entity_create_i(world, proto_name, 1);
 }
@@ -221,6 +246,37 @@ ui_sprite_entity_t ui_sprite_entity_proto_find(ui_sprite_world_t world, const ch
     struct ui_sprite_entity key;
     key.m_name = proto_name;
     return cpe_hash_table_find(&world->m_entity_protos, &key);
+}
+
+ui_sprite_event_handler_t ui_sprite_entity_add_event_handler(
+    ui_sprite_entity_t entity, ui_sprite_event_scope_t scope,
+    const char * event_name, ui_sprite_event_process_fun_t fun, void * ctx)
+{
+    ui_sprite_world_t world = entity->m_world;
+    ui_sprite_repository_t repo = world->m_repo;
+	ui_sprite_event_handler_t handler;
+
+    if (!entity->m_is_active) {
+        CPE_ERROR(
+            repo->m_em, "entity %d(%s) add event: entity not active!",
+            entity->m_id, entity->m_name);
+        return NULL;
+    }
+
+    handler =
+        ui_sprite_event_handler_create(
+            world, &entity->m_event_handlers,
+            event_name,
+            scope == ui_sprite_event_scope_self ? entity->m_id : 0,
+            fun, ctx);
+    if (handler == NULL) {
+        CPE_ERROR(
+            repo->m_em, "entity %d(%s): add handler of event %s fail!",
+            entity->m_id, entity->m_name, event_name);
+        return NULL;
+    }
+
+    return handler;
 }
 
 void ui_sprite_entity_send_event(

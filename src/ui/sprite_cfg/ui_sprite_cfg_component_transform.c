@@ -17,8 +17,8 @@ int ui_sprite_cfg_load_component_transform(void * ctx, ui_sprite_component_t com
 
     angle = cfg_get_float(cfg, "angle", 0.0f);
 
-    ui_sprite_2d_transform_set_pos(transform, pos);
-    ui_sprite_2d_transform_set_scale(transform, scale);
+    ui_sprite_2d_transform_set_origin_pos(transform, pos);
+    ui_sprite_2d_transform_set_scale_pair(transform, scale);
     ui_sprite_2d_transform_set_angle(transform, angle);
 
     return 0;

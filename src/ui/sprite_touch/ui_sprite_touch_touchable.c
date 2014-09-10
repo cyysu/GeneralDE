@@ -3,7 +3,6 @@
 #include "ui/sprite/ui_sprite_entity.h"
 #include "ui/sprite/ui_sprite_component.h"
 #include "ui/sprite/ui_sprite_component_meta.h"
-#include "ui/sprite_2d/ui_sprite_2d_transform.h"
 #include "ui/sprite_anim/ui_sprite_anim_sch.h"
 #include "ui_sprite_touch_touchable_i.h"
 #include "ui_sprite_touch_responser_i.h"
@@ -28,23 +27,14 @@ void ui_sprite_touch_touchable_free(ui_sprite_touch_touchable_t touch_touchable)
 int ui_sprite_touch_touchable_is_point_in(ui_sprite_touch_touchable_t touchable, UI_SPRITE_2D_PAIR world_pt) {
     ui_sprite_touch_mgr_t mgr = touchable->m_mgr;
     ui_sprite_entity_t entity;
-    ui_sprite_2d_transform_t transform;
     ui_sprite_touch_box_t box;
 
     if (TAILQ_EMPTY(&touchable->m_boxes)) return 1;
 
     entity = ui_sprite_component_entity(ui_sprite_component_from_data(touchable));
 
-    if ((transform = ui_sprite_2d_transform_find(entity))) {
-        UI_SPRITE_2D_PAIR sprite_pos = ui_sprite_2d_transform_pos(transform, UI_SPRITE_2D_TRANSFORM_POS_ORIGIN);
-        world_pt.x -= sprite_pos.x;
-        world_pt.y -= sprite_pos.y;
-    }
-
     TAILQ_FOREACH(box, &touchable->m_boxes, m_next_for_touchable) {
-        if (world_pt.x >= box->m_lt.x && world_pt.x <= box->m_rb.x
-            && world_pt.y >= box->m_lt.y && world_pt.y <= box->m_rb.y)
-        {
+        if (ui_sprite_touch_box_check_pt_in(box, entity, world_pt)) {
             if (ui_sprite_entity_debug(entity)) {
                 CPE_INFO(
                     mgr->m_em, "entity %d(%s): touch check success",
@@ -64,46 +54,45 @@ int ui_sprite_touch_touchable_is_point_in(ui_sprite_touch_touchable_t touchable,
 }
 
 static void ui_sprite_touch_show_boxes(ui_sprite_touch_touchable_t touch) {
-    ui_sprite_entity_t entity = ui_sprite_component_entity(ui_sprite_component_from_data(touch));
-    ui_sprite_touch_box_t box;
-    ui_sprite_anim_sch_t anim = ui_sprite_anim_sch_find(entity);
+    /* ui_sprite_entity_t entity = ui_sprite_component_entity(ui_sprite_component_from_data(touch)); */
+    /* ui_sprite_touch_box_t box; */
+    /* ui_sprite_anim_sch_t anim = ui_sprite_anim_sch_find(entity); */
 
-    if (anim == NULL) {
-        CPE_ERROR(
-            touch->m_mgr->m_em, "%d(%s): touchable: show boxes: no anim!",
-            ui_sprite_entity_id(entity), ui_sprite_entity_name(entity));
-        return;
-    }
+    /* if (anim == NULL) { */
+    /*     CPE_ERROR( */
+    /*         touch->m_mgr->m_em, "%d(%s): touchable: show boxes: no anim!", */
+    /*         ui_sprite_entity_id(entity), ui_sprite_entity_name(entity)); */
+    /*     return; */
+    /* } */
 
-    TAILQ_FOREACH(box, &touch->m_boxes, m_next_for_touchable) {
-        char buf[128];
-        snprintf(buf, sizeof(buf), "BOX: lt.x=%f, lt.y=%f, rb.x=%f, rb.y=%f, color=1", box->m_lt.x, box->m_lt.y, box->m_rb.x, box->m_rb.y);
+    /* TAILQ_FOREACH(box, &touch->m_boxes, m_next_for_touchable) { */
+    /*     char buf[128]; */
+    /*     snprintf(buf, sizeof(buf), "BOX: lt.x=%f, lt.y=%f, rb.x=%f, rb.y=%f, color=1", box->m_lt.x, box->m_lt.y, box->m_rb.x, box->m_rb.y); */
 
-        assert(box->m_box_id == UI_SPRITE_INVALID_ANIM_ID);
-        box->m_box_id = ui_sprite_anim_sch_start_anim(anim, "", buf, 0, -1, -1);
-        if (box->m_box_id == UI_SPRITE_INVALID_ANIM_ID) {
-            CPE_ERROR(
-                touch->m_mgr->m_em, "%d(%s): touchable: show boxes: start '%s' fail!",
-                ui_sprite_entity_id(entity), ui_sprite_entity_name(entity), buf);
-        }
-    }
+    /*     assert(box->m_box_id == UI_SPRITE_INVALID_ANIM_ID); */
+    /*     box->m_box_id = ui_sprite_anim_sch_start_anim(anim, "", buf, 0, -1, -1); */
+    /*     if (box->m_box_id == UI_SPRITE_INVALID_ANIM_ID) { */
+    /*         CPE_ERROR( */
+    /*             touch->m_mgr->m_em, "%d(%s): touchable: show boxes: start '%s' fail!", */
+    /*             ui_sprite_entity_id(entity), ui_sprite_entity_name(entity), buf); */
+    /*     } */
+    /* } */
 }
 
 static void ui_sprite_touch_hide_boxes(ui_sprite_touch_touchable_t touch) {
-    ui_sprite_entity_t entity = ui_sprite_component_entity(ui_sprite_component_from_data(touch));
-    ui_sprite_touch_box_t box;
-    ui_sprite_anim_sch_t anim = ui_sprite_anim_sch_find(entity);
+    /* ui_sprite_entity_t entity = ui_sprite_component_entity(ui_sprite_component_from_data(touch)); */
+    /* ui_sprite_touch_box_t box; */
+    /* ui_sprite_anim_sch_t anim = ui_sprite_anim_sch_find(entity); */
 
-    if (anim == NULL) return;
+    /* if (anim == NULL) return; */
 
-    TAILQ_FOREACH(box, &touch->m_boxes, m_next_for_touchable) {
-        if (box->m_box_id != UI_SPRITE_INVALID_ANIM_ID) {
-            ui_sprite_anim_sch_stop_anim(anim, box->m_box_id);
-        }
-        box->m_box_id = UI_SPRITE_INVALID_ANIM_ID;
-    }
+    /* TAILQ_FOREACH(box, &touch->m_boxes, m_next_for_touchable) { */
+    /*     if (box->m_box_id != UI_SPRITE_INVALID_ANIM_ID) { */
+    /*         ui_sprite_anim_sch_stop_anim(anim, box->m_box_id); */
+    /*     } */
+    /*     box->m_box_id = UI_SPRITE_INVALID_ANIM_ID; */
+    /* } */
 }
-
 
 static int ui_sprite_touch_touchable_enter(ui_sprite_component_t component, void * ctx) {
     ui_sprite_touch_touchable_t touch = ui_sprite_component_data(component);
@@ -153,7 +142,7 @@ static int ui_sprite_touch_touchable_copy(ui_sprite_component_t to, ui_sprite_co
 
     TAILQ_FOREACH(from_box, &from_touch->m_boxes, m_next_for_touchable) {
         ui_sprite_touch_box_t to_box =
-            ui_sprite_touch_box_create(to_touch, from_box->m_lt, from_box->m_rb);
+            ui_sprite_touch_box_create(to_touch, &from_box->m_shape);
         if (to_box == NULL) {
             CPE_ERROR(
                 mgr->m_em, "entity %d(%s): Touchable: copy: box create fail!",

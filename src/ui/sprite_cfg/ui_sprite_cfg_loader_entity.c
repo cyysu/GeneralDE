@@ -101,6 +101,10 @@ int ui_sprite_cfg_loader_load_entity_from_cfg(
         ui_sprite_entity_set_debug(entity, cfg_as_uint8(child_cfg, 0));
     }
 
+    if ((child_cfg = cfg_find_cfg(cfg, "update-priority"))) {
+        ui_sprite_entity_set_update_priority(entity, cfg_as_int8(child_cfg, 0));
+    }
+
     if ((child_cfg = cfg_find_cfg(cfg, "join-groups"))) {
         if (ui_sprite_cfg_loader_load_entity_groups(loader, entity, child_cfg) != 0) return -1;
     }

@@ -37,4 +37,9 @@ int gettimeofday(struct timeval *tv/*in*/, struct timezone *tz/*in*/)
   return 0;
 }
 
+struct tm * localtime_r(const time_t *clock, struct tm *result) {
+    *result = *localtime(clock);
+    return result;
+}
+
 #endif

@@ -456,18 +456,55 @@ yajl_val yajl_tree_get(yajl_val n, const char ** path, yajl_type type)
 {
     if (!path) return NULL;
     while (n && *path) {
-        unsigned int i;
+        unsigned int i, c;
 
         if (n->type != yajl_t_object) return NULL;
-        for (i = 0; i < n->u.object.len; i++) {
+
+        c = n->u.object.len;
+        for (i = 0; i < c; i++) {
             if (!strcmp(*path, n->u.object.keys[i])) {
                 n = n->u.object.values[i];
                 break;
             }
         }
-        if (i == n->u.object.len) return NULL;
+        if (i == c) return NULL;
         path++;
     }
+    if (n && type != yajl_t_any && type != n->type) n = NULL;
+    return n;
+}
+
+yajl_val yajl_tree_get_2(yajl_val n, const char * path, yajl_type type)
+{
+    const char * sep;
+    unsigned int i, c;
+
+    while (n && (sep = strchr(path, '/'))) {
+        if (n->type != yajl_t_object) return NULL;
+
+        c = n->u.object.len;
+        for (i = 0; i < c; i++) {
+            const char * key = n->u.object.keys[i];
+            if (strlen(key) == (sep - path) && memcmp(path, key, (sep - path)) == 0) {
+                n = n->u.object.values[i];
+                break;
+            }
+        }
+        if (i == c) return NULL;
+        path = sep + 1;
+    }
+
+    if (n) {
+        c = n->u.object.len;
+        for (i = 0; i < c; i++) {
+            if (strcmp(n->u.object.keys[i], path) == 0) {
+                n = n->u.object.values[i];
+                break;
+            }
+        }
+        if (i == c) return NULL;
+    }
+
     if (n && type != yajl_t_any && type != n->type) n = NULL;
     return n;
 }
@@ -498,4 +535,16 @@ void yajl_tree_free (yajl_val v)
     {
         free(v);
     }
+}
+
+const char * yajl_get_string(yajl_val v) {
+    return YAJL_GET_STRING(v);
+}
+
+long long yajl_get_integer(yajl_val v) {
+    return YAJL_GET_INTEGER(v);
+}
+
+double yajl_get_double(yajl_val v) {
+    return YAJL_GET_DOUBLE(v);
 }

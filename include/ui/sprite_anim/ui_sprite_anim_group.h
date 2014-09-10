@@ -22,6 +22,9 @@ void ui_sprite_anim_group_set_adj_accept_scale(ui_sprite_anim_group_t group, uin
 uint8_t ui_sprite_anim_group_base_pos(ui_sprite_anim_group_t group);
 void ui_sprite_anim_group_set_base_pos(ui_sprite_anim_group_t group, uint8_t base_pos);
 
+float ui_sprite_anim_group_adj_render_priority(ui_sprite_anim_group_t group);
+void ui_sprite_anim_group_set_adj_render_priority(ui_sprite_anim_group_t group, float adj_render_priority);
+
 #ifdef __cplusplus
 }
 #endif

@@ -13,11 +13,13 @@ struct ui_sprite_anim_backend_def {
     UI_SPRITE_2D_PAIR (*m_screen_size_fun)(void * ctx);
 
     /*group*/
-    uint32_t (*m_create_group_fun)(void * ctx, const char * layer);
+    uint32_t (*m_create_group_fun)(void * ctx, const char * layer, uint32_t entity_id, float render_priority);
     void (*m_remove_group_fun)(void * ctx, uint32_t group_id);
+    void (*m_set_group_priority_fun)(void * ctx, uint32_t group_id, float render_priority);
     void (*m_pos_update_fun)(void * ctx, uint32_t group_id, UI_SPRITE_2D_PAIR  new_pos);
     void (*m_scale_update_fun)(void * ctx, uint32_t group_id, UI_SPRITE_2D_PAIR new_scale);
     void (*m_angle_update_fun)(void * ctx, uint32_t group_id, float new_angle);
+    void (*m_flip_update_fun)(void * ctx, uint32_t group_id, uint8_t flip_x, uint8_t flip_y);
 
     /*animation*/
     uint32_t (*m_start_fun)(void * ctx, uint32_t group_id, const char * res, uint8_t is_loop, int32_t start, int32_t end);

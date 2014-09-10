@@ -2,9 +2,8 @@
 <metalib tagsetversion="1" name="" version="1">
 
     <struct name="ui_sprite_evt_basic_gen_entities" version="1">
-        <entry name="generator_name" type="string" size="64" id="1"/>
-        <entry name="generate_count" type="uint16" id="2"/>
-        <entry name="generate_duration" type="float" id="3"/>
+        <entry name="generate_count" type="uint16" id="1"/>
+        <entry name="generate_duration" type="float" id="2"/>
     </struct>
 
 </metalib>

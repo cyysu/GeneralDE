@@ -56,12 +56,15 @@ static int ui_sprite_cfg_load_component_animation_groups(ui_sprite_cfg_loader_t 
             return -1;
         }
 
-        group = ui_sprite_anim_group_create(animation, group_name);
+        group = ui_sprite_anim_group_find_by_name(animation, group_name);
         if (group == NULL) {
-            CPE_ERROR(
-                loader->m_em, "%s: create animation component: group %s: create fail!",
-                ui_sprite_cfg_loader_name(loader), group_name);
-            return -1;
+            group = ui_sprite_anim_group_create(animation, group_name);
+            if (group == NULL) {
+                CPE_ERROR(
+                    loader->m_em, "%s: create animation component: group %s: create fail!",
+                    ui_sprite_cfg_loader_name(loader), group_name);
+                return -1;
+            }
         }
 
         if ((pos_cfg = cfg_find_cfg(group_cfg, "pos-adj"))) {
@@ -81,6 +84,10 @@ static int ui_sprite_cfg_load_component_animation_groups(ui_sprite_cfg_loader_t 
         ui_sprite_anim_group_set_adj_accept_scale(
             group,
             cfg_get_uint8(group_cfg, "pos-adj-accept-scale", ui_sprite_anim_group_adj_accept_scale(group)));
+
+        ui_sprite_anim_group_set_adj_render_priority(
+            group,
+            cfg_get_float(group_cfg, "adj-render-priority", ui_sprite_anim_group_adj_render_priority(group)));
 
         if ((base_pos_str = cfg_get_string(group_cfg, "base-pos", NULL))) {
             uint8_t base_pos = ui_sprite_2d_transform_pos_policy_from_str(base_pos_str);
@@ -170,10 +177,7 @@ static int ui_sprite_cfg_load_component_animation_templates(ui_sprite_cfg_loader
             return -1;
         }
 
-        tpl = ui_sprite_anim_template_create(
-            animation,
-            template_name, cfg_get_string(template_cfg, "group", ""),
-            template_res);
+        tpl = ui_sprite_anim_template_create(animation, template_name, template_res);
         if (tpl == NULL) {
             CPE_ERROR(
                 loader->m_em, "%s: create animation component: template %s: create fail!",

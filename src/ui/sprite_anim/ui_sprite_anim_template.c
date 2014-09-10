@@ -8,16 +8,15 @@
 #include "ui_sprite_anim_backend_i.h"
 #include "ui_sprite_anim_module_i.h"
 
-ui_sprite_anim_template_t ui_sprite_anim_template_create(ui_sprite_anim_sch_t anim_sch, const char * name, const char * group, const char * res) {
+ui_sprite_anim_template_t ui_sprite_anim_template_create(ui_sprite_anim_sch_t anim_sch, const char * name, const char * res) {
     ui_sprite_anim_backend_t backend = anim_sch->m_backend;
     ui_sprite_anim_module_t module = backend->m_module;
     ui_sprite_anim_template_t anim_template;
     size_t name_len = strlen(name) + 1;
-    size_t group_len = strlen(group) + 1;
     size_t res_len = strlen(res) + 1;
     char * p;
 
-    anim_template = mem_alloc(module->m_alloc, sizeof(struct ui_sprite_anim_template) + name_len + group_len + res_len);
+    anim_template = mem_alloc(module->m_alloc, sizeof(struct ui_sprite_anim_template) + name_len + res_len);
     if (anim_template == NULL) {
         CPE_ERROR(module->m_em, "crate anim template %s: alloc fail!", name);
         return NULL;
@@ -31,10 +30,6 @@ ui_sprite_anim_template_t ui_sprite_anim_template_create(ui_sprite_anim_sch_t an
     anim_template->m_name = p;
     p += name_len;
 
-    memcpy(p, group, group_len);
-    anim_template->m_group = p;
-    p += group_len;
-
     memcpy(p, res, res_len);
     anim_template->m_res = p;
     p += res_len;
@@ -47,7 +42,20 @@ ui_sprite_anim_template_t ui_sprite_anim_template_create(ui_sprite_anim_sch_t an
 }
 
 ui_sprite_anim_template_t ui_sprite_anim_template_clone(ui_sprite_anim_sch_t anim_sch, ui_sprite_anim_template_t o) {
-    ui_sprite_anim_template_t template = ui_sprite_anim_template_create(anim_sch, o->m_name, o->m_group, o->m_res);
+    ui_sprite_anim_template_t template = ui_sprite_anim_template_create(anim_sch, o->m_name, o->m_res);
+    ui_sprite_anim_template_binding_t binding;
+
+    TAILQ_FOREACH(binding, &o->m_bindings, m_next_for_template) {
+        ui_sprite_anim_template_binding_t new_binding;
+
+        new_binding =
+            ui_sprite_anim_template_binding_create(template, binding->m_control, binding->m_attr_name, binding->m_attr_value);
+        if (new_binding == NULL) {
+            ui_sprite_anim_template_free(template);
+            return NULL;
+        }
+    }
+
     return template;
 }
 

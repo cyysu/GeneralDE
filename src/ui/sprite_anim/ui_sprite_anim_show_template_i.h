@@ -14,6 +14,7 @@ struct ui_sprite_anim_show_template {
     ui_sprite_anim_module_t m_module;
     uint32_t m_anim_id;
     char m_template[128];
+    char m_group[64];    
     ui_sprite_anim_show_template_binding_list_t m_bindings;
 };
 
@@ -21,6 +22,7 @@ int ui_sprite_anim_show_template_regist(ui_sprite_anim_module_t module);
 void ui_sprite_anim_show_template_unregist(ui_sprite_anim_module_t module);
 
 struct ui_sprite_anim_show_template_binding {
+    const char * m_attr_name;
     ui_sprite_anim_show_template_t m_show_template;
     ui_sprite_anim_template_binding_t m_binding;
     TAILQ_ENTRY(ui_sprite_anim_show_template_binding) m_next;
@@ -28,7 +30,7 @@ struct ui_sprite_anim_show_template_binding {
 
 ui_sprite_anim_show_template_binding_t
 ui_sprite_anim_show_template_binding_create(
-    ui_sprite_anim_show_template_t show_template, ui_sprite_anim_template_binding_t binding);
+    ui_sprite_anim_show_template_t show_template, ui_sprite_anim_template_binding_t binding, const char * attr);
 
 void ui_sprite_anim_show_template_binding_free(ui_sprite_anim_show_template_binding_t binding);
 

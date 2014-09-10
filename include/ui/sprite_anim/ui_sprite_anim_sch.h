@@ -12,6 +12,9 @@ ui_sprite_anim_sch_t ui_sprite_anim_sch_create(ui_sprite_entity_t entity);
 ui_sprite_anim_sch_t ui_sprite_anim_sch_find(ui_sprite_entity_t entity);
 void ui_sprite_anim_sch_free(ui_sprite_anim_sch_t anim_sch);
 
+float ui_sprite_anim_sch_render_priority(ui_sprite_anim_sch_t anim_sch);
+void ui_sprite_anim_sch_set_render_priority(ui_sprite_anim_sch_t anim_sch, float render_priority);
+
 uint32_t ui_sprite_anim_sch_start_anim(
     ui_sprite_anim_sch_t anim_sch, const char * group, const char * res, uint8_t is_loop, int32_t start, int32_t end);
 void ui_sprite_anim_sch_stop_anim(ui_sprite_anim_sch_t anim_sch, uint32_t anim_id);

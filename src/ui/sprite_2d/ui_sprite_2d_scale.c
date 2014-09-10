@@ -6,6 +6,7 @@
 #include "ui_sprite_2d_scale_i.h"
 #include "ui_sprite_2d_module_i.h"
 #include "protocol/ui/sprite_2d/ui_sprite_2d_evt.h"
+#include "ui/utils//ui_percent_decorator.h"
 
 ui_sprite_2d_scale_t
 ui_sprite_2d_scale_create(ui_sprite_fsm_state_t fsm_state, const char * name) {
@@ -24,16 +25,16 @@ static void ui_sprite_2d_scale_scale(void * ctx, ui_sprite_event_t evt) {
 	ui_sprite_fsm_action_t action = ui_sprite_fsm_action_from_data(ctx);
 	ui_sprite_entity_t entity = ui_sprite_fsm_action_to_entity(action);
     ui_sprite_2d_transform_t transform = ui_sprite_2d_transform_find(entity);
-	UI_SPRITE_2D_PAIR curScale = ui_sprite_2d_transform_scale(transform);
 
-	scale->m_work_duration = evt_data->duration;
-	scale->m_scale = evt_data->scale;
-	if(scale->m_work_duration > 0){
-		scale->m_scale_speed.x = (scale->m_scale.x - curScale.x) / scale->m_work_duration;
-		scale->m_scale_speed.y = (scale->m_scale.y - curScale.y) / scale->m_work_duration;
-	}
-
+    scale->m_origin_scale = ui_sprite_2d_transform_scale_pair(transform);
+    scale->m_work_duration = evt_data->duration;
+	scale->m_target_scale = evt_data->scale;
+    scale->m_runing_time = 0.0f;
 	ui_sprite_fsm_action_sync_update(ui_sprite_fsm_action_from_data(scale), 1);
+}
+
+int ui_sprite_2d_scale_contain_set_decorator(ui_sprite_2d_scale_t show_anim, const char * decorator) {
+    return ui_percent_decorator_setup(&show_anim->m_decorator, decorator, show_anim->m_module->m_em);
 }
 
 int ui_sprite_2d_scale_enter(ui_sprite_fsm_action_t fsm_action, void * ctx) {
@@ -54,19 +55,21 @@ void ui_sprite_2d_scale_update(ui_sprite_fsm_action_t fsm_action, void * ctx, fl
 	ui_sprite_2d_scale_t scale = ui_sprite_fsm_action_data(fsm_action);
 	ui_sprite_entity_t entity = ui_sprite_fsm_action_to_entity(fsm_action);
 	ui_sprite_2d_transform_t transform = ui_sprite_2d_transform_find(entity);
-	UI_SPRITE_2D_PAIR curScale = ui_sprite_2d_transform_scale(transform);
-	
-	scale->m_work_duration -=delta;
-	curScale.x += scale->m_scale_speed.x * delta;
-	curScale.y += scale->m_scale_speed.y * delta;
+	float percent = 0.0;
+    UI_SPRITE_2D_PAIR curScale;
+    scale->m_runing_time += delta;
 
-	if(scale->m_work_duration <= 0.0f){
-		curScale.x = scale->m_scale.x;
-		curScale.y = scale->m_scale.y;
-		ui_sprite_fsm_action_stop_update(fsm_action);
-	}
+    percent = scale->m_runing_time >= scale->m_work_duration ? 1.0f : scale->m_runing_time / scale->m_work_duration;
+    percent = ui_percent_decorator_decorate(&scale->m_decorator, percent);
+    curScale.x = scale->m_origin_scale.x + (scale->m_target_scale.x - scale->m_origin_scale.x) * percent;
+    curScale.y = scale->m_origin_scale.y + (scale->m_target_scale.y - scale->m_origin_scale.y) * percent;
 
-	ui_sprite_2d_transform_set_scale(transform, curScale);
+    if (scale->m_runing_time >= scale->m_work_duration) {
+        ui_sprite_2d_transform_set_scale_pair(transform, scale->m_target_scale);
+        ui_sprite_fsm_action_stop_update(fsm_action);
+        return;
+    }
+    ui_sprite_2d_transform_set_scale_pair(transform, curScale);
 }
 
 
@@ -80,8 +83,6 @@ int ui_sprite_2d_scale_init(ui_sprite_fsm_action_t fsm_action, void * ctx) {
 	bzero(scale, sizeof(*scale));
 	scale->m_module = ctx;
 	scale->m_work_duration = 0.0f;
-	scale->m_scale.x = 0.0f;
-	scale->m_scale.y = 0.0f;
 	return 0;
 }
 
@@ -91,7 +92,7 @@ int ui_sprite_2d_scale_copy(ui_sprite_fsm_action_t to, ui_sprite_fsm_action_t fr
 
     ui_sprite_2d_scale_init(to, ctx);
     to_scale_to->m_max_speed = from_scale_to->m_max_speed;
-
+    memcpy(&to_scale_to->m_decorator, &from_scale_to->m_decorator, sizeof(to_scale_to->m_decorator));
     return 0;
 }
 

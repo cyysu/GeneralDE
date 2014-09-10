@@ -33,6 +33,8 @@ int cpe_str_buf_printf(cpe_str_buf_t buf, const char * format, ...);
 void cpe_str_toupper(char * data);
 void cpe_str_tolower(char * data);
 
+const char * cpe_str_char_not_in_pair(const char * p, char f, const char * start_set, const char * end_set);
+
 int cpe_str_cmp_part(const char * part_str, size_t part_str_len, const char * full_str);
 
 uint64_t cpe_str_parse_byte_size_with_dft(const char * astring, uint64_t dft);
@@ -45,6 +47,8 @@ char * cpe_str_trim_head(char * p);
 char * cpe_str_trim_tail(char * p, const char * head);
 
 char * cpe_str_mask_uint16(uint16_t v, char * buf, size_t buf_size);
+
+char * cpe_str_read_and_remove_arg(char * p, const char * arg_name, char sep /*,*/, char pair /*=*/);
 
 #define CPE_STR_BUF_INIT(__b, __size) { __size, 0, __b, 0 }
 

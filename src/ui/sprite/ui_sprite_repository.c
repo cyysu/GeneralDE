@@ -2,6 +2,7 @@
 #include "cpe/cfg/cfg_read.h"
 #include "cpe/nm/nm_manage.h"
 #include "cpe/nm/nm_read.h"
+#include "cpe/xcalc/xcalc_computer.h"
 #include "gd/app/app_module.h"
 #include "gd/app/app_context.h"
 #include "ui_sprite_repository_i.h"
@@ -12,7 +13,7 @@
 static void ui_sprite_repository_clear(nm_node_t node);
 
 struct nm_node_type s_nm_node_type_ui_sprite_repository = {
-    "usf_ui_sprite_repository",
+    "ui_sprite_repository",
     ui_sprite_repository_clear
 };
 
@@ -22,6 +23,8 @@ ui_sprite_repository_create(gd_app_context_t app, mem_allocrator_t alloc, const 
     nm_node_t repo_node;
 
     assert(app);
+
+    if (name == NULL) name = "ui_sprite_repository";
 
     repo_node = nm_group_create(gd_app_nm_mgr(app), name, sizeof(struct ui_sprite_repository));
     if (repo_node == NULL) return NULL;
@@ -35,6 +38,12 @@ ui_sprite_repository_create(gd_app_context_t app, mem_allocrator_t alloc, const 
 
     TAILQ_INIT(&repo->m_worlds);
 
+    repo->m_computer = xcomputer_create(alloc, em);
+    if (repo->m_computer == NULL) {
+        nm_node_free(repo_node);
+        return NULL;
+    }
+
     if (cpe_hash_table_init(
             &repo->m_component_metas,
             alloc,
@@ -43,6 +52,7 @@ ui_sprite_repository_create(gd_app_context_t app, mem_allocrator_t alloc, const 
             CPE_HASH_OBJ2ENTRY(ui_sprite_component_meta, m_hh_for_repo),
             -1) != 0)
     {
+        xcomputer_free(repo->m_computer);
         nm_node_free(repo_node);
         return NULL;
     }
@@ -56,6 +66,7 @@ ui_sprite_repository_create(gd_app_context_t app, mem_allocrator_t alloc, const 
             -1) != 0)
     {
         cpe_hash_table_fini(&repo->m_component_metas);
+        xcomputer_free(repo->m_computer);
         nm_node_free(repo_node);
         return NULL;
     }
@@ -79,7 +90,9 @@ static void ui_sprite_repository_clear(nm_node_t node) {
     cpe_hash_table_fini(&repo->m_component_metas);
 
     ui_sprite_event_meta_free_all(repo);
-    cpe_hash_table_fini(&repo->m_component_metas);
+    cpe_hash_table_fini(&repo->m_event_metas);
+
+    xcomputer_free(repo->m_computer);
 
     mem_buffer_clear(&repo->m_dump_buffer);
 }
@@ -119,6 +132,10 @@ ui_sprite_repository_find_nc(gd_app_context_t app, const char * name) {
 
 const char * ui_sprite_repository_name(ui_sprite_repository_t repo) {
     return nm_node_name(nm_node_from_data(repo));
+}
+
+xcomputer_t ui_sprite_repository_computer(ui_sprite_repository_t repo) {
+    return repo->m_computer;
 }
 
 EXPORT_DIRECTIVE

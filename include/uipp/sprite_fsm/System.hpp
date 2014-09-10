@@ -11,6 +11,7 @@ class State;
 class Action;
 class ActionMeta;
 class Transaction;
+class ActionVisitor;
 
 class ComponentFsm;
 class ActionFsm;

@@ -7,6 +7,8 @@
 #include "cpe/utils/algorithm.h"
 #include "cpe/dr/dr_metalib_manage.h"
 #include "cpe/dr/dr_json.h"
+#include "cpe/dr/dr_data.h"
+#include "cpe/dr/dr_data_entry.h"
 #include "ui_sprite_event_i.h"
 #include "ui_sprite_world_i.h"
 #include "ui_sprite_entity_i.h"
@@ -91,7 +93,8 @@ void * ui_sprite_event_handler_process_ctx(ui_sprite_event_handler_t handler) {
 int ui_sprite_event_add_target(
     ui_sprite_pending_event_t processing_evt,
     ui_sprite_entity_t from_entity,
-    ui_sprite_world_t world, const char * str_target)
+    ui_sprite_world_t world, const char * str_target,
+    dr_data_source_t data_source)
 {
     ui_sprite_repository_t repo = world->m_repo;
     struct ui_sprite_event_target * target;
@@ -122,17 +125,95 @@ int ui_sprite_event_add_target(
             return 0;
         }
         else {
-            ui_sprite_group_t group = ui_sprite_group_find_by_name(world, str_target + 1);
-            if (group == NULL) {
-                CPE_ERROR(repo->m_em, "send event to %s: unknown target", str_target + 1);
+            char const * arg_name = str_target + 1;
+            uint8_t is_group = 0;
+
+            struct dr_data_entry from_attr_buf;
+            dr_data_entry_t from_attr;
+            uint32_t id;
+            const char * name;
+            ui_sprite_entity_t target_entity = NULL;
+            ui_sprite_group_t target_group = NULL;
+
+            if (*arg_name == '*') {
+                is_group = 1;
+                arg_name = arg_name + 1;
+            }
+
+            from_attr = dr_data_entry_search_in_source(&from_attr_buf, data_source, arg_name);
+            if (from_attr == NULL && from_entity) {
+                from_attr = ui_sprite_entity_find_attr(&from_attr_buf, from_entity, arg_name);
+            }
+
+            if (from_attr == NULL) {
+                CPE_ERROR(repo->m_em, "send event to %s: attr %s not exist", str_target, arg_name);
                 return -1;
             }
+
+            if (dr_entry_try_read_uint32(&id, from_attr->m_data, from_attr->m_entry, repo->m_em) == 0) {
+                if (is_group) {
+                    target_group = ui_sprite_group_find_by_id(world, id);
+                    if (target_group == NULL) {
+                        CPE_ERROR(repo->m_em, "send event to %s: id from attr %s: group %d() not exist", str_target, arg_name, id);
+                        return -1;
+                    }
+                }
+                else {
+                    target_entity = ui_sprite_entity_find_by_id(world, id);
+                    if (target_entity == NULL) {
+                        CPE_ERROR(repo->m_em, "send event to %s: id from attr %s: entity %d() not exist", str_target, arg_name, id);
+                        return -1;
+                    }
+                }
+            }
+            else if ((name = dr_entry_read_string(from_attr->m_data, from_attr->m_entry))) {
+                if (is_group) {
+                    target_group = ui_sprite_group_find_by_name(world, name);
+                    if (target_group == NULL) {
+                        CPE_ERROR(repo->m_em, "send event to %s: id from attr %s: group (%s) not exist", str_target, arg_name, name);
+                        return -1;
+                    }
+                }
+                else {
+                    target_entity = ui_sprite_entity_find_by_name(world, name);
+                    if (target_entity == NULL) {
+                        CPE_ERROR(repo->m_em, "send event to %s: id from attr %s: entity (%s) not exist", str_target, arg_name, name);
+                        return -1;
+                    }
+                }
+            }
             else {
+                CPE_ERROR(repo->m_em, "send event to %s: attr %s convert to numeric or string fail", str_target, arg_name);
+                return -1;
+            }
+
+
+            if (target_entity) {
                 processing_evt->m_target_count++;
-                target->m_type = ui_sprite_event_target_type_group;
-                target->m_data.to_entity_id = ui_sprite_group_id(group);
+                target->m_type = ui_sprite_event_target_type_entity;
+                target->m_data.to_entity_id = ui_sprite_entity_id(target_entity);
                 return 0;
             }
+            else {
+                assert(target_group);
+                processing_evt->m_target_count++;
+                target->m_type = ui_sprite_event_target_type_group;
+                target->m_data.to_group_id = ui_sprite_group_id(target_group);
+                return 0;
+            }
+        }
+    }
+    else if (str_target[0] == '*') {
+        ui_sprite_group_t group = ui_sprite_group_find_by_name(world, str_target + 1);
+        if (group == NULL) {
+            CPE_ERROR(repo->m_em, "send event to %s: unknown target", str_target + 1);
+            return -1;
+        }
+        else {
+            processing_evt->m_target_count++;
+            target->m_type = ui_sprite_event_target_type_group;
+            target->m_data.to_group_id = ui_sprite_group_id(group);
+            return 0;
         }
     }
     else {
@@ -189,7 +270,7 @@ int ui_sprite_event_analize_head(
 
 int ui_sprite_event_analize_targets(
     ui_sprite_pending_event_t processing_evt,
-    ui_sprite_world_t world, ui_sprite_entity_t from_entity, char * targets)
+    ui_sprite_world_t world, ui_sprite_entity_t from_entity, char * targets, dr_data_source_t data_source)
 {
     char * sep;
 
@@ -201,12 +282,12 @@ int ui_sprite_event_analize_targets(
         targets = cpe_str_trim_head(sep + 1);
 
         if (target_name[0]) {
-            if (ui_sprite_event_add_target(processing_evt, from_entity, world, target_name) != 0) return -1;
+            if (ui_sprite_event_add_target(processing_evt, from_entity, world, target_name, data_source) != 0) return -1;
         }
     }
 
     if (targets[0]) {
-        if (ui_sprite_event_add_target(processing_evt, from_entity, world, targets) != 0) return -1;
+        if (ui_sprite_event_add_target(processing_evt, from_entity, world, targets, data_source) != 0) return -1;
     }
 
     return 0;
@@ -266,7 +347,7 @@ static int ui_sprite_event_build_and_enqueue_i(
         processing_evt->m_targets[0].m_data.to_entity_id = from_entity->m_id;
     }
     else {
-        if (ui_sprite_event_analize_targets(processing_evt, world, from_entity, targets) != 0) {
+        if (ui_sprite_event_analize_targets(processing_evt, world, from_entity, targets, data_source) != 0) {
             ui_sprite_pending_event_free(world, processing_evt);
             return -1;
         }
@@ -280,24 +361,27 @@ void ui_sprite_event_build_and_enqueue(
     const char * input_def, dr_data_source_t data_source)
 {
     ui_sprite_repository_t repo = world->m_repo;
-    void * tmp_event = cpe_str_mem_dup(repo->m_alloc, input_def);
+    char * tmp_event = cpe_str_mem_dup(repo->m_alloc, input_def);
     char * event_def = tmp_event;
     char * p;
-    int pos = 0;
 
+    event_def = cpe_str_trim_head(event_def);
     while((p = strchr(event_def, ';'))) {
         *p = 0;
 
-        if (ui_sprite_event_build_and_enqueue_i(repo, world, from_entity, event_def, data_source) != 0) {
-            CPE_ERROR(repo->m_em, "send event: %s fail!", input_def + pos);
+        if (*event_def != 0) {
+            if (ui_sprite_event_build_and_enqueue_i(repo, world, from_entity, event_def, data_source) != 0) {
+                CPE_ERROR(repo->m_em, "send event: %s fail!", input_def + (event_def - tmp_event));
+            }
         }
 
-        pos += p - event_def + 1;
-        event_def = p + 1;
+        event_def = cpe_str_trim_head(p + 1);
     }
 
-    if (ui_sprite_event_build_and_enqueue_i(repo, world, from_entity, event_def, data_source) != 0) {
-        CPE_ERROR(repo->m_em, "send event: %s fail!", input_def + pos);
+    if (*event_def != 0) {
+        if (ui_sprite_event_build_and_enqueue_i(repo, world, from_entity, event_def, data_source) != 0) {
+            CPE_ERROR(repo->m_em, "send event: %s fail!", input_def + (event_def - tmp_event));
+        }
     }
     
     mem_free(repo->m_alloc, tmp_event);

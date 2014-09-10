@@ -57,6 +57,7 @@ public:
     /*updator*/
     void addUpdator(ui_sprite_world_update_fun_t fun, void * ctx);
     void removeUpdator(void * ctx) { ui_sprite_world_remove_updator(*this, ctx); }
+    void setUpdatorPriority(void * ctx, int8_t priority);
 
     /*entity operations*/
     Entity * findEntity(const char * name) { return (Entity*)ui_sprite_entity_find_by_name(*this, name); }
@@ -78,6 +79,7 @@ public:
     Entity const & proto(const char * name) const;
 
     Entity & createProto(const char * name);
+    void removeProto(const char * name);
 
     /*group operations*/
     Group * findGroup(const char * name) { return (Group*)ui_sprite_group_find_by_name(*this, name); }

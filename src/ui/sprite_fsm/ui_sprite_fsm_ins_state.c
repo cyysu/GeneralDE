@@ -1,5 +1,6 @@
 #include <assert.h>
 #include "ui/sprite/ui_sprite_entity.h"
+#include "ui/sprite/ui_sprite_entity_calc.h"
 #include "ui_sprite_fsm_ins_state_i.h"
 #include "ui_sprite_fsm_ins_action_i.h"
 #include "ui_sprite_fsm_ins_transition_i.h"
@@ -9,6 +10,11 @@ static ui_sprite_fsm_state_t ui_sprite_fsm_state_create_i(ui_sprite_fsm_ins_t fs
     ui_sprite_fsm_module_t module = fsm->m_module;
     ui_sprite_fsm_state_t fsm_state;
     size_t name_len = strlen(name) + 1;
+
+    if (ui_sprite_fsm_state_find_by_name(fsm, name) != NULL) {
+        CPE_ERROR(module->m_em, "fsm create state %s: name duplicate", name);
+        return NULL;
+    }
 
     fsm_state = mem_alloc(module->m_alloc, sizeof(struct ui_sprite_fsm_state) + name_len);
     if (fsm_state == NULL) {
@@ -136,6 +142,23 @@ const char * ui_sprite_fsm_state_name(ui_sprite_fsm_state_t fsm_state) {
     return fsm_state->m_name;
 }
 
+ui_sprite_fsm_state_t ui_sprite_fsm_state_return_to(ui_sprite_fsm_state_t fsm_state) {
+    return fsm_state->m_return_to;
+}
+
+ui_sprite_event_t ui_sprite_fsm_state_enter_event(ui_sprite_fsm_state_t fsm_state) {
+    while(fsm_state->m_enter_event == NULL && fsm_state->m_ins->m_parent) {
+        fsm_state = fsm_state->m_ins->m_parent->m_cur_state;
+        assert(fsm_state);
+    }
+
+    return fsm_state->m_enter_event;
+}
+
+ui_sprite_event_t ui_sprite_fsm_state_local_enter_event(ui_sprite_fsm_state_t fsm_state) {
+    return fsm_state->m_enter_event;
+}
+
 int ui_sprite_fsm_state_enter(ui_sprite_fsm_state_t fsm_state) {
     ui_sprite_fsm_ins_t fsm = fsm_state->m_ins;
     ui_sprite_fsm_module_t module = fsm->m_module;
@@ -160,6 +183,20 @@ int ui_sprite_fsm_state_enter(ui_sprite_fsm_state_t fsm_state) {
             ui_sprite_fsm_action_set_runing_state(fsm_action, ui_sprite_fsm_action_state_waiting);
         }
         else {
+            if (fsm_action->m_condition) {
+                if (!ui_sprite_entity_calc_bool_with_dft(fsm_action->m_condition, entity, NULL, 0)) {
+                    if (ui_sprite_entity_debug(entity) >= 2) {
+                        CPE_INFO(
+                            module->m_em, "entity %d(%s): %s: action %s(%s): condition[%s] check fail",
+                            ui_sprite_entity_id(entity), ui_sprite_entity_name(entity), ui_sprite_fsm_ins_path(fsm),
+                            fsm_action->m_meta->m_name, fsm_action->m_name,
+                            fsm_action->m_condition);
+                    }
+                    ui_sprite_fsm_action_set_runing_state(fsm_action, ui_sprite_fsm_action_state_done);
+                    continue;
+                }
+            }
+
             if (ui_sprite_fsm_action_enter(fsm_action) != 0) {
                 ui_sprite_fsm_action_set_runing_state(fsm_action, ui_sprite_fsm_action_state_done);
                 continue;
@@ -251,25 +288,12 @@ void ui_sprite_fsm_state_exit(ui_sprite_fsm_state_t fsm_state) {
     assert(TAILQ_EMPTY(&fsm_state->m_done_actions));
 }
 
-void ui_sprite_fsm_state_update(ui_sprite_fsm_state_t fsm_state, float delta) {
-    ui_sprite_fsm_action_t action;
-    uint16_t life_circle_action_count = 0;
+uint16_t ui_sprite_fsm_state_check_actions(ui_sprite_fsm_state_t fsm_state) {
     ui_sprite_fsm_ins_t fsm = fsm_state->m_ins;
     ui_sprite_fsm_module_t module = fsm->m_module;
+    ui_sprite_fsm_action_t action;
+    uint16_t life_circle_action_count = 0;
     ui_sprite_entity_t entity = ui_sprite_fsm_to_entity(fsm);
-
-    /*所有需要更新的action先更新 */
-    for(action = TAILQ_FIRST(&fsm_state->m_updating_actions);
-        action != TAILQ_END(&fsm_state->m_updating_actions);
-        )
-    {
-        ui_sprite_fsm_action_t next = TAILQ_NEXT(action, m_next_for_update);
-
-        assert(action->m_meta->m_update_fun);
-        action->m_meta->m_update_fun(action, action->m_meta->m_update_fun_ctx, delta);
-
-        action = next;
-    }
 
     /*检查已经完成的action，退出 */
     for(action = TAILQ_FIRST(&fsm_state->m_runing_actions);
@@ -278,12 +302,14 @@ void ui_sprite_fsm_state_update(ui_sprite_fsm_state_t fsm_state, float delta) {
     {
         ui_sprite_fsm_action_t next = TAILQ_NEXT(action, m_next_for_work);
 
-        action->m_runing_time += delta;
         switch(action->m_life_circle) {
         case ui_sprite_fsm_action_life_circle_passive:
             break;
         case ui_sprite_fsm_action_life_circle_working:
-            if (action->m_is_update) {
+            if (action->m_duration > 0.0f && action->m_runing_time > action->m_duration) {
+                ui_sprite_fsm_action_exit(action);
+            }
+            else if (action->m_is_update) {
                 life_circle_action_count++;
             }
             else {
@@ -299,6 +325,11 @@ void ui_sprite_fsm_state_update(ui_sprite_fsm_state_t fsm_state, float delta) {
             }
             else {
                 ui_sprite_fsm_action_exit(action);
+            }
+            break;
+        case ui_sprite_fsm_action_life_circle_passive_working:
+            if (action->m_is_update) {
+                life_circle_action_count++;
             }
             break;
         default:
@@ -323,6 +354,20 @@ void ui_sprite_fsm_state_update(ui_sprite_fsm_state_t fsm_state, float delta) {
         TAILQ_FOREACH(follow_action, &action->m_followers, m_next_for_follow) {
             if (follow_action->m_runing_state != ui_sprite_fsm_action_state_waiting) continue;
 
+            if (follow_action->m_condition) {
+                if (!ui_sprite_entity_calc_bool_with_dft(follow_action->m_condition, entity, NULL, 0)) {
+                    if (ui_sprite_entity_debug(entity) >= 2) {
+                        CPE_INFO(
+                            module->m_em, "entity %d(%s): %s: action %s(%s): condition[%s] check fail", 
+                            ui_sprite_entity_id(entity), ui_sprite_entity_name(entity), ui_sprite_fsm_ins_path(fsm),
+                            follow_action->m_meta->m_name, follow_action->m_name,
+                            follow_action->m_condition);
+                    }
+                    ui_sprite_fsm_action_set_runing_state(follow_action, ui_sprite_fsm_action_state_done);
+                    continue;
+                }
+            }
+
             if (ui_sprite_fsm_action_enter(follow_action) != 0) {
                 ui_sprite_fsm_action_set_runing_state(follow_action, ui_sprite_fsm_action_state_done);
                 continue;
@@ -333,11 +378,21 @@ void ui_sprite_fsm_state_update(ui_sprite_fsm_state_t fsm_state, float delta) {
                 continue;
             }
 
+            if (follow_action->m_life_circle == ui_sprite_fsm_action_life_circle_working && !follow_action->m_is_update) {
+                ui_sprite_fsm_action_exit(follow_action);
+                continue;
+            }
+
             life_circle_action_count++;
         }
     }
 
-    if (life_circle_action_count != 0) return;
+    return life_circle_action_count;
+}
+
+void ui_sprite_fsm_state_process_complete(ui_sprite_fsm_state_t fsm_state) {
+    ui_sprite_fsm_ins_t fsm = fsm_state->m_ins;
+    ui_sprite_fsm_module_t module = fsm->m_module;
 
     /*没有活动的action了，则退出state */
     if (fsm_state->m_return_to && fsm_state->m_return_to->m_enter_event == NULL) {
@@ -368,4 +423,29 @@ void ui_sprite_fsm_state_update(ui_sprite_fsm_state_t fsm_state, float delta) {
     if (fsm->m_parent) {
         TAILQ_REMOVE(&fsm->m_parent->m_childs, fsm, m_next_for_parent);
     }
+}
+
+void ui_sprite_fsm_state_update(ui_sprite_fsm_state_t fsm_state, float delta) {
+    ui_sprite_fsm_action_t action;
+
+    /*所有需要更新的action先更新 */
+    for(action = TAILQ_FIRST(&fsm_state->m_updating_actions);
+        action != TAILQ_END(&fsm_state->m_updating_actions);
+        )
+    {
+        ui_sprite_fsm_action_t next = TAILQ_NEXT(action, m_next_for_update);
+
+        assert(action->m_meta->m_update_fun);
+        action->m_meta->m_update_fun(action, action->m_meta->m_update_fun_ctx, delta);
+
+        action = next;
+    }
+
+    TAILQ_FOREACH(action, &fsm_state->m_runing_actions, m_next_for_work) {
+        action->m_runing_time += delta;
+    }
+
+    if (ui_sprite_fsm_state_check_actions(fsm_state) != 0) return;
+
+    ui_sprite_fsm_state_process_complete(fsm_state);
 }

@@ -2,6 +2,7 @@
 #define UIPP_SPRITE_FSM_INS_H
 #include "cpepp/utils/ClassCategory.hpp"
 #include "cpepp/utils/MemBuffer.hpp"
+#include "uipp/sprite/Component.hpp"
 #include "ui/sprite_fsm/ui_sprite_fsm_ins.h"
 #include "System.hpp"
 
@@ -20,6 +21,7 @@ public:
     State * findState(uint16_t id) { return (State *)ui_sprite_fsm_state_find_by_id(*this, id); }
     State const * findState(uint16_t id) const { return (State const *)ui_sprite_fsm_state_find_by_id(*this, id); }
 
+    State & createState(const char * name);
     State * findState(const char * name) { return (State *)ui_sprite_fsm_state_find_by_name(*this, name); }
     State const * findState(const char * name) const { return (State const *)ui_sprite_fsm_state_find_by_name(*this, name); }
 
@@ -27,16 +29,32 @@ public:
     State const * defaultState(void) const { return (State const *)ui_sprite_fsm_default_state(*this); }
     void setDefaultState(const char * name);
 
+    State * defaultCallState(void) { return (State *)ui_sprite_fsm_default_call_state(*this); }
+    State const * defaultCallState(void) const { return (State const *)ui_sprite_fsm_default_call_state(*this); }
+    void setDefaultCallState(const char * name);
+
     State * currentState(void) { return (State *)ui_sprite_fsm_current_state(*this); }
     State const * currentState(void) const { return (State const *)ui_sprite_fsm_current_state(*this); }
 
     bool isInState(const char * path) const { return ui_sprite_fsm_is_in_state(*this, path) ? true : false; }
+
+    void copy(Fsm const & from);
+
+    void visitActions(ActionVisitor & visitor);
 
     const char * path(Cpe::Utils::MemBuffer & buff) const;
 };
 
 class ComponentFsm : public Fsm {
 public:
+    Component & component(void) {
+        return *(Component *)ui_sprite_component_from_data((ui_sprite_fsm_ins_t)*this);
+    }
+
+    Component const & component(void) const {
+        return *(Component const*)ui_sprite_component_from_data((ui_sprite_fsm_ins_t)*this);
+    }
+
     static const char * NAME;
 };
 

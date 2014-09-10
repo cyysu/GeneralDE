@@ -3,6 +3,7 @@
 #include "cpe/pal/pal_queue.h"
 #include "cpe/utils/hash.h"
 #include "cpe/utils/buffer.h"
+#include "cpe/xcalc/xcalc_types.h"
 #include "ui/sprite/ui_sprite_repository.h"
 
 #ifdef __cplusplus
@@ -29,6 +30,7 @@ struct ui_sprite_repository {
     ui_sprite_word_list_t m_worlds;
     struct cpe_hash_table m_component_metas;
     struct cpe_hash_table m_event_metas;
+    xcomputer_t m_computer;
     int m_debug;
 
     struct mem_buffer m_dump_buffer;

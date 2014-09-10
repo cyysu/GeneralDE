@@ -33,6 +33,7 @@ void ui_data_action_use_refs(ui_data_src_ref_it_t it, ui_data_action_t action);
 /*actor*/
 ui_data_actor_t ui_data_actor_create(ui_data_action_t action);
 void ui_data_actor_free(ui_data_actor_t actor);
+int ui_data_actor_set_id(ui_data_actor_t actor, uint32_t id); 
 UI_ACTOR * ui_data_actor_data(ui_data_actor_t actor);
 LPDRMETA ui_data_actor_meta(ui_data_mgr_t mgr);
 void ui_data_actor_layers(ui_data_actor_layer_it_t it, ui_data_actor_t actor);

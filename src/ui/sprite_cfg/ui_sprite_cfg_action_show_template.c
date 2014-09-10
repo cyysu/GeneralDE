@@ -13,7 +13,7 @@ ui_sprite_fsm_action_t ui_sprite_cfg_load_action_show_template(void * ctx, ui_sp
         return NULL;
     }
 
-    if ((template_res = cfg_get_string(cfg, "name", NULL)) == NULL) {
+    if ((template_res = cfg_get_string(cfg, "res", NULL)) == NULL) {
         CPE_ERROR(
             loader->m_em, "%s: create show_template action: name not configured!",
             ui_sprite_cfg_loader_name(loader));
@@ -21,6 +21,7 @@ ui_sprite_fsm_action_t ui_sprite_cfg_load_action_show_template(void * ctx, ui_sp
         return NULL;
     }
     ui_sprite_anim_show_template_set_template(show_template, template_res);
+    ui_sprite_anim_show_template_set_group(show_template, cfg_get_string(cfg, "group", ""));
 
     return ui_sprite_fsm_action_from_data(show_template);
 }

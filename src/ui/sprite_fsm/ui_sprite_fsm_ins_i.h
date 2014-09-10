@@ -27,6 +27,7 @@ void ui_sprite_fsm_ins_init(ui_sprite_fsm_ins_t fsm, ui_sprite_fsm_module_t modu
 void ui_sprite_fsm_ins_reinit(ui_sprite_fsm_ins_t fsm);
 void ui_sprite_fsm_ins_fini(ui_sprite_fsm_ins_t fsm);
 int ui_sprite_fsm_ins_copy(ui_sprite_fsm_ins_t to, ui_sprite_fsm_ins_t from);
+int ui_sprite_fsm_ins_set_state(ui_sprite_fsm_ins_t fsm, const char * swith_to, const char * call);
 
 const char * ui_sprite_fsm_ins_path(ui_sprite_fsm_ins_t fsm);
 
@@ -34,6 +35,8 @@ void ui_sprite_fsm_ins_update(ui_sprite_fsm_ins_t fsm, float delta);
 
 int ui_sprite_fsm_ins_enter(ui_sprite_fsm_ins_t fsm);
 void ui_sprite_fsm_ins_exit(ui_sprite_fsm_ins_t fsm);
+
+void ui_sprite_fsm_ins_check(ui_sprite_fsm_ins_t fsm);
 
 #ifdef __cplusplus
 }

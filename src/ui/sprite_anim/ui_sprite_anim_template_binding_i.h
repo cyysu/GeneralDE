@@ -7,16 +7,10 @@
 extern "C" {
 #endif
 
-enum ui_sprite_anim_template_binding_attr_type {
-    ui_sprite_anim_template_binding_attr_type_value,
-    ui_sprite_anim_template_binding_attr_type_attr
-};
-
 struct ui_sprite_anim_template_binding {
     const char * m_control;
     const char * m_attr_name;
     const char * m_attr_value;
-    enum ui_sprite_anim_template_binding_attr_type m_attr_type;
     TAILQ_ENTRY(ui_sprite_anim_template_binding) m_next_for_template;
 };
 
