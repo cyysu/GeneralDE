@@ -56,7 +56,7 @@ DECODE_PKG:
     
     dp_req_set_size(chanel->m_incoming_buf, decode_rv);
 
-    return dp_dispatch_by_string(chanel->m_incoming_dispatch_to, chanel->m_incoming_buf, em);
+    return dp_dispatch_by_string(chanel->m_incoming_dispatch_to, dp_req_mgr(chanel->m_incoming_buf), chanel->m_incoming_buf, em);
 }
 
 int conn_net_bpg_chanel_outgoing_recv(dp_req_t req, void * ctx, error_monitor_t em) {
@@ -113,5 +113,5 @@ ENCODE_PKG:
     dp_req_set_size(chanel->m_outgoing_buf, buf_size);
     dp_req_set_meta(chanel->m_outgoing_buf, bpg_pkg_manage_basepkg_meta(chanel->m_bpg_pkg_manage));
 
-    return dp_dispatch_by_string(chanel->m_outgoing_dispatch_to, chanel->m_outgoing_buf, em);
+    return dp_dispatch_by_string(chanel->m_outgoing_dispatch_to, dp_req_mgr(chanel->m_outgoing_buf), chanel->m_outgoing_buf, em);
 }
