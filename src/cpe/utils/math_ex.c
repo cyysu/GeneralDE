@@ -2,7 +2,7 @@
 #include "cpe/utils/math_ex.h"
 
 float cpe_math_distance(float x1, float y1, float x2, float y2) {
-	return sqrt((x2-x1)*(x2-x1) + (y2-y1)*(y2-y1));
+	return (float)sqrt((x2-x1)*(x2-x1) + (y2-y1)*(y2-y1));
 }
 
 float cpe_math_angle(float x1, float y1, float x2, float y2) {
@@ -67,14 +67,14 @@ float cpe_math_radians(float x1, float y1, float x2, float y2) {
 
     if (fabs(diff_x) < 0.01f) {
         if (fabs(diff_y) < 0.01) {
-            return - M_PI_2;
+            return (float)- M_PI_2;
         }
         else if (fabs(diff_y) < 0.01) {
             assert(0);
             return 0.0f;
         }
         else {
-            return M_PI_2;
+            return (float)M_PI_2;
         }
     }
 
@@ -86,8 +86,8 @@ float cpe_math_radians(float x1, float y1, float x2, float y2) {
 }
 
 float cpe_math_radians_regular(float radians) {
-    while(radians > M_PI) radians -= 2 * M_PI;
-    while(radians < - M_PI) radians += 2 * M_PI;
+    while(radians > M_PI) radians -= (float)(2 * M_PI);
+    while(radians < - M_PI) radians += (float)(2 * M_PI);
     return radians;
 }
 
@@ -110,7 +110,7 @@ float cpe_math_radians_diff(float radians_1, float radians_2) {
 
     r = radians_1 - radians_2;
 
-    return r > M_PI ? (r - 2 * M_PI)
-        : r < - M_PI ? (r + 2 * M_PI)
+    return r > M_PI ? (float)(r - 2 * M_PI)
+        : r < - M_PI ? (float)(r + 2 * M_PI)
         : r;
 }
