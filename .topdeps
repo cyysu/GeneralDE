@@ -14,3 +14,4 @@ t/svr/rank_g
 t/support/ui
 t/support/ui_b2
 t/3rdTools/freetype
+t/3rdTools/pthread
