@@ -396,7 +396,7 @@ void conn_svr_stop(conn_svr_t svr) {
 }
 
 int conn_svr_send_pkg(conn_svr_t svr, dp_req_t req) {
-    if (dp_dispatch_by_string(svr->m_ss_send_to, req, svr->m_em) != 0) {
+    if (dp_dispatch_by_string(svr->m_ss_send_to, dp_req_mgr(req), req, svr->m_em) != 0) {
         CPE_ERROR(svr->m_em, "%s: send pkg fail!", conn_svr_name(svr));
         return -1;
     }
