@@ -85,8 +85,10 @@ c-generate-depend-cpp-flags=$(addprefix -I$(CPDE_ROOT)/,\
                                     $(call product-gen-depend-value-list,$1,$($2.env),$($2.env).product.c.frameworks) \
                                  )) \
                            $(addprefix -D,$($1.$($2.env).product.c.defs)) \
+                           $(addprefix -D,$(r.$1.$2.product.c.defs)) \
                            $(addprefix -D,$(sort $(call product-gen-depend-value-list,$1,$($2.env),product.c.defs))) \
                            $(addprefix -D,$(sort $(call product-gen-depend-value-list,$1,$($2.env),$($2.env).product.c.defs))) \
+                           $(addprefix -D,$(sort $(call product-gen-depend-value-list,$1,$($2.env),$2.product.c.defs))) \
                            $(addprefix -D,$(sort $(call product-gen-depend-value-list,$($2.env),$1,$2.product.c.defs))) \
                            $(if $(filter 1,$(GCOV)), -fprofile-arcs -ftest-coverage ) \
                            $(if $(filter 1,$(MUDFLAP)), -fmudflap -fmudflapth ) \
@@ -108,7 +110,9 @@ product-def-rule-c-compile-cmd.c=$($($2.env).CC) \
                                  $(sort $(call product-gen-depend-value-list,$1,$($2.env),product.c.flags.warning)) \
                                  $(r.$1.product.c.flags.warning) \
                                  $(r.$1.c.flags.lan.all) \
+                                 $(r.$1.$2.c.flags.lan.all) \
                                  $(r.$1.c.flags.lan.c) \
+                                 $(r.$1.$2.c.flags.lan.c) \
                                  $($($2.env).CPPFLAGS) \
                                  $($($2.env).TARGET_ARCH) -c
 
@@ -120,7 +124,9 @@ product-def-rule-c-compile-cmd.cc=$($($2.env).CXX) \
                                   $(sort $(call product-gen-depend-value-list,$1,$($2.env),product.c.flags.warning)) \
                                   $(r.$1.product.c.flags.warning) \
                                   $(r.$1.c.flags.lan.all) \
+                                  $(r.$1.$2.c.flags.lan.all) \
                                   $(r.$1.c.flags.lan.cc) \
+                                  $(r.$1.$2.c.flags.lan.cc) \
                                   $($($2.env).CPPFLAGS) \
                                   $($($2.env).TARGET_ARCH) -c 
 
@@ -131,7 +137,9 @@ product-def-rule-c-compile-cmd.mm=$($($2.env).CXX) $($($2.env).MMFLAGS) \
                                   $(sort $(call product-gen-depend-value-list,$1,$($2.env),product.c.flags.warning)) \
                                   $(r.$1.product.c.flags.warning) \
                                   $(r.$1.c.flags.lan.all) \
+                                  $(r.$1.$2.c.flags.lan.all) \
                                   $(r.$1.c.flags.lan.mm) \
+                                  $(r.$1.$2.c.flags.lan.mm) \
                                   $($($2.env).CPPFLAGS) \
                                   $($($2.env).TARGET_ARCH) -c 
 
@@ -142,7 +150,9 @@ product-def-rule-c-compile-cmd.m=$($($2.env).CC) $($($2.env).MFLAGS) \
                                  $(sort $(call product-gen-depend-value-list,$1,$($2.env),product.c.flags.warning)) \
                                  $(r.$1.product.c.flags.warning) \
                                  $(r.$1.c.flags.lan.all) \
+                                 $(r.$1.$2.c.flags.lan.all) \
                                  $(r.$1.c.flags.lan.m) \
+                                 $(r.$1.$2.c.flags.lan.m) \
                                  $($($2.env).CFLAGS) \
                                  $($($2.env).CPPFLAGS) \
                                  $($($2.env).TARGET_ARCH) -c
