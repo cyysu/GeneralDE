@@ -39,6 +39,11 @@ void ui_data_actor_free(ui_data_actor_t actor) {
     mem_free(mgr->m_alloc, actor);
 }
 
+int ui_data_actor_set_id(ui_data_actor_t actor, uint32_t id) {
+    actor->m_data.id = id;
+    return 0;
+}
+
 static ui_data_actor_t ui_data_actor_in_action_next(ui_data_actor_it_t it) {
     ui_data_actor_t * data = (ui_data_actor_t *)(it->m_data);
     ui_data_actor_t r;

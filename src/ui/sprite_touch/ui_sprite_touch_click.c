@@ -75,8 +75,6 @@ int ui_sprite_touch_click_set_on_click_up(ui_sprite_touch_click_t click, const c
 static void ui_sprite_touch_click_process_begin(void * ctx) {
     ui_sprite_touch_click_t click = ctx;
 
-    printf("xxxxx: process begin\n");
-
     if (click->m_on_click_down) {
         ui_sprite_fsm_action_build_and_send_event(ui_sprite_fsm_action_from_data(click), click->m_on_click_down, NULL);
     }
