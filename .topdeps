@@ -23,3 +23,4 @@ t/3rdTools/openal
 t/svr/version
 t/svr/mail
 t/svr/uhub
+t/svr/dir
