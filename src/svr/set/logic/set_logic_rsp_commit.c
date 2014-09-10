@@ -63,7 +63,7 @@ void set_logic_rsp_commit(logic_context_t op_context, void * user_data) {
         goto SEND_ERROR_RESPONSE;
     }
 
-    if (dp_dispatch_by_string(rsp_mgr->m_commit_to, response_buf, em) != 0) {
+    if (dp_dispatch_by_string(rsp_mgr->m_commit_to, dp_req_mgr(response_buf), response_buf, em) != 0) {
         CPE_ERROR(em, "%s.%s: set_logic_rsp_commit: dispatch fail!", set_logic_rsp_manage_name(rsp_mgr), set_logic_rsp_name(set_logic_rsp));
         goto SEND_ERROR_RESPONSE;
     }
@@ -79,7 +79,7 @@ SEND_ERROR_RESPONSE:
         return;
     }
 
-    if (dp_dispatch_by_string(rsp_mgr->m_commit_to, response_buf, em) != 0) {
+    if (dp_dispatch_by_string(rsp_mgr->m_commit_to, dp_req_mgr(response_buf), response_buf, em) != 0) {
         CPE_ERROR(em, "%s.%s: set_logic_rsp_commit: send error response fail!", set_logic_rsp_manage_name(rsp_mgr), set_logic_rsp_name(set_logic_rsp));
         set_logic_rsp_manage_free_context(rsp_mgr, op_context);
         return;
