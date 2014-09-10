@@ -147,6 +147,15 @@ ui_sprite_fsm_state_t ui_sprite_fsm_state_return_to(ui_sprite_fsm_state_t fsm_st
 }
 
 ui_sprite_event_t ui_sprite_fsm_state_enter_event(ui_sprite_fsm_state_t fsm_state) {
+    while(fsm_state->m_enter_event == NULL && fsm_state->m_ins->m_parent) {
+        fsm_state = fsm_state->m_ins->m_parent->m_cur_state;
+        assert(fsm_state);
+    }
+
+    return fsm_state->m_enter_event;
+}
+
+ui_sprite_event_t ui_sprite_fsm_state_local_enter_event(ui_sprite_fsm_state_t fsm_state) {
     return fsm_state->m_enter_event;
 }
 
