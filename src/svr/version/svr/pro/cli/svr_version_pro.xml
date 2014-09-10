@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<metalib tagsetversion="1" version="1">
+
+    <macro name="SVR_VERSION_MAX_DESC_LEN" value="254" desc="描述串最大长度" />
+    <macro name="SVR_VERSION_MAX_NAME_LEN" value="128" desc="名字字符串最大长度" />
+    <macro name="SVR_VERSION_MAX_HASH_LEN" value="128" desc="文件hash串长度" />
+    <macro name="SVR_VERSION_MAX_URL_LENGTH" value="128"/>
+
+    <macrosgroup name="svr_version_update_strategy">
+        <macro name="SVR_VERSION_UPDATE_STRATEGY_NO"          value="0" desc="没有更新" />
+        <macro name="SVR_VERSION_UPDATE_STRATEGY_ADVISE"      value="1" desc="推荐更新" />
+        <macro name="SVR_VERSION_UPDATE_STRATEGY_FORCE"       value="2" desc="强制更新" />
+        <macro name="SVR_VERSION_UPDATE_STRATEGY_SILENCE"     value="3" desc="强制静默更新" />
+    </macrosgroup>
+
+    <struct name="svr_version_version" version="1">
+        <entry name="parts" type="uint16" count="3" id="1"/>
+    </struct>
+
+    <struct name="svr_version_package" version="1">
+        <entry name="version" type="svr_version_version"/>
+        <entry name="desc" type="string" size="SVR_VERSION_MAX_DESC_LEN"/>
+        <entry name="size" type="uint16"/>
+        <entry name="hash" type="string" size="SVR_VERSION_MAX_HASH_LEN"/>
+        <entry name="url" type="string" size="SVR_VERSION_MAX_URL_LENGTH"/>
+    </struct>
+
+    <!--  ============ 错误码定义 ======== -->
+    <macrosgroup name="svr_version_error">
+        <macro name="SVR_VERSION_ERRNO_SUCCESS" value="0"/>
+        <macro name="SVR_VERSION_ERRNO_INTERNAL" value="-1"/>
+    </macrosgroup>
+
+    <!--  ============ 协议定义 ========== -->
+
+    <!--     查询版本升级路径 -->
+    <struct name="svr_version_req_query_update" version="1">
+        <entry name="app_id" type="uint16" />
+        <entry name="app_version" type="svr_version_version"/>
+    </struct>
+
+    <struct name="svr_version_res_query_update" version="1">
+        <entry name="app_id" type="uint16" id="1"/>
+        <entry name="version_min" type="svr_version_version" id="2"/>
+        <entry name="version_max" type="svr_version_version" id="3"/>
+        <entry name="update_strategy" type="uint8" bindmacrosgroup="svr_version_update_strategy" id="4"/>
+        <entry name="package_count" type="uint16" id="5"/>
+        <entry name="packages" type="svr_version_package" count="0" refer="package_count" id="6"/>
+    </struct>
+    
+    <!--    错误响应 -->
+    <struct name="svr_version_res_error" version="1">
+        <entry name="error" type="int16" id="1"/>
+    </struct>
+
+    <!--  =========== 整体协议定义 ========== -->
+    <macrosgroup name="SVR_VERSION_CMD_ID">
+        <macro name="SVR_VERSION_CMD_REQ_QUERY_UPDATE" value="1"/>
+        <macro name="SVR_VERSION_CMD_RES_QUERY_UPDATE" value="2"/>
+
+        <macro name="SVR_VERSION_CMD_RES_ERROR" value="11"/>
+    </macrosgroup>
+
+    <union name="svr_version_pkg_data" version="1" desc="">
+        <entry name="svr_version_req_query_update" type="svr_version_req_query_update" id="SVR_VERSION_CMD_REQ_QUERY_UPDATE"/>
+        <entry name="svr_version_res_query_update" type="svr_version_res_query_update" id="SVR_VERSION_CMD_RES_QUERY_UPDATE"/>
+
+        <entry name="svr_version_res_error" type="svr_version_res_error" id="SVR_VERSION_CMD_RES_ERROR"/>
+    </union>
+
+    <struct name="svr_version_pkg" version="1">
+        <entry name="cmd" type="uint32" id="1"/>
+        <entry name="data" type="svr_version_pkg_data" id="3" select="cmd"/>
+    </struct>
+</metalib>
+
