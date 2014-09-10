@@ -299,7 +299,7 @@ static int set_logic_rsp_manage_dispatch(dp_req_t dp_req, void * ctx, error_moni
         return -1;
     }
 
-    return dp_dispatch_by_numeric(cmd, dp_req, em);
+    return dp_dispatch_by_numeric(cmd, dp_req_mgr(dp_req), dp_req, em);
 }
 
 int set_logic_rsp_manage_set_recv_at(set_logic_rsp_manage_t mgr, const char * recv_at) {
