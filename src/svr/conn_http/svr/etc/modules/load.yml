@@ -42,7 +42,7 @@
 - include: metalibs
 
 - name: set_svr_stub
-  svr-type: svr_conn_http
+  svr-type: $svr-type
   request-send-to: process-conn-http-request
   response-send-to: process-response
   debug: 1
