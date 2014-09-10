@@ -1,6 +1,7 @@
 #include <assert.h>
 #include "cpe/pal/pal_external.h"
 #include "cpe/pal/pal_stdio.h"
+#include "cpe/utils/string_utils.h"
 #include "cpe/cfg/cfg_read.h"
 #include "cpe/dr/dr_metalib_manage.h"
 #include "cpe/nm/nm_manage.h"
@@ -21,6 +22,7 @@ int bpg_cli_proxy_app_init(gd_app_context_t app, gd_app_module_t module, cfg_t c
     bpg_pkg_manage_t pkg_manage;
     logic_manage_t logic_manage;
     const char * recv_at;
+    const char * str_buf_size;
 
     pkg_manage = bpg_pkg_manage_find_nc(app, cfg_get_string(cfg, "pkg-manage", NULL));
     if (pkg_manage == NULL) {
@@ -81,7 +83,11 @@ int bpg_cli_proxy_app_init(gd_app_context_t app, gd_app_module_t module, cfg_t c
         return -1;
     }
 
-    bpg_cli_proxy->m_send_pkg_max_size = cfg_get_uint32(cfg, "buf-size", bpg_cli_proxy->m_send_pkg_max_size);
+    if ((str_buf_size = cfg_get_string(cfg, "buf-size", NULL))) {
+        bpg_cli_proxy->m_send_pkg_max_size = 
+            (size_t)cpe_str_parse_byte_size_with_dft(str_buf_size, (uint64_t)bpg_cli_proxy->m_send_pkg_max_size);
+    }
+
     bpg_cli_proxy->m_debug = cfg_get_int32(cfg, "debug", 0);
 
     if (bpg_cli_proxy->m_debug) {
