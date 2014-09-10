@@ -1,8 +1,9 @@
 product:=freetype
 $(product).type:=lib
 $(product).depends:=zlib bz2
-$(product).product.c.includes:=3rdTools/freetype/include
+$(product).product.c.includes:=3rdTools/freetype/include 3rdTools/freetype/include/freetype
 $(product).version:=2.4.9
+$(product).c.includes:=
 $(product).c.sources:=$(addprefix $(product-base)/, \
                          base/ftsystem.c \
                          base/ftdebug.c \
@@ -43,18 +44,15 @@ $(product).c.sources:=$(addprefix $(product-base)/, \
                          cache/ftcache.c \
                          gzip/ftgzip.c \
                          lzw/ftlzw.c \
-                         bzip2/ftbzip2.c \
                          psaux/psaux.c \
                          psnames/psnames.c \
                        )
 
 $(product).c.flags.cpp:=-DFT_CONFIG_OPTION_SYSTEM_ZLIB \
-                        -DFT_CONFIG_OPTION_USE_BZIP2 \
                         -DDARWIN_NO_CARBON \
                         "-DFT_CONFIG_CONFIG_H=<freetype/config/ftconfig.h>" \
                         "-DFT_CONFIG_MODULES_H=<freetype/config/ftmodule.h>" \
                         -DFT2_BUILD_LIBRARY
-
 $(product).c.flags.c:=-O2
 $(product).c.flags.ld:=
 $(product).product.c.defs:=
