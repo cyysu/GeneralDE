@@ -2,6 +2,12 @@
 #include "cpe/pal/pal_stdio.h"
 #include "cpe/utils/time_utils.h"
 
+int64_t cur_time_ms(void) {
+    struct timeval ptv;
+	if (gettimeofday(&ptv, NULL)) return 0;
+	return ptv.tv_usec / 1000 + (int64_t)ptv.tv_sec * 1000;
+}
+
 time_t next_time_in_range_vn(
     time_t after,
     uint32_t start_time_vn, uint32_t end_time_vn,
