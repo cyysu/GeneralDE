@@ -24,3 +24,4 @@ t/svr/version
 t/svr/mail
 t/svr/uhub
 t/svr/dir
+t/support/ui_np
