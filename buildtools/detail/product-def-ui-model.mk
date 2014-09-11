@@ -2,10 +2,12 @@
 
 product-support-types+=ui-model
 
-UI_MODEL_TOOL=$(CPDE_ROOT)/build/tools/bin/$(call $(tools.env).make-executable-name,ui_model_tool)
+UI_MODEL_TOOL?=$(CPDE_ROOT)/build/tools/bin/$(call $(tools.env).make-executable-name,ui_model_tool)
+UI_MODEL_EXPORT_TOOL?=$(CPDE_ROOT)/build/tools/bin/$(call $(tools.env).make-executable-name,drow_render_tool)
 
 # }}}
 # {{{ 定义Module导入
+
 #$(call install-ui-model-cocos-module,product,module,to-path,pics)
 define install-ui-model-cocos-module
 
@@ -14,6 +16,7 @@ $(strip $1).ui-model.cocos-module.$(strip $2).input=$4
 $(strip $1).ui-model.cocos-module.$(strip $2).output=$3
 
 endef
+
 # }}}
 # {{{ 定义cocos序列帧特效
 
@@ -36,6 +39,7 @@ endef
 
 # }}}
 # {{{ 定义cocos2特效
+
 #$(call install-ui-model-cocos-particles,product,module,src-path,to-path)
 define install-ui-model-cocos-particle-one
 $1.ui-model.cocos-particle.modules+=$2
@@ -48,6 +52,7 @@ define install-ui-model-cocos-particles
 $(foreach m,$(basename $(notdir $(wildcard $($1.ui-model.root)/$2/*.plist))),$(call install-ui-model-cocos-particle-one,$1,$m,$2,$3,$4))
 
 endef
+
 # }}}
 # {{{ 定义file序列帧特效
 
@@ -62,7 +67,7 @@ $1.ui-model.file-effect.$2.frame-position=$7
 $1.ui-model.file-effect.$2.frame-order=$8
 
 endef
-
+#                                     $1      $2      $3       $4  $5             $6             $7
 #$(call install-ui-model-file-effects,product,to-path,src-path,sep,frame-duration,frame-position,frame-order)
 define install-ui-model-file-effects
 
@@ -75,13 +80,18 @@ $(foreach m,\
 
 endef
 
-#$(call install-ui-model-dir-effects,product,to-path,src-path,sep,frame-duration,frame-position,frame-order)
+# }}}
+# {{{ 定义dir序列帧特效
+#                                    $1      $2     $3      $4       $5             $6             $7 
+#$(call install-ui-model-dir-effects,product,module,to-path,src-path,frame-duration,frame-position,frame-order)
 define install-ui-model-dir-effects
 
-$(foreach m,\
-	$(notdir $(wildcard $3/*)), \
-        $(call install-ui-model-file-effect-one,$1,$(notdir $2)-$m,$(if $2,$2/$m,$m),$3/$m,$(basename $(notdir $(wildcard $3/$m/*.png))),$5,$6,$7)) \
-
+$1.ui-model.dir-effect.modules+=$2
+$1.ui-model.dir-effect.$2.input=$4
+$1.ui-model.dir-effect.$2.output=$3
+$1.ui-model.dir-effect.$2.frame-duration=$5
+$1.ui-model.dir-effect.$2.frame-position=$6
+$1.ui-model.dir-effect.$2.frame-order=$7
 
 endef
 
@@ -103,8 +113,6 @@ endef
 #$(call def-ui-model-file-effect,project,model)
 define def-ui-model-file-effect-import
 
-$$(call assert-not-null,TEXTUREPACKER)
-
 $1-model-import: $$($1.ui-model.root)/Action/$$($1.ui-model.file-effect.$2.output)/$2.npAction
 
 auto-build-dirs+=$$(dir $$($1.ui-model.root)/Texture/$$($1.ui-model.file-effect.$2.output)) \
@@ -120,7 +128,7 @@ $$($1.ui-model.file-effect.$2.input)/$2.tps: $$(patsubst %,$$($1.ui-model.file-e
         $$(addprefix --input , $$(sort $$(notdir $$^)))
 
 $$($1.ui-model.file-effect.$2.input)/$2.plist: $$($1.ui-model.file-effect.$2.input)/$2.tps
-	$(call with_message,texture pack $2)'$$(TEXTUREPACKER)' --force-publish '$$(call cygwin-path-to-win,$$^)'
+	$$(if $$(TEXTUREPACKER),$(call with_message,texture pack $2)'$$(TEXTUREPACKER)' --force-publish '$$(call cygwin-path-to-win,$$^)',echo "TEXTUREPACKER not set!")
 
 $1.ui-model.file-effect.$2.frame-duration ?= 1
 $1.ui-model.file-effect.$2.frame-position ?= center
@@ -139,12 +147,50 @@ $$($1.ui-model.root)/Action/$$($1.ui-model.file-effect.$2.output)/$2.npAction: $
 endef
 
 # }}}
+# {{{ 实现：dir序列帧合并导入
+
+#$(call def-ui-model-dir-effect,project,model)
+define def-ui-model-dir-effect-import
+
+$1-model-import: $$($1.ui-model.root)/Action/$$($1.ui-model.dir-effect.$2.output)/$2.npAction
+
+auto-build-dirs+=$$(dir $$($1.ui-model.root)/Texture/$$($1.ui-model.dir-effect.$2.output)) \
+                 $$(dir $$($1.ui-model.root)/Module/$$($1.ui-model.dir-effect.$2.output)) \
+                 $$(dir $$($1.ui-model.root)/Action/$$($1.ui-model.dir-effect.$2.output))
+
+.PHONY: $$($1.ui-model.dir-effect.$2.input)/$2.tps
+$$($1.ui-model.dir-effect.$2.input)/$2.tps: $$(foreach m,$$(notdir $$(wildcard $$($1.ui-model.dir-effect.$2.input))/*),$$(wildcard $$($1.ui-model.dir-effect.$2.input)/$$m/*.png))
+	$(call with_message,generate tp project $2)$$(CPDE_PERL) $$(CPDE_ROOT)/buildtools/tools/gen-tp-project.pl \
+        --output-proj $$@ \
+        --output-pic $$(call build-relative-path,$$($1.ui-model.root)/Texture/$$($1.ui-model.dir-effect.$2.output).png,$$($1.ui-model.dir-effect.$2.input)/$2.tps) \
+        --output-plist $2.plist \
+        $$(addprefix --input , $$(sort $$(subst $$($1.ui-model.dir-effect.$2.input)/,,$$^)))
+
+$$($1.ui-model.dir-effect.$2.input)/$2.plist: $$($1.ui-model.dir-effect.$2.input)/$2.tps
+	$$(if $$(TEXTUREPACKER),$(call with_message,texture pack $2)'$$(TEXTUREPACKER)' --force-publish '$$(call cygwin-path-to-win,$$^)',echo "TEXTUREPACKER not set!")
+
+$1.ui-model.dir-effect.$2.frame-duration ?= 1
+$1.ui-model.dir-effect.$2.frame-position ?= center
+
+$$($1.ui-model.root)/Action/$$($1.ui-model.dir-effect.$2.output)/$2.npAction: $$($1.ui-model.dir-effect.$2.input)/$2.plist $$(UI_MODEL_TOOL)
+	$(call with_message,import file action $2)$$(UI_MODEL_TOOL) cocos-effect-import \
+        --model $$($1.ui-model.root) --format np \
+        --to-effect Action/$$($1.ui-model.dir-effect.$2.output) \
+        --to-module Module/$$($1.ui-model.dir-effect.$2.output) \
+        --frame-duration $$($1.ui-model.dir-effect.$2.frame-duration) \
+        --frame-position $$($1.ui-model.dir-effect.$2.frame-position) \
+        --frame-order $$($1.ui-model.dir-effect.$2.frame-order) \
+        --plist $$($1.ui-model.dir-effect.$2.input)/$2.plist \
+        --pic Texture/$$($1.ui-model.dir-effect.$2.output).png
+
+endef
+
+# }}}
 # {{{ 实现：cocos图片模块
 
 #$(call def-ui-model-cocos-module-import,product,model)
 define def-ui-model-cocos-module-import
 
-$$(call assert-not-null,TEXTUREPACKER)
 $$(call assert-not-null,$1.ui-model.cocos-module.$2.input)
 
 $1-model-import: $$($1.ui-model.root)/Module/$$($1.ui-model.cocos-module.$2.output).npModule
@@ -161,7 +207,7 @@ $$(firstword $$(sort $$(dir $$($1.ui-model.cocos-module.$2.input))))$(strip $2).
         $$(addprefix --input , $$(foreach i,$$(sort $$^),$$(call build-relative-path,$$i,$$(dir $$@))))
 
 $$($1.ui-model.root)/Texture/$$($1.ui-model.cocos-module.$2.output).plist: $$(firstword $$(sort $$(dir $$($1.ui-model.cocos-module.$2.input))))$(strip $2).tps
-	$(call with_message,texture pack $2)'$$(TEXTUREPACKER)' --force-publish '$$(call cygwin-path-to-win,$$^)'
+	$$(if $$(TEXTUREPACKER),$(call with_message,texture pack $2)'$$(TEXTUREPACKER)' --force-publish '$$(call cygwin-path-to-win,$$^)',echo "TEXTUREPACKER not set!")
 
 $$($1.ui-model.root)/Module/$$($1.ui-model.cocos-module.$2.output).npModule: $$($1.ui-model.root)/Texture/$$($1.ui-model.cocos-module.$2.output).plist $$(UI_MODEL_TOOL)
 	$(call with_message,import cocos module $2)$$(UI_MODEL_TOOL) cocos-module-import \
@@ -207,6 +253,7 @@ $$($1.ui-model.root)/Module/$$($1.ui-model.cocos-effect.$2.output).npModule $$($
 endef
 # }}}
 # {{{ 实现：cocos粒子动画
+
 #$(call def-ui-model-cocos-particle,model)
 define def-ui-model-cocos-particle-import
 
@@ -228,10 +275,10 @@ $$($1.ui-model.root)/Particle/$$($1.ui-model.cocos-particle.$2.output).particle:
         --pic Texture/$$($1.ui-model.cocos-particle.$2.output).png
 
 endef
+
 # }}}
-# {{{ 实现：总入口
-#main interface
-define product-def-rule-ui-model-i
+# {{{ 实现：定义导入操作
+define product-def-rule-ui-model-import
 
 .PHONY: $1-model-ops
 $1-model-ops:
@@ -243,8 +290,8 @@ $1-model-convert: $$(UI_MODEL_TOOL)
 
 $(foreach op,$($1.ui-model.ops),$(call def-ui-model-tool-op,$1,$(patsubst %.yml,%,$(notdir $(op))),$(op)))
 
-
 .PHONY: $1-model-import
+$(foreach module,$($1.ui-model.dir-effect.modules),$(call def-ui-model-dir-effect-import,$1,$(module)))
 $(foreach module,$($1.ui-model.file-effect.modules),$(call def-ui-model-file-effect-import,$1,$(module)))
 $(foreach module,$($1.ui-model.cocos-module.modules),$(call def-ui-model-cocos-module-import,$1,$(module)))
 $(foreach module,$($1.ui-model.cocos-effect.modules),$(call def-ui-model-cocos-effect-import,$1,$(module)))
@@ -252,9 +299,30 @@ $(foreach module,$($1.ui-model.cocos-particle.modules),$(call def-ui-model-cocos
 
 endef
 
+# }}}
+# {{{ 实现：定义导出操作
+#$(call product-def-rule-ui-model-export,product,domain)
+define product-def-rule-ui-model-export
+
+$(call assert-not-null,$1.output)
+
+.PHONY: $2.$1-model-export
+$2.$1-model-export: $$(UI_MODEL_EXPORT_TOOL)
+	$(call with_message,generate np filelist $2.$1)$$(CPDE_PERL) $$(CPDE_ROOT)/buildtools/tools/np-gen-filelist.pl \
+		--input=$$($1.ui-model.root) --output=$$(if $$($1.ui-model.output),$$($1.ui-model.output),$$(CPDE_OUTPUT_ROOT)/$$($2.output)/$$($1.output))/2DSResource.meta
+	$(call with_message,export bin files $2.$1)$$(UI_MODEL_EXPORT_TOOL) \
+        --input=$$($1.ui-model.root) --output=$$(if $$($1.ui-model.output),$$($1.ui-model.output),$$(CPDE_OUTPUT_ROOT)/$$($2.output)/$$($1.output))
+endef
+
+# }}}
+# {{{ 实现：总入口
+#main interface
 define product-def-rule-ui-model
 
-$(if $($1-rule-ui-model-defined),,$(eval $1-rule-ui-model-defined:=1)$(call product-def-rule-ui-model-i,$1))
+$(if $($1-rule-ui-model-defined),,$(eval $1-rule-ui-model-defined:=1)$(call product-def-rule-ui-model-import,$1))
+
+$(call product-def-rule-ui-model-export,$1,$2)
 
 endef
+
 # }}}
