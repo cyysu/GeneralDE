@@ -221,7 +221,16 @@
 				>
 				<Tool
 					Name="VCCustomBuildTool"
-					CommandLine="set PATH=$(SolutionDir)..\..\3rdTools\iconv\vc\bin;$(SolutionDir)..\..\3rdTools\zlib\vc\bin;%PATH%&#x0D;&#x0A;$(SolutionDir)..\..\build\vc\tools\cpe_dr_tool.exe -i $(InputPath) --output-h $(SolutionDir)..\..\build\vc\protocol\$(SafeRootNamespace)\protocol\svr\conn --output-lib-c $(SolutionDir)..\..\build\vc\protocol\$(SafeRootNamespace)\protocol\svr\conn\metalib.c --output-lib-c-arg g_metalib_svr_conn_pro&#x0D;&#x0A;"
+					CommandLine="set PATH=$(SolutionDir)..\..\3rdTools\iconv\vc\bin;$(SolutionDir)..\..\3rdTools\zlib\vc\bin;%PATH%&#x0D;&#x0A;$(SolutionDir)..\..\build\vc\tools\cpe_dr_tool.exe -i $(InputPath) --output-h $(SolutionDir)..\..\build\vc\protocol\$(SafeRootNamespace)\protocol\svr\conn --output-lib-c $(SolutionDir)..\..\build\vc\protocol\$(SafeRootNamespace)\protocol\svr\conn\metalib.c --output-lib-c-arg g_metalib_svr_conn_pro --align 1&#x0D;&#x0A;"
+					Outputs="$(SolutionDir)..\..\build\vc\protocol\$(SafeRootNamespace)\protocol\svr\conn\metalib.c"
+				/>
+			</FileConfiguration>
+			<FileConfiguration
+				Name="Debug|Win32"
+				>
+				<Tool
+					Name="VCCustomBuildTool"
+					CommandLine="set PATH=$(SolutionDir)..\..\3rdTools\iconv\vc\bin;$(SolutionDir)..\..\3rdTools\zlib\vc\bin;%PATH%&#x0D;&#x0A;$(SolutionDir)..\..\build\vc\tools\cpe_dr_tool.exe -i $(InputPath) --output-h $(SolutionDir)..\..\build\vc\protocol\$(SafeRootNamespace)\protocol\svr\conn --output-lib-c $(SolutionDir)..\..\build\vc\protocol\$(SafeRootNamespace)\protocol\svr\conn\metalib.c --output-lib-c-arg g_metalib_svr_conn_pro --align 1&#x0D;&#x0A;"
 					Outputs="$(SolutionDir)..\..\build\vc\protocol\$(SafeRootNamespace)\protocol\svr\conn\metalib.c"
 				/>
 			</FileConfiguration>
