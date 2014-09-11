@@ -18,8 +18,8 @@
 	<Configurations>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory="$(SolutionDir)..\..\build\vc\$(ConfigurationName)\lib"
-			IntermediateDirectory="$(SolutionDir)..\..\build\vc\$(ConfigurationName)\$(ProjectName)\building"
+			OutputDirectory="../../build/vs2008/$(ProjectName)/$(ConfigurationName)"
+			IntermediateDirectory="../../build/vs2008/$(ProjectName)/$(ConfigurationName)"
 			ConfigurationType="4"
 			CharacterSet="1"
 			>
@@ -49,6 +49,7 @@
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				DebugInformationFormat="4"
+				CompileAs="0"
 				DisableSpecificWarnings="4819"
 			/>
 			<Tool
@@ -83,8 +84,8 @@
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="$(SolutionDir)..\..\build\vc\$(ConfigurationName)\lib"
-			IntermediateDirectory="$(SolutionDir)..\..\build\vc\$(ConfigurationName)\$(ProjectName)\building"
+			OutputDirectory="../../build/vs2008/$(ProjectName)/$(ConfigurationName)"
+			IntermediateDirectory="../../build/vs2008/$(ProjectName)/$(ConfigurationName)"
 			ConfigurationType="4"
 			CharacterSet="1"
 			WholeProgramOptimization="1"
@@ -115,6 +116,7 @@
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				DebugInformationFormat="3"
+				CompileAs="0"
 				DisableSpecificWarnings="4819"
 			/>
 			<Tool
