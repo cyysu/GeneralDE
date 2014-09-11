@@ -1,0 +1,292 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\build\vc\protocol\ui\app\ui_app_evt.h" />
+    <ClInclude Include="..\..\build\vc\protocol\ui\sprite_b2\ui_sprite_b2_evt.h" />
+    <ClInclude Include="..\..\include\uipp\app\Env.hpp" />
+    <ClInclude Include="..\..\include\uipp\app\Gen\PageEvtSch.hpp" />
+    <ClInclude Include="..\..\include\uipp\app\Gen\PageGen.hpp" />
+    <ClInclude Include="..\..\include\uipp\app\Page.hpp" />
+    <ClInclude Include="..\..\include\uipp\app\System.hpp" />
+    <ClInclude Include="..\..\include\uipp\app\UICenter.hpp" />
+    <ClInclude Include="..\..\include\uipp\app\UIPageProxy.hpp" />
+    <ClInclude Include="..\..\include\uipp\app\UIPhase.hpp" />
+    <ClInclude Include="..\..\include\uipp\app\UIPhaseNode.hpp" />
+    <ClInclude Include="..\..\include\uipp\sprite\Component.hpp" />
+    <ClInclude Include="..\..\include\uipp\sprite\ComponentGen.hpp" />
+    <ClInclude Include="..\..\include\uipp\sprite\ComponentMeta.hpp" />
+    <ClInclude Include="..\..\include\uipp\sprite\ComponentReg.hpp" />
+    <ClInclude Include="..\..\include\uipp\sprite\ComponentSimulate.hpp" />
+    <ClInclude Include="..\..\include\uipp\sprite\ComponentWithDataGen.hpp" />
+    <ClInclude Include="..\..\include\uipp\sprite\Entity.hpp" />
+    <ClInclude Include="..\..\include\uipp\sprite\EntityIterator.hpp" />
+    <ClInclude Include="..\..\include\uipp\sprite\Group.hpp" />
+    <ClInclude Include="..\..\include\uipp\sprite\Repository.hpp" />
+    <ClInclude Include="..\..\include\uipp\sprite\System.hpp" />
+    <ClInclude Include="..\..\include\uipp\sprite\World.hpp" />
+    <ClInclude Include="..\..\include\uipp\sprite\WorldRes.hpp" />
+    <ClInclude Include="..\..\include\uipp\sprite\WorldResGen.hpp" />
+    <ClInclude Include="..\..\include\uipp\sprite\WorldUpdatorGen.hpp" />
+    <ClInclude Include="..\..\include\uipp\sprite_2d\System.hpp" />
+    <ClInclude Include="..\..\include\uipp\sprite_2d\Transform.hpp" />
+    <ClInclude Include="..\..\include\uipp\sprite_anim\AnimationBackend.hpp" />
+    <ClInclude Include="..\..\include\uipp\sprite_anim\AnimationBackendGen.hpp" />
+    <ClInclude Include="..\..\include\uipp\sprite_anim\AnimationCamera.hpp" />
+    <ClInclude Include="..\..\include\uipp\sprite_anim\AnimationSch.hpp" />
+    <ClInclude Include="..\..\include\uipp\sprite_anim\System.hpp" />
+    <ClInclude Include="..\..\include\uipp\sprite_b2\B2Object.hpp" />
+    <ClInclude Include="..\..\include\uipp\sprite_b2\B2ObjectPart.hpp" />
+    <ClInclude Include="..\..\include\uipp\sprite_b2\B2System.hpp" />
+    <ClInclude Include="..\..\include\uipp\sprite_b2\B2World.hpp" />
+    <ClInclude Include="..\..\include\uipp\sprite_cfg\ActionModuleReg.hpp" />
+    <ClInclude Include="..\..\include\uipp\sprite_cfg\CfgLoader.hpp" />
+    <ClInclude Include="..\..\include\uipp\sprite_cfg\CfgLoaderExternGen.hpp" />
+    <ClInclude Include="..\..\include\uipp\sprite_cfg\System.hpp" />
+    <ClInclude Include="..\..\include\uipp\sprite_fsm\Action.hpp" />
+    <ClInclude Include="..\..\include\uipp\sprite_fsm\ActionGen.hpp" />
+    <ClInclude Include="..\..\include\uipp\sprite_fsm\ActionMeta.hpp" />
+    <ClInclude Include="..\..\include\uipp\sprite_fsm\ActionReg.hpp" />
+    <ClInclude Include="..\..\include\uipp\sprite_fsm\ActionVisitor.hpp" />
+    <ClInclude Include="..\..\include\uipp\sprite_fsm\Fsm.hpp" />
+    <ClInclude Include="..\..\include\uipp\sprite_fsm\Repository.hpp" />
+    <ClInclude Include="..\..\include\uipp\sprite_fsm\State.hpp" />
+    <ClInclude Include="..\..\include\uipp\sprite_fsm\System.hpp" />
+    <ClInclude Include="..\..\include\uipp\sprite_np\Context.hpp" />
+    <ClInclude Include="..\..\include\uipp\sprite_np\Layer.hpp" />
+    <ClInclude Include="..\..\include\uipp\sprite_np\Module.hpp" />
+    <ClInclude Include="..\..\include\uipp\sprite_np\NpUtils.hpp" />
+    <ClInclude Include="..\..\include\uipp\sprite_np\System.hpp" />
+    <ClInclude Include="..\..\include\uipp\sprite_touch\System.hpp" />
+    <ClInclude Include="..\..\include\uipp\sprite_touch\TouchComponent.hpp" />
+    <ClInclude Include="..\..\include\uipp\sprite_touch\TouchManager.hpp" />
+    <ClInclude Include="..\..\src\uipp\app\DeviceExt.hpp" />
+    <ClInclude Include="..\..\src\uipp\app\EnvExt.hpp" />
+    <ClInclude Include="..\..\src\uipp\app\RuningExt.hpp" />
+    <ClInclude Include="..\..\src\uipp\app\SpritePlugin.hpp" />
+    <ClInclude Include="..\..\src\uipp\app\StringInfoMgr.hpp" />
+    <ClInclude Include="..\..\src\uipp\app\System.hpp" />
+    <ClInclude Include="..\..\src\uipp\app\UIAction_AlphaInOut.hpp" />
+    <ClInclude Include="..\..\src\uipp\app\UIAction_AudioBGM.hpp" />
+    <ClInclude Include="..\..\src\uipp\app\UIAction_AudioSFX.hpp" />
+    <ClInclude Include="..\..\src\uipp\app\UIAction_MoveInOut.hpp" />
+    <ClInclude Include="..\..\src\uipp\app\UIAction_PlayAnim.hpp" />
+    <ClInclude Include="..\..\src\uipp\app\UIAction_ScaleInOut.hpp" />
+    <ClInclude Include="..\..\src\uipp\app\UIAction_SetupControl.hpp" />
+    <ClInclude Include="..\..\src\uipp\app\UIAction_ShowPage.hpp" />
+    <ClInclude Include="..\..\src\uipp\app\UIAction_SwitchPhase.hpp" />
+    <ClInclude Include="..\..\src\uipp\app\UICenterExt.hpp" />
+    <ClInclude Include="..\..\src\uipp\app\UIOperation.hpp" />
+    <ClInclude Include="..\..\src\uipp\app\UIPageBindings.hpp" />
+    <ClInclude Include="..\..\src\uipp\app\UIPageEventHandler.hpp" />
+    <ClInclude Include="..\..\src\uipp\app\UIPageProxyExt.hpp" />
+    <ClInclude Include="..\..\src\uipp\app\UIPhaseExt.hpp" />
+    <ClInclude Include="..\..\src\uipp\app\UIPhaseNodeExt.hpp" />
+    <ClInclude Include="..\..\src\uipp\app\UIPopupPage.hpp" />
+    <ClInclude Include="..\..\src\uipp\app\UIPopupPageDef.hpp" />
+    <ClInclude Include="..\..\src\uipp\sprite_b2\B2Action_Manipulator.hpp" />
+    <ClInclude Include="..\..\src\uipp\sprite_b2\B2Action_OnCollision.hpp" />
+    <ClInclude Include="..\..\src\uipp\sprite_b2\B2Action_Runto.hpp" />
+    <ClInclude Include="..\..\src\uipp\sprite_b2\B2Action_Setup.hpp" />
+    <ClInclude Include="..\..\src\uipp\sprite_b2\B2Action_Suspend.hpp" />
+    <ClInclude Include="..\..\src\uipp\sprite_b2\B2Action_WaitCollision.hpp" />
+    <ClInclude Include="..\..\src\uipp\sprite_b2\B2Action_WaitNotCollision.hpp" />
+    <ClInclude Include="..\..\src\uipp\sprite_b2\B2Action_WaitStop.hpp" />
+    <ClInclude Include="..\..\src\uipp\sprite_b2\B2Collision.hpp" />
+    <ClInclude Include="..\..\src\uipp\sprite_b2\B2ObjectExt.hpp" />
+    <ClInclude Include="..\..\src\uipp\sprite_b2\B2ObjectPartExt.hpp" />
+    <ClInclude Include="..\..\src\uipp\sprite_b2\B2ObjectPartMeta.hpp" />
+    <ClInclude Include="..\..\src\uipp\sprite_b2\B2WorldExt.hpp" />
+    <ClInclude Include="..\..\src\uipp\sprite_np\AnimationFactory.hpp" />
+    <ClInclude Include="..\..\src\uipp\sprite_np\ContextExt.hpp" />
+    <ClInclude Include="..\..\src\uipp\sprite_np\GroupNode.hpp" />
+    <ClInclude Include="..\..\src\uipp\sprite_np\LayerExt.hpp" />
+    <ClInclude Include="..\..\src\uipp\sprite_np\ModuleExt.hpp" />
+    <ClInclude Include="..\..\src\uipp\sprite_np\RControlNode.hpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\build\vc\protocol\ui\app\app_meta_lib.c" />
+    <ClCompile Include="..\..\build\vc\protocol\ui\app\app_meta_traits.cpp" />
+    <ClCompile Include="..\..\build\vc\protocol\ui\sprite_b2\sprite_b2_meta_lib.c" />
+    <ClCompile Include="..\..\build\vc\protocol\ui\sprite_b2\sprite_b2_meta_traits.cpp" />
+    <ClCompile Include="..\..\src\uipp\app\DeviceExt.cpp" />
+    <ClCompile Include="..\..\src\uipp\app\EnvExt.cpp" />
+    <ClCompile Include="..\..\src\uipp\app\Page.cpp" />
+    <ClCompile Include="..\..\src\uipp\app\PageEvtSch.cpp" />
+    <ClCompile Include="..\..\src\uipp\app\RuningExt.cpp" />
+    <ClCompile Include="..\..\src\uipp\app\SpritePlugin.cpp" />
+    <ClCompile Include="..\..\src\uipp\app\StringInfoMgr.cpp" />
+    <ClCompile Include="..\..\src\uipp\app\UIAction_AlphaInOut.cpp" />
+    <ClCompile Include="..\..\src\uipp\app\UIAction_AudioBGM.cpp" />
+    <ClCompile Include="..\..\src\uipp\app\UIAction_AudioSFX.cpp" />
+    <ClCompile Include="..\..\src\uipp\app\UIAction_MoveInOut.cpp" />
+    <ClCompile Include="..\..\src\uipp\app\UIAction_PlayAnim.cpp" />
+    <ClCompile Include="..\..\src\uipp\app\UIAction_ScaleInOut.cpp" />
+    <ClCompile Include="..\..\src\uipp\app\UIAction_SetupControl.cpp" />
+    <ClCompile Include="..\..\src\uipp\app\UIAction_ShowPage.cpp" />
+    <ClCompile Include="..\..\src\uipp\app\UIAction_SwitchPhase.cpp" />
+    <ClCompile Include="..\..\src\uipp\app\UICenterExt.cpp" />
+    <ClCompile Include="..\..\src\uipp\app\UIOperation.cpp" />
+    <ClCompile Include="..\..\src\uipp\app\UIPageBindings.cpp" />
+    <ClCompile Include="..\..\src\uipp\app\UIPageEventHandler.cpp" />
+    <ClCompile Include="..\..\src\uipp\app\UIPageProxyExt.cpp" />
+    <ClCompile Include="..\..\src\uipp\app\UIPhaseExt.cpp" />
+    <ClCompile Include="..\..\src\uipp\app\UIPhaseNodeExt.cpp" />
+    <ClCompile Include="..\..\src\uipp\app\UIPopupPage.cpp" />
+    <ClCompile Include="..\..\src\uipp\app\UIPopupPageDef.cpp" />
+    <ClCompile Include="..\..\src\uipp\app\UIUniPage.cpp" />
+    <ClCompile Include="..\..\src\uipp\app\win32\Env_DeviceId.cpp" />
+    <ClCompile Include="..\..\src\uipp\app\win32\Env_Language.cpp" />
+    <ClCompile Include="..\..\src\uipp\app\win32\Env_Path.cpp" />
+    <ClCompile Include="..\..\src\uipp\app\win32\main.cpp" />
+    <ClCompile Include="..\..\src\uipp\sprite\Component.cpp" />
+    <ClCompile Include="..\..\src\uipp\sprite\Entity.cpp" />
+    <ClCompile Include="..\..\src\uipp\sprite\EntityIterator.cpp" />
+    <ClCompile Include="..\..\src\uipp\sprite\Group.cpp" />
+    <ClCompile Include="..\..\src\uipp\sprite\Repository.cpp">
+      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)SpriteRepository.obj</ObjectFileName>
+      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)SpriteRepository.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="..\..\src\uipp\sprite\World.cpp">
+      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)/SpriteWorld.obj</ObjectFileName>
+      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)/SpriteWorld.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="..\..\src\uipp\sprite_2d\Transform.cpp" />
+    <ClCompile Include="..\..\src\uipp\sprite_anim\AnimationBackend.cpp" />
+    <ClCompile Include="..\..\src\uipp\sprite_anim\AnimationCamera.cpp" />
+    <ClCompile Include="..\..\src\uipp\sprite_anim\AnimationSch.cpp" />
+    <ClCompile Include="..\..\src\uipp\sprite_b2\B2Action_Manipulator.cpp" />
+    <ClCompile Include="..\..\src\uipp\sprite_b2\B2Action_OnCollision.cpp" />
+    <ClCompile Include="..\..\src\uipp\sprite_b2\B2Action_Runto.cpp" />
+    <ClCompile Include="..\..\src\uipp\sprite_b2\B2Action_Setup.cpp" />
+    <ClCompile Include="..\..\src\uipp\sprite_b2\B2Action_Suspend.cpp" />
+    <ClCompile Include="..\..\src\uipp\sprite_b2\B2Action_WaitCollision.cpp" />
+    <ClCompile Include="..\..\src\uipp\sprite_b2\B2Action_WaitNotCollision.cpp" />
+    <ClCompile Include="..\..\src\uipp\sprite_b2\B2Action_WaitStop.cpp" />
+    <ClCompile Include="..\..\src\uipp\sprite_b2\B2Collision.cpp" />
+    <ClCompile Include="..\..\src\uipp\sprite_b2\B2Module.cpp" />
+    <ClCompile Include="..\..\src\uipp\sprite_b2\B2ObjectExt.cpp" />
+    <ClCompile Include="..\..\src\uipp\sprite_b2\B2ObjectPartExt.cpp" />
+    <ClCompile Include="..\..\src\uipp\sprite_b2\B2ObjectPartMeta.cpp" />
+    <ClCompile Include="..\..\src\uipp\sprite_b2\B2WorldExt.cpp" />
+    <ClCompile Include="..\..\src\uipp\sprite_cfg\CfgLoader.cpp" />
+    <ClCompile Include="..\..\src\uipp\sprite_fsm\Action.cpp" />
+    <ClCompile Include="..\..\src\uipp\sprite_fsm\Fsm.cpp" />
+    <ClCompile Include="..\..\src\uipp\sprite_fsm\Repository.cpp" />
+    <ClCompile Include="..\..\src\uipp\sprite_fsm\State.cpp" />
+    <ClCompile Include="..\..\src\uipp\sprite_np\AnimationFactory.cpp" />
+    <ClCompile Include="..\..\src\uipp\sprite_np\ContextExt.cpp" />
+    <ClCompile Include="..\..\src\uipp\sprite_np\GroupNode.cpp" />
+    <ClCompile Include="..\..\src\uipp\sprite_np\LayerExt.cpp" />
+    <ClCompile Include="..\..\src\uipp\sprite_np\ModuleExt.cpp" />
+    <ClCompile Include="..\..\src\uipp\sprite_np\NpUtils.cpp" />
+    <ClCompile Include="..\..\src\uipp\sprite_np\RControlNode.cpp" />
+    <ClCompile Include="..\..\src\uipp\sprite_touch\Touchable.cpp" />
+    <ClCompile Include="..\..\src\uipp\sprite_touch\TouchManager.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="..\..\src\uipp\sprite_b2\protocol.def">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">set PATH=$(ProjectDir)..\..\3rdTools\iconv\vc\bin;$(ProjectDir)..\..\3rdTools\zlib\vc\bin;%PATH%
+$(ProjectDir)..\..\build\vc\tools\cpe_dr_tool.exe --input-group-root $(ProjectDir)../../src/ui/pro/sprite_b2 --input-group %(FullPath)  --output-h  $(ProjectDir)..\..\build\vc\protocol\ui\sprite_b2 --output-lib-c $(ProjectDir)..\..\build\vc\protocol\ui\sprite_b2\sprite_b2_meta_lib.c --with-traits --output-traits-cpp=$(ProjectDir)..\..\build\vc\protocol\ui\sprite_b2\sprite_b2_meta_traits.cpp --output-lib-c-arg=g_metalib_ui_sprite_b2
+</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">set PATH=$(ProjectDir)..\..\3rdTools\iconv\vc\bin;$(ProjectDir)..\..\3rdTools\zlib\vc\bin;%PATH%</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(ProjectDir)..\..\build\vc\protocol\ui\sprite_b2\sprite_b2_meta_lib.c</Outputs>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="..\..\src\uipp\app\protocol.def">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">set PATH=$(ProjectDir)..\..\3rdTools\iconv\vc\bin;$(ProjectDir)..\..\3rdTools\zlib\vc\bin;%PATH%
+$(ProjectDir)..\..\build\vc\tools\cpe_dr_tool.exe --input-group-root $(ProjectDir)../../src/ui/pro/app --input-group %(FullPath)  --output-h  $(ProjectDir)..\..\build\vc\protocol\ui\app --output-lib-c $(ProjectDir)..\..\build\vc\protocol\ui\app\app_meta_lib.c --with-traits --output-traits-cpp=$(ProjectDir)..\..\build\vc\protocol\ui\app\app_meta_traits.cpp --output-lib-c-arg=g_metalib_ui_app</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(ProjectDir)..\..\build\vc\protocol\ui\app\app_meta_lib.c</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(ProjectDir)..\..\build\vc\protocol\ui\app\app_meta_lib.c</Outputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">set PATH=$(ProjectDir)..\..\3rdTools\iconv\vc\bin;$(ProjectDir)..\..\3rdTools\zlib\vc\bin;%PATH%
+$(ProjectDir)..\..\build\vc\tools\cpe_dr_tool.exe --input-group-root $(ProjectDir)../../src/ui/pro/app --input-group %(FullPath)  --output-h  $(ProjectDir)..\..\build\vc\protocol\ui\app --output-lib-c $(ProjectDir)..\..\build\vc\protocol\ui\app\app_meta_lib.c --with-traits --output-traits-cpp=$(ProjectDir)..\..\build\vc\protocol\ui\app\app_meta_traits.cpp --output-lib-c-arg=g_metalib_ui_app</Command>
+    </CustomBuild>
+    <None Include="..\..\src\uipp\sprite\config.mk" />
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{CD696340-AF2A-4D07-BC14-0990C0FA0833}</ProjectGuid>
+    <RootNamespace>uipp</RootNamespace>
+    <Keyword>Win32Proj</Keyword>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>10.0.40219.1</_ProjectFileVersion>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">../../build/vc/$(ProjectName)/$(ConfigurationName)</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">../../build/vc/$(ProjectName)/$(ConfigurationName)</IntDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">../../build/vc/$(ProjectName)/$(ConfigurationName)</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">../../build/vc/$(ProjectName)/$(ConfigurationName)</IntDir>
+    <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">AllRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" />
+    <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" />
+    <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">AllRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" />
+    <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" />
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>../../3rdTools/yaml/include;../../3rdTools/yajl/include;../../3rdTools/libev/include;../../3rdTools/libxml2/include;../../3rdTools/iconv/vc/include;../../3rdTools/libxml2/include/vc;../../3rdTools/gles/vc/include;../../drow/render/include;../../drow/render/m3e/inc;../../3rdTools/pthread/vc/include;../../3rdTools/openal/vc/include;../../3rdTools/gles/include;../../3rdTools/Box2D/Box2D;../../build/vc;../../include</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_LIB;YAML_DECLARE_STATIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MinimalRebuild>true</MinimalRebuild>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+      <CompileAs>Default</CompileAs>
+      <DisableSpecificWarnings>4819;4996;4355;4624;4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <Lib>
+      <OutputFile>$(OutDir)lib$(ProjectName).lib</OutputFile>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <Optimization>MaxSpeed</Optimization>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <AdditionalIncludeDirectories>../../include;../../3rdTools/yaml/include;../../3rdTools/yajl/include;../../3rdTools/libev/include;../../3rdTools/libxml2/include;../../3rdTools/iconv/vc/include;../../3rdTools/libxml2/include/vc;../../3rdTools/NPEngine;../../3rdTools/NPEngine/inc;../../3rdTools/NPEngine/extern/pthread;../../3rdTools/NPEngine/extern/openal;../../3rdTools/NPEngine/extern/gles;../../3rdTools/Box2D/Box2D;../../build/vc;%(AdditionalIncludeDirectories);../../3rdTools/NPEngine/libxml/inc;../../3rdTools/NPEngine/m3e/inc</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;YAML_DECLARE_STATIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <CompileAs>CompileAsC</CompileAs>
+      <DisableSpecificWarnings>4819;4996;4355;4624;4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
