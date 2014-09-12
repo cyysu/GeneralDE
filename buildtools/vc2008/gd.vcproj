@@ -3,7 +3,7 @@
 	ProjectType="Visual C++"
 	Version="9.00"
 	Name="gd"
-	ProjectGUID="{5E7C0B7C-DE00-424E-AEF6-E2C313999037}"
+	ProjectGUID="{585B6AA4-3FF5-4E2A-B9AB-7509E8288295}"
 	RootNamespace="gd"
 	Keyword="Win32Proj"
 	TargetFrameworkVersion="196613"
@@ -18,8 +18,8 @@
 	<Configurations>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory="$(SolutionDir)..\..\build\vc\$(ConfigurationName)\lib"
-			IntermediateDirectory="$(SolutionDir)..\..\build\vc\$(ConfigurationName)\$(ProjectName)\building"
+			OutputDirectory="../../build/vs2008/$(ProjectName)/$(ConfigurationName)"
+			IntermediateDirectory="../../build/vs2008/$(ProjectName)/$(ConfigurationName)"
 			ConfigurationType="4"
 			CharacterSet="1"
 			>
@@ -83,8 +83,8 @@
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="$(SolutionDir)..\..\build\vc\$(ConfigurationName)\lib"
-			IntermediateDirectory="$(SolutionDir)..\..\build\vc\$(ConfigurationName)\$(ProjectName)\building"
+			OutputDirectory="../../build/vs2008/$(ProjectName)/$(ConfigurationName)"
+			IntermediateDirectory="../../build/vs2008/$(ProjectName)/$(ConfigurationName)"
 			ConfigurationType="4"
 			CharacterSet="1"
 			WholeProgramOptimization="1"
@@ -400,10 +400,6 @@
 					RelativePath="..\..\src\gd\timer\timer_manage.c"
 					>
 				</File>
-				<File
-					RelativePath="..\..\src\gd\timer\timer_processor.c"
-					>
-				</File>
 			</Filter>
 			<Filter
 				Name="evt"
@@ -554,52 +550,6 @@
 				</File>
 				<File
 					RelativePath="..\..\src\gd\net\app_net_runner.c"
-					>
-				</File>
-			</Filter>
-			<Filter
-				Name="vnet"
-				>
-				<File
-					RelativePath="..\..\src\gd\vnet\vnet_conn_info.c"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\gd\vnet\vnet_control_pkg.c"
-					>
-				</File>
-				<File
-					RelativePath="..\..\build\vc\protocol\gd\protocol\vnet\vnet_data.c"
-					>
-				</File>
-				<File
-					RelativePath="..\..\build\vc\protocol\gd\protocol\vnet\vnet_data.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\src\gd\vnet\vnet_data.xml"
-					>
-					<FileConfiguration
-						Name="Debug|Win32"
-						>
-						<Tool
-							Name="VCCustomBuildTool"
-							CommandLine="set PATH=$(SolutionDir)..\..\3rdTools\iconv\vc\bin;$(SolutionDir)..\..\3rdTools\zlib\vc\bin;%PATH%&#x0D;&#x0A;$(SolutionDir)..\..\build\vc\tools\cpe_dr_tool.exe -i $(InputPath) --output-h $(SolutionDir)..\..\build\vc\protocol\$(SafeRootNamespace)\protocol\vnet --output-lib-c $(SolutionDir)..\..\build\vc\protocol\$(SafeRootNamespace)\protocol\vnet\$(InputName).c --output-lib-c-arg g_metalib_vnet_metalib&#x0D;&#x0A;"
-							Outputs="$(SolutionDir)..\..\build\vc\protocol\$(SafeRootNamespace)\protocol\vnet\vnet_data.h"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Release|Win32"
-						>
-						<Tool
-							Name="VCCustomBuildTool"
-							CommandLine="set PATH=$(SolutionDir)..\..\3rdTools\iconv\vc\bin;$(SolutionDir)..\..\3rdTools\zlib\vc\bin;%PATH%&#x0D;&#x0A;$(SolutionDir)..\..\build\vc\tools\cpe_dr_tool.exe -i $(InputPath) --output-h $(SolutionDir)..\..\build\vc\protocol\$(SafeRootNamespace)\protocol\vnet --output-lib-c $(SolutionDir)..\..\build\vc\protocol\$(SafeRootNamespace)\protocol\vnet\$(InputName).c --output-lib-c-arg g_metalib_vnet_metalib&#x0D;&#x0A;"
-							Outputs="$(SolutionDir)..\..\build\vc\protocol\$(SafeRootNamespace)\protocol\vnet\vnet_data.h"
-						/>
-					</FileConfiguration>
-				</File>
-				<File
-					RelativePath="..\..\src\gd\vnet\vnet_internal_types.h"
 					>
 				</File>
 			</Filter>
