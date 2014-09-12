@@ -25,3 +25,4 @@ t/svr/mail
 t/svr/uhub
 t/svr/dir
 t/support/ui_np
+t/3rdTools/libgif
