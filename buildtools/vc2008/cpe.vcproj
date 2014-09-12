@@ -689,6 +689,14 @@
 				Name="cfg"
 				>
 				<File
+					RelativePath="..\..\src\cpe\cfg\cfg_bin_read.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\cpe\cfg\cfg_bin_write.c"
+					>
+				</File>
+				<File
 					RelativePath="..\..\src\cpe\cfg\cfg_compaire.c"
 					>
 				</File>
@@ -742,6 +750,10 @@
 				</File>
 				<File
 					RelativePath="..\..\src\cpe\cfg\cfg_yaml_write.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\src\cpe\cfg\cfg_zip_read.c"
 					>
 				</File>
 			</Filter>
