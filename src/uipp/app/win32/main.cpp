@@ -1,5 +1,5 @@
 #include <windows.h>
-#include "RRenderWindowGLES.h"
+#include "RRenderWindowGLEE.h"
 #include "m3eTypes.h"
 #include "RGUIDesktop.h"
 #include "RGUIImeManagerWin32.h"
@@ -7,9 +7,7 @@
 #include "gdpp/app/Module.hpp"
 #include "../EnvExt.hpp"
 #include "../RuningExt.hpp"
-
-#pragma comment(lib, "libEGL.lib")
-#pragma comment(lib, "libGLESv2.lib")
+#include "RRender.h"
 
 #define  DEVICE_SCREEN_W  960//480
 #define  DEVICE_SCREEN_H  640//320
@@ -86,11 +84,9 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam 
     {
         int x = LOWORD(lParam);
         int y = HIWORD(lParam);
-        wchar_t szBuf[64];
+        char szBuf[64];
         GetClassName(hWnd, szBuf, sizeof(szBuf));
-
-		wchar_t szBuf2[128];
-        wsprintf(szBuf2, L"%s | %d %d", szBuf, x, y);
+        sprintf(szBuf, "%s | %d %d", szBuf, x, y);
         SetWindowText(hWnd, szBuf);
         if(GetCapture() == hWnd)
         {
@@ -140,7 +136,7 @@ int CALLBACK WinMain(__in HINSTANCE hInstance, __in_opt HINSTANCE hPrevInstance,
 	wc.hIcon			= LoadIcon(NULL, IDI_APPLICATION);
 	wc.hInstance		= hInstance;
 	wc.lpfnWndProc		= WndProc;
-	wc.lpszClassName	= L"DrowGame";
+	wc.lpszClassName	= "DrowGame";
 	wc.lpszMenuName		= NULL;
 	wc.style			= CS_VREDRAW | CS_HREDRAW | CS_OWNDC;
 
@@ -163,7 +159,7 @@ int CALLBACK WinMain(__in HINSTANCE hInstance, __in_opt HINSTANCE hPrevInstance,
 	int windowLeft = (GetSystemMetrics(SM_CXSCREEN) - realWidth) / 2;
 	int windowTop = (GetSystemMetrics(SM_CYSCREEN) - realHeight) / 2;
  
-	HWND hWnd = CreateWindow(L"DrowGame", L"DrowGame", style, windowLeft, windowTop, g_Device_Screen_W, g_Device_Screen_H, NULL, NULL, hInstance, NULL);
+	HWND hWnd = CreateWindow("DrowGame", "DrowGame", style, windowLeft, windowTop, g_Device_Screen_W, g_Device_Screen_H, NULL, NULL, hInstance, NULL);
 	if (hWnd == NULL)
 		return 0;
 
@@ -176,7 +172,7 @@ int CALLBACK WinMain(__in HINSTANCE hInstance, __in_opt HINSTANCE hPrevInstance,
 	MoveWindow(hWnd, windowLeft, windowTop, w, h, FALSE);
 
 
-	RRenderWindowGLES* m_pWindow = new RRenderWindowGLES(hWnd, true);
+	RRenderWindowGLEE* m_pWindow = new RRenderWindowGLEE(hWnd, true);
     m_pWindow->Current();
 
     char prog_name[] = "PlayerShareData";
