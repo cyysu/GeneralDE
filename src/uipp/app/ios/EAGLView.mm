@@ -1,7 +1,6 @@
 #import "EAGLView.h"
 #import "common.h"
-#import "m3eFrameWork.h"
-#include "RGUITouchProc.h"
+#include "../EnvExt.hpp"
 
 @interface EAGLView (PrivateMethods)
 - (void)createFramebuffer;
@@ -138,10 +137,6 @@
             [self createFramebuffer];
         
         glBindFramebuffer(GL_FRAMEBUFFER, defaultFramebuffer);
-        
-//        glViewport(0, 0, framebufferWidth, framebufferHeight);
-        CGRect rt = GetRenderRectInPixels();
-        glViewport(rt.origin.x, rt.origin.y, rt.size.width, rt.size.height);
     }
 }
 

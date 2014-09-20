@@ -18,6 +18,7 @@ public:
     virtual uint8_t debug(void) const;
 
     virtual Language language(void) const;
+    virtual const char * appName(void) const;
 
     virtual Gd::App::Application & app(void);
     virtual Gd::App::Application const & app(void) const;
@@ -35,6 +36,8 @@ public:
     virtual Sprite::World const & world(void) const;
 
     virtual Sprite::P2D::Pair const & screenSize(void) const;
+    virtual Sprite::P2D::Pair const & screenBaseSize(void) const;
+
     virtual const char * deviceId(void) const;
     virtual const char * documentPath(void) const;
 
@@ -63,6 +66,9 @@ private:
     mutable Language m_language;
     mutable ::std::string m_deviceId;
     mutable ::std::string m_documentPath;
+
+    Sprite::P2D::Pair m_screenBaseSize;
+    ::std::string m_appName;
     uint8_t m_debug;
 
     ui_sprite_world_t m_world;

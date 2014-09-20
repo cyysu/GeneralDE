@@ -11,6 +11,9 @@
 #include "uipp/sprite_2d/System.hpp"
 #include "uipp/sprite_np/Module.hpp"
 #include "uipp/sprite_touch/TouchManager.hpp"
+#include "gdpp/app/Application.hpp"
+#include "gdpp/app/Log.hpp"
+#include "render/repo/ui_repo_repository.h"
 #include "RuningExt.hpp"
 #include "EnvExt.hpp"
 
@@ -30,25 +33,25 @@ RuningExt::RuningExt(EnvExt & env)
 RuningExt::~RuningExt() {
 }
 
-void RuningExt::init(int32_t w, int32_t h) {
-	m_lastUpdateTime = m_curTime = m_lastTime = cur_time_ms();
-
+void RuningExt::setSize(int32_t w, int32_t h) {
 	RConfig::SetGUIDesktop(RVector2((float)w, (float)h));
-
 	RRender::GetIns()->SetResolutionW(w);
 	RRender::GetIns()->SetResolutionH(h);
 	RRender::GetIns()->SetMatrixProjOrtho2D();
 
-	// int cap = (int)m3eGetDeviceCap();
-	// APP_INFO("m3eGetDeviceCap(): %d\n", cap);
-    // (void)cap;
-	const GLubyte* renderer = glGetString(GL_RENDERER); //返回一个渲染器标识符，通常是个硬件平台
-	const GLubyte* version =glGetString(GL_VERSION); //返回当前OpenGL实现的版本号
+    APP_CTX_INFO(m_env.app(), "Runing: window size to (%d-%d)", w, h);
+}
 
-	char buf_render[256];
-	char buf_version[256];
-	strncpy(buf_render, (const char*)renderer, 256);
-	strncpy(buf_version, (const char*)version, 256);
+void RuningExt::init(void) {
+	m_lastUpdateTime = m_curTime = m_lastTime = cur_time_ms();
+    ui_repo_repository_t ui_repo = ui_repo_repository_create(m_env.app(), m_env.app().allocrator(), "UIRepo", m_env.app().em());
+    if (ui_repo == NULL) {
+        APP_CTX_THROW_EXCEPTION(m_env.app(), ::std::runtime_error, "load ui repo fail!");
+    }
+
+    APP_CTX_INFO(
+        m_env.app(), "Runing: opengl info: render=%s, version=%s",
+        glGetString(GL_RENDERER), glGetString(GL_VERSION));
 }
 
 void RuningExt::update(void) {

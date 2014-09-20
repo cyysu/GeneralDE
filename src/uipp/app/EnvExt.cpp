@@ -31,7 +31,7 @@ EnvExt::EnvExt(Gd::App::Application & app, Gd::App::Module & module, Cpe::Cfg::N
 {
     m3eFileInit();
 
-    RConfig::LoadConfig( "NPEngine.npConfig" );
+    RConfig::LoadConfig( "res.cfg" );
     RRender::Init();
     R2DSLib::Init();
     RFTDraw::Init();
@@ -43,6 +43,10 @@ EnvExt::EnvExt(Gd::App::Application & app, Gd::App::Module & module, Cpe::Cfg::N
     m_screenSize.y = 0.0f;
 
     Cpe::Cfg::Node const & cfg = app.cfg()[moduleCfg["ui-load-from"].dft("ui")];
+
+    m_screenBaseSize.x = cfg["env.base-size.w"];
+    m_screenBaseSize.y = cfg["env.base-size.h"];
+    m_appName = cfg["env.app-name"].asString();
 
     try {
         Sprite::Repository & repo = Sprite::Repository::instance(m_app);
@@ -74,6 +78,10 @@ Language EnvExt::language(void) const {
     }
 
     return m_language;
+}
+
+const char * EnvExt::appName(void) const {
+    return m_appName.c_str();
 }
 
 Gd::App::Application & EnvExt::app(void) {
@@ -123,6 +131,10 @@ Sprite::P2D::Pair const & EnvExt::screenSize(void) const {
     }
 
     return m_screenSize;
+}
+
+Sprite::P2D::Pair const & EnvExt::screenBaseSize(void) const {
+    return m_screenBaseSize;
 }
 
 const char * EnvExt::visiableMsg(uint32_t msg_id) const {

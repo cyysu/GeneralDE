@@ -10,7 +10,8 @@ public:
     RuningExt(EnvExt & env);
     ~RuningExt();
 
-    void init(int32_t w, int32_t h);
+    void init(void);
+    void setSize(int32_t w, int32_t h);
     void update(void);
     void doUpdate(float deltaTime);
     void rend(void);

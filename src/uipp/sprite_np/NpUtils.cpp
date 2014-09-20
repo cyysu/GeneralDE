@@ -47,15 +47,15 @@ namespace UI { namespace Sprite { namespace R {
 	 }
 
 	 uint32_t NpUtils::getFileID(const char * typeName, uint32_t	resFile){
-		 if(strcmp(typeName, R2DSImageRef::sRTTI.GetName()) == 0)
+		 if(strcmp(typeName, "img-block") == 0)
 		 {
 			 return R2DSImageFileMgr::GetIns()->GetFileID(resFile);
 		 }
-		 else if(strcmp(typeName, R2DSFrameRef::sRTTI.GetName()) == 0)
+		 else if(strcmp(typeName, "frame") == 0)
 		 {
 			 return R2DSFrameFileMgr::GetIns()->GetFileID(resFile);
 		 }
-		 else if(strcmp(typeName, R2DSActorRef::sRTTI.GetName()) == 0)
+		 else if(strcmp(typeName, "actor") == 0)
 		 {
 			 return R2DSActorFileMgr::GetIns()->GetFileID(resFile);
 		 }
@@ -132,7 +132,7 @@ namespace UI { namespace Sprite { namespace R {
 			 return;
 		 }
 
-		 if (strcmp(postfix, "npAction") == 0) {
+		 if (strcmp(postfix, "act") == 0) {
 			 int fileID = R2DSActorFileMgr::GetIns()->GetFileID(path, file);
 			 if (fileID < 0) {
 				 APP_THROW_EXCEPTION(::std::runtime_error, "actor %s-%s not exist!", path, file);
@@ -155,7 +155,7 @@ namespace UI { namespace Sprite { namespace R {
 				 }
 			 }
 		 }
-		 else if (strcmp(postfix, "npSprite") == 0) {
+		 else if (strcmp(postfix, "frm") == 0) {
 			 int fileID = R2DSFrameFileMgr::GetIns()->GetFileID(path, file);
 			 if (fileID < 0) {
 				 APP_THROW_EXCEPTION(::std::runtime_error, "sprite: %s-%s not exist!", path, file);
@@ -171,7 +171,7 @@ namespace UI { namespace Sprite { namespace R {
 				}
 			 }
 		 }
-		 else if (strcmp(postfix, "npModule") == 0) {
+		 else if (strcmp(postfix, "ibk") == 0) {
 			 int fileID = R2DSImageFileMgr::GetIns()->GetFileID(path, file);
 			 if (fileID < 0) {
 				 APP_THROW_EXCEPTION(::std::runtime_error, "module: %s-%s not exist!", path, file);
@@ -285,13 +285,13 @@ namespace UI { namespace Sprite { namespace R {
 					 return -1;
 				 }
 
-				 if (strcmp(postfix, "npModule") == 0) {
+				 if (strcmp(postfix, "ibk") == 0) {
 					 typeName = "R2DSImageRef";
 				 }
-				 else if (strcmp(postfix, "npSprite") == 0) {
+				 else if (strcmp(postfix, "frm") == 0) {
 					 typeName = "R2DSFrameRef";
 				 }
-				 else if (strcmp(postfix, "npAction") == 0) {
+				 else if (strcmp(postfix, "act") == 0) {
 					 typeName = "R2DSActorRef";
 				 }
 				 else {
@@ -420,10 +420,10 @@ namespace UI { namespace Sprite { namespace R {
 			 APP_ERROR("get pic from %s - %s fail: format error!", path, file);
 			 return;
 		 }
-         if (strcmp(sep + 1, "npAction") == 0) {
+         if (strcmp(sep + 1, "act") == 0) {
 			 npu32 fileID				= R2DSActorFileMgr::GetIns()->GetFileID(path, file,true);
 			 if (fileID == -1) {
-				 APP_ERROR("set npAction from %s - %s fail: format error!", path, file);
+				 APP_ERROR("set act from %s - %s fail: format error!", path, file);
 				 return;
 			 }
              R2DSActorFile*	file		= R2DSActorFileMgr::GetIns()->GetFile(fileID);
@@ -434,10 +434,10 @@ namespace UI { namespace Sprite { namespace R {
              control->AddFireAnim(actorRef);
              control->Show();
          }
-         else if (strcmp(sep + 1, "npSprite") == 0) {
+         else if (strcmp(sep + 1, "frm") == 0) {
 			 npu32 fileID				= R2DSFrameFileMgr::GetIns()->GetFileID(path, file,true);
 			 if (fileID == -1) {
-				 APP_ERROR("set npSprite from %s - %s fail: format error!", path, file);
+				 APP_ERROR("set frm from %s - %s fail: format error!", path, file);
 				 return;
 			 }
 
@@ -445,10 +445,10 @@ namespace UI { namespace Sprite { namespace R {
 			 control->SetBackFrame( *frameRef );
 			 delete frameRef;
 		 }
-		 else if (strcmp(sep + 1, "npModule") == 0) {
+		 else if (strcmp(sep + 1, "ibk") == 0) {
 			 npu32 fileID	= R2DSImageFileMgr::GetIns()->GetFileID(path, file, true);
 			 if (fileID == -1){
-				 APP_ERROR("set npModule from %s - %s fail: format error!", path, file);
+				 APP_ERROR("set ibk from %s - %s fail: format error!", path, file);
 				 return;
 			 }
 

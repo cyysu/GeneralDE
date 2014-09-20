@@ -279,7 +279,7 @@ private:
             return NULL;
         }
 
-        if (strcmp(postfix, "npAction") == 0) {
+        if (strcmp(postfix, "act") == 0) {
             int fileID = R2DSActorFileMgr::GetIns()->GetFileID(path, file);
             if (fileID < 0) {
                 APP_CTX_ERROR(app, "actor %s-%s not exist!", path, file);
@@ -288,7 +288,7 @@ private:
 
             return createAction(fileID, resId, start);
         }
-        else if (strcmp(postfix, "npSprite") == 0) {
+        else if (strcmp(postfix, "frm") == 0) {
             int fileID = R2DSFrameFileMgr::GetIns()->GetFileID(path, file);
             if (fileID < 0) {
                 APP_CTX_ERROR(app, "sprite: %s-%s not exist!", path, file);
@@ -297,7 +297,7 @@ private:
 
             return createFrame(fileID, resId);
         }
-        else if (strcmp(postfix, "npModule") == 0) {
+        else if (strcmp(postfix, "ibk") == 0) {
             int fileID = R2DSImageFileMgr::GetIns()->GetFileID(path, file);
             if (fileID < 0) {
                 APP_CTX_ERROR(app, "module: %s-%s not exist!", path, file);
