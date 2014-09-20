@@ -12,6 +12,10 @@ struct ui_sprite_anim_camera {
     UI_SPRITE_2D_PAIR m_screen_size;
     UI_SPRITE_2D_PAIR m_limit_lt;
     UI_SPRITE_2D_PAIR m_limit_rb;
+
+    UI_SPRITE_2D_PAIR m_camera_base_pos;
+    UI_SPRITE_2D_PAIR m_camera_base_scale;
+
     UI_SPRITE_2D_PAIR m_camera_pos;
     float m_camera_scale;
     UI_SPRITE_2D_PAIR m_camera_scale_pair;
