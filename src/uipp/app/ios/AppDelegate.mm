@@ -162,12 +162,23 @@ extern void InstallUncaughtExceptionHandler();
     UI::App::EnvExt & env = UI::App::EnvExt::instance(Gd::App::Application::instance());
 
     CGSize sz = GetScreenSizeInPixels();
-    env.runing().init(sz.width, sz.height);
-    
 
-    CGRect rt = GetRenderRectInPixels();
-    env.device().setRenderRect(rt.origin.x, rt.origin.y, rt.size.width, rt.size.height );
-    
+    UI::Sprite::P2D::Pair const & screenBaseSize = env.screenBaseSize();
+    if ((screenBaseSize.x > screenBaseSize.y && sz.width < sz.height)
+        || (screenBaseSize.x < screenBaseSize.y && sz.width > sz.height))
+    {
+        int32_t t = sz.width;
+        sz.width = sz.height ;
+        sz.height = t;
+    }
+
+    env.runing().init();
+    env.runing().setSize(sz.width, sz.height);
+    env.device().setRenderRect(0, 0, sz.width, sz.height);
+    glViewport(0, 0, sz.width, sz.height);
+    // CGRect rt = GetRenderRectInPixels();
+    // glViewport(rt.origin.x, rt.origin.y, rt.size.width, rt.size.height);
+
     application.applicationIconBadgeNumber = 0;
     
     [ application cancelAllLocalNotifications ];

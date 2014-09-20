@@ -187,8 +187,6 @@
         float scale = [[UIScreen mainScreen] scale];
         newpoint.x *= scale; newpoint.y *= scale;
         oldpoint.x *= scale; oldpoint.y *= scale;
-        newpoint = ToGamePoint(newpoint);
-        oldpoint = ToGamePoint(oldpoint);
         
         curTouchID = (ptr_int_t)myTouch;
         if(UITouchPhaseBegan == myTouch.phase)
