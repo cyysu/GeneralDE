@@ -12,6 +12,7 @@ public:
     virtual uint8_t debug(void) const = 0;
 
     virtual Language language(void) const = 0;
+    virtual const char * appName(void) const = 0;
 
     virtual Gd::App::Application & app(void) = 0;
     virtual Gd::App::Application const & app(void) const = 0;
@@ -26,6 +27,7 @@ public:
     virtual Sprite::World const & world(void) const = 0;
 
 	virtual Sprite::P2D::Pair const & screenSize(void) const = 0;
+	virtual Sprite::P2D::Pair const & screenBaseSize(void) const = 0;
 
     virtual const char * visiableMsg(uint32_t msg_id) const = 0;
     virtual const char * visiableMsg(uint32_t msg_id, char * args) const = 0;

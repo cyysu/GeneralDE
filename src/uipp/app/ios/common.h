@@ -16,13 +16,6 @@ enum DeviceType {
 };
 
 DeviceType GetDeviceType();
-CGRect GetRenderRectInPixels();
-CGPoint ToGamePoint( CGPoint viewPointInPixels );
-CGPoint ToViewPointInPixels( CGPoint gamePoint );
-CGSize ToViewSizeInPixels( CGSize gameSize );
-
-CGRect ToViewRectInPoints( CGRect rect , float scale = 1.f);
-CGRect ToGameRect( CGRect rect, float scale = 1.f );//rect is in point
 
 CGSize GetScreenSizeInPixels();
 
