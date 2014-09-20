@@ -16,6 +16,11 @@ ui_sprite_anim_camera_t ui_sprite_anim_camera_find(ui_sprite_world_t world);
 UI_SPRITE_2D_PAIR ui_sprite_anim_camera_screen_size(ui_sprite_anim_camera_t camera);
 void ui_sprite_anim_camera_set_screen_size(ui_sprite_anim_camera_t camera, UI_SPRITE_2D_PAIR screen_size);
 
+void ui_sprite_anim_camera_set_base_scale(ui_sprite_anim_camera_t camera, UI_SPRITE_2D_PAIR const * scale);
+UI_SPRITE_2D_PAIR ui_sprite_anim_camera_base_scale(ui_sprite_anim_camera_t camera);
+void ui_sprite_anim_camera_set_base_pos(ui_sprite_anim_camera_t camera, UI_SPRITE_2D_PAIR const * scale);
+UI_SPRITE_2D_PAIR ui_sprite_anim_camera_base_pos(ui_sprite_anim_camera_t camera);
+
 /*镜头位置控制 */
 float ui_sprite_anim_camera_scale(ui_sprite_anim_camera_t camera);
 UI_SPRITE_2D_PAIR ui_sprite_anim_camera_scale_pair(ui_sprite_anim_camera_t camera);

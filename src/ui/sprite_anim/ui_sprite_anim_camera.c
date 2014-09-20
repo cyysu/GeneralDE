@@ -19,6 +19,11 @@ ui_sprite_anim_camera_create(ui_sprite_anim_module_t module, ui_sprite_world_t w
     camera = ui_sprite_world_res_data(world_res);
 
     camera->m_module = module;
+    camera->m_camera_base_pos.x = 0.0f;
+    camera->m_camera_base_pos.y = 0.0f;
+    camera->m_camera_base_scale.x = 1.0f;
+    camera->m_camera_base_scale.y = 1.0f;
+
     camera->m_camera_pos.x = 0.0f;
     camera->m_camera_pos.y = 0.0f;
     camera->m_camera_scale = 1.0f;
@@ -69,6 +74,22 @@ void ui_sprite_anim_camera_set_screen_size(ui_sprite_anim_camera_t camera, UI_SP
     assert(screen_size.y > 0.0f);
 
     camera->m_screen_size = screen_size;
+}
+
+void ui_sprite_anim_camera_set_base_scale(ui_sprite_anim_camera_t camera, UI_SPRITE_2D_PAIR const * scale) {
+    camera->m_camera_base_scale = *scale;
+}
+
+UI_SPRITE_2D_PAIR ui_sprite_anim_camera_base_scale(ui_sprite_anim_camera_t camera) {
+    return camera->m_camera_base_scale;
+}
+
+void ui_sprite_anim_camera_set_base_pos(ui_sprite_anim_camera_t camera, UI_SPRITE_2D_PAIR const * pos) {
+    camera->m_camera_base_pos = *pos;
+}
+
+UI_SPRITE_2D_PAIR ui_sprite_anim_camera_base_pos(ui_sprite_anim_camera_t camera) {
+    return camera->m_camera_base_pos;
 }
 
 UI_SPRITE_2D_PAIR ui_sprite_anim_camera_limit_lt(ui_sprite_anim_camera_t camera) {
@@ -172,7 +193,16 @@ void ui_sprite_anim_camera_set_pos_and_scale(ui_sprite_anim_camera_t camera, UI_
             ui_sprite_world_res_world(
                 ui_sprite_world_res_from_data(camera)));
     if (backend) {
-        backend->m_def.m_camera_update_fun(backend->m_def.m_ctx, camera->m_camera_pos, camera->m_camera_scale_pair);
+        UI_SPRITE_2D_PAIR final_pos = camera->m_camera_pos;
+        UI_SPRITE_2D_PAIR final_scale = camera->m_camera_scale_pair;
+
+        final_pos.x += camera->m_camera_base_pos.x;
+        final_pos.y += camera->m_camera_base_pos.y;
+
+        final_scale.x *= camera->m_camera_base_scale.x;
+        final_scale.y *= camera->m_camera_base_scale.y;
+
+        backend->m_def.m_camera_update_fun(backend->m_def.m_ctx, final_pos, final_scale);
     }
 }
 
@@ -191,21 +221,21 @@ UI_SPRITE_2D_PAIR ui_sprite_anim_camera_center_pos(ui_sprite_anim_camera_t camer
 }
 
 UI_SPRITE_2D_PAIR ui_sprite_anim_camera_screen_to_world(ui_sprite_anim_camera_t camera, UI_SPRITE_2D_PAIR pos) {
-    pos.x /= camera->m_camera_scale_pair.x;
-    pos.y /= camera->m_camera_scale_pair.y;
+    pos.x /= camera->m_camera_scale_pair.x * camera->m_camera_base_scale.x;
+    pos.y /= camera->m_camera_scale_pair.y * camera->m_camera_base_scale.y;
 
-    pos.x += camera->m_camera_pos.x;
-    pos.y += camera->m_camera_pos.y;
+    pos.x += camera->m_camera_pos.x + camera->m_camera_base_pos.x;
+    pos.y += camera->m_camera_pos.y + camera->m_camera_base_pos.y;
 
     return pos;
 }
 
 UI_SPRITE_2D_PAIR ui_sprite_anim_camera_world_to_screen(ui_sprite_anim_camera_t camera, UI_SPRITE_2D_PAIR pos) {
-    pos.x -= camera->m_camera_pos.x;
-    pos.y -= camera->m_camera_pos.y;
+    pos.x -= camera->m_camera_pos.x + camera->m_camera_base_pos.x;
+    pos.y -= camera->m_camera_pos.y + camera->m_camera_base_pos.y;
     
-    pos.x *= camera->m_camera_scale_pair.x;
-    pos.y *= camera->m_camera_scale_pair.y;
+    pos.x *= camera->m_camera_scale_pair.x * camera->m_camera_base_scale.x;
+    pos.y *= camera->m_camera_scale_pair.y * camera->m_camera_base_scale.y;
 
     return pos;
 }
