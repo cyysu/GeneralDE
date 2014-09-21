@@ -41,7 +41,7 @@ mac.check=$(call assert-not-null,MAC_PLATFORM_NAME) \
 # {{{ sdk MAC
 
 MAC_XCODE_ROOT:=$(if $(filter mac,$(OS_NAME)),$(shell xcode-select -print-path))
-MAC_PLATFORM_VERSION_LIST:=10.8 10.7 10.6 10.5
+MAC_PLATFORM_VERSION_LIST:=10.9 10.8 10.7 10.6 10.5
 MAC_PLATFORM_NAME?=MacOSX
 
 mac_platform_sdk_patk=$(MAC_XCODE_ROOT)/Platforms/$(MAC_PLATFORM_NAME).platform/Developer/SDKs/$(MAC_PLATFORM_NAME)$1.sdk
