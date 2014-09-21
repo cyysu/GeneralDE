@@ -36,13 +36,13 @@ sub wanted {
 
   my $array_ref;
 
-  if (/\.npModule\.meta$/) {
+  if (/\.ibk\.meta$/) {
     $array_ref = \@moduleFiles;
   }
-  elsif (/\.npSprite\.meta$/) {
+  elsif (/\.frm\.meta$/) {
     $array_ref = \@spriteFiles;
   }
-  elsif (/\.npAction\.meta$/) {
+  elsif (/\.act\.meta$/) {
     $array_ref = \@actionFiles;
   }
   else {

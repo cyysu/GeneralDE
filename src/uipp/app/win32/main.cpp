@@ -9,9 +9,6 @@
 #include "../RuningExt.hpp"
 #include "RRender.h"
 
-#define  DEVICE_SCREEN_W  960//480
-#define  DEVICE_SCREEN_H  640//320
-
 int g_Device_Screen_W = 960;
 int g_Device_Screen_H = 640;
 
@@ -82,17 +79,16 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam 
 
 	case WM_MOUSEMOVE:
     {
+		UI::App::EnvExt & env = UI::App::EnvExt::instance(Gd::App::Application::instance());
+
         int x = LOWORD(lParam);
         int y = HIWORD(lParam);
         char szBuf[64];
-        GetClassName(hWnd, szBuf, sizeof(szBuf));
-        sprintf(szBuf, "%s | %d %d", szBuf, x, y);
+        sprintf(szBuf, "%s | %d %d", env.appName(), x, y);
         SetWindowText(hWnd, szBuf);
         if(GetCapture() == hWnd)
         {
-            UI::App::EnvExt::instance(Gd::App::Application::instance())
-                .runing()
-                .processInput(M3E_Touch_MOUSEMOVED,0 ,LOWORD(lParam)  , HIWORD(lParam),old_x, old_y);
+            env.runing().processInput(M3E_Touch_MOUSEMOVED,0 ,LOWORD(lParam)  , HIWORD(lParam),old_x, old_y);
 			old_x = LOWORD(lParam);
 			old_y = HIWORD(lParam);
         }
@@ -136,7 +132,7 @@ int CALLBACK WinMain(__in HINSTANCE hInstance, __in_opt HINSTANCE hPrevInstance,
 	wc.hIcon			= LoadIcon(NULL, IDI_APPLICATION);
 	wc.hInstance		= hInstance;
 	wc.lpfnWndProc		= WndProc;
-	wc.lpszClassName	= "DrowGame";
+	wc.lpszClassName	= "GameApp";
 	wc.lpszMenuName		= NULL;
 	wc.style			= CS_VREDRAW | CS_HREDRAW | CS_OWNDC;
 
@@ -159,7 +155,7 @@ int CALLBACK WinMain(__in HINSTANCE hInstance, __in_opt HINSTANCE hPrevInstance,
 	int windowLeft = (GetSystemMetrics(SM_CXSCREEN) - realWidth) / 2;
 	int windowTop = (GetSystemMetrics(SM_CYSCREEN) - realHeight) / 2;
  
-	HWND hWnd = CreateWindow("DrowGame", "DrowGame", style, windowLeft, windowTop, g_Device_Screen_W, g_Device_Screen_H, NULL, NULL, hInstance, NULL);
+	HWND hWnd = CreateWindow("GameApp", "GameApp", style, windowLeft, windowTop, g_Device_Screen_W, g_Device_Screen_H, NULL, NULL, hInstance, NULL);
 	if (hWnd == NULL)
 		return 0;
 
@@ -203,7 +199,8 @@ int CALLBACK WinMain(__in HINSTANCE hInstance, __in_opt HINSTANCE hPrevInstance,
     
     UI::App::EnvExt & env = UI::App::EnvExt::instance(Gd::App::Application::_cast(app));
 
-	env.runing().init(w, h);
+	env.runing().init();
+    env.runing().setSize(w, h);
     env.uiCenter().initPhase();
 
 	MSG msg;
