@@ -16,12 +16,6 @@
     <Filter Include="include\sprite_np">
       <UniqueIdentifier>{7ce5ff39-abd7-43fa-955b-4d6d41f7b859}</UniqueIdentifier>
     </Filter>
-    <Filter Include="include\sprite_b2">
-      <UniqueIdentifier>{ee45e8e6-ce19-4bda-985c-b091b62e867b}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="src\sprite_b2">
-      <UniqueIdentifier>{6d3a5e6b-8882-4f30-9ccc-f78d1706edd9}</UniqueIdentifier>
-    </Filter>
     <Filter Include="src\sprite">
       <UniqueIdentifier>{2062f3f7-51ab-43fb-9476-946a856cbb25}</UniqueIdentifier>
     </Filter>
@@ -147,15 +141,6 @@
     <ClInclude Include="..\..\include\uipp\sprite_anim\AnimationCamera.hpp">
       <Filter>include\sprite_anim</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\uipp\sprite_b2\B2Object.hpp">
-      <Filter>include\sprite_b2</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\uipp\sprite_b2\B2System.hpp">
-      <Filter>include\sprite_b2</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\uipp\sprite_b2\B2World.hpp">
-      <Filter>include\sprite_b2</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\include\uipp\sprite_fsm\Action.hpp">
       <Filter>include\sprite_fsm</Filter>
     </ClInclude>
@@ -167,9 +152,6 @@
     </ClInclude>
     <ClInclude Include="..\..\include\uipp\sprite_fsm\System.hpp">
       <Filter>include\sprite_fsm</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\build\vc\protocol\ui\sprite_b2\ui_sprite_b2_evt.h">
-      <Filter>src\sprite_b2</Filter>
     </ClInclude>
     <ClInclude Include="..\..\include\uipp\sprite_cfg\CfgLoaderExternGen.hpp">
       <Filter>include\sprite_cfg</Filter>
@@ -203,48 +185,6 @@
     </ClInclude>
     <ClInclude Include="..\..\include\uipp\sprite\WorldUpdatorGen.hpp">
       <Filter>include\sprite</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\uipp\sprite_b2\B2Action_Manipulator.hpp">
-      <Filter>src\sprite_b2</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\uipp\sprite_b2\B2Action_OnCollision.hpp">
-      <Filter>src\sprite_b2</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\uipp\sprite_b2\B2Action_Runto.hpp">
-      <Filter>src\sprite_b2</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\uipp\sprite_b2\B2Action_Suspend.hpp">
-      <Filter>src\sprite_b2</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\uipp\sprite_b2\B2Action_WaitCollision.hpp">
-      <Filter>src\sprite_b2</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\uipp\sprite_b2\B2Action_WaitNotCollision.hpp">
-      <Filter>src\sprite_b2</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\uipp\sprite_b2\B2Action_WaitStop.hpp">
-      <Filter>src\sprite_b2</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\uipp\sprite_b2\B2Collision.hpp">
-      <Filter>src\sprite_b2</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\uipp\sprite_b2\B2ObjectExt.hpp">
-      <Filter>src\sprite_b2</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\uipp\sprite_b2\B2ObjectPartExt.hpp">
-      <Filter>src\sprite_b2</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\uipp\sprite_b2\B2ObjectPartMeta.hpp">
-      <Filter>src\sprite_b2</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\uipp\sprite_b2\B2WorldExt.hpp">
-      <Filter>src\sprite_b2</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\uipp\sprite_b2\B2ObjectPart.hpp">
-      <Filter>include\sprite_b2</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\uipp\sprite_b2\B2Action_Setup.hpp">
-      <Filter>src\sprite_b2</Filter>
     </ClInclude>
     <ClInclude Include="..\..\include\uipp\app\Env.hpp">
       <Filter>include\app</Filter>
@@ -395,12 +335,6 @@
     <ClCompile Include="..\..\src\uipp\sprite_anim\AnimationCamera.cpp">
       <Filter>src\sprite_anim</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\build\vc\protocol\ui\sprite_b2\sprite_b2_meta_lib.c">
-      <Filter>src\sprite_b2</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\build\vc\protocol\ui\sprite_b2\sprite_b2_meta_traits.cpp">
-      <Filter>src\sprite_b2</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\uipp\sprite_touch\Touchable.cpp">
       <Filter>src\sprite_touch</Filter>
     </ClCompile>
@@ -433,48 +367,6 @@
     </ClCompile>
     <ClCompile Include="..\..\src\uipp\sprite\Group.cpp">
       <Filter>src\sprite</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\uipp\sprite_b2\B2Action_Manipulator.cpp">
-      <Filter>src\sprite_b2</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\uipp\sprite_b2\B2Action_OnCollision.cpp">
-      <Filter>src\sprite_b2</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\uipp\sprite_b2\B2Action_Runto.cpp">
-      <Filter>src\sprite_b2</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\uipp\sprite_b2\B2Action_Suspend.cpp">
-      <Filter>src\sprite_b2</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\uipp\sprite_b2\B2Action_WaitCollision.cpp">
-      <Filter>src\sprite_b2</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\uipp\sprite_b2\B2Action_WaitNotCollision.cpp">
-      <Filter>src\sprite_b2</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\uipp\sprite_b2\B2Action_WaitStop.cpp">
-      <Filter>src\sprite_b2</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\uipp\sprite_b2\B2Collision.cpp">
-      <Filter>src\sprite_b2</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\uipp\sprite_b2\B2Module.cpp">
-      <Filter>src\sprite_b2</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\uipp\sprite_b2\B2ObjectExt.cpp">
-      <Filter>src\sprite_b2</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\uipp\sprite_b2\B2ObjectPartExt.cpp">
-      <Filter>src\sprite_b2</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\uipp\sprite_b2\B2ObjectPartMeta.cpp">
-      <Filter>src\sprite_b2</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\uipp\sprite_b2\B2WorldExt.cpp">
-      <Filter>src\sprite_b2</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\uipp\sprite_b2\B2Action_Setup.cpp">
-      <Filter>src\sprite_b2</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\uipp\app\EnvExt.cpp">
       <Filter>src\app</Filter>
@@ -592,9 +484,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="..\..\src\uipp\sprite_b2\protocol.def">
-      <Filter>src\sprite_b2</Filter>
-    </CustomBuild>
     <CustomBuild Include="..\..\src\uipp\app\protocol.def">
       <Filter>src\app</Filter>
     </CustomBuild>

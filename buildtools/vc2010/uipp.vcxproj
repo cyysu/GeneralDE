@@ -12,7 +12,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\build\vc\protocol\ui\app\ui_app_evt.h" />
-    <ClInclude Include="..\..\build\vc\protocol\ui\sprite_b2\ui_sprite_b2_evt.h" />
     <ClInclude Include="..\..\include\uipp\app\Env.hpp" />
     <ClInclude Include="..\..\include\uipp\app\Gen\PageEvtSch.hpp" />
     <ClInclude Include="..\..\include\uipp\app\Gen\PageGen.hpp" />
@@ -44,10 +43,6 @@
     <ClInclude Include="..\..\include\uipp\sprite_anim\AnimationCamera.hpp" />
     <ClInclude Include="..\..\include\uipp\sprite_anim\AnimationSch.hpp" />
     <ClInclude Include="..\..\include\uipp\sprite_anim\System.hpp" />
-    <ClInclude Include="..\..\include\uipp\sprite_b2\B2Object.hpp" />
-    <ClInclude Include="..\..\include\uipp\sprite_b2\B2ObjectPart.hpp" />
-    <ClInclude Include="..\..\include\uipp\sprite_b2\B2System.hpp" />
-    <ClInclude Include="..\..\include\uipp\sprite_b2\B2World.hpp" />
     <ClInclude Include="..\..\include\uipp\sprite_cfg\ActionModuleReg.hpp" />
     <ClInclude Include="..\..\include\uipp\sprite_cfg\CfgLoader.hpp" />
     <ClInclude Include="..\..\include\uipp\sprite_cfg\CfgLoaderExternGen.hpp" />
@@ -93,19 +88,6 @@
     <ClInclude Include="..\..\src\uipp\app\UIPhaseNodeExt.hpp" />
     <ClInclude Include="..\..\src\uipp\app\UIPopupPage.hpp" />
     <ClInclude Include="..\..\src\uipp\app\UIPopupPageDef.hpp" />
-    <ClInclude Include="..\..\src\uipp\sprite_b2\B2Action_Manipulator.hpp" />
-    <ClInclude Include="..\..\src\uipp\sprite_b2\B2Action_OnCollision.hpp" />
-    <ClInclude Include="..\..\src\uipp\sprite_b2\B2Action_Runto.hpp" />
-    <ClInclude Include="..\..\src\uipp\sprite_b2\B2Action_Setup.hpp" />
-    <ClInclude Include="..\..\src\uipp\sprite_b2\B2Action_Suspend.hpp" />
-    <ClInclude Include="..\..\src\uipp\sprite_b2\B2Action_WaitCollision.hpp" />
-    <ClInclude Include="..\..\src\uipp\sprite_b2\B2Action_WaitNotCollision.hpp" />
-    <ClInclude Include="..\..\src\uipp\sprite_b2\B2Action_WaitStop.hpp" />
-    <ClInclude Include="..\..\src\uipp\sprite_b2\B2Collision.hpp" />
-    <ClInclude Include="..\..\src\uipp\sprite_b2\B2ObjectExt.hpp" />
-    <ClInclude Include="..\..\src\uipp\sprite_b2\B2ObjectPartExt.hpp" />
-    <ClInclude Include="..\..\src\uipp\sprite_b2\B2ObjectPartMeta.hpp" />
-    <ClInclude Include="..\..\src\uipp\sprite_b2\B2WorldExt.hpp" />
     <ClInclude Include="..\..\src\uipp\sprite_np\AnimationFactory.hpp" />
     <ClInclude Include="..\..\src\uipp\sprite_np\ContextExt.hpp" />
     <ClInclude Include="..\..\src\uipp\sprite_np\GroupNode.hpp" />
@@ -116,8 +98,6 @@
   <ItemGroup>
     <ClCompile Include="..\..\build\vc\protocol\ui\app\app_meta_lib.c" />
     <ClCompile Include="..\..\build\vc\protocol\ui\app\app_meta_traits.cpp" />
-    <ClCompile Include="..\..\build\vc\protocol\ui\sprite_b2\sprite_b2_meta_lib.c" />
-    <ClCompile Include="..\..\build\vc\protocol\ui\sprite_b2\sprite_b2_meta_traits.cpp" />
     <ClCompile Include="..\..\src\uipp\app\DeviceExt.cpp" />
     <ClCompile Include="..\..\src\uipp\app\EnvExt.cpp" />
     <ClCompile Include="..\..\src\uipp\app\Page.cpp" />
@@ -164,20 +144,6 @@
     <ClCompile Include="..\..\src\uipp\sprite_anim\AnimationBackend.cpp" />
     <ClCompile Include="..\..\src\uipp\sprite_anim\AnimationCamera.cpp" />
     <ClCompile Include="..\..\src\uipp\sprite_anim\AnimationSch.cpp" />
-    <ClCompile Include="..\..\src\uipp\sprite_b2\B2Action_Manipulator.cpp" />
-    <ClCompile Include="..\..\src\uipp\sprite_b2\B2Action_OnCollision.cpp" />
-    <ClCompile Include="..\..\src\uipp\sprite_b2\B2Action_Runto.cpp" />
-    <ClCompile Include="..\..\src\uipp\sprite_b2\B2Action_Setup.cpp" />
-    <ClCompile Include="..\..\src\uipp\sprite_b2\B2Action_Suspend.cpp" />
-    <ClCompile Include="..\..\src\uipp\sprite_b2\B2Action_WaitCollision.cpp" />
-    <ClCompile Include="..\..\src\uipp\sprite_b2\B2Action_WaitNotCollision.cpp" />
-    <ClCompile Include="..\..\src\uipp\sprite_b2\B2Action_WaitStop.cpp" />
-    <ClCompile Include="..\..\src\uipp\sprite_b2\B2Collision.cpp" />
-    <ClCompile Include="..\..\src\uipp\sprite_b2\B2Module.cpp" />
-    <ClCompile Include="..\..\src\uipp\sprite_b2\B2ObjectExt.cpp" />
-    <ClCompile Include="..\..\src\uipp\sprite_b2\B2ObjectPartExt.cpp" />
-    <ClCompile Include="..\..\src\uipp\sprite_b2\B2ObjectPartMeta.cpp" />
-    <ClCompile Include="..\..\src\uipp\sprite_b2\B2WorldExt.cpp" />
     <ClCompile Include="..\..\src\uipp\sprite_cfg\CfgLoader.cpp" />
     <ClCompile Include="..\..\src\uipp\sprite_fsm\Action.cpp" />
     <ClCompile Include="..\..\src\uipp\sprite_fsm\Fsm.cpp" />
@@ -192,15 +158,6 @@
     <ClCompile Include="..\..\src\uipp\sprite_np\RControlNode.cpp" />
     <ClCompile Include="..\..\src\uipp\sprite_touch\Touchable.cpp" />
     <ClCompile Include="..\..\src\uipp\sprite_touch\TouchManager.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <CustomBuild Include="..\..\src\uipp\sprite_b2\protocol.def">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">set PATH=$(ProjectDir)..\..\3rdTools\iconv\vc\bin;$(ProjectDir)..\..\3rdTools\zlib\vc\bin;%PATH%
-$(ProjectDir)..\..\build\vc\tools\cpe_dr_tool.exe --input-group-root $(ProjectDir)../../src/ui/pro/sprite_b2 --input-group %(FullPath)  --output-h  $(ProjectDir)..\..\build\vc\protocol\ui\sprite_b2 --output-lib-c $(ProjectDir)..\..\build\vc\protocol\ui\sprite_b2\sprite_b2_meta_lib.c --with-traits --output-traits-cpp=$(ProjectDir)..\..\build\vc\protocol\ui\sprite_b2\sprite_b2_meta_traits.cpp --output-lib-c-arg=g_metalib_ui_sprite_b2
-</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">set PATH=$(ProjectDir)..\..\3rdTools\iconv\vc\bin;$(ProjectDir)..\..\3rdTools\zlib\vc\bin;%PATH%</Command>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(ProjectDir)..\..\build\vc\protocol\ui\sprite_b2\sprite_b2_meta_lib.c</Outputs>
-    </CustomBuild>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="..\..\src\uipp\app\protocol.def">
