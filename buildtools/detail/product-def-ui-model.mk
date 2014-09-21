@@ -3,9 +3,9 @@
 product-support-types+=ui-model
 
 UI_MODEL_TOOL?=$(CPDE_ROOT)/build/tools/bin/$(call $(tools.env).make-executable-name,ui_model_tool)
-UI_MODEL_EXPORT_TOOL?=$(CPDE_ROOT)/build/tools/bin/$(call $(tools.env).make-executable-name,drow_render_tool)
 
 # }}}
+
 # {{{ 定义Module导入
 
 #$(call install-ui-model-cocos-module,product,module,to-path,pics)
@@ -193,33 +193,34 @@ define def-ui-model-cocos-module-import
 
 $$(call assert-not-null,$1.ui-model.cocos-module.$2.input)
 
-$1-model-import: $$($1.ui-model.root)/Module/$$($1.ui-model.cocos-module.$2.output).npModule
+$1-model-import: $$($1.ui-model.root)/$$($1.ui-model.cocos-module.$2.output).npModule
 
-auto-build-dirs+=$$(dir $$($1.ui-model.root)/Texture/$$($1.ui-model.cocos-module.$2.output).png) \
-                 $$(dir $$($1.ui-model.root)/Module/$$($1.ui-model.cocos-module.$2.output).npModule)
+auto-build-dirs+=$$(dir $$($1.ui-model.root)/$$($1.ui-model.cocos-module.$2.output).png) \
+                 $$(dir $$($1.ui-model.root)/$$($1.ui-model.cocos-module.$2.output).npModule)
 
 .PHONY: $$(firstword $$(sort $$(dir $$($1.ui-model.cocos-module.$2.input))))$(strip $2).tps
 $$(firstword $$(sort $$(dir $$($1.ui-model.cocos-module.$2.input))))$(strip $2).tps: $$($1.ui-model.cocos-module.$(strip $2).input)
 	$(call with_message,generate tp project $2)$$(CPDE_PERL) $$(CPDE_ROOT)/buildtools/tools/gen-tp-project.pl \
         --output-proj $$@ \
-        --output-pic $$(call build-relative-path,$$($1.ui-model.root)/Texture/$$($1.ui-model.cocos-module.$2.output).png,$$@) \
-        --output-plist $$(call build-relative-path,$$($1.ui-model.root)/Texture/$$($1.ui-model.cocos-module.$2.output).plist,$$@) \
+        --output-pic $$(call build-relative-path,$$($1.ui-model.root)/$$($1.ui-model.cocos-module.$2.output).png,$$@) \
+        --output-plist $$(call build-relative-path,$$($1.ui-model.root)/$$($1.ui-model.cocos-module.$2.output).plist,$$@) \
         $$(addprefix --input , $$(foreach i,$$(sort $$^),$$(call build-relative-path,$$i,$$(dir $$@))))
 
-$$($1.ui-model.root)/Texture/$$($1.ui-model.cocos-module.$2.output).plist: $$(firstword $$(sort $$(dir $$($1.ui-model.cocos-module.$2.input))))$(strip $2).tps
+$$($1.ui-model.root)/$$($1.ui-model.cocos-module.$2.output).plist: $$(firstword $$(sort $$(dir $$($1.ui-model.cocos-module.$2.input))))$(strip $2).tps
 	$$(if $$(TEXTUREPACKER),$(call with_message,texture pack $2)'$$(TEXTUREPACKER)' --force-publish '$$(call cygwin-path-to-win,$$^)',echo "TEXTUREPACKER not set!")
 
-$$($1.ui-model.root)/Module/$$($1.ui-model.cocos-module.$2.output).npModule: $$($1.ui-model.root)/Texture/$$($1.ui-model.cocos-module.$2.output).plist $$(UI_MODEL_TOOL)
+$$($1.ui-model.root)/$$($1.ui-model.cocos-module.$2.output).npModule: $$($1.ui-model.root)/$$($1.ui-model.cocos-module.$2.output).plist $$(UI_MODEL_TOOL)
 	$(call with_message,import cocos module $2)$$(UI_MODEL_TOOL) cocos-module-import \
         --model $$($1.ui-model.root) --format np \
-        --to-module Module/$$($1.ui-model.cocos-module.$2.output) \
-        --plist $$($1.ui-model.root)/Texture/$$($1.ui-model.cocos-module.$2.output).plist \
-        --pic Texture/$$($1.ui-model.cocos-module.$2.output).png
+        --to-module $$($1.ui-model.cocos-module.$2.output) \
+        --plist $$($1.ui-model.root)/$$($1.ui-model.cocos-module.$2.output).plist \
+        --pic $$($1.ui-model.cocos-module.$2.output).png
 
 endef
 
 # }}}
 # {{{ 实现：cocos序列帧动画
+
 #$(call def-ui-model-cocos-effect,model)
 define def-ui-model-cocos-effect-import
 
@@ -251,6 +252,7 @@ $$($1.ui-model.root)/Module/$$($1.ui-model.cocos-effect.$2.output).npModule $$($
         --pic Texture/$$($1.ui-model.cocos-effect.$2.output).png
 
 endef
+
 # }}}
 # {{{ 实现：cocos粒子动画
 
@@ -307,11 +309,11 @@ define product-def-rule-ui-model-export
 $(call assert-not-null,$1.output)
 
 .PHONY: $2.$1-model-export
-$2.$1-model-export: $$(UI_MODEL_EXPORT_TOOL)
-	$(call with_message,generate np filelist $2.$1)$$(CPDE_PERL) $$(CPDE_ROOT)/buildtools/tools/np-gen-filelist.pl \
-		--input=$$($1.ui-model.root) --output=$$(if $$($1.ui-model.output),$$($1.ui-model.output),$$(CPDE_OUTPUT_ROOT)/$$($2.output)/$$($1.output))/2DSResource.meta
-	$(call with_message,export bin files $2.$1)$$(UI_MODEL_EXPORT_TOOL) \
-        --input=$$($1.ui-model.root) --output=$$(if $$($1.ui-model.output),$$($1.ui-model.output),$$(CPDE_OUTPUT_ROOT)/$$($2.output)/$$($1.output))
+$2.$1-model-export: $$(UI_MODEL_TOOL)
+	$(call with_message,generate np filelist $2.$1)$$(CPDE_PERL) $$(CPDE_ROOT)/buildtools/tools/drow-gen-filelist.pl \
+		--input=$$($1.ui-model.root) --output=$$(if $$($1.ui-model.output),$$($1.ui-model.output),$$(CPDE_OUTPUT_ROOT)/$$($2.output)/$$($1.output))/res.db
+	$(call with_message,export bin files $2.$1)$$(UI_MODEL_TOOL) \
+        convert --model=$$($1.ui-model.root) --format=np --to=$$(if $$($1.ui-model.output),$$($1.ui-model.output),$$(CPDE_OUTPUT_ROOT)/$$($2.output)/$$($1.output)) --to-format=bin
 endef
 
 # }}}
