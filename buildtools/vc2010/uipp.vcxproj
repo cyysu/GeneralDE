@@ -211,7 +211,7 @@ $(ProjectDir)..\..\build\vc\tools\cpe_dr_tool.exe --input-group-root $(ProjectDi
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>../../3rdTools/yaml/include;../../3rdTools/yajl/include;../../3rdTools/libev/include;../../3rdTools/libxml2/include;../../3rdTools/iconv/vc/include;../../3rdTools/libxml2/include/vc;../../3rdTools/gles/vc/include/glee;../../drow/render/include;../../drow/render/m3e/inc;../../3rdTools/pthread/vc/include;../../3rdTools/openal/vc/include;../../3rdTools/gles/include;../../3rdTools/Box2D/Box2D;../../build/vc;../../include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../../3rdTools/yaml/include;../../3rdTools/yajl/include;../../3rdTools/libev/include;../../3rdTools/libxml2/include;../../3rdTools/iconv/vc/include;../../3rdTools/libxml2/include/vc;../../3rdTools/gles/vc/include/glee;../../drow/include;../../drow/m3e/inc;../../3rdTools/pthread/vc/include;../../3rdTools/openal/vc/include;../../3rdTools/gles/include;../../3rdTools/Box2D/Box2D;../../build/vc;../../include</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_LIB;YAML_DECLARE_STATIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
@@ -231,7 +231,7 @@ $(ProjectDir)..\..\build\vc\tools\cpe_dr_tool.exe --input-group-root $(ProjectDi
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>../../include;../../3rdTools/yaml/include;../../3rdTools/yajl/include;../../3rdTools/libev/include;../../3rdTools/libxml2/include;../../3rdTools/iconv/vc/include;../../3rdTools/libxml2/include/vc;../../3rdTools/NPEngine;../../3rdTools/NPEngine/inc;../../3rdTools/NPEngine/extern/pthread;../../3rdTools/NPEngine/extern/openal;../../3rdTools/NPEngine/extern/gles;../../3rdTools/Box2D/Box2D;../../build/vc;%(AdditionalIncludeDirectories);../../3rdTools/NPEngine/libxml/inc;../../3rdTools/NPEngine/m3e/inc</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../../3rdTools/yaml/include;../../3rdTools/yajl/include;../../3rdTools/libev/include;../../3rdTools/libxml2/include;../../3rdTools/iconv/vc/include;../../3rdTools/libxml2/include/vc;../../3rdTools/gles/vc/include/glee;../../drow/include;../../drow/m3e/inc;../../3rdTools/pthread/vc/include;../../3rdTools/openal/vc/include;../../3rdTools/gles/include;../../3rdTools/Box2D/Box2D;../../build/vc;../../include</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;YAML_DECLARE_STATIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
