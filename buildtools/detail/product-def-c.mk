@@ -32,6 +32,7 @@ c-generate-depend-ld-flags=$(call $($2.env).export-symbols,$(r.$1.c.export-symbo
                                  ),\
                               $(patsubst domain/%,$2/%,$(subst /domain/,/$2/,$(patsubst env/%,$($2.env)/%,$(subst /env/,/$($2.env)/,$(ei)))))) \
                            ) \
+                           $(if $(filter cygwin,$(OS_NAME)),-Xlinker --start-group) \
                            $(addprefix -l,$(call merge-list, \
                                                  $(r.$1.c.libraries) $(r.$1.product.c.libraries),\
                                                  $(call product-gen-depend-value-list,$1,$($2.env),\
@@ -51,6 +52,7 @@ c-generate-depend-ld-flags=$(call $($2.env).export-symbols,$(r.$1.c.export-symbo
 									$(call product-gen-depend-value-list,$1,$($2.env),product.c.frameworks) \
                                     $(call product-gen-depend-value-list,$1,$($2.env),$($2.env).product.c.frameworks) \
                                  )) \
+                           $(if $(filter cygwin,$(OS_NAME)),-Xlinker --end-group) \
                            $(call revert-list,$(call product-gen-depend-value-list,$1,$($2.env), \
                                         $(call c-generate-env-arg-name-list,$2,product.c.flags.ld))) \
                            $(if $(filter 1,$(GCOV)), -fprofile-arcs -ftest-coverage ) \
