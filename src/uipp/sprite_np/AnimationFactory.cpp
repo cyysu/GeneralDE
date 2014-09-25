@@ -54,7 +54,7 @@ private:
         Gd::App::Application & app, ContextExt * contextExt,
         const char * type_name, char * arg, const uint8_t is_loop, const int32_t start, const int32_t end)
     {
-        if(strcmp(type_name, R2DSImageRef::sRTTI.GetName()) == 0) {
+        if(strcmp(type_name, "img-block") == 0) {
             int resId;
             if (!UI::Sprite::R::NpUtils::readResId(arg, resId)) {
                 APP_CTX_ERROR(app, "read res %s id fail!", arg);
@@ -72,7 +72,7 @@ private:
 
             return createImage(fileID, resId);
         }
-        else if(strcmp(type_name, R2DSFrameRef::sRTTI.GetName()) == 0) {
+        else if(strcmp(type_name, "frame") == 0) {
             int resId;
             if (!UI::Sprite::R::NpUtils::readResId(arg, resId)) {
                 APP_CTX_ERROR(app, "read res %s id fail!", type_name);
@@ -90,7 +90,7 @@ private:
 
             return createFrame(fileID, resId);
         }
-        else if(strcmp(type_name, R2DSActorRef::sRTTI.GetName()) == 0) {
+        else if(strcmp(type_name, "actor") == 0) {
             int resId;
             if (!UI::Sprite::R::NpUtils::readResId(arg, resId)) {
                 APP_CTX_ERROR(app, "read res id fail(%s)!", arg);

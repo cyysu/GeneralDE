@@ -27,15 +27,15 @@
 namespace UI { namespace Sprite { namespace R {
 
 	 uint32_t NpUtils::getFileID(const char * typeName, const char * path, const char * file){
-		 if(strcmp(typeName, R2DSImageRef::sRTTI.GetName()) == 0)
+		 if(strcmp(typeName, "img-block") == 0)
 		 {
 			 return R2DSImageFileMgr::GetIns()->GetFileID(path, file);
 		 }
-		 else if(strcmp(typeName, R2DSFrameRef::sRTTI.GetName()) == 0)
+		 else if(strcmp(typeName, "frame") == 0)
 		 {
 			 return R2DSFrameFileMgr::GetIns()->GetFileID(path, file);
 		 }
-		 else if(strcmp(typeName, R2DSActorRef::sRTTI.GetName()) == 0)
+		 else if(strcmp(typeName, "actor") == 0)
 		 {
 			 return R2DSActorFileMgr::GetIns()->GetFileID(path, file);
 		 }
@@ -68,7 +68,7 @@ namespace UI { namespace Sprite { namespace R {
 
 	 void NpUtils::loadByType(const char * type_name, char * arg, int resId) {
 
-		 if(strcmp(type_name, R2DSImageRef::sRTTI.GetName()) == 0) {
+		 if(strcmp(type_name, "img-block") == 0) {
 			 uint32_t guid;
 			 sscanf(arg, FMT_UINT32_T, &guid);
 
@@ -80,7 +80,7 @@ namespace UI { namespace Sprite { namespace R {
 			 R2DSImageFile * file = R2DSImageFileMgr::GetIns()->GetFile(fileID);
 			 file->GetImage(resId);
 		 }
-		 else if(strcmp(type_name, R2DSFrameRef::sRTTI.GetName()) == 0) {
+		 else if(strcmp(type_name, "frame") == 0) {
 			 uint32_t guid;
 			 sscanf(arg, FMT_UINT32_T, &guid);
 
@@ -92,7 +92,7 @@ namespace UI { namespace Sprite { namespace R {
 			 R2DSFrameFile * file = R2DSFrameFileMgr::GetIns()->GetFile(fileID);
 			 file->GetFrame(resId);
 		 }
-		 else if(strcmp(type_name, R2DSActorRef::sRTTI.GetName()) == 0) {
+		 else if(strcmp(type_name, "actor") == 0) {
 			 uint32_t guid;
 			 sscanf(arg, FMT_UINT32_T, &guid);
 
@@ -306,7 +306,7 @@ namespace UI { namespace Sprite { namespace R {
 				 }
 			 }
 		 
-			 if(strcmp(typeName, R2DSImageRef::sRTTI.GetName()) == 0)
+			 if(strcmp(typeName, "img-block") == 0)
 			 {
 				 R2DSImageFile * file = R2DSImageFileMgr::GetIns()->GetFile(fileID);
 				 R2DSImage * image = frameName ? file->GetImage(frameName) : file->GetImage(frameID);
@@ -317,7 +317,7 @@ namespace UI { namespace Sprite { namespace R {
 				 rectNode.rect.rb = rb;
 				 rectNodeVer.push_back(rectNode);
 			 }
-			 else if(strcmp(typeName, R2DSFrameRef::sRTTI.GetName()) == 0)
+			 else if(strcmp(typeName, "frame") == 0)
 			 {
 				 R2DSFrameFile * file = R2DSFrameFileMgr::GetIns()->GetFile(fileID);
                  R2DSFrame * frame = frameName ? file->GetFrame(frameName) : file->GetFrame(frameID);
@@ -335,7 +335,7 @@ namespace UI { namespace Sprite { namespace R {
 					 rectNodeVer.push_back(rectNode);
 				 }
 			 }
-			 else if(strcmp(typeName, R2DSActorRef::sRTTI.GetName()) == 0)
+			 else if(strcmp(typeName, "actor") == 0)
 			 {
 				 R2DSActorFile * file = R2DSActorFileMgr::GetIns()->GetFile(fileID);
                  R2DSActor * actor = frameName ? file->GetActor(frameName) : file->GetActor(frameID);
