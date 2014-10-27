@@ -27,3 +27,4 @@ t/svr/dir
 t/support/ui_np
 t/3rdTools/libgif
 t/3rdTools/chipmunk
+t/3rdTools/spine-runtimes
