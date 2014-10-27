@@ -1,0 +1,3 @@
+[submodule "3rdTools/Chipmunk2D"]
+	path = 3rdTools/Chipmunk2D
+	url = git@github.com:slembcke/Chipmunk2D.git
