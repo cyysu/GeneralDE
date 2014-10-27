@@ -1,0 +1,3 @@
+[submodule "3rdTools/spine-runtimes"]
+	path = 3rdTools/spine-runtimes
+	url = git@github.com:EsotericSoftware/spine-runtimes.git
