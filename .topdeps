@@ -1,3 +1,4 @@
 t/support/usf
 t/svr/usf
 t/3rdTools/chipmunk
+t/3rdTools/spine-runtimes
