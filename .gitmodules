@@ -1,3 +1,6 @@
 [submodule "3rdTools/Box2D"]
 	path = 3rdTools/Box2D
 	url = git@github.com:wangjian1009/Box2D.git
+[submodule "3rdTools/Chipmunk2D"]
+	path = 3rdTools/Chipmunk2D
+	url = git@github.com:slembcke/Chipmunk2D.git
