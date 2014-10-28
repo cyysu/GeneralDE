@@ -30,6 +30,8 @@ struct ui_sprite_world {
     ui_sprite_repository_t m_repo;
     uint32_t m_max_entity_id;
     uint8_t m_in_tick;
+    float m_fps;
+    float m_frame_duration;
     struct cpe_hash_table m_entity_by_id;
     struct cpe_hash_table m_entity_by_name;
     struct cpe_hash_table m_entity_protos;

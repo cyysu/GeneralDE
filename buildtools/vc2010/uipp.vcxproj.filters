@@ -22,9 +22,6 @@
     <Filter Include="src\sprite_fsm">
       <UniqueIdentifier>{1bf13241-4d42-42a8-bc2e-4ae0c3384bed}</UniqueIdentifier>
     </Filter>
-    <Filter Include="src\sprite_np">
-      <UniqueIdentifier>{84315d46-7ab0-4530-bb6b-7ab36ecaa8d3}</UniqueIdentifier>
-    </Filter>
     <Filter Include="src\sprite_anim">
       <UniqueIdentifier>{6afbcc00-a1c0-49aa-ae12-ab930f6840fb}</UniqueIdentifier>
     </Filter>
@@ -60,6 +57,9 @@
     </Filter>
     <Filter Include="src\app\win32">
       <UniqueIdentifier>{945d0f72-30d3-46b4-8c5b-61bf1ab76205}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\sprite_render">
+      <UniqueIdentifier>{f6ade240-632d-4753-8e2b-a2ce97572119}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -155,18 +155,6 @@
     </ClInclude>
     <ClInclude Include="..\..\include\uipp\sprite_cfg\CfgLoaderExternGen.hpp">
       <Filter>include\sprite_cfg</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\uipp\sprite_np\AnimationFactory.hpp">
-      <Filter>src\sprite_np</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\uipp\sprite_np\ContextExt.hpp">
-      <Filter>src\sprite_np</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\uipp\sprite_np\LayerExt.hpp">
-      <Filter>src\sprite_np</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\uipp\sprite_np\ModuleExt.hpp">
-      <Filter>src\sprite_np</Filter>
     </ClInclude>
     <ClInclude Include="..\..\include\uipp\sprite\ComponentWithDataGen.hpp">
       <Filter>include\sprite</Filter>
@@ -270,9 +258,6 @@
     <ClInclude Include="..\..\src\uipp\app\UIPopupPageDef.hpp">
       <Filter>src\app</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\uipp\sprite_np\GroupNode.hpp">
-      <Filter>src\sprite_np</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\src\uipp\app\UIAction_AudioBGM.hpp">
       <Filter>src\app</Filter>
     </ClInclude>
@@ -303,14 +288,35 @@
     <ClInclude Include="..\..\src\uipp\app\StringInfoMgr.hpp">
       <Filter>src\app</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\uipp\sprite_np\RControlNode.hpp">
-      <Filter>src\sprite_np</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\src\uipp\app\DeviceExt.hpp">
       <Filter>src\app</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\uipp\app\RuningExt.hpp">
       <Filter>src\app</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\uipp\sprite_render\AnimationFactory.hpp">
+      <Filter>src\sprite_render</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\uipp\sprite_render\ContextExt.hpp">
+      <Filter>src\sprite_render</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\uipp\sprite_render\GroupNode.hpp">
+      <Filter>src\sprite_render</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\uipp\sprite_render\LayerExt.hpp">
+      <Filter>src\sprite_render</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\uipp\sprite_render\ModuleExt.hpp">
+      <Filter>src\sprite_render</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\uipp\sprite_render\RControlNode.hpp">
+      <Filter>src\sprite_render</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\uipp\app\Device.hpp">
+      <Filter>include\app</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\uipp\app\Runing.hpp">
+      <Filter>include\app</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -344,23 +350,8 @@
     <ClCompile Include="..\..\src\uipp\sprite\Component.cpp">
       <Filter>src\sprite</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\uipp\sprite_np\AnimationFactory.cpp">
-      <Filter>src\sprite_np</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\uipp\sprite_np\ContextExt.cpp">
-      <Filter>src\sprite_np</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\uipp\sprite_np\LayerExt.cpp">
-      <Filter>src\sprite_np</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\uipp\sprite_np\ModuleExt.cpp">
-      <Filter>src\sprite_np</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\uipp\sprite_2d\Transform.cpp">
       <Filter>src\sprite_2d</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\uipp\sprite_np\NpUtils.cpp">
-      <Filter>src\sprite_np</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\uipp\sprite\EntityIterator.cpp">
       <Filter>src\sprite</Filter>
@@ -425,9 +416,6 @@
     <ClCompile Include="..\..\src\uipp\app\UIPopupPageDef.cpp">
       <Filter>src\app</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\uipp\sprite_np\GroupNode.cpp">
-      <Filter>src\sprite_np</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\uipp\app\UIAction_AudioBGM.cpp">
       <Filter>src\app</Filter>
     </ClCompile>
@@ -461,9 +449,6 @@
     <ClCompile Include="..\..\src\uipp\app\StringInfoMgr.cpp">
       <Filter>src\app</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\uipp\sprite_np\RControlNode.cpp">
-      <Filter>src\sprite_np</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\uipp\app\DeviceExt.cpp">
       <Filter>src\app</Filter>
     </ClCompile>
@@ -482,6 +467,27 @@
     <ClCompile Include="..\..\src\uipp\app\win32\Env_DeviceId.cpp">
       <Filter>src\app\win32</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\uipp\sprite_render\AnimationFactory.cpp">
+      <Filter>src\sprite_render</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\uipp\sprite_render\ContextExt.cpp">
+      <Filter>src\sprite_render</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\uipp\sprite_render\GroupNode.cpp">
+      <Filter>src\sprite_render</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\uipp\sprite_render\LayerExt.cpp">
+      <Filter>src\sprite_render</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\uipp\sprite_render\ModuleExt.cpp">
+      <Filter>src\sprite_render</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\uipp\sprite_render\NpUtils.cpp">
+      <Filter>src\sprite_render</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\uipp\sprite_render\RControlNode.cpp">
+      <Filter>src\sprite_render</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="..\..\src\uipp\app\protocol.def">
@@ -491,6 +497,9 @@
   <ItemGroup>
     <None Include="..\..\src\uipp\sprite\config.mk">
       <Filter>src\sprite</Filter>
+    </None>
+    <None Include="..\..\src\uipp\sprite_render\protocol.def">
+      <Filter>src\sprite_render</Filter>
     </None>
   </ItemGroup>
 </Project>
