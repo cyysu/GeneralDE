@@ -105,7 +105,7 @@ static int ui_sprite_cfg_do_load_fsm_actions(ui_sprite_cfg_loader_t loader, ui_s
         fsm_action = ui_sprite_cfg_loader_load_action_from_cfg(loader, fsm_state, action_name, action_cfg);
         if (fsm_action == NULL) {
             CPE_ERROR(
-                loader->m_em, "%s: do load fsm: state %s: crate action fail!",
+                loader->m_em, "%s: do load fsm: state %s: create action fail!",
                 ui_sprite_cfg_loader_name(loader), ui_sprite_fsm_state_name(fsm_state));
             return -1;
         }

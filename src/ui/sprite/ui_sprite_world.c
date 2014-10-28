@@ -225,6 +225,8 @@ ui_sprite_world_t ui_sprite_world_create(ui_sprite_repository_t repo) {
         return NULL;
     }
 
+    ui_sprite_world_set_fps(world, 60);
+
     return world;
 }
 
@@ -516,6 +518,8 @@ static ptr_int_t ui_sprite_world_tick(void * ctx, ptr_int_t arg) {
 
     delta_s = ((float)delta) / 1000.0f;
 
+    if (delta_s > world->m_frame_duration) delta_s = world->m_frame_duration;
+
     for(i = 0; i < world->m_updator_count; ++i) {
         ui_sprite_world_updator_t updator = world->m_updators + i;
         
@@ -548,6 +552,15 @@ void ui_sprite_world_stop_tick(ui_sprite_world_t world) {
     if (gd_app_tick_remove(world->m_repo->m_app, ui_sprite_world_tick, world) == 0) {
         world->m_in_tick = 0;
     }
+}
+
+float ui_sprite_world_fps(ui_sprite_world_t world) {
+    return world->m_fps;
+}
+
+void ui_sprite_world_set_fps(ui_sprite_world_t world,  float fps) {
+    world->m_fps = fps;
+    world->m_frame_duration = 1.0f / fps;
 }
 
 void ui_sprite_component_enqueue(ui_sprite_world_t world, ui_sprite_component_t component, int8_t priority) {

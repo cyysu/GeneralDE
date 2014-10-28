@@ -23,6 +23,7 @@ public:
     {
     }
 
+    DataT & attrData(void) { return m_data; }
     DataT const & attrData(void) const { return m_data; }
 
     template<typename T>

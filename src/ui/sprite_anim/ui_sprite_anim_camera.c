@@ -27,6 +27,8 @@ ui_sprite_anim_camera_create(ui_sprite_anim_module_t module, ui_sprite_world_t w
     camera->m_camera_pos.x = 0.0f;
     camera->m_camera_pos.y = 0.0f;
     camera->m_camera_scale = 1.0f;
+    camera->m_camera_scale_pair.x = 1.0f;
+    camera->m_camera_scale_pair.y = 1.0f;
 
     if ((backend = ui_sprite_anim_backend_find(world)) && backend->m_def.m_screen_size_fun) {
         camera->m_screen_size = backend->m_def.m_screen_size_fun(backend->m_def.m_ctx);
@@ -78,6 +80,8 @@ void ui_sprite_anim_camera_set_screen_size(ui_sprite_anim_camera_t camera, UI_SP
 
 void ui_sprite_anim_camera_set_base_scale(ui_sprite_anim_camera_t camera, UI_SPRITE_2D_PAIR const * scale) {
     camera->m_camera_base_scale = *scale;
+
+    ui_sprite_anim_camera_set_pos_and_scale(camera, camera->m_camera_pos, camera->m_camera_scale);
 }
 
 UI_SPRITE_2D_PAIR ui_sprite_anim_camera_base_scale(ui_sprite_anim_camera_t camera) {
