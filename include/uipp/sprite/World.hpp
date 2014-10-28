@@ -23,6 +23,9 @@ public:
 
     void destory(void) { ui_sprite_world_free(*this); }
 
+    float fps(void) const { return ui_sprite_world_fps(*this); }
+    void setFps(float fps) { ui_sprite_world_set_fps(*this,  fps); }
+
     ::std::auto_ptr<EntityIterator> entities(mem_allocrator_t alloc = NULL);
 
     /*res operations*/

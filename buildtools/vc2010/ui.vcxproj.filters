@@ -61,6 +61,18 @@
     <Filter Include="src\utils">
       <UniqueIdentifier>{81a0445e-33a7-4a8c-881d-8032bba992b4}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\sprite_spine">
+      <UniqueIdentifier>{08c8ae9c-b8df-4fcb-98ef-23ff769c124a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\sprite_spine">
+      <UniqueIdentifier>{512b5ad1-3496-4425-8102-f0cf8754f154}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\sprite_barrage">
+      <UniqueIdentifier>{8d499357-89cf-4143-a406-b46d885104ab}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\sprite_barrage">
+      <UniqueIdentifier>{1bddc01c-fb2f-48b0-951b-2e7b49005e1c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\include\ui\sprite_fsm\ui_sprite_fsm_action_fsm.h">
@@ -597,6 +609,63 @@
     <ClInclude Include="..\..\src\ui\sprite_ctrl\ui_sprite_ctrl_turntable_active_i.h">
       <Filter>src\sprite_ctrl</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\src\ui\sprite_spine\ui_sprite_spine_env_i.h">
+      <Filter>src\sprite_spine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\ui\sprite_spine\ui_sprite_spine_module_i.h">
+      <Filter>src\sprite_spine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\ui\sprite_spine\ui_sprite_spine_obj_i.h">
+      <Filter>src\sprite_spine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\ui\sprite_spine\ui_sprite_spine_env.h">
+      <Filter>include\sprite_spine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\ui\sprite_spine\ui_sprite_spine_module.h">
+      <Filter>include\sprite_spine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\ui\sprite_spine\ui_sprite_spine_obj.h">
+      <Filter>include\sprite_spine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\ui\sprite_spine\ui_sprite_spine_types.h">
+      <Filter>include\sprite_spine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\ui\sprite_spine\ui_sprite_spine_play_anim.h">
+      <Filter>include\sprite_spine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\ui\sprite_spine\ui_sprite_spine_play_anim_i.h">
+      <Filter>src\sprite_spine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\ui\sprite_barrage\ui_sprite_barrage_emitter_i.h">
+      <Filter>src\sprite_barrage</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\ui\sprite_barrage\ui_sprite_barrage_env_i.h">
+      <Filter>src\sprite_barrage</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\ui\sprite_barrage\ui_sprite_barrage_module_i.h">
+      <Filter>src\sprite_barrage</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\ui\sprite_barrage\ui_sprite_barrage_obj_i.h">
+      <Filter>src\sprite_barrage</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\ui\sprite_barrage\ui_sprite_barrage_emitter.h">
+      <Filter>include\sprite_barrage</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\ui\sprite_barrage\ui_sprite_barrage_env.h">
+      <Filter>include\sprite_barrage</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\ui\sprite_barrage\ui_sprite_barrage_module.h">
+      <Filter>include\sprite_barrage</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\ui\sprite_barrage\ui_sprite_barrage_obj.h">
+      <Filter>include\sprite_barrage</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\ui\sprite_barrage\ui_sprite_barrage_types.h">
+      <Filter>include\sprite_barrage</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\ui\sprite_barrage\ui_sprite_barrage_enable_emitter_i.h">
+      <Filter>src\sprite_barrage</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\ui\sprite\ui_sprite_component.c">
@@ -1075,6 +1144,45 @@
     </ClCompile>
     <ClCompile Include="..\..\src\ui\sprite_2d\ui_sprite_2d_funcs.c">
       <Filter>src\sprite_2d</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\ui\sprite_spine\ui_sprite_spine_env.c">
+      <Filter>src\sprite_spine</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\ui\sprite_spine\ui_sprite_spine_module.c">
+      <Filter>src\sprite_spine</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\ui\sprite_spine\ui_sprite_spine_obj.c">
+      <Filter>src\sprite_spine</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\ui\sprite_cfg\ui_sprite_cfg_component_spine_obj.c">
+      <Filter>src\sprite_cfg</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\ui\sprite_cfg\ui_sprite_cfg_resource_spine_env.c">
+      <Filter>src\sprite_cfg</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\ui\sprite_spine\ui_sprite_spine_play_anim.c">
+      <Filter>src\sprite_spine</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\ui\sprite_cfg\ui_sprite_cfg_action_spine_play_anim.c">
+      <Filter>src\sprite_cfg</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\ui\sprite_barrage\ui_sprite_barrage_emitter.c">
+      <Filter>src\sprite_barrage</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\ui\sprite_barrage\ui_sprite_barrage_env.c">
+      <Filter>src\sprite_barrage</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\ui\sprite_barrage\ui_sprite_barrage_module.c">
+      <Filter>src\sprite_barrage</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\ui\sprite_barrage\ui_sprite_barrage_obj.c">
+      <Filter>src\sprite_barrage</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\ui\sprite_barrage\ui_sprite_barrage_enable_emitter.c">
+      <Filter>src\sprite_barrage</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\ui\sprite_barrage\ui_sprite_barrage_env_load.c">
+      <Filter>src\sprite_barrage</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

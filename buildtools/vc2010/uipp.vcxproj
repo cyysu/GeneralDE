@@ -12,10 +12,12 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\build\vc\protocol\ui\app\ui_app_evt.h" />
+    <ClInclude Include="..\..\include\uipp\app\Device.hpp" />
     <ClInclude Include="..\..\include\uipp\app\Env.hpp" />
     <ClInclude Include="..\..\include\uipp\app\Gen\PageEvtSch.hpp" />
     <ClInclude Include="..\..\include\uipp\app\Gen\PageGen.hpp" />
     <ClInclude Include="..\..\include\uipp\app\Page.hpp" />
+    <ClInclude Include="..\..\include\uipp\app\Runing.hpp" />
     <ClInclude Include="..\..\include\uipp\app\System.hpp" />
     <ClInclude Include="..\..\include\uipp\app\UICenter.hpp" />
     <ClInclude Include="..\..\include\uipp\app\UIPageProxy.hpp" />
@@ -88,12 +90,12 @@
     <ClInclude Include="..\..\src\uipp\app\UIPhaseNodeExt.hpp" />
     <ClInclude Include="..\..\src\uipp\app\UIPopupPage.hpp" />
     <ClInclude Include="..\..\src\uipp\app\UIPopupPageDef.hpp" />
-    <ClInclude Include="..\..\src\uipp\sprite_np\AnimationFactory.hpp" />
-    <ClInclude Include="..\..\src\uipp\sprite_np\ContextExt.hpp" />
-    <ClInclude Include="..\..\src\uipp\sprite_np\GroupNode.hpp" />
-    <ClInclude Include="..\..\src\uipp\sprite_np\LayerExt.hpp" />
-    <ClInclude Include="..\..\src\uipp\sprite_np\ModuleExt.hpp" />
-    <ClInclude Include="..\..\src\uipp\sprite_np\RControlNode.hpp" />
+    <ClInclude Include="..\..\src\uipp\sprite_render\AnimationFactory.hpp" />
+    <ClInclude Include="..\..\src\uipp\sprite_render\ContextExt.hpp" />
+    <ClInclude Include="..\..\src\uipp\sprite_render\GroupNode.hpp" />
+    <ClInclude Include="..\..\src\uipp\sprite_render\LayerExt.hpp" />
+    <ClInclude Include="..\..\src\uipp\sprite_render\ModuleExt.hpp" />
+    <ClInclude Include="..\..\src\uipp\sprite_render\RControlNode.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\build\vc\protocol\ui\app\app_meta_lib.c" />
@@ -149,13 +151,13 @@
     <ClCompile Include="..\..\src\uipp\sprite_fsm\Fsm.cpp" />
     <ClCompile Include="..\..\src\uipp\sprite_fsm\Repository.cpp" />
     <ClCompile Include="..\..\src\uipp\sprite_fsm\State.cpp" />
-    <ClCompile Include="..\..\src\uipp\sprite_np\AnimationFactory.cpp" />
-    <ClCompile Include="..\..\src\uipp\sprite_np\ContextExt.cpp" />
-    <ClCompile Include="..\..\src\uipp\sprite_np\GroupNode.cpp" />
-    <ClCompile Include="..\..\src\uipp\sprite_np\LayerExt.cpp" />
-    <ClCompile Include="..\..\src\uipp\sprite_np\ModuleExt.cpp" />
-    <ClCompile Include="..\..\src\uipp\sprite_np\NpUtils.cpp" />
-    <ClCompile Include="..\..\src\uipp\sprite_np\RControlNode.cpp" />
+    <ClCompile Include="..\..\src\uipp\sprite_render\AnimationFactory.cpp" />
+    <ClCompile Include="..\..\src\uipp\sprite_render\ContextExt.cpp" />
+    <ClCompile Include="..\..\src\uipp\sprite_render\GroupNode.cpp" />
+    <ClCompile Include="..\..\src\uipp\sprite_render\LayerExt.cpp" />
+    <ClCompile Include="..\..\src\uipp\sprite_render\ModuleExt.cpp" />
+    <ClCompile Include="..\..\src\uipp\sprite_render\NpUtils.cpp" />
+    <ClCompile Include="..\..\src\uipp\sprite_render\RControlNode.cpp" />
     <ClCompile Include="..\..\src\uipp\sprite_touch\Touchable.cpp" />
     <ClCompile Include="..\..\src\uipp\sprite_touch\TouchManager.cpp" />
   </ItemGroup>
@@ -169,6 +171,7 @@ $(ProjectDir)..\..\build\vc\tools\cpe_dr_tool.exe --input-group-root $(ProjectDi
 $(ProjectDir)..\..\build\vc\tools\cpe_dr_tool.exe --input-group-root $(ProjectDir)../../src/ui/pro/app --input-group %(FullPath)  --output-h  $(ProjectDir)..\..\build\vc\protocol\ui\app --output-lib-c $(ProjectDir)..\..\build\vc\protocol\ui\app\app_meta_lib.c --with-traits --output-traits-cpp=$(ProjectDir)..\..\build\vc\protocol\ui\app\app_meta_traits.cpp --output-lib-c-arg=g_metalib_ui_app</Command>
     </CustomBuild>
     <None Include="..\..\src\uipp\sprite\config.mk" />
+    <None Include="..\..\src\uipp\sprite_render\protocol.def" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{CD696340-AF2A-4D07-BC14-0990C0FA0833}</ProjectGuid>
@@ -211,7 +214,7 @@ $(ProjectDir)..\..\build\vc\tools\cpe_dr_tool.exe --input-group-root $(ProjectDi
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>../../3rdTools/yaml/include;../../3rdTools/yajl/include;../../3rdTools/libev/include;../../3rdTools/libxml2/include;../../3rdTools/iconv/vc/include;../../3rdTools/libxml2/include/vc;../../3rdTools/gles/vc/include/glee;../../drow/include;../../drow/m3e/inc;../../3rdTools/pthread/vc/include;../../3rdTools/openal/vc/include;../../3rdTools/gles/include;../../3rdTools/Box2D/Box2D;../../build/vc;../../include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../../3rdTools/yaml/include;../../3rdTools/yajl/include;../../3rdTools/libev/include;../../3rdTools/libxml2/include;../../3rdTools/iconv/vc/include;../../3rdTools/libxml2/include/vc;../../3rdTools/gles/vc/include/glee;../../drow/include;../../drow/m3e/inc;../../3rdTools/pthread/vc/include;../../3rdTools/openal/vc/include;../../3rdTools/gles/include;../../3rdTools/Box2D/Box2D;../../build/vc;../../include;../../3rdTools/spine-runtimes/spine-c/include</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_LIB;YAML_DECLARE_STATIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
@@ -231,7 +234,7 @@ $(ProjectDir)..\..\build\vc\tools\cpe_dr_tool.exe --input-group-root $(ProjectDi
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>../../3rdTools/yaml/include;../../3rdTools/yajl/include;../../3rdTools/libev/include;../../3rdTools/libxml2/include;../../3rdTools/iconv/vc/include;../../3rdTools/libxml2/include/vc;../../3rdTools/gles/vc/include/glee;../../drow/include;../../drow/m3e/inc;../../3rdTools/pthread/vc/include;../../3rdTools/openal/vc/include;../../3rdTools/gles/include;../../3rdTools/Box2D/Box2D;../../build/vc;../../include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../../3rdTools/yaml/include;../../3rdTools/yajl/include;../../3rdTools/libev/include;../../3rdTools/libxml2/include;../../3rdTools/iconv/vc/include;../../3rdTools/libxml2/include/vc;../../3rdTools/gles/vc/include/glee;../../drow/include;../../drow/m3e/inc;../../3rdTools/pthread/vc/include;../../3rdTools/openal/vc/include;../../3rdTools/gles/include;../../3rdTools/Box2D/Box2D;../../build/vc;../../include;../../3rdTools/spine-runtimes/spine-c/include</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;YAML_DECLARE_STATIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>

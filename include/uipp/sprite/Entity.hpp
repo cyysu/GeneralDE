@@ -43,6 +43,8 @@ public:
     void setAttr(const char * attrName, double v);
     void setAttr(const char * attrName, const char * v);
 
+    void notifyAttrUpdated(const char * attrs);
+
     /*component*/
     Component * findComponent(const char * name) { return (Component *)ui_sprite_component_find(*this, name); }
     Component const * findComponent(const char * name) const { return (Component const *)ui_sprite_component_find(*this, name); }
