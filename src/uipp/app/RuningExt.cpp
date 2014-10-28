@@ -6,14 +6,15 @@
 #include "RTouchManager.h"
 #include "RStreamingManager.h"
 #include "RAudioManager.h"
+#include "RFontImpl.h"
 #include "m3eTypes.h"
 #include "cpe/utils/time_utils.h"
+#include "cpe/pal/pal_stdio.h"
 #include "uipp/sprite_2d/System.hpp"
-#include "uipp/sprite_np/Module.hpp"
+#include "uipp/sprite_render/Module.hpp"
 #include "uipp/sprite_touch/TouchManager.hpp"
 #include "gdpp/app/Application.hpp"
 #include "gdpp/app/Log.hpp"
-#include "render/repo/ui_repo_repository.h"
 #include "RuningExt.hpp"
 #include "EnvExt.hpp"
 
@@ -21,13 +22,16 @@ namespace UI { namespace App {
 
 RuningExt::RuningExt(EnvExt & env)
     : m_env(env)
-    , m_fixFrameTime(33)
+    , m_fps(0)
+    , m_fixFrameTime(0)
     , m_curTime(0)
     , m_lastTime(0)
     , m_lastUpdateTime(0)
     , m_offsetRenderTime(0)
     , m_rendEnable(false)
+	, m_runingFps(0.0f)
 {
+    setFps(60);
 }
 
 RuningExt::~RuningExt() {
@@ -44,14 +48,15 @@ void RuningExt::setSize(int32_t w, int32_t h) {
 
 void RuningExt::init(void) {
 	m_lastUpdateTime = m_curTime = m_lastTime = cur_time_ms();
-    ui_repo_repository_t ui_repo = ui_repo_repository_create(m_env.app(), m_env.app().allocrator(), "UIRepo", m_env.app().em());
-    if (ui_repo == NULL) {
-        APP_CTX_THROW_EXCEPTION(m_env.app(), ::std::runtime_error, "load ui repo fail!");
-    }
 
     APP_CTX_INFO(
         m_env.app(), "Runing: opengl info: render=%s, version=%s",
         glGetString(GL_RENDERER), glGetString(GL_VERSION));
+}
+
+void RuningExt::setFps(float fps) {
+    m_fps = fps;
+    m_fixFrameTime = (1000 / m_fps);
 }
 
 void RuningExt::update(void) {
@@ -79,11 +84,10 @@ void RuningExt::update(void) {
     m_lastTime = m_curTime;
 
 #ifdef ANDROID
-	//Xiaoxin::AudioManager::Instance()->Update(deltaTime);
+	//Flight::AudioManager::Instance()->Update(deltaTime);
 #else
 
 	m_offsetRenderTime += diffTime;
-
     m_rendEnable = m_fixFrameTime <= m_offsetRenderTime;
     if (m_rendEnable) {
         m_offsetRenderTime -= m_fixFrameTime;
@@ -91,9 +95,10 @@ void RuningExt::update(void) {
         long updateDelta = m_curTime - m_lastUpdateTime;
         m_lastUpdateTime = m_curTime;
 
-        if (updateDelta > m_fixFrameTime) updateDelta = m_fixFrameTime;
+        if (updateDelta > m_fixFrameTime) m_runingFps = m_fixFrameTime;
 
         float updateDeltaTime = updateDelta / 1000.f;
+		
         doUpdate(updateDeltaTime);
 	}
 #endif
@@ -115,10 +120,9 @@ void RuningExt::rend(void) {
 #endif
 
 	RRender::GetIns()->Clear(RRender::CLEAR_TARGET, RColor::Black, 1.0f, 0);
-    UI::Sprite::R::uipp_sprite_np::instance(m_env.app()).render();
+    UI::Sprite::R::uipp_sprite_render::instance(m_env.app()).render();
     RGUIDesktop::GetIns()->Render();
 	R2DSRenderStep::GetIns()->RenderImmediate();
-
     //TODO: move to init ?
 #ifdef ANDROID
 		if(isFirstRender)
@@ -171,7 +175,7 @@ void RuningExt::processInput(uint16_t _action, uint32_t _id, int16_t _x, int16_t
 }
 
 void RuningExt::pause(void) {
-	// if (Xiaoxin::Game::Instance())
+	//if (Xiaoxin::Game::Instance())
 	// {
 	//     if ( Xiaoxin::Game::Instance()->IsPaused())
 	//         manualPause = true;
@@ -184,9 +188,9 @@ void RuningExt::pause(void) {
 }
 
 void RuningExt::resume(void) {
-// 	//RAudioManager::GetIns()->AcquireAudioResource();
+//	RAudioManager::GetIns()->AcquireAudioResource();
 // 	s_isInterrupt = false;
-//     lastUpdateTime = lastTime = m3eTimerGetUST();
+//    lastUpdateTime = lastTime = m3eTimerGetUST();
 
 // #ifdef USE_TERSAFE
 //         TssSdkGameStatusInfo game_status;
@@ -215,4 +219,3 @@ Runing::~Runing() {
 }
 
 }}
-

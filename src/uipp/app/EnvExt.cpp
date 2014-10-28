@@ -11,6 +11,9 @@
 #include "gdpp/app/ModuleDef.hpp"
 #include "gd/dr_store/dr_store.h"
 #include "gd/dr_store/dr_store_manage.h"
+#include "render/model/ui_data_mgr.h"
+#include "render/model_bin/ui_bin_loader.h"
+#include "render/cache/ui_cache_manager.h"
 #include "uipp/sprite/World.hpp"
 #include "uipp/sprite/Repository.hpp"
 #include "EnvExt.hpp"
@@ -49,6 +52,8 @@ EnvExt::EnvExt(Gd::App::Application & app, Gd::App::Module & module, Cpe::Cfg::N
     m_appName = cfg["env.app-name"].asString();
 
     try {
+        loadModel(cfg["env.ui-model"]);
+
         Sprite::Repository & repo = Sprite::Repository::instance(m_app);
 
         m_world = Sprite::World::create(repo);
@@ -211,6 +216,39 @@ void EnvExt::doFini(void) {
     RAudio::ShutDown();
     RInput::ShutDown();
     RRender::ShutDown();
+}
+
+void EnvExt::loadModel(Cpe::Cfg::Node const & config) {
+    const char * data_mgr_name = config["data-mgr"].asString(NULL);
+    ui_data_mgr_t data_mgr = ui_data_mgr_find_nc(m_app, data_mgr_name);
+    if (data_mgr == NULL) {
+        APP_CTX_THROW_EXCEPTION(
+            m_app, ::std::runtime_error, "ui_data_mgr %s exist!", data_mgr_name ? data_mgr_name : "default");
+    }
+
+    const char * cache_manager_name = config["cache-mgr"].asString(NULL);
+    ui_cache_manager_t cache_manager = ui_cache_manager_find_nc(m_app, cache_manager_name);
+    if (cache_manager == NULL) {
+        APP_CTX_THROW_EXCEPTION(
+            m_app, ::std::runtime_error, "ui_cache_manager %s exist!", cache_manager_name ? cache_manager_name : "default");
+    }
+
+    if (const char * bin_loader_name = config["bin-loader"].asString(NULL)) {
+        ui_bin_loader_t bin_loader = ui_bin_loader_find_nc(m_app, bin_loader_name);
+        if (bin_loader == NULL) {
+            APP_CTX_THROW_EXCEPTION(
+                m_app, ::std::runtime_error, "ui_bin_loader %s exist!", bin_loader_name ? bin_loader_name : "default");
+        }
+
+        if (ui_data_bin_loader_load(bin_loader, data_mgr, 1) != 0) {
+            APP_CTX_THROW_EXCEPTION(
+                m_app, ::std::runtime_error, "load resource with ui_bin_loader fail!");
+        }
+    }
+    else {
+        APP_CTX_THROW_EXCEPTION(
+            m_app, ::std::runtime_error, "no res load configured!");
+    }
 }
 
 Env::~Env() {

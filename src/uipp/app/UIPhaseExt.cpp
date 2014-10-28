@@ -4,6 +4,8 @@
 #include "cpe/pal/pal_stdio.h"
 #include "gdpp/app/Log.hpp"
 #include "gdpp/app/Application.hpp"
+#include "render/cache/ui_cache_manager.h"
+#include "render/cache/ui_cache_group.h"
 #include "uipp/sprite_cfg/CfgLoader.hpp"
 #include "uipp/sprite_fsm/Fsm.hpp"
 #include "uipp/sprite_fsm/ActionVisitor.hpp"
@@ -28,9 +30,23 @@ public:
     UIPhaseImpl(UICenterExt & center, Cpe::Cfg::Node const & config)
         : m_center(center)
         , m_name(config.name())
+        , m_fps(config["fps"])
         , m_runingFsm(loadRuningFsm(center, config.name(), config["runing-fsm"]))
+        , m_group(NULL)
     {
         try {
+            ui_cache_manager_t cache_mgr = ui_cache_manager_find_nc(center.env().app(), NULL);
+            if (cache_mgr == NULL) {
+                APP_CTX_THROW_EXCEPTION(
+                    center.env().app(), ::std::runtime_error, "ui_cache_manager not exist!");
+            }
+
+            m_group = ui_cache_group_create(cache_mgr, m_name.c_str());
+            if (m_group == NULL) {
+                APP_CTX_THROW_EXCEPTION(
+                    center.env().app(), ::std::runtime_error, "ui_cache_manager create group %s fail!", m_name.c_str());
+            }
+
             PageCollector collector(*this);
             m_runingFsm.visitActions(collector);
             loadUsingTextures(config["using-textures"]);
@@ -50,6 +66,14 @@ public:
     virtual const char * name(void) const {
         return m_name.c_str();
     }
+
+    virtual ui_cache_group_t group(void) {
+        return m_group;
+    }
+
+    virtual float fps(void) const {
+        return m_fps;
+    } 
 
     virtual Sprite::Fsm::Fsm const & runingFsm(void) const {
         return m_runingFsm;
@@ -165,6 +189,11 @@ private:
         char fsm_proto_name[128];
         snprintf(fsm_proto_name, sizeof(fsm_proto_name), "ui.phase.%s.runing", m_name.c_str());
         m_center.env().world().removeProto(fsm_proto_name);
+
+        if (m_group) {
+            ui_cache_group_free(m_group);
+            m_group = NULL;
+        }
     }
 
     static Sprite::Fsm::Fsm & loadRuningFsm(UICenterExt & center, const char * phase_name, Cpe::Cfg::Node const & config) {
@@ -185,7 +214,9 @@ private:
 
     UICenterExt & m_center;
     ::std::string m_name;
+    float m_fps;
     Sprite::Fsm::Fsm & m_runingFsm;
+    ui_cache_group_t m_group;
     PageContainer m_usingPages;
     ::std::set< ::std::string> m_usingTextures;
 	::std::set< ::std::string> m_usingSFX;
