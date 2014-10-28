@@ -114,7 +114,13 @@ cfg_t cfg_check_or_create(cfg_t cfg, const char * path, error_monitor_t em, char
                 path = end;
             }
 
-            next_cfg_str = cpe_str_dup_range(buf, buf_capacity, next_cfg_str_begin, path);
+            if (*(path - 1) == '.') {
+                next_cfg_str = cpe_str_dup_range(buf, buf_capacity, next_cfg_str_begin, path - 1);
+            }
+            else {
+                next_cfg_str = cpe_str_dup_range(buf, buf_capacity, next_cfg_str_begin, path);
+            }
+
             if (next_cfg_str == NULL) {
                 CPE_ERROR(em, "cfg_check_or_create: path=%s, pos=%d: name too long, capacity=%d", root, (int)(path - root), (int)buf_capacity);
                 return NULL;
