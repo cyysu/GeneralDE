@@ -1,5 +1,6 @@
 #ifndef CPE_UTILS_MMAP_H
 #define CPE_UTILS_MMAP_H
+#include "cpe/pal/pal_types.h"
 #include "error.h"
 
 #ifdef __cplusplus
