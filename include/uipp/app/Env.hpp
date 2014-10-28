@@ -29,6 +29,9 @@ public:
 	virtual Sprite::P2D::Pair const & screenSize(void) const = 0;
 	virtual Sprite::P2D::Pair const & screenBaseSize(void) const = 0;
 
+	virtual Runing & runing(void) = 0;
+	virtual Runing const & runing(void) const = 0;
+
     virtual const char * visiableMsg(uint32_t msg_id) const = 0;
     virtual const char * visiableMsg(uint32_t msg_id, char * args) const = 0;
 
