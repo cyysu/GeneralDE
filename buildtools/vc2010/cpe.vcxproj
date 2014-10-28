@@ -215,6 +215,7 @@
     <ClInclude Include="..\..\include\cpe\fsm\fsm_def.h" />
     <ClInclude Include="..\..\include\cpe\fsm\fsm_ins.h" />
     <ClInclude Include="..\..\include\cpe\fsm\fsm_types.h" />
+    <ClInclude Include="..\..\include\cpe\utils_xml\xml_utils.h" />
     <ClInclude Include="..\..\include\cpe\xcalc\xcalc_computer.h" />
     <ClInclude Include="..\..\include\cpe\xcalc\xcalc_token.h" />
     <ClInclude Include="..\..\include\cpe\xcalc\xcalc_types.h" />
@@ -428,6 +429,7 @@
     <ClCompile Include="..\..\src\cpe\fsm\fsm_def_machine.c" />
     <ClCompile Include="..\..\src\cpe\fsm\fsm_def_state.c" />
     <ClCompile Include="..\..\src\cpe\fsm\fsm_ins.c" />
+    <ClCompile Include="..\..\src\cpe\utils_xml\xml_utils.c" />
     <ClCompile Include="..\..\src\cpe\xcalc\xcalc_computer.c" />
     <ClCompile Include="..\..\src\cpe\xcalc\xcalc_computer_calc.c" />
     <ClCompile Include="..\..\src\cpe\xcalc\xcalc_context.c" />
