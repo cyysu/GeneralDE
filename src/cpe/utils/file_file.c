@@ -146,7 +146,7 @@ ssize_t file_stream_write_from_stream(FILE * fp, read_stream_t stream, error_mon
     char buf[128];
 
     totalSize = 0;
-    while((size = stream_read(stream, buf, 128)) > 0) {
+    while((size = stream_read(stream, buf, CPE_ARRAY_SIZE(buf))) > 0) {
         writeOkSize = 0;
         while(size > writeOkSize
               && (writeSize = fwrite(buf + writeOkSize, 1, size - writeOkSize, fp)) > 0)
