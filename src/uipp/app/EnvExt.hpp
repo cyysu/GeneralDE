@@ -52,6 +52,7 @@ public:
 private:
     void doFini(void);
     void registerEvents(Sprite::Repository & repo, Cpe::Cfg::Node const & config);
+    void loadModel(Cpe::Cfg::Node const & config);
 
     Language detectLanguage(void) const;
 

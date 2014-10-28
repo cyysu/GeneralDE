@@ -14,17 +14,20 @@ GetOptions("input=s" => \$inputDir
 my @moduleFiles;
 my @spriteFiles;
 my @actionFiles;
+my @spineFiles;
+my @bulletsFiles;
+my @emitterFiles;
 
 my $outputDir = dirname($outputFile);
 if ( not -e $outputDir) {
   mkpath($outputDir) or die "create output dir $outputDir fail $!";
 }
 
-sub wanted {
-  return if not /\.meta$/s;
-  return if /^2DSResource\.meta$/s;
+sub readMetaFromFile {
+  my $array_ref = shift;
+  my $file_name = shift;
 
-  open(my $meta_file, "<:crlf:encoding(utf8)", $File::Find::name) or die "open $File::Find::name fail $!";
+  open(my $meta_file, "<:crlf:encoding(utf8)", $file_name) or die "open $file_name fail $!";
 
   (my $guid, my $path, my $file) = <$meta_file>;
 
@@ -34,22 +37,41 @@ sub wanted {
 
   close($meta_file);
 
-  my $array_ref;
+  push @{ $array_ref }, { guid => $guid, path => $path, file => $file };
+}
+
+sub wanted {
+  if (/\.spine$/) {
+    $File::Find::name =~ m/^$inputDir\/(.*[\/]+)([^\/]+)$/;
+    push @spineFiles, { guid => 0, path => $1, file => $2 };
+    return;
+  }
+  elsif (/\.emitter$/) {
+    $File::Find::name =~ m/^$inputDir\/(.*[\/]+)([^\/]+)$/;
+    push @emitterFiles, { guid => 0, path => $1, file => $2 };
+    return;
+  }
+  elsif (/\.bullets$/) {
+    $File::Find::name =~ m/^$inputDir\/(.*[\/]+)([^\/]+)$/;
+    push @bulletsFiles, { guid => 0, path => $1, file => $2 };
+    return;
+  }
+
+  return if not /\.meta$/s;
+  return if /^2DSResource\.meta$/s;
 
   if (/\.ibk\.meta$/) {
-    $array_ref = \@moduleFiles;
+    readMetaFromFile(\@moduleFiles, $File::Find::name);
   }
   elsif (/\.frm\.meta$/) {
-    $array_ref = \@spriteFiles;
+    readMetaFromFile(\@spriteFiles, $File::Find::name);
   }
   elsif (/\.act\.meta$/) {
-    $array_ref = \@actionFiles;
+    readMetaFromFile(\@actionFiles, $File::Find::name);
   }
   else {
     die "unknown meta file $_\n";
   }
-
-  push @{ $array_ref }, { guid => $guid, path => $path, file => $file };
 }
 
 find(\&wanted, $inputDir);
@@ -75,6 +97,21 @@ foreach my $file (@actionFiles) {
   print $output "        <Meta Guid='$file->{guid}' Path='$file->{path}' File='$file->{file}' />\n";
 }
 print $output "    </Action>\n";
+print $output "    <Spine>\n";
+foreach my $file (@spineFiles) {
+  print $output "        <Meta Guid='$file->{guid}' Path='$file->{path}' File='$file->{file}' />\n";
+}
+print $output "    </Spine>\n";
+print $output "    <Bullets>\n";
+foreach my $file (@bulletsFiles) {
+  print $output "        <Meta Guid='$file->{guid}' Path='$file->{path}' File='$file->{file}' />\n";
+}
+print $output "    </Bullets>\n";
+print $output "    <Emitter>\n";
+foreach my $file (@emitterFiles) {
+  print $output "        <Meta Guid='$file->{guid}' Path='$file->{path}' File='$file->{file}' />\n";
+}
+print $output "    </Emitter>\n";
 print $output "</Resources>\n";
 1;
 

@@ -17,7 +17,7 @@
 #include "EnvExt.hpp"
 #include "UICenterExt.hpp"
 #include "UIPageProxyExt.hpp"
-#include "uipp/sprite_np/NpUtils.hpp"
+#include "uipp/sprite_render/NpUtils.hpp"
 
 namespace UI { namespace App {
 

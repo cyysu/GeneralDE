@@ -2,6 +2,7 @@
 #define UIPP_APP_SYSTEM_H
 #include "gdpp/app/System.hpp"
 #include "uipp/sprite/System.hpp"
+#include "render/cache/ui_cache_types.h"
 
 class RGUIWindow;
 class RGUIControl;

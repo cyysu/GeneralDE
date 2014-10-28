@@ -3,7 +3,7 @@
 #include "RGUILabel.h"
 #include "cpe/utils/stream_mem.h"
 #include "cpepp/cfg/Node.hpp"
-#include "uipp/sprite_np/NpUtils.hpp"
+#include "uipp/sprite_render/NpUtils.hpp"
 #include "gdpp/app/Log.hpp"
 #include "gdpp/app/Application.hpp"
 #include "uipp/app/Page.hpp"

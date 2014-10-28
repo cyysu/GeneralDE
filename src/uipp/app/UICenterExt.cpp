@@ -509,6 +509,9 @@ private:
 		m_phase_nodes.push_back(newPhaseNode.get());
 
 		loadPhaseResources(newPhaseNode->phase());
+        m_env.runing().setFps(newPhaseNode->phase().fps());
+        m_env.world().setFps(newPhaseNode->phase().fps());
+
 		if (newPhaseNode->enter()) {
 			newPhaseNode.release();
 
@@ -527,6 +530,8 @@ private:
 
         /*有老的状态，把愿状态添加回去 */
         if (oldPhaseNode.get()) {
+            m_env.runing().setFps(oldPhaseNode->phase().fps());
+            m_env.world().setFps(oldPhaseNode->phase().fps());
             m_phase_nodes.push_back(oldPhaseNode.get());
             oldPhaseNode.release();
         }
