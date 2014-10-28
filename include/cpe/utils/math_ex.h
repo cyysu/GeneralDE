@@ -24,6 +24,12 @@ float cpe_math_radians_regular(float radians);
 #define cpe_math_angle_to_radians(__angle) ( (__angle) * M_PI / 180.f )
 #define cpe_math_raidans_to_angle(__radians) ( (__radians) * 180.0f * M_1_PI )
 
+#define cpe_cos_angle(__angle) cos(cpe_math_angle_to_radians(__angle))
+#define cpe_cos_radians(__radians) cos(__radians)
+
+#define cpe_sin_angle(__angle) sin(cpe_math_angle_to_radians(__angle))
+#define cpe_sin_radians(__radians) sin(__radians)
+
 #ifdef __cplusplus
 }
 #endif
