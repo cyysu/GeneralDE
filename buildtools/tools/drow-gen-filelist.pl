@@ -14,31 +14,20 @@ GetOptions("input=s" => \$inputDir
 my @moduleFiles;
 my @spriteFiles;
 my @actionFiles;
-<<<<<<< HEAD
-=======
 my @spineFiles;
 my @bulletsFiles;
 my @emitterFiles;
->>>>>>> t/support/ui
 
 my $outputDir = dirname($outputFile);
 if ( not -e $outputDir) {
   mkpath($outputDir) or die "create output dir $outputDir fail $!";
 }
 
-<<<<<<< HEAD
-sub wanted {
-  return if not /\.meta$/s;
-  return if /^2DSResource\.meta$/s;
-
-  open(my $meta_file, "<:crlf:encoding(utf8)", $File::Find::name) or die "open $File::Find::name fail $!";
-=======
 sub readMetaFromFile {
   my $array_ref = shift;
   my $file_name = shift;
 
   open(my $meta_file, "<:crlf:encoding(utf8)", $file_name) or die "open $file_name fail $!";
->>>>>>> t/support/ui
 
   (my $guid, my $path, my $file) = <$meta_file>;
 
@@ -48,18 +37,6 @@ sub readMetaFromFile {
 
   close($meta_file);
 
-<<<<<<< HEAD
-  my $array_ref;
-
-  if (/\.ibk\.meta$/) {
-    $array_ref = \@moduleFiles;
-  }
-  elsif (/\.frm\.meta$/) {
-    $array_ref = \@spriteFiles;
-  }
-  elsif (/\.act\.meta$/) {
-    $array_ref = \@actionFiles;
-=======
   push @{ $array_ref }, { guid => $guid, path => $path, file => $file };
 }
 
@@ -91,16 +68,10 @@ sub wanted {
   }
   elsif (/\.act\.meta$/) {
     readMetaFromFile(\@actionFiles, $File::Find::name);
->>>>>>> t/support/ui
   }
   else {
     die "unknown meta file $_\n";
   }
-<<<<<<< HEAD
-
-  push @{ $array_ref }, { guid => $guid, path => $path, file => $file };
-=======
->>>>>>> t/support/ui
 }
 
 find(\&wanted, $inputDir);
@@ -126,8 +97,6 @@ foreach my $file (@actionFiles) {
   print $output "        <Meta Guid='$file->{guid}' Path='$file->{path}' File='$file->{file}' />\n";
 }
 print $output "    </Action>\n";
-<<<<<<< HEAD
-=======
 print $output "    <Spine>\n";
 foreach my $file (@spineFiles) {
   print $output "        <Meta Guid='$file->{guid}' Path='$file->{path}' File='$file->{file}' />\n";
@@ -143,7 +112,6 @@ foreach my $file (@emitterFiles) {
   print $output "        <Meta Guid='$file->{guid}' Path='$file->{path}' File='$file->{file}' />\n";
 }
 print $output "    </Emitter>\n";
->>>>>>> t/support/ui
 print $output "</Resources>\n";
 1;
 

@@ -5,7 +5,6 @@ product-support-types+=ui-model
 UI_MODEL_TOOL?=$(CPDE_ROOT)/build/tools/bin/$(call $(tools.env).make-executable-name,ui_model_tool)
 
 # }}}
-
 # {{{ 定义Module导入
 
 #$(call install-ui-model-cocos-module,product,module,to-path,pics)
@@ -92,8 +91,6 @@ $1.ui-model.dir-effect.$2.output=$3
 $1.ui-model.dir-effect.$2.frame-duration=$5
 $1.ui-model.dir-effect.$2.frame-position=$6
 $1.ui-model.dir-effect.$2.frame-order=$7
-<<<<<<< HEAD
-=======
 
 endef
 
@@ -139,7 +136,6 @@ $(strip $1).ui-model.crazystorm-barrage.modules+=$(strip $2)
 $(strip $1).ui-model.crazystorm-barrage.$(strip $2).input:=$(strip $4)
 $(strip $1).ui-model.crazystorm-barrage.$(strip $2).output:=$(strip $3)
 $(strip $1).ui-model.crazystorm-barrage.$(strip $2).bullets:=$(strip $5)
->>>>>>> t/support/ui
 
 endef
 
@@ -222,11 +218,7 @@ $1.ui-model.dir-effect.$2.frame-position ?= center
 
 $$($1.ui-model.root)/Action/$$($1.ui-model.dir-effect.$2.output)/$2.npAction: $$($1.ui-model.dir-effect.$2.input)/$2.plist $$(UI_MODEL_TOOL)
 	$(call with_message,import file action $2)$$(UI_MODEL_TOOL) cocos-effect-import \
-<<<<<<< HEAD
-        --model $$($1.ui-model.root) --format np \
-=======
         --model $$($1.ui-model.root) --format proj \
->>>>>>> t/support/ui
         --to-effect Action/$$($1.ui-model.dir-effect.$2.output) \
         --to-module Module/$$($1.ui-model.dir-effect.$2.output) \
         --frame-duration $$($1.ui-model.dir-effect.$2.frame-duration) \
@@ -263,11 +255,7 @@ $$($1.ui-model.root)/$$($1.ui-model.cocos-module.$2.output).plist: $$(firstword 
 
 $$($1.ui-model.root)/$$($1.ui-model.cocos-module.$2.output).npModule: $$($1.ui-model.root)/$$($1.ui-model.cocos-module.$2.output).plist $$(UI_MODEL_TOOL)
 	$(call with_message,import cocos module $2)$$(UI_MODEL_TOOL) cocos-module-import \
-<<<<<<< HEAD
-        --model $$($1.ui-model.root) --format np \
-=======
         --model $$($1.ui-model.root) --format proj \
->>>>>>> t/support/ui
         --to-module $$($1.ui-model.cocos-module.$2.output) \
         --plist $$($1.ui-model.root)/$$($1.ui-model.cocos-module.$2.output).plist \
         --pic $$($1.ui-model.cocos-module.$2.output).png
@@ -335,9 +323,6 @@ $$($1.ui-model.root)/Particle/$$($1.ui-model.cocos-particle.$2.output).particle:
 endef
 
 # }}}
-<<<<<<< HEAD
-# {{{ 实现：定义导入操作
-=======
 # {{{ 实现：spine动画
 
 #$(call def-ui-model-spine-anim,model)
@@ -429,7 +414,6 @@ endef
 # }}}
 # {{{ 实现：定义导入操作
 
->>>>>>> t/support/ui
 define product-def-rule-ui-model-import
 
 .PHONY: $1-model-ops
@@ -456,10 +440,7 @@ endef
 
 # }}}
 # {{{ 实现：定义导出操作
-<<<<<<< HEAD
-=======
 
->>>>>>> t/support/ui
 #$(call product-def-rule-ui-model-export,product,domain)
 define product-def-rule-ui-model-export
 
@@ -470,11 +451,7 @@ $2.$1-model-export: $$(UI_MODEL_TOOL)
 	$(call with_message,generate np filelist $2.$1)$$(CPDE_PERL) $$(CPDE_ROOT)/buildtools/tools/drow-gen-filelist.pl \
 		--input=$$($1.ui-model.root) --output=$$(if $$($1.ui-model.output),$$($1.ui-model.output),$$(CPDE_OUTPUT_ROOT)/$$($2.output)/$$($1.output))/res.db
 	$(call with_message,export bin files $2.$1)$$(UI_MODEL_TOOL) \
-<<<<<<< HEAD
-        convert --model=$$($1.ui-model.root) --format=np --to=$$(if $$($1.ui-model.output),$$($1.ui-model.output),$$(CPDE_OUTPUT_ROOT)/$$($2.output)/$$($1.output)) --to-format=bin
-=======
         convert --model=$$($1.ui-model.root) --format=proj --to=$$(if $$($1.ui-model.output),$$($1.ui-model.output),$$(CPDE_OUTPUT_ROOT)/$$($2.output)/$$($1.output)) --to-format=bin
->>>>>>> t/support/ui
 endef
 
 # }}}
