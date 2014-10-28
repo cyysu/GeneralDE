@@ -4,3 +4,6 @@
 [submodule "3rdTools/Chipmunk2D"]
 	path = 3rdTools/Chipmunk2D
 	url = git@github.com:slembcke/Chipmunk2D.git
+[submodule "3rdTools/spine-runtimes"]
+	path = 3rdTools/spine-runtimes
+	url = git@github.com:EsotericSoftware/spine-runtimes.git
