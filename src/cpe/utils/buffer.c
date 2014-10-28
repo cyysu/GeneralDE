@@ -97,6 +97,8 @@ ssize_t mem_buffer_append(struct mem_buffer * buffer, const void * buf, size_t s
     size_t newTrunkSize = 0;
     struct mem_buffer_trunk * trunk = NULL;
 
+    if (buf == NULL && size == 0) return 0;
+
     if (!buffer || !buf) return -1;
 
     trunk = TAILQ_LAST(&buffer->m_trunks, mem_buffer_trunk_list);
