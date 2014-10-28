@@ -58,6 +58,11 @@
     <ClInclude Include="..\..\include\ui\sprite_anim\ui_sprite_anim_template.h" />
     <ClInclude Include="..\..\include\ui\sprite_anim\ui_sprite_anim_template_binding.h" />
     <ClInclude Include="..\..\include\ui\sprite_anim\ui_sprite_anim_types.h" />
+    <ClInclude Include="..\..\include\ui\sprite_barrage\ui_sprite_barrage_emitter.h" />
+    <ClInclude Include="..\..\include\ui\sprite_barrage\ui_sprite_barrage_env.h" />
+    <ClInclude Include="..\..\include\ui\sprite_barrage\ui_sprite_barrage_module.h" />
+    <ClInclude Include="..\..\include\ui\sprite_barrage\ui_sprite_barrage_obj.h" />
+    <ClInclude Include="..\..\include\ui\sprite_barrage\ui_sprite_barrage_types.h" />
     <ClInclude Include="..\..\include\ui\sprite_basic\ui_sprite_basic_debug.h" />
     <ClInclude Include="..\..\include\ui\sprite_basic\ui_sprite_basic_gen_entities.h" />
     <ClInclude Include="..\..\include\ui\sprite_basic\ui_sprite_basic_join_group.h" />
@@ -89,6 +94,11 @@
     <ClInclude Include="..\..\include\ui\sprite_fsm\ui_sprite_fsm_ins.h" />
     <ClInclude Include="..\..\include\ui\sprite_fsm\ui_sprite_fsm_module.h" />
     <ClInclude Include="..\..\include\ui\sprite_fsm\ui_sprite_fsm_types.h" />
+    <ClInclude Include="..\..\include\ui\sprite_spine\ui_sprite_spine_env.h" />
+    <ClInclude Include="..\..\include\ui\sprite_spine\ui_sprite_spine_module.h" />
+    <ClInclude Include="..\..\include\ui\sprite_spine\ui_sprite_spine_obj.h" />
+    <ClInclude Include="..\..\include\ui\sprite_spine\ui_sprite_spine_play_anim.h" />
+    <ClInclude Include="..\..\include\ui\sprite_spine\ui_sprite_spine_types.h" />
     <ClInclude Include="..\..\include\ui\sprite_touch\ui_sprite_touch_box.h" />
     <ClInclude Include="..\..\include\ui\sprite_touch\ui_sprite_touch_click.h" />
     <ClInclude Include="..\..\include\ui\sprite_touch\ui_sprite_touch_mgr.h" />
@@ -143,6 +153,11 @@
     <ClInclude Include="..\..\src\ui\sprite_anim\ui_sprite_anim_show_template_i.h" />
     <ClInclude Include="..\..\src\ui\sprite_anim\ui_sprite_anim_template_binding_i.h" />
     <ClInclude Include="..\..\src\ui\sprite_anim\ui_sprite_anim_template_i.h" />
+    <ClInclude Include="..\..\src\ui\sprite_barrage\ui_sprite_barrage_emitter_i.h" />
+    <ClInclude Include="..\..\src\ui\sprite_barrage\ui_sprite_barrage_enable_emitter_i.h" />
+    <ClInclude Include="..\..\src\ui\sprite_barrage\ui_sprite_barrage_env_i.h" />
+    <ClInclude Include="..\..\src\ui\sprite_barrage\ui_sprite_barrage_module_i.h" />
+    <ClInclude Include="..\..\src\ui\sprite_barrage\ui_sprite_barrage_obj_i.h" />
     <ClInclude Include="..\..\src\ui\sprite_basic\ui_sprite_basic_debug_i.h" />
     <ClInclude Include="..\..\src\ui\sprite_basic\ui_sprite_basic_gen_entities_i.h" />
     <ClInclude Include="..\..\src\ui\sprite_basic\ui_sprite_basic_join_group_i.h" />
@@ -180,6 +195,10 @@
     <ClInclude Include="..\..\src\ui\sprite_fsm\ui_sprite_fsm_ins_state_i.h" />
     <ClInclude Include="..\..\src\ui\sprite_fsm\ui_sprite_fsm_ins_transition_i.h" />
     <ClInclude Include="..\..\src\ui\sprite_fsm\ui_sprite_fsm_module_i.h" />
+    <ClInclude Include="..\..\src\ui\sprite_spine\ui_sprite_spine_env_i.h" />
+    <ClInclude Include="..\..\src\ui\sprite_spine\ui_sprite_spine_module_i.h" />
+    <ClInclude Include="..\..\src\ui\sprite_spine\ui_sprite_spine_obj_i.h" />
+    <ClInclude Include="..\..\src\ui\sprite_spine\ui_sprite_spine_play_anim_i.h" />
     <ClInclude Include="..\..\src\ui\sprite_touch\ui_sprite_touch_box_i.h" />
     <ClInclude Include="..\..\src\ui\sprite_touch\ui_sprite_touch_click_i.h" />
     <ClInclude Include="..\..\src\ui\sprite_touch\ui_sprite_touch_mgr_i.h" />
@@ -256,6 +275,12 @@
     <ClCompile Include="..\..\src\ui\sprite_anim\ui_sprite_anim_show_template.c" />
     <ClCompile Include="..\..\src\ui\sprite_anim\ui_sprite_anim_template.c" />
     <ClCompile Include="..\..\src\ui\sprite_anim\ui_sprite_anim_template_binding.c" />
+    <ClCompile Include="..\..\src\ui\sprite_barrage\ui_sprite_barrage_emitter.c" />
+    <ClCompile Include="..\..\src\ui\sprite_barrage\ui_sprite_barrage_enable_emitter.c" />
+    <ClCompile Include="..\..\src\ui\sprite_barrage\ui_sprite_barrage_env.c" />
+    <ClCompile Include="..\..\src\ui\sprite_barrage\ui_sprite_barrage_env_load.c" />
+    <ClCompile Include="..\..\src\ui\sprite_barrage\ui_sprite_barrage_module.c" />
+    <ClCompile Include="..\..\src\ui\sprite_barrage\ui_sprite_barrage_obj.c" />
     <ClCompile Include="..\..\src\ui\sprite_basic\ui_sprite_basic_debug.c" />
     <ClCompile Include="..\..\src\ui\sprite_basic\ui_sprite_basic_gen_entities.c" />
     <ClCompile Include="..\..\src\ui\sprite_basic\ui_sprite_basic_join_group.c" />
@@ -297,11 +322,13 @@
     <ClCompile Include="..\..\src\ui\sprite_cfg\ui_sprite_cfg_action_set_attrs.c" />
     <ClCompile Include="..\..\src\ui\sprite_cfg\ui_sprite_cfg_action_show_animation.c" />
     <ClCompile Include="..\..\src\ui\sprite_cfg\ui_sprite_cfg_action_show_template.c" />
+    <ClCompile Include="..\..\src\ui\sprite_cfg\ui_sprite_cfg_action_spine_play_anim.c" />
     <ClCompile Include="..\..\src\ui\sprite_cfg\ui_sprite_cfg_action_touch_click.c" />
     <ClCompile Include="..\..\src\ui\sprite_cfg\ui_sprite_cfg_action_touch_move.c" />
     <ClCompile Include="..\..\src\ui\sprite_cfg\ui_sprite_cfg_action_touch_scale.c" />
     <ClCompile Include="..\..\src\ui\sprite_cfg\ui_sprite_cfg_component_animation.c" />
     <ClCompile Include="..\..\src\ui\sprite_cfg\ui_sprite_cfg_component_fsm.c" />
+    <ClCompile Include="..\..\src\ui\sprite_cfg\ui_sprite_cfg_component_spine_obj.c" />
     <ClCompile Include="..\..\src\ui\sprite_cfg\ui_sprite_cfg_component_touchable.c" />
     <ClCompile Include="..\..\src\ui\sprite_cfg\ui_sprite_cfg_component_transform.c" />
     <ClCompile Include="..\..\src\ui\sprite_cfg\ui_sprite_cfg_component_turntable.c" />
@@ -313,6 +340,7 @@
     <ClCompile Include="..\..\src\ui\sprite_cfg\ui_sprite_cfg_resource_anim_backend.c" />
     <ClCompile Include="..\..\src\ui\sprite_cfg\ui_sprite_cfg_resource_camera.c" />
     <ClCompile Include="..\..\src\ui\sprite_cfg\ui_sprite_cfg_resource_loader_i.c" />
+    <ClCompile Include="..\..\src\ui\sprite_cfg\ui_sprite_cfg_resource_spine_env.c" />
     <ClCompile Include="..\..\src\ui\sprite_cfg\ui_sprite_cfg_resource_track_mgr.c" />
     <ClCompile Include="..\..\src\ui\sprite_cfg\ui_sprite_cfg_value_generator_load.c" />
     <ClCompile Include="..\..\src\ui\sprite_ctrl\ui_sprite_ctrl_circle.c" />
@@ -341,6 +369,10 @@
     <ClCompile Include="..\..\src\ui\sprite_fsm\ui_sprite_fsm_ins_state.c" />
     <ClCompile Include="..\..\src\ui\sprite_fsm\ui_sprite_fsm_ins_transition.c" />
     <ClCompile Include="..\..\src\ui\sprite_fsm\ui_sprite_fsm_module.c" />
+    <ClCompile Include="..\..\src\ui\sprite_spine\ui_sprite_spine_env.c" />
+    <ClCompile Include="..\..\src\ui\sprite_spine\ui_sprite_spine_module.c" />
+    <ClCompile Include="..\..\src\ui\sprite_spine\ui_sprite_spine_obj.c" />
+    <ClCompile Include="..\..\src\ui\sprite_spine\ui_sprite_spine_play_anim.c" />
     <ClCompile Include="..\..\src\ui\sprite_touch\ui_sprite_touch_box.c" />
     <ClCompile Include="..\..\src\ui\sprite_touch\ui_sprite_touch_click.c" />
     <ClCompile Include="..\..\src\ui\sprite_touch\ui_sprite_touch_mgr.c" />
@@ -446,7 +478,7 @@ $(ProjectDir)..\..\build\vc\tools\cpe_dr_tool.exe --input-group-root $(ProjectDi
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>../../include;../../3rdTools/yaml/include;../../3rdTools/yajl/include;../../3rdTools/libev/include;../../3rdTools/libxml2/include;../../3rdTools/iconv/vc/include;../../3rdTools/libxml2/include/vc;../../3rdTools/NPEngine;../../3rdTools/NPEngine/inc;../../3rdTools/NPEngine/extern/pthread;../../3rdTools/NPEngine/extern/openal;../../3rdTools/NPEngine/extern/gles;../../build/vc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../../include;../../3rdTools/yaml/include;../../3rdTools/yajl/include;../../3rdTools/libev/include;../../3rdTools/libxml2/include;../../3rdTools/iconv/vc/include;../../3rdTools/libxml2/include/vc;../../drow/m3e/inc;../../drow/include;../../3rdTools/pthread/vc/include;../../3rdTools/openal/vc/include;../../3rdTools/gles/vc/include;../../3rdTools/spine-runtimes/spine-c/include;../../build/vc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_LIB;YAML_DECLARE_STATIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
@@ -466,7 +498,7 @@ $(ProjectDir)..\..\build\vc\tools\cpe_dr_tool.exe --input-group-root $(ProjectDi
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>../../include;../../3rdTools/yaml/include;../../3rdTools/yajl/include;../../3rdTools/libev/include;../../3rdTools/libxml2/include;../../3rdTools/iconv/vc/include;../../3rdTools/libxml2/include/vc;../../3rdTools/NPEngine;../../3rdTools/NPEngine/inc;../../3rdTools/NPEngine/extern/pthread;../../3rdTools/NPEngine/extern/openal;../../3rdTools/NPEngine/extern/gles;../../build/vc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../../include;../../3rdTools/yaml/include;../../3rdTools/yajl/include;../../3rdTools/libev/include;../../3rdTools/libxml2/include;../../3rdTools/iconv/vc/include;../../3rdTools/libxml2/include/vc;../../drow/m3e/inc;../../drow/include;../../3rdTools/pthread/vc/include;../../3rdTools/openal/vc/include;../../3rdTools/gles/vc/include;../../3rdTools/spine-runtimes/spine-c/include;../../build/vc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;YAML_DECLARE_STATIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>

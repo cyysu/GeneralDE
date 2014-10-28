@@ -155,8 +155,6 @@ void ui_sprite_2d_move_follow_update(ui_sprite_fsm_action_t fsm_action, void * c
         set_to_pos = move->m_target_pos;
     }
 
-    //printf("xxxxx: update pos (%f,%f) ==> (%f,%f)\n", cur_pos.x, cur_pos.y, set_to_pos.x, set_to_pos.y);
-
     ui_sprite_2d_transform_set_origin_pos(transform, set_to_pos);
 
     if ((move->m_follow_entity_id == 0 && move->m_follow_entity_name[0] == 0)
