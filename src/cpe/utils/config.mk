@@ -1,5 +1,6 @@
 product:=cpe_utils
 $(product).type:=lib
+$(product).depends:=cpe_pal
 $(product).product.c.includes:=include
 $(product).libraries:=
 $(product).c.sources:=$(wildcard $(product-base)/*.c)

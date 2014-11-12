@@ -1,5 +1,5 @@
-#include <strings.h>
 #include "gtest/gtest.h"
+#include "cpe/pal/pal_strings.h"
 #include "cpe/utils/stream_mem.h"
 #include "cpe/dr/dr_ctypes_op.h"
 #include "../../dr_ctype_ops.h"

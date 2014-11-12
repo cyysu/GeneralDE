@@ -342,7 +342,5 @@ int inode_stat_by_fileno(int fno, struct stat * buf, int ignoreError, error_moni
     return status;
 }
 
-
 int DIR_DEFAULT_MODE = S_IRWXU | S_IRGRP | S_IXGRP;
 int FILE_DEFAULT_MODE = S_IRUSR | S_IWUSR | S_IRGRP;
-

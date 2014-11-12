@@ -28,13 +28,13 @@ int32_t WeightSelector::select(Random & random) const {
 
         return pos == m_weights.end()
             ? -1
-            : pos - m_weights.begin();
+            : (int)(pos - m_weights.begin());
     }
     else {
-        int32_t rv = random.generate(m_weights.size());
-        return (size_t)rv >= m_weights.size() || rv < 0
+        uint32_t rv = random.generate((uint32_t)m_weights.size());
+        return rv >= m_weights.size()
             ? -1
-            : rv;
+            : (int32_t)rv;
     }
 }
 
