@@ -322,8 +322,11 @@
     <ClCompile Include="..\..\src\cpe\dr\data-bson\dr_bson_write.c" />
     <ClCompile Include="..\..\src\cpe\pal\msvc_dlfcn.c" />
     <ClCompile Include="..\..\src\cpe\pal\msvc_time.c" />
+    <ClCompile Include="..\..\src\cpe\pal\pal_shm.c" />
     <ClCompile Include="..\..\src\cpe\pal\pal_socket.c" />
     <ClCompile Include="..\..\src\cpe\pal\pal_stdlib.c" />
+    <ClCompile Include="..\..\src\cpe\pal\pal_string.c" />
+    <ClCompile Include="..\..\src\cpe\pal\win32_dirent.c" />
     <ClCompile Include="..\..\src\cpe\timer\timer_debug.c" />
     <ClCompile Include="..\..\src\cpe\timer\timer_manage.c" />
     <ClCompile Include="..\..\src\cpe\timer\timer_processor.c" />

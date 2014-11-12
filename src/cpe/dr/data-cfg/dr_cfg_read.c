@@ -87,13 +87,13 @@ void dr_cfg_read_array_set_dft(size_t count, size_t max_count, size_t element_si
     dftValue = dr_entry_dft_value(entry);
     if (dftValue) {
         while(count < max_count) {
-            memcpy(meta_buf + dr_entry_data_start_pos(entry, count), dftValue, element_size);
+            memcpy(meta_buf + dr_entry_data_start_pos(entry, (int)count), dftValue, element_size);
             ++count;
         }
     }
     else {
         while(count < max_count) {
-            bzero(meta_buf + dr_entry_data_start_pos(entry, count), element_size);
+            bzero(meta_buf + dr_entry_data_start_pos(entry, (int)count), element_size);
             ++count;
         }
     }
@@ -118,7 +118,7 @@ int dr_cfg_read_entry(
     else {
         LPDRMETAENTRY refer;
         int count;
-        int max_count;
+        size_t max_count;
         size_t element_size = dr_entry_element_size(entry);
         if (element_size == 0) {
             CPE_ERROR(
@@ -170,14 +170,14 @@ int dr_cfg_read_entry(
             count = max_count;
         }
 
-        return count * element_size;
+        return (int)(count * element_size);
     }
 }
 
 int dr_cfg_read_union(char * buf, size_t capacity, cfg_t cfg, LPDRMETA meta, LPDRMETAENTRY * union_entry, int policy, error_monitor_t em) {
     cfg_it_t itemIt;
     cfg_t item;
-    int size;
+    size_t size;
 
     size = dr_meta_size(meta);
 
@@ -208,17 +208,17 @@ int dr_cfg_read_union(char * buf, size_t capacity, cfg_t cfg, LPDRMETA meta, LPD
         if (union_entry) *union_entry = entry;
 
         if (entry->m_data_start_pos + entry_size > size) {
-            size = entry->m_data_start_pos + entry_size;
+            size = (size_t)(entry->m_data_start_pos + entry_size);
         }
     }
     
-    return size;
+    return (int)size;
 }
 
 int dr_cfg_read_struct(char * buf, size_t capacity, cfg_t cfg, LPDRMETA meta, int policy, error_monitor_t em) {
     cfg_it_t itemIt;
     cfg_t item;
-    int size;
+    size_t size;
     LPDRMETAENTRY last_entry;
     
     assert(cfg);
@@ -257,11 +257,11 @@ int dr_cfg_read_struct(char * buf, size_t capacity, cfg_t cfg, LPDRMETA meta, in
         entry_size = dr_cfg_read_entry(buf, capacity, buf, entry_capacity, item, meta, entry, policy, em);
         
         if ((int)(entry->m_data_start_pos + entry_size) > size) {
-            size = entry->m_data_start_pos + entry_size;
+            size = (size_t)(entry->m_data_start_pos + entry_size);
         }
     }
     
-    return size;
+    return (int)size;
 }
 
 int dr_cfg_read_i(
