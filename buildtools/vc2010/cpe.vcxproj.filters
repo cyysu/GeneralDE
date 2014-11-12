@@ -1199,6 +1199,15 @@
     <ClCompile Include="..\..\src\cpe\utils_xml\xml_utils.c">
       <Filter>src\utils_xml</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\cpe\pal\pal_string.c">
+      <Filter>src\pal</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\cpe\pal\pal_shm.c">
+      <Filter>src\pal</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\cpe\pal\win32_dirent.c">
+      <Filter>src\pal</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\src\cpe\utils\config.mk">
