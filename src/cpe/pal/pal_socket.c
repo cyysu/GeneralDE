@@ -41,7 +41,7 @@ const char* cpe_sock_errstr(int n)
 #endif
 
 int cpe_sock_set_none_block(int fd, int is_non_block) {
-#ifdef _MSC_VER
+#ifdef _WIN32
     u_long flag;
 
     flag = is_non_block ? 1 : 0;
@@ -75,7 +75,7 @@ int cpe_sock_set_none_block(int fd, int is_non_block) {
 
 
 int cpe_sock_set_reuseaddr(int fd, int is_reuseaddr) {
-#ifdef _MSC_VER
+#ifdef _WIN32
     BOOL flag;
 
     flag = is_reuseaddr ? TRUE : FALSE;

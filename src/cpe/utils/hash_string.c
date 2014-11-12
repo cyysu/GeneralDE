@@ -8,7 +8,7 @@
 #define cpe_hs_check_len_init(hs)                       \
     int32_t * __len = ((int32_t *)(hs)) + 1;            \
     if (*__len == 0) {                                  \
-        *__len = strlen((char *)(__len + 1));           \
+        *__len = (int32_t)strlen((char *)(__len + 1));           \
     }                                                   \
 
 #define cpe_hs_check_init(hs)                           \
@@ -16,7 +16,7 @@
     cpe_hs_check_len_init(hs);                          \
     b = (int32_t *)(hs);                      \
     if (*b == 0) {                                      \
-        *b = cpe_hash_str((char *)(b + 2), *__len);     \
+        *b = (int32_t)cpe_hash_str((char *)(b + 2), *__len);     \
         if (*b == 0) *b = 1;                            \
     }                                                   \
     
