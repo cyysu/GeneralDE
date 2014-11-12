@@ -179,7 +179,7 @@ static char * dr_pbuf_read_get_write_pos(
         } u;                                                            \
         uint8_t const * i = curStack->m_input_data + curStack->m_input_size; \
         writeBuf = dr_pbuf_read_get_write_pos(                          \
-            &ctx, curStack, entry, dr_pbuf_read_start_pos(), elementSize); \
+            &ctx, curStack, entry, (int)dr_pbuf_read_start_pos(), elementSize); \
         if (writeBuf == NULL) return -1;                 \
                                                                         \
         dr_pbuf_read_check_capacity(4);                                 \
@@ -202,7 +202,7 @@ static char * dr_pbuf_read_get_write_pos(
         } u;                                                            \
         uint8_t const * i = curStack->m_input_data + curStack->m_input_size; \
         writeBuf = dr_pbuf_read_get_write_pos(                          \
-            &ctx, curStack, entry, dr_pbuf_read_start_pos(), elementSize); \
+            &ctx, curStack, entry, (int)dr_pbuf_read_start_pos(), elementSize); \
         if (writeBuf == NULL) return -1;                 \
                                                                         \
         dr_pbuf_read_check_capacity(8);                                 \
@@ -228,7 +228,7 @@ static char * dr_pbuf_read_get_write_pos(
             int64_t i64;                                                \
         } u;                                                            \
         writeBuf = dr_pbuf_read_get_write_pos(                          \
-            &ctx, curStack, entry, dr_pbuf_read_start_pos(), elementSize); \
+            &ctx, curStack, entry, (int)dr_pbuf_read_start_pos(), elementSize); \
         if (writeBuf == NULL) return -1;                 \
         dr_pbuf_read_decode_varint(u.sep);                              \
         dr_pbuf_dezigzag64(&u.sep);                                 \
@@ -242,7 +242,7 @@ static char * dr_pbuf_read_get_write_pos(
             uint64_t u64;                                               \
         } u;                                                            \
         writeBuf = dr_pbuf_read_get_write_pos(                          \
-            &ctx, curStack, entry, dr_pbuf_read_start_pos(), elementSize); \
+            &ctx, curStack, entry, (int)dr_pbuf_read_start_pos(), elementSize); \
         if (writeBuf == NULL) return -1;                 \
         dr_pbuf_read_decode_varint(u.sep);                              \
         dr_entry_set_from_uint64(writeBuf, u.u64, entry, em);           \
@@ -483,7 +483,7 @@ static int dr_pbuf_read_i(
                     size_t len;
 
                     writeBuf = dr_pbuf_read_get_write_pos(
-                        &ctx, curStack, entry, dr_pbuf_read_start_pos(), elementSize);
+                        &ctx, curStack, entry, (int)dr_pbuf_read_start_pos(), elementSize);
                     if (writeBuf == NULL) return -1;
 
                     dr_pbuf_read_decode_varint(len_buf);
@@ -644,6 +644,6 @@ int dr_pbuf_array_read(
         output_used += element_size;
     }
 
-    return output_used;
+    return (int)output_used;
 }
 
