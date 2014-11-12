@@ -89,6 +89,9 @@ ui_sprite_cfg_loader_load_action_from_cfg(
     ui_sprite_fsm_state_t fsm_state, const char * comp_name, cfg_t cfg);
 
 /*fsms*/
+int ui_sprite_cfg_load_fsm_from_path(ui_sprite_cfg_loader_t loader, ui_sprite_fsm_ins_t fsm, const char * src_path);
+int ui_sprite_cfg_load_fsm(ui_sprite_cfg_loader_t loader, ui_sprite_fsm_ins_t fsm, cfg_t cfg);
+    
 ui_sprite_fsm_ins_t ui_sprite_cfg_loader_load_fsm_proto_from_path(
     ui_sprite_cfg_loader_t loader, ui_sprite_world_t world, const char * name, const char * path);
 ui_sprite_fsm_ins_t ui_sprite_cfg_loader_load_fsm_proto_from_cfg(

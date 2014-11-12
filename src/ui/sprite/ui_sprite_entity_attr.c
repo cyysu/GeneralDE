@@ -137,7 +137,7 @@ static int ui_sprite_entity_set_attr_one(ui_sprite_repository_t repo, ui_sprite_
 }
 
 static void ui_sprite_entity_notify_composite_attr_updated(
-    ui_sprite_entity_t entity, char * attr, int attr_capacity, int attr_len, LPDRMETAENTRY entry)
+    ui_sprite_entity_t entity, char * attr, size_t attr_capacity, size_t attr_len, LPDRMETAENTRY entry)
 {
     ui_sprite_repository_t repo = entity->m_world->m_repo;
     LPDRMETA meta;
@@ -157,7 +157,7 @@ static void ui_sprite_entity_notify_composite_attr_updated(
     for(i = 0; i < entry_num; ++i) {
         LPDRMETAENTRY child_entry = dr_meta_entry_at(meta, i);
         const char * entry_name = dr_entry_name(child_entry);
-        int child_entry_len = strlen(entry_name) + 1;
+        size_t child_entry_len = strlen(entry_name) + 1;
 
         if (child_entry_len + attr_len > attr_capacity) {
             CPE_ERROR(
@@ -194,7 +194,7 @@ static void ui_sprite_entity_notify_attr_updated_one(ui_sprite_entity_t entity, 
     }
     else {
         char buf[128];
-        int len = strlen(path);
+        size_t len = strlen(path);
         if (len >= CPE_ARRAY_SIZE(buf)) {
             CPE_ERROR(
                 repo->m_em, "entity %d(%s): notify attr %s update: attr len overflow!",

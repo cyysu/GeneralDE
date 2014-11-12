@@ -108,9 +108,9 @@ void ui_sprite_attr_monitor_set_triggered(ui_sprite_world_t world, ui_sprite_att
 }
 
 /**/
-int ui_sprite_attr_monitor_binding_create_to_composite_entry(
+static int ui_sprite_attr_monitor_binding_create_to_composite_entry(
     ui_sprite_world_t world, ui_sprite_entity_t entity, ui_sprite_attr_monitor_t monitor, 
-    char * attr, int attr_capacity, int attr_len, LPDRMETAENTRY entry)
+    char * attr, size_t attr_capacity, size_t attr_len, LPDRMETAENTRY entry)
 {
     ui_sprite_repository_t repo = world->m_repo;
     LPDRMETA meta;
@@ -130,7 +130,7 @@ int ui_sprite_attr_monitor_binding_create_to_composite_entry(
     for(i = 0; i < entry_num; ++i) {
         LPDRMETAENTRY child_entry = dr_meta_entry_at(meta, i);
         const char * entry_name = dr_entry_name(child_entry);
-        int child_entry_len = strlen(entry_name) + 1;
+        size_t child_entry_len = strlen(entry_name) + 1;
 
         if (child_entry_len + attr_len > attr_capacity) {
             CPE_ERROR(
@@ -177,7 +177,7 @@ int ui_sprite_attr_monitor_binding_create_to_last_entry(
     }
     else {
         char buf[128];
-        int len = strlen(name);
+        size_t len = strlen(name);
         if (len >= CPE_ARRAY_SIZE(buf)) {
             CPE_ERROR(
                 repo->m_em, "entity %d(%s): create attr monitor binding to %s: attr len overflow!",

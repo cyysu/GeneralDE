@@ -206,7 +206,7 @@ int ui_sprite_event_add_target(
     else if (str_target[0] == '*') {
         ui_sprite_group_t group = ui_sprite_group_find_by_name(world, str_target + 1);
         if (group == NULL) {
-            CPE_ERROR(repo->m_em, "send event to %s: unknown target", str_target + 1);
+            CPE_ERROR(repo->m_em, "send event to %s: unknown group", str_target + 1);
             return -1;
         }
         else {
@@ -441,7 +441,7 @@ static int ui_sprite_event_check_and_add_entities(ui_sprite_world_t world, uint3
     }
     else if (cpe_sorted_vector_is_full(v)) {
         size_t cur_size = cpe_sorted_vector_size(v);
-        uint32_t new_capacity = cpe_sorted_vector_capacity(v) * 2;
+        size_t new_capacity = cpe_sorted_vector_capacity(v) * 2;
         void * new_buff = mem_alloc(repo->m_alloc, sizeof(entity_id) * new_capacity);
 
         if (new_buff == NULL) {
