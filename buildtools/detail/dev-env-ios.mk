@@ -49,6 +49,8 @@ iPhoneSimulator.TARGET_ARCH ?= -arch i386
 
 iPhoneSimulator.CPPFLAGS ?= \
                     -D__IPHONE_OS_VERSION_MIN_REQUIRED=$(ios-os-version-min) \
+                    -D_APPLE \
+                    -DTARGET_OS_IPHONE \
                     -DTARGET_IPHONE_SIMULATOR
 
 iPhoneSimulator.CFLAGS ?= \
