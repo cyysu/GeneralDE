@@ -15,10 +15,11 @@ two modules will be linked.  Preserve this property!
 #include <string.h>
 
 #ifndef _WIN32
-#include <stdint.h>
-#include <unistd.h>
+#  include <stdint.h>
+#  include <unistd.h>
 #else
-#include <io.h>
+#  include <io.h>
+#  include <stdint.h>
 #endif /* _WIN32 */
 
 #include "gif_lib.h"
