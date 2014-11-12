@@ -49,7 +49,7 @@ struct dp_binding_numeric {
 struct dp_binding_string {
     struct dp_binding m_head;
     const char * m_value;
-    int m_value_len;
+    uint32_t m_value_len;
 };
 
 struct dp_rsp {
