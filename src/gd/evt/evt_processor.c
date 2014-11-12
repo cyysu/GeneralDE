@@ -59,7 +59,7 @@ int gd_evt_processor_alloc(gd_evt_mgr_t mgr, evt_processor_id_t * id) {
 
     bzero(newPage, sizeof(struct gd_evt_processor) * mgr->m_processor_count_in_page);
     for(i = 0; i < mgr->m_processor_count_in_page; ++i) {
-        newPage[i].m_id = newStart + i;
+        newPage[i].m_id = (evt_processor_id_t)(newStart + i);
     }
 
     if (cpe_range_put_range(&mgr->m_ids, newStart, newStart + mgr->m_processor_count_in_page) != 0) {
