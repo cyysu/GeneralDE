@@ -362,7 +362,8 @@ LPDRMETAENTRY dr_meta_find_entry_by_path(LPDRMETA meta, const char* entryPath) {
 }
 
 LPDRMETAENTRY dr_meta_lsearch_entry_by_type_name(LPDRMETA meta, const char * type_name) {
-    size_t i, count;
+    int i;
+    size_t count;
     for(i = 0, count = dr_meta_entry_num(meta); i < count; ++i) {
         LPDRMETAENTRY entry = dr_meta_entry_at(meta, i);
         if (strcmp(dr_entry_type_name(entry), type_name) == 0) return entry;
@@ -419,7 +420,7 @@ LPDRMETAENTRY dr_meta_find_entry_by_path_ex(LPDRMETA meta, const char* entryPath
             if (entry == NULL) return NULL;
             if (entry->m_array_count == 1) return NULL;
 
-            array_pos = strtol(checkBegin + 1, &array_end, 10);
+            array_pos = (int)strtol(checkBegin + 1, &array_end, 10);
             if (array_end == NULL || *array_end != ']') return NULL;
 
             if (array_pos < 0 || (entry->m_array_count > 0 && array_pos >= entry->m_array_count)) return NULL;
@@ -852,11 +853,11 @@ int dr_meta_find_dyn_info(LPDRMETA meta, dr_meta_dyn_info_t dyn_info) {
             dyn_info->m_type = dr_meta_dyn_info_type_array;
 
             dyn_info->m_data.m_array.m_array_entry = last_entry;
-            dyn_info->m_data.m_array.m_array_start = dr_entry_data_start_pos(last_entry, 0);
+            dyn_info->m_data.m_array.m_array_start = (uint32_t)dr_entry_data_start_pos(last_entry, 0);
 
             dyn_info->m_data.m_array.m_refer_entry = dr_entry_array_refer_entry(last_entry);
             if (dyn_info->m_data.m_array.m_refer_entry) {
-                dyn_info->m_data.m_array.m_refer_start = dr_entry_data_start_pos(dyn_info->m_data.m_array.m_refer_entry, 0);
+                dyn_info->m_data.m_array.m_refer_start = (uint32_t)dr_entry_data_start_pos(dyn_info->m_data.m_array.m_refer_entry, 0);
             }
 
             return 0;
@@ -867,11 +868,11 @@ int dr_meta_find_dyn_info(LPDRMETA meta, dr_meta_dyn_info_t dyn_info) {
                 case dr_meta_dyn_info_type_union:
                     if (dyn_info->m_data.m_union.m_union_entry == NULL) {
                         dyn_info->m_data.m_union.m_union_entry = last_entry;
-                        dyn_info->m_data.m_union.m_union_start = dr_entry_data_start_pos(last_entry, 0);
+                        dyn_info->m_data.m_union.m_union_start = (uint32_t)dr_entry_data_start_pos(last_entry, 0);
 
                         dyn_info->m_data.m_union.m_union_select_entry = dr_entry_select_entry(last_entry);
                         if (dyn_info->m_data.m_union.m_union_select_entry) {
-                            dyn_info->m_data.m_union.m_union_select_start = dr_entry_data_start_pos(dyn_info->m_data.m_union.m_union_select_entry, 0);
+                            dyn_info->m_data.m_union.m_union_select_start = (uint32_t)dr_entry_data_start_pos(dyn_info->m_data.m_union.m_union_select_entry, 0);
                         }
                     }
                     else {

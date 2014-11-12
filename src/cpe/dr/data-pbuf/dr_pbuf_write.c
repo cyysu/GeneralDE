@@ -320,7 +320,7 @@ int dr_pbuf_write(
                 case CPE_DR_TYPE_STRING: {
                     uint32_t len;
 
-                    len = strlen((const char *)entryData);
+                    len = (uint32_t)strlen((const char *)entryData);
 
                     dr_pbuf_write_encode_id_and_type(CPE_PBUF_TYPE_LENGTH);
                     dr_pbuf_write_encode_uint32(len);
@@ -352,7 +352,7 @@ int dr_pbuf_write(
                         int size_size;
 
                         len = curStack->m_output_size - curStack->m_array_begin_pos - dr_pbuf_write_size_reserve;
-                        size_size = dr_pbuf_encode32(len, size_buf);
+                        size_size = dr_pbuf_encode32((uint32_t)len, size_buf);
                         total = curStack->m_array_begin_pos + size_size + len;
 
                         memmove(
@@ -374,12 +374,12 @@ int dr_pbuf_write(
 
         if (--stackPos >= 0) {
             struct dr_pbuf_write_stack * preStack;
-            unsigned char size_buf[10];
+            uint8_t size_buf[10];
             int size_size;
 
             preStack = &processStack[stackPos];
 
-            size_size = dr_pbuf_encode32(curStack->m_output_size, size_buf);
+            size_size = dr_pbuf_encode32((uint32_t)curStack->m_output_size, size_buf);
 
             memmove(
                 preStack->m_output_data + preStack->m_output_size + size_size,
@@ -455,6 +455,6 @@ int dr_pbuf_array_write(
         output_used += r;
     }
 
-    return output_used;
+    return (int)output_used;
 }
 

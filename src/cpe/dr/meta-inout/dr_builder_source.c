@@ -253,7 +253,7 @@ static void dr_metalib_source_do_analize(dr_metalib_source_t source, const void 
         dr_metalib_source_analize_xml(
             source,
             source->m_builder->m_inbuild_lib,
-            buf, bufSize,
+            buf, (int)bufSize,
             source->m_builder->m_em);
     }
     else {
