@@ -85,7 +85,7 @@ uint32_t dr_entry_hash(const void * input, LPDRMETAENTRY entry) {
         step = (h >> 5) + 1;
         
         for (i = len; i >= step; i -= step) {
-            uint32_t nh = dr_entry_hash(data, dr_meta_entry_at(meta, i - 1));
+            uint32_t nh = dr_entry_hash(data, dr_meta_entry_at(meta, (int)(i - 1)));
             h = h ^ ((h<<5)+(h>>2) + nh);
         }
 

@@ -9,7 +9,7 @@ int xtoken_try_to_int32(xtoken_t token, int32_t * r) {
 
     switch(token->m_type) {
     case XTOKEN_NUM_INT:
-        *r = token->m_data.num._int;
+        *r = (int32_t)token->m_data.num._int;
         return 0;
     case XTOKEN_NUM_FLOAT:
         *r = (int32_t)token->m_data.num._double;
@@ -19,12 +19,12 @@ int xtoken_try_to_int32(xtoken_t token, int32_t * r) {
         assert(token->m_data.str._string);
         if (token->m_data.str._end) {
             char s = *token->m_data.str._end;
-            *r = strtol(token->m_data.str._string, &endptr, 10);
+            *r = (int32_t)strtol(token->m_data.str._string, &endptr, 10);
             *token->m_data.str._end = s;
             return endptr == token->m_data.str._end ? 0 : -1;
         }
         else {
-            *r = strtol(token->m_data.str._string, &endptr, 10);
+            *r = (int32_t)strtol(token->m_data.str._string, &endptr, 10);
             return (endptr && *endptr == 0) ? 0 : -1;
         }
     default:
@@ -192,7 +192,7 @@ int xtoken_cmp(xtoken_t l, xtoken_t r) {
                     buf,
                     snprintf(buf, sizeof(buf), "%f", l->m_data.num._double),
                     r->m_data.str._string,
-                    r->m_data.str._end ? (r->m_data.str._end - r->m_data.str._string) : strlen(r->m_data.str._string));
+                    (int)(r->m_data.str._end ? (r->m_data.str._end - r->m_data.str._string) : strlen(r->m_data.str._string)));
             }
         default:
             assert(0);
@@ -208,7 +208,7 @@ int xtoken_cmp(xtoken_t l, xtoken_t r) {
             else {
                 return xtoken_do_str_cmp(
                     l->m_data.str._string,
-                    l->m_data.str._end ? (l->m_data.str._end - l->m_data.str._string) : strlen(l->m_data.str._string),
+                    (int)(l->m_data.str._end ? (l->m_data.str._end - l->m_data.str._string) : strlen(l->m_data.str._string)),
                     buf,
                     snprintf(buf, sizeof(buf), FMT_INT64_T, r->m_data.num._int));
             }
@@ -219,7 +219,7 @@ int xtoken_cmp(xtoken_t l, xtoken_t r) {
             else {
                 return xtoken_do_str_cmp(
                 l->m_data.str._string,
-                l->m_data.str._end ? (l->m_data.str._end - l->m_data.str._string) : strlen(l->m_data.str._string),
+                (int)(l->m_data.str._end ? (l->m_data.str._end - l->m_data.str._string) : strlen(l->m_data.str._string)),
                 buf,
                 snprintf(buf, sizeof(buf), "%f", r->m_data.num._double));
             }
@@ -227,9 +227,9 @@ int xtoken_cmp(xtoken_t l, xtoken_t r) {
         case XTOKEN_VAL:
             return xtoken_do_str_cmp(
                 l->m_data.str._string,
-                l->m_data.str._end ? (l->m_data.str._end - l->m_data.str._string) : strlen(l->m_data.str._string),
+                (int)(l->m_data.str._end ? (l->m_data.str._end - l->m_data.str._string) : strlen(l->m_data.str._string)),
                 r->m_data.str._string,
-                r->m_data.str._end ? (r->m_data.str._end - r->m_data.str._string) : strlen(r->m_data.str._string));
+                (int)(r->m_data.str._end ? (r->m_data.str._end - r->m_data.str._string) : strlen(r->m_data.str._string)));
         default:
             assert(0);
             return 0;

@@ -69,7 +69,7 @@ int dr_type_size(int typeId) {
         return -1;
     }
     else {
-        return g_dr_ctypeinfos[typeId].m_size;
+        return (int)g_dr_ctypeinfos[typeId].m_size;
     }
 }
 
