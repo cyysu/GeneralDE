@@ -5,7 +5,7 @@
 extern "C" {
 #endif
 
-#if defined _MSC_VER /*windows*/
+#if defined _WIN32 /*windows*/
 #include <windows.h>
 #include <fcntl.h> 
 #include <errno.h>
@@ -16,7 +16,9 @@ extern "C" {
 #include <fcntl.h> 
 #include <errno.h>
 
-#define O_BINARY 0
+#if !defined(O_BINARY)
+#  define O_BINARY 0
+#endif
 
 #endif
 

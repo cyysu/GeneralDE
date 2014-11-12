@@ -5,7 +5,7 @@
 #include "cpe/utils/file.h"
 #include "file_internal.h"
 
-#ifdef _MSC_VER
+#if defined _WIN32
 
 void * mmap_file_load(const char * file, const char * mod, size_t * size, error_monitor_t em) {
     FILE * fp;

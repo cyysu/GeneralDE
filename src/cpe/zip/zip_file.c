@@ -184,7 +184,7 @@ ssize_t cpe_unzip_file_load_to_buffer(mem_buffer_t buffer, cpe_unzip_file_t zf, 
 
     assert(buf == mem_buffer_make_continuous(buffer, 0));
 
-    r = cpe_unzReadCurrentFile(zf->m_context->m_zip_file, buf + start, len);
+    r = cpe_unzReadCurrentFile(zf->m_context->m_zip_file, buf + start, (unsigned)len);
     assert(r == len);
     
     return len;
@@ -198,7 +198,7 @@ ssize_t cpe_unzip_file_load_to_buf(char * buf, size_t size, cpe_unzip_file_t zf,
         return -1;
     }
 
-    read_size = cpe_unzReadCurrentFile(zf->m_context->m_zip_file, buf, size);
+    read_size = cpe_unzReadCurrentFile(zf->m_context->m_zip_file, buf, (unsigned)size);
     if (read_size < 0) {
         CPE_ERROR(em, "cpe_unzip_file_load_to_buf: read fail!");
         cpe_unzCloseCurrentFile(zf->m_context->m_zip_file);

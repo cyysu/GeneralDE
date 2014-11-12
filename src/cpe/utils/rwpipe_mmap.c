@@ -1,4 +1,4 @@
-#ifndef _MSC_VER
+#ifndef _WIN32
 #include <assert.h>
 #include <inttypes.h>
 #include <sys/mman.h> 
