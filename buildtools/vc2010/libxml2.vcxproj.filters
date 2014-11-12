@@ -186,6 +186,9 @@
     <ClInclude Include="..\..\3rdTools\libxml2\src\triostr.h">
       <Filter>src</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\3rdTools\libxml2\src\win32\libxml2_config.h">
+      <Filter>src\win32</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\3rdTools\libxml2\src\win32\config.h">
       <Filter>src\win32</Filter>
     </ClInclude>

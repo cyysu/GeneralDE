@@ -37,6 +37,8 @@ const char * cpe_str_char_not_in_pair(const char * p, char f, const char * start
 
 int cpe_str_cmp_part(const char * part_str, size_t part_str_len, const char * full_str);
 
+uint8_t cpe_str_start_with(const char * full_str, const char * prefix);
+    
 uint64_t cpe_str_parse_byte_size_with_dft(const char * astring, uint64_t dft);
 int cpe_str_parse_byte_size(uint64_t * result, const char * astring);
 

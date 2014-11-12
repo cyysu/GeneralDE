@@ -35,7 +35,7 @@
 #ifndef	_SYS_QUEUE_H_
 #define	_SYS_QUEUE_H_
 
-#ifdef _MSC_VER
+#ifdef _WIN32
 #include <windows.h>
 #undef SLIST_ENTRY
 #undef min

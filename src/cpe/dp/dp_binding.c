@@ -184,7 +184,7 @@ int dp_rsp_unbind_numeric(dp_rsp_t rsp, int32_t cmd) {
 int dp_rsp_bind_string(dp_rsp_t rsp, const char * cmd, error_monitor_t em) {
     struct dp_binding_string * binding;
     dp_mgr_t dp;
-    int cmdLen;
+    size_t cmdLen;
 
     if (rsp == NULL) return -1;
 
@@ -201,7 +201,7 @@ int dp_rsp_bind_string(dp_rsp_t rsp, const char * cmd, error_monitor_t em) {
 
     binding->m_head.m_kt = dp_key_string;
     binding->m_value = (char*)(binding + 1);
-    binding->m_value_len = cmdLen;
+    binding->m_value_len = (uint32_t)cmdLen;
 
     memcpy(binding + 1, cmd, cmdLen + 1);
 
@@ -222,7 +222,7 @@ int dp_mgr_unbind_string(dp_mgr_t dp, const char * cmd) {
     struct dp_binding_string key;
     key.m_head.m_kt = dp_key_string;
     key.m_value = cmd;
-    key.m_value_len = strlen(cmd);
+    key.m_value_len = (uint32_t)strlen(cmd);
 
     count = 0;
 
@@ -248,7 +248,7 @@ int dp_rsp_unbind_string(dp_rsp_t rsp, const char * cmd) {
     struct dp_binding_string key;
     key.m_head.m_kt = dp_key_string;
     key.m_value = cmd;
-    key.m_value_len = strlen(cmd);
+    key.m_value_len = (uint32_t)strlen(cmd);
 
     count = 0;
 
