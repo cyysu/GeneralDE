@@ -771,7 +771,7 @@ MutexErrors::Type ThrowOnBadDesignMutexError::CheckError( MutexErrors::Type erro
 
 void MutexSleepWaits::Wait( void )
 {
-#if defined( _MSC_VER )
+#if defined( _WIN32 )
     ::SleepEx( sleepTime, true );
 #else
     ::sleep( sleepTime );
@@ -784,7 +784,7 @@ SpinLevelMutex::SpinLevelMutex( unsigned int level ) :
     m_mutex(),
     m_level( level )
 {
-#if defined( _MSC_VER )
+#if defined( _WIN32 )
     ::InitializeCriticalSection( &m_mutex );
 #else
     const int result = ::pthread_mutex_init( &m_mutex, 0 );
@@ -812,7 +812,7 @@ SpinLevelMutex::~SpinLevelMutex( void )
 {
     try
     {
-#if defined( _MSC_VER )
+#if defined( _WIN32 )
         ::DeleteCriticalSection( &m_mutex );
 #else
         ::pthread_mutex_destroy( &m_mutex );
@@ -831,7 +831,7 @@ MutexErrors::Type SpinLevelMutex::Lock( void ) volatile
     // Have to cast away volatile since Windows CriticalSection class does not
     // use volatile qualifier.
     SpinLevelMutex * pThis = const_cast< SpinLevelMutex * >( this );
-#if defined( _MSC_VER )
+#if defined( _WIN32 )
     ::EnterCriticalSection( &pThis->m_mutex );
 #else
     const int result = ::pthread_mutex_lock( &pThis->m_mutex );
@@ -861,7 +861,7 @@ MutexErrors::Type SpinLevelMutex::TryLock( void ) volatile
     // Have to cast away volatile since Windows CriticalSection class does not
     // use volatile qualifier.
     SpinLevelMutex * pThis = const_cast< SpinLevelMutex * >( this );
-#if defined( _MSC_VER )
+#if defined( _WIN32 )
     const bool locked = ( 0 != ::TryEnterCriticalSection( &pThis->m_mutex ) );
     return ( locked ) ? MutexErrors::Success : MutexErrors::TryFailed;
 #else
@@ -888,7 +888,7 @@ MutexErrors::Type SpinLevelMutex::Unlock( void ) volatile
     // Have to cast away volatile since Windows CriticalSection class does not
     // use volatile qualifier.
     SpinLevelMutex * pThis = const_cast< SpinLevelMutex * >( this );
-#if defined( _MSC_VER )
+#if defined( _WIN32 )
     ::LeaveCriticalSection( &pThis->m_mutex );
 #else
     const int result = ::pthread_mutex_unlock( &pThis->m_mutex );
@@ -901,7 +901,7 @@ MutexErrors::Type SpinLevelMutex::Unlock( void ) volatile
 
 // ----------------------------------------------------------------------------
 
-#if defined( _MSC_VER )
+#if defined( _WIN32 )
 
 SleepLevelMutex::SleepLevelMutex( unsigned int level ) :
     SpinLevelMutex( level ),
@@ -940,7 +940,7 @@ MutexErrors::Type SleepLevelMutex::Lock( void ) volatile
         locked = ( MutexErrors::Success == TryLock() );
         if ( locked )
             break;
-#if defined( _MSC_VER )
+#if defined( _WIN32 )
         ::SleepEx( m_sleepTime, m_wakable );
 #else
         ::sleep( m_sleepTime );
