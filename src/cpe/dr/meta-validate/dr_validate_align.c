@@ -18,19 +18,19 @@ static void dr_metalib_validate_align_i(error_monitor_t em, LPDRMETALIB metalib)
 
         for(entry_pos = 0; entry_pos < entry_count; ++entry_pos) {
             LPDRMETAENTRY entry = dr_meta_entry_at(meta, entry_pos);
-            int align = dr_entry_require_align(entry);
+            size_t align = dr_entry_require_align(entry);
             if (align != 1 && align != 2 && align != 4 && align != 8) {
                 CPE_ERROR(
                     em, "%s.%s: type align %d error",
-                    dr_meta_name(meta), dr_entry_name(entry), align);
+                    dr_meta_name(meta), dr_entry_name(entry), (int)align);
                 continue;
             }
 
-            if ((int)dr_entry_data_start_pos(entry, 0) % align) {
+            if (dr_entry_data_start_pos(entry, 0) % align) {
                 CPE_ERROR(
                     em, "%s.%s: start pos error, align is %d, startpos is %d",
                     dr_meta_name(meta), dr_entry_name(entry),
-                    align, (int)dr_entry_data_start_pos(entry, 0));
+                    (int)align, (int)dr_entry_data_start_pos(entry, 0));
                 continue;
             }
         }

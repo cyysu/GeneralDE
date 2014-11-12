@@ -7,7 +7,22 @@
 #define strdup _strdup
 #define strcasecmp stricmp
 #define strncasecmp strnicmp 
+#define strnstr cpe_strnstr 
 #pragma warning(disable:4996)
+#endif
+
+#if defined __CYGWIN__
+#define strnstr cpe_strnstr 
+#endif
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+char * cpe_strnstr(const char *phaystack, const char *pneedle, const int phaystack_len);
+
+#ifdef __cplusplus
+}
 #endif
 
 #endif
