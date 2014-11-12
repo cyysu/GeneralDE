@@ -258,7 +258,7 @@ const char * dir_name_ex(const char * input, int level, mem_buffer_t tbuf) {
 
     if (input == NULL) return NULL;
 
-    len = strlen(input);
+    len = (int)strlen(input);
 
     while(len > 0) {
         char c = input[--len];
@@ -281,7 +281,7 @@ const char * file_name_suffix(const char * input) {
 
     if (input == NULL) return NULL;
 
-    len = strlen(input);
+    len = (int)strlen(input);
 
     while(len > 0) {
         char c = input[--len];
@@ -297,7 +297,7 @@ const char * file_name_no_dir(const char * input) {
 
     if (input == NULL) return NULL;
 
-    len = strlen(input);
+    len = (int)strlen(input);
 
     while(len > 0) {
         char c = input[--len];
@@ -308,12 +308,9 @@ const char * file_name_no_dir(const char * input) {
 }
 
 int file_name_normalize(char * input) {
-    size_t total_len;
     char * check_begin = NULL; 
     char * check_end = NULL;
     char * p;
-
-    total_len = strlen(input);
 
     for(p = strchr(input, '/'); p; p = strchr(p + 1, '/')) {
         check_begin = check_end;
@@ -340,7 +337,7 @@ file_name_base(const char * input, mem_buffer_t tbuf) {
 
     if (input == NULL) return NULL;
 
-    len = strlen(input);
+    len = (int)strlen(input);
     
     endPos = len + 1;
     beginPos = 0;
@@ -425,5 +422,5 @@ int file_copy(const char * output, const char * input, mode_t mode, error_monito
     file_stream_close(fp_i, em);
     file_stream_close(fp_o, em);
     
-    return totalSize;
+    return (int)totalSize;
 }
