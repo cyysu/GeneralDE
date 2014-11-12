@@ -46,6 +46,19 @@ void CfgLoader::loadEntity(Entity & entity, cfg_t cfg) {
     }
 }
 
+/*fsm*/
+void CfgLoader::loadFsm(Fsm::Fsm & fsm, const char * src_path) {
+    if (!tryLoadFsm(fsm, src_path)) {
+        APP_CTX_THROW_EXCEPTION(fsm.world().app(), ::std::runtime_error, "fsm load from %s fail!", src_path);
+    }
+}
+
+void CfgLoader::loadFsm(Fsm::Fsm & fsm, cfg_t cfg) {
+    if (!tryLoadFsm(fsm, cfg)) {
+        APP_CTX_THROW_EXCEPTION(fsm.world().app(), ::std::runtime_error, "fsm load from cfg fail!");
+    }
+}
+
 /*resource*/
 void CfgLoader::addResourceLoader(const char * name, ui_sprite_cfg_load_resource_fun_t fun, void * ctx) {
     if (ui_sprite_cfg_loader_add_resource_loader(*this, name, fun, ctx) != 0) {

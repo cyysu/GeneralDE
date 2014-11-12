@@ -25,7 +25,7 @@ xtoken_t ui_sprite_data_find_value(void * input_ctx, xcomputer_t computer, const
         char name_buf[64];
         const char * entity_name = cpe_str_trim_head((char*)attr_name + 1);
         const char * entity_name_end = strchr(entity_name, ']');
-        int entity_name_len;
+        size_t entity_name_len;
 
         if (entity_name_end == NULL) {
             CPE_ERROR(em, "ui_sprite_data_find_value: %s format error!", attr_name);
@@ -34,7 +34,7 @@ xtoken_t ui_sprite_data_find_value(void * input_ctx, xcomputer_t computer, const
 
         entity_name_len = entity_name_end - entity_name;
         if ((entity_name_len + 1) > CPE_ARRAY_SIZE(name_buf)) {
-            CPE_ERROR(em, "ui_sprite_data_find_value: entity name len %d overflow!", entity_name_len);
+            CPE_ERROR(em, "ui_sprite_data_find_value: entity name len %d overflow!", (int)entity_name_len);
             return NULL;
         }
 

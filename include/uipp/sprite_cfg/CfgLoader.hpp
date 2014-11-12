@@ -6,6 +6,7 @@
 #include "uipp/sprite/WorldRes.hpp"
 #include "uipp/sprite/Entity.hpp"
 #include "uipp/sprite/Component.hpp"
+#include "uipp/sprite_fsm/Fsm.hpp"
 #include "uipp/sprite_fsm/State.hpp"
 #include "uipp/sprite_fsm/Action.hpp"
 #include "System.hpp"
@@ -35,6 +36,13 @@ public:
     void loadEntity(Entity & entity, const char * src_path);
     void loadEntity(Entity & entity, cfg_t cfg);
 
+    /*fsm*/
+    bool tryLoadFsm(Fsm::Fsm & fsm, const char * src_path) { return ui_sprite_cfg_load_fsm_from_path(*this, fsm, src_path) == 0 ? true : false; }
+    bool tryLoadFsm(Fsm::Fsm & fsm, cfg_t cfg) { return ui_sprite_cfg_load_fsm(*this, fsm, cfg) == 0 ? true : false; }
+    
+    void loadFsm(Fsm::Fsm & fsm, const char * src_path);
+    void loadFsm(Fsm::Fsm & fsm, cfg_t cfg);
+    
     /*resource*/
     void addResourceLoader(const char * name, ui_sprite_cfg_load_resource_fun_t fun, void * ctx);
     void removeResourceLoader(const char * name) { ui_sprite_cfg_loader_remove_resource_loader(*this, name); }
