@@ -145,6 +145,7 @@
     <ClInclude Include="..\..\3rdTools\libxml2\src\triop.h" />
     <ClInclude Include="..\..\3rdTools\libxml2\src\triostr.h" />
     <ClInclude Include="..\..\3rdTools\libxml2\src\win32\config.h" />
+    <ClInclude Include="..\..\3rdTools\libxml2\src\win32\libxml2_config.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\3rdTools\libxml2\src\c14n.c" />

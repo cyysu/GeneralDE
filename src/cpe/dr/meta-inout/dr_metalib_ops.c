@@ -14,7 +14,7 @@ int dr_lib_init(LPDRMETALIB pstLib, const LPDRLIBPARAM pstParam) {
     pstLib->m_magic = CPE_DR_MAGIC;
     pstLib->m_build_version = 11;
     //int8_t reserve1[4];
-    pstLib->m_size = pstParam->iSize;
+    pstLib->m_size = (int32_t)pstParam->iSize;
     //int8_t reserve2[16];
     pstLib->m_id = pstParam->iID;
     pstLib->m_tag_set_version = pstParam->iTagSetVersion;
@@ -32,10 +32,10 @@ int dr_lib_init(LPDRMETALIB pstLib, const LPDRLIBPARAM pstParam) {
     pstLib->m_startpos_meta_by_name = pstLib->m_startpos_meta_by_id + sizeof(struct idx_meta_by_id) * pstParam->iMaxMetas;
     pstLib->m_startpos_meta_by_orig = pstLib->m_startpos_meta_by_name + sizeof(struct idx_meta_by_name) * pstParam->iMaxMetas;
     pstLib->m_startpos_meta = pstLib->m_startpos_meta_by_orig + sizeof(struct idx_meta_by_orig /*TODO: change type*/) * pstParam->iMaxMetas;
-    pstLib->m_startpos_str = pstLib->m_startpos_meta + pstParam->iMetaSize;
-    pstLib->m_buf_size_str = pstParam->iStrBufSize;
+    pstLib->m_startpos_str = (int32_t)(pstLib->m_startpos_meta + pstParam->iMetaSize);
+    pstLib->m_buf_size_str = (int32_t)pstParam->iStrBufSize;
     //int8_t reserve7[8];
-    pstLib->m_buf_size_meta = pstParam->iMetaSize;
+    pstLib->m_buf_size_meta = (int32_t)pstParam->iMetaSize;
     //int8_t reserve8[4];
     pstLib->m_buf_size_macros = sizeof(struct tagDRMacro) * pstParam->iMaxMacros;
     //int8_t reserve9[24];
@@ -144,7 +144,6 @@ static void dr_lib_add_meta_index_for_orig(
 
     putAt = begin + metaLib->m_meta_count;
     putAt->m_diff_to_base = newMeta->m_self_pos;
-    putAt->m_reserve = 0;
 }
 
 static void dr_lib_add_meta_index_for_id(
@@ -266,7 +265,7 @@ size_t dr_meta_calc_require_align(LPDRMETA meta) {
 
 int dr_add_meta_entry_set_type_calc_align(LPDRMETA meta, LPDRMETAENTRY entry, error_monitor_t em) {
     char * base = (char*)(meta) - meta->m_self_pos;
-    int entryAlign = 0;
+    size_t entryAlign = 0;
 
     //process type
     if (entry->m_type <= CPE_DR_TYPE_COMPOSITE) {/*is composite type*/
