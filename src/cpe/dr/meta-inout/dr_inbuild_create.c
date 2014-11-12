@@ -83,7 +83,7 @@ static void dr_inbuild_build_calc_entry_composite_type(
     if (refMeta) {
         char * base = (char*)(createdMeta) - createdMeta->m_self_pos;
         entryEle->m_data.m_type = refMeta->m_type;
-        entryEle->m_data.m_ref_type_pos = (char*)refMeta - (char*)base;
+        entryEle->m_data.m_ref_type_pos = (int32_t)((char*)refMeta - (char*)base);
     }
     else {
         CPE_ERROR_EX(ctx->m_em, CPE_DR_ERROR_ENTRY_NO_TYPE, "ref type \"%s\" is unknown!", entryEle->m_ref_type_name);
@@ -309,7 +309,7 @@ static void dr_inbuild_build_calc_basic_type_and_size(struct DRInBuildMetaLib * 
 
 static int dr_inbuild_calc_string_size(const char * data) {
     return data
-        ? strlen(data) + 1
+        ? (int)strlen(data) + 1
         : 0;
 }
 

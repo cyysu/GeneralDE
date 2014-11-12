@@ -1,6 +1,25 @@
 #include <assert.h>
 #include "cpe/utils/math_ex.h"
 
+uint32_t cpe_math_32_is_pow2(uint32_t value) {
+	return value != 0 &&
+        ((value & (value - 1)) == 0);
+}
+
+uint32_t cpe_math_32_round_to_pow2(uint32_t value) {
+	if (value != 0) {
+		value--;
+		value |= value >> 1;
+		value |= value >> 2;
+		value |= value >> 4;
+		value |= value >> 8;
+		value |= value >> 16;
+		value++;
+	}
+    
+	return value;
+}
+
 float cpe_math_distance(float x1, float y1, float x2, float y2) {
 	return (float)sqrt((x2-x1)*(x2-x1) + (y2-y1)*(y2-y1));
 }
@@ -93,8 +112,8 @@ float cpe_math_radians_regular(float radians) {
 
 float cpe_math_radians_add(float radians_1, float radians_2) {
 	float r = 0.0f;
-    assert(radians_1 <= M_PI && radians_1 >= -M_PI);
-    assert(radians_2 <= M_PI && radians_2 >= -M_PI);
+    assert(radians_1 <= (float)M_PI  && radians_1 >= (float)-M_PI);
+    assert(radians_2 <= (float)M_PI && radians_2 >= (float)-M_PI);
 
     r = radians_1 + radians_2;
 
@@ -105,8 +124,8 @@ float cpe_math_radians_add(float radians_1, float radians_2) {
 
 float cpe_math_radians_diff(float radians_1, float radians_2) {
 	float r = 0.0f;
-    assert(radians_1 <= M_PI && radians_1 >= -M_PI);
-    assert(radians_2 <= M_PI && radians_2 >= -M_PI);
+    //assert(radians_1 <= M_PI && radians_1 >= -M_PI);
+    //assert(radians_2 <= M_PI && radians_2 >= -M_PI);
 
     r = radians_1 - radians_2;
 

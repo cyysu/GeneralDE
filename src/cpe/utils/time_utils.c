@@ -119,7 +119,7 @@ time_t next_time_in_range_vn(
 time_t time_from_str(const char * str_time) {
     struct tm tm;
 
-#ifdef _MSC_VER
+#ifdef _WIN32
     int year, month, day, hour, minute,second;
     int r;
 
