@@ -96,7 +96,7 @@ static void dr_print_print_basic_data(xmlTextWriterPtr xml_writer, LPDRMETAENTRY
         break;
     default:
         CPE_ERROR(
-            em, "dr_xml_print: write data of %s fail, supported type "FMT_DR_INT_T"!",
+            em, "dr_xml_print: write data of %s fail, supported type "FMT_INT32_T"!",
             dr_entry_name(entry), entry->m_type);
         break;
     }
