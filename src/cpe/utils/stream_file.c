@@ -1,4 +1,5 @@
 #include <errno.h>
+#include "cpe/pal/pal_string.h"
 #include "cpe/utils/stream_file.h"
 #include "cpe/utils/file.h"
 
@@ -29,7 +30,7 @@ int stream_do_flush_to_file(struct write_stream * stream) {
     rv = fflush(fstream->m_fp);
 
     if (rv != 0) {
-        CPE_ERROR_EX(fstream->m_em, errno, "fflush fail!");
+        CPE_ERROR_EX(fstream->m_em, errno, "fflush fail, errno=%d (%s)!", errno, strerror(errno));
     }
 
     return rv;
@@ -51,7 +52,7 @@ int stream_do_read_from_file(struct read_stream * stream, void * buf, size_t siz
     rv = fread(buf, 1, size, fstream->m_fp);
 
     if (ferror(fstream->m_fp)) {
-        CPE_ERROR_EX(fstream->m_em, errno, "fwrite error!");
+        CPE_ERROR_EX(fstream->m_em, errno, "fread error, errno=%d (%s)!", errno, strerror(errno));
     }
 
     return rv;
