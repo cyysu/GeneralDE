@@ -462,10 +462,17 @@ typedef signed long int  GLsizeiptr;
 
 #define GL_INVALID_FRAMEBUFFER_OPERATION  0x0506
 
+/* AccumOp */
+#define GL_ACCUM                          0x0100
+#define GL_LOAD                           0x0101
+#define GL_RETURN                         0x0102
+#define GL_MULT                           0x0103
+#define GL_ADD                            0x0104
+
 /*-------------------------------------------------------------------------
  * GL core functions.
  *-----------------------------------------------------------------------*/
-#define GL_APICALL inline
+#define GL_APICALL static inline
 #define GL_APIENTRY
 
 GL_APICALL void         GL_APIENTRY glActiveTexture (GLenum texture){}
@@ -521,7 +528,7 @@ GL_APICALL void         GL_APIENTRY glGenBuffers (GLsizei n, GLuint* buffers){}
 GL_APICALL void         GL_APIENTRY glGenerateMipmap (GLenum target){}
 GL_APICALL void         GL_APIENTRY glGenFramebuffers (GLsizei n, GLuint* framebuffers){}
 GL_APICALL void         GL_APIENTRY glGenRenderbuffers (GLsizei n, GLuint* renderbuffers){}
-GL_APICALL void         GL_APIENTRY glGenTextures (GLsizei n, GLuint* textures){}
+GL_APICALL void         GL_APIENTRY glGenTextures (GLsizei n, GLuint* textures){GLsizei i; for(i = 0; i < n; ++i) textures[i] = i + 1; }
 GL_APICALL void         GL_APIENTRY glGetActiveAttrib (GLuint program, GLuint index, GLsizei bufsize, GLsizei* length, GLint* size, GLenum* type, char* name){}
 GL_APICALL void         GL_APIENTRY glGetActiveUniform (GLuint program, GLuint index, GLsizei bufsize, GLsizei* length, GLint* size, GLenum* type, char* name){}
 GL_APICALL void         GL_APIENTRY glGetAttachedShaders (GLuint program, GLsizei maxcount, GLsizei* count, GLuint* shaders){}
@@ -549,13 +556,13 @@ GL_APICALL void         GL_APIENTRY glGetVertexAttribfv (GLuint index, GLenum pn
 GL_APICALL void         GL_APIENTRY glGetVertexAttribiv (GLuint index, GLenum pname, GLint* params){}
 GL_APICALL void         GL_APIENTRY glGetVertexAttribPointerv (GLuint index, GLenum pname, void** pointer){}
 GL_APICALL void         GL_APIENTRY glHint (GLenum target, GLenum mode){}
-GL_APICALL GLboolean    GL_APIENTRY glIsBuffer (GLuint buffer){ return false; }
-GL_APICALL GLboolean    GL_APIENTRY glIsEnabled (GLenum cap){ return false; }
-GL_APICALL GLboolean    GL_APIENTRY glIsFramebuffer (GLuint framebuffer){ return false; }
-GL_APICALL GLboolean    GL_APIENTRY glIsProgram (GLuint program){ return false; }
-GL_APICALL GLboolean    GL_APIENTRY glIsRenderbuffer (GLuint renderbuffer){ return false; }
-GL_APICALL GLboolean    GL_APIENTRY glIsShader (GLuint shader){ return false; }
-GL_APICALL GLboolean    GL_APIENTRY glIsTexture (GLuint texture){ return false; }
+GL_APICALL GLboolean    GL_APIENTRY glIsBuffer (GLuint buffer){ return 0; }
+GL_APICALL GLboolean    GL_APIENTRY glIsEnabled (GLenum cap){ return 0; }
+GL_APICALL GLboolean    GL_APIENTRY glIsFramebuffer (GLuint framebuffer){ return 0; }
+GL_APICALL GLboolean    GL_APIENTRY glIsProgram (GLuint program){ return 0; }
+GL_APICALL GLboolean    GL_APIENTRY glIsRenderbuffer (GLuint renderbuffer){ return 0; }
+GL_APICALL GLboolean    GL_APIENTRY glIsShader (GLuint shader){ return 0; }
+GL_APICALL GLboolean    GL_APIENTRY glIsTexture (GLuint texture){ return 0; }
 GL_APICALL void         GL_APIENTRY glLineWidth (GLfloat width){}
 GL_APICALL void         GL_APIENTRY glLinkProgram (GLuint program){}
 GL_APICALL void         GL_APIENTRY glPixelStorei (GLenum pname, GLint param){}
