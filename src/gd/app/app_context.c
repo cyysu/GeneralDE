@@ -85,7 +85,7 @@ char ** gd_app_context_argv(gd_app_context_t context) {
 
 int gd_app_arg_is_set(gd_app_context_t context, const char * arg_name) {
     int i;
-    int arg_name_len = strlen(arg_name);
+    int arg_name_len = (int)strlen(arg_name);
 
     for(i = 1; i < context->m_argc; ++i) {
         char * p;
@@ -106,7 +106,7 @@ int gd_app_arg_is_set(gd_app_context_t context, const char * arg_name) {
 
 const char * gd_app_arg_find(gd_app_context_t context, const char * arg_name) {
     int i;
-    int arg_name_len = strlen(arg_name);
+    int arg_name_len = (int)strlen(arg_name);
 
     for(i = 1; i < context->m_argc; ++i) {
         char * p;
@@ -132,7 +132,7 @@ const char * gd_app_arg_find(gd_app_context_t context, const char * arg_name) {
 
 const char * gd_app_arg_find_ex(gd_app_context_t context, const char * arg_name, int * from_pos) {
     int i;
-    int arg_name_len = strlen(arg_name);
+    int arg_name_len = (int)strlen(arg_name);
 
     for(i = *from_pos; i < context->m_argc; ++i) {
         char * p;
