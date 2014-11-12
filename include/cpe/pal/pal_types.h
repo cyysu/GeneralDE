@@ -46,13 +46,13 @@ typedef unsigned long long uint64_t;
 typedef unsigned __int64 uint64_t;
 #endif /* _MSC_VER */
 
+#ifdef _MSC_VER
 typedef int mode_t;
-
 typedef int key_t;
-
 typedef int pid_t;
 typedef int uid_t;
 typedef int gid_t;
+#endif
 
 #endif /* WIN32 */
 

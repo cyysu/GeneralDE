@@ -1,6 +1,6 @@
 #include "cpe/pal/pal_shm.h"
 
-#if defined _MSC_VER /*windows*/
+#if defined _WIN32 /*windows*/
 
 #elif defined ANDROID /*android*/
 
