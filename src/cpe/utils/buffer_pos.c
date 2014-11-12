@@ -32,7 +32,7 @@ ssize_t mem_pos_seek(struct mem_buffer_pos * pos, ssize_t n) {
 
     if (n > 0) {
         while(pos->m_trunk && n > 0) {
-            int left = pos->m_trunk->m_size - pos->m_pos_in_trunk - 1;
+            int left = (int)(pos->m_trunk->m_size - pos->m_pos_in_trunk - 1);
             if (left >= n) {
                 pos->m_pos_in_trunk += n;
                 done += n;
@@ -53,7 +53,7 @@ ssize_t mem_pos_seek(struct mem_buffer_pos * pos, ssize_t n) {
     else if (n < 0) {
         n = -n;
         while(n > 0) {
-            int d;
+            ssize_t d;
 
             if (pos->m_trunk == NULL || pos->m_pos_in_trunk == 0) {
                 struct mem_buffer_trunk * pre;
@@ -80,7 +80,7 @@ ssize_t mem_pos_seek(struct mem_buffer_pos * pos, ssize_t n) {
             assert(pos->m_trunk);
             assert(pos->m_trunk->m_size > 0);
 
-            d = pos->m_pos_in_trunk;
+            d = (ssize_t)pos->m_pos_in_trunk;
             if (d == 0) continue;
             if (d >= n) d = n;
 

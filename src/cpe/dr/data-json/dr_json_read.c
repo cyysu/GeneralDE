@@ -96,7 +96,7 @@ static char * dr_json_parse_get_write_pos(
 
         assert(total_size <= mem_buffer_size(ctx->m_output_alloc));
 
-        if (total_size > ctx->m_size) ctx->m_size = total_size;
+        if (total_size > ctx->m_size) ctx->m_size = (int)total_size;
 
         return mem_buffer_at(ctx->m_output_alloc, start);
     }
@@ -304,7 +304,7 @@ static int dr_json_start_map(void * ctx) {
                 nestStackNode,
                 c->m_root_meta,
                 c->m_root_array_count * dr_meta_size(c->m_root_meta),
-                dr_meta_size(c->m_root_meta));
+                (int)dr_meta_size(c->m_root_meta));
         }
         else {
             dr_json_parse_stack_init(nestStackNode, c->m_root_meta, 0, -1);
@@ -449,7 +449,7 @@ static void dr_json_parse_ctx_init(
 
     ctx->m_stackPos = -1;
     ctx->m_em = em;
-    ctx->m_size = dr_meta_size(meta);
+    ctx->m_size = (int)dr_meta_size(meta);
 }
 
 static int dr_json_read_i(
