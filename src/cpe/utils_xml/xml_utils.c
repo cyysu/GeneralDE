@@ -1,13 +1,14 @@
 #include <errno.h>
 #include "cpe/pal/pal_stdlib.h"
+#include "cpe/pal/pal_stdio.h"
 #include "cpe/pal/pal_strings.h"
 #include "cpe/utils/file.h"
 #include "cpe/utils/stream_buffer.h"
 #include "cpe/utils_xml/xml_utils.h"
 
-int cpe_xml_find_attr_long(long * result, const char * attr_name, int nb_attributes, const void * attributes, error_monitor_t em) {
+int cpe_xml_find_attr_int32(int32_t * result, const char * attr_name, int nb_attributes, const void * attributes, error_monitor_t em) {
     int index, indexAttribute;
-
+    
     for(index = 0, indexAttribute = 0;
         indexAttribute < nb_attributes;
         ++indexAttribute, index += 5)
@@ -15,21 +16,53 @@ int cpe_xml_find_attr_long(long * result, const char * attr_name, int nb_attribu
         const char *localname = ((const char * *)attributes)[index];
         const char *valueBegin;
         const char *valueEnd;
-        char * endp;
-
+        char buf[64];
+        size_t len;
+        
         if (strcmp(localname, attr_name) != 0) continue;
 
         valueBegin = ((const char * *)attributes)[index+3];
         valueEnd = ((const char * *)attributes)[index+4];
+        len = valueEnd - valueBegin;
+        if (len >= sizeof(buf)) len = sizeof(buf) - 1;
+        memcpy(buf, valueBegin, len);
+        buf[len] = 0;
 
-        *result = strtol(valueBegin, &endp, 10);
-        if (endp != valueEnd) {
-            char buf[64];
-            size_t len = valueEnd - valueBegin;
-            if (len >= sizeof(buf)) len = sizeof(buf) - 1;
-            memcpy(buf, valueBegin, len);
-            buf[len] = 0;
+        if (sscanf(buf, FMT_INT32_T, result) != 1) {
+            CPE_ERROR(em, "read attr %s from value %s fail!", attr_name, buf);
+            return -1; 
+        }
 
+        return 0;
+    }
+
+    CPE_ERROR(em, "read attr %s not exist!", attr_name);
+    return -1;
+}
+
+int cpe_xml_find_attr_uint32(uint32_t * result, const char * attr_name, int nb_attributes, const void * attributes, error_monitor_t em) {
+    int index, indexAttribute;
+    
+    for(index = 0, indexAttribute = 0;
+        indexAttribute < nb_attributes;
+        ++indexAttribute, index += 5)
+    {
+        const char *localname = ((const char * *)attributes)[index];
+        const char *valueBegin;
+        const char *valueEnd;
+        char buf[64];
+        size_t len;
+        
+        if (strcmp(localname, attr_name) != 0) continue;
+
+        valueBegin = ((const char * *)attributes)[index+3];
+        valueEnd = ((const char * *)attributes)[index+4];
+        len = valueEnd - valueBegin;
+        if (len >= sizeof(buf)) len = sizeof(buf) - 1;
+        memcpy(buf, valueBegin, len);
+        buf[len] = 0;
+
+        if (sscanf(buf, FMT_UINT32_T, result) != 1) {
             CPE_ERROR(em, "read attr %s from value %s fail!", attr_name, buf);
             return -1; 
         }
@@ -135,10 +168,15 @@ int cpe_xml_read_value_bool(uint8_t * result, const char * data, size_t data_len
     }
 }
 
-int cpe_xml_read_value_long(long * result, const char * data, size_t data_len) {
-    char * endptr;
-    *result = strtol(data, &endptr, 10);
-    if (endptr - data != data_len) {
+int cpe_xml_read_value_int32(int32_t * result, const char * data, size_t data_len) {
+    if (sscanf(data, FMT_INT32_T, result) != 1) {
+        return -1;
+    }
+    return 0;
+}
+
+int cpe_xml_read_value_uint32(uint32_t * result, const char * data, size_t data_len) {
+    if (sscanf(data, FMT_UINT32_T, result) != 1) {
         return -1;
     }
     return 0;

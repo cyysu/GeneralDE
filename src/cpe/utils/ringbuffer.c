@@ -15,7 +15,7 @@ struct ringbuffer {
 INLINE int
 block_offset(ringbuffer_t rb, ringbuffer_block_t blk) {
 	char * start = (char *)(rb + 1);
-	return (char *)blk - start;
+	return (int)((char *)blk - start);
 }
 
 INLINE ringbuffer_block_t
