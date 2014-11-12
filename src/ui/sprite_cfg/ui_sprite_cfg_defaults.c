@@ -42,9 +42,6 @@
 #include "ui/sprite_ctrl/ui_sprite_ctrl_track_mgr.h"
 #include "ui/sprite_ctrl/ui_sprite_ctrl_track_follow.h"
 #include "ui/sprite_ctrl/ui_sprite_ctrl_track_manip.h"
-#include "ui/sprite_spine/ui_sprite_spine_obj.h"
-#include "ui/sprite_spine/ui_sprite_spine_env.h"
-#include "ui/sprite_spine/ui_sprite_spine_play_anim.h"
 #include "ui_sprite_cfg_loader_i.h"
 
 #define UI_SPRITE_CFG_INIT_RESOURCE(__name, __fun)                     \
@@ -79,7 +76,6 @@ int ui_sprite_cfg_loader_init_default_loaders(ui_sprite_cfg_loader_t loader) {
     UI_SPRITE_CFG_INIT_RESOURCE(UI_SPRITE_ANIM_CAMERA_TYPE_NAME, camera);
     UI_SPRITE_CFG_INIT_RESOURCE(UI_SPRITE_ANIM_BACKEND_NAME, anim_backend);
     UI_SPRITE_CFG_INIT_RESOURCE(UI_SPRITE_CTRL_TRACK_MGR_TYPE_NAME, track_mgr);
-    UI_SPRITE_CFG_INIT_RESOURCE(UI_SPRITE_SPINE_ENV_NAME, spine_env);
 
     /*components*/
     UI_SPRITE_CFG_INIT_COMPONENT(UI_SPRITE_FSM_COMPONENT_FSM_NAME, fsm);
@@ -88,7 +84,6 @@ int ui_sprite_cfg_loader_init_default_loaders(ui_sprite_cfg_loader_t loader) {
     UI_SPRITE_CFG_INIT_COMPONENT(UI_SPRITE_TOUCH_TOUCHABLE_NAME, touchable);
     UI_SPRITE_CFG_INIT_COMPONENT(UI_SPRITE_CTRL_TURNTABLE_NAME, turntable);
     UI_SPRITE_CFG_INIT_COMPONENT(UI_SPRITE_CTRL_TURNTABLE_MEMBER_NAME, turntable_member);
-    UI_SPRITE_CFG_INIT_COMPONENT(UI_SPRITE_SPINE_OBJ_NAME, spine_obj);
 
     /*actions*/
     UI_SPRITE_CFG_INIT_ACTION(UI_SPRITE_FSM_ACTION_FSM_NAME, fsm);
@@ -126,7 +121,6 @@ int ui_sprite_cfg_loader_init_default_loaders(ui_sprite_cfg_loader_t loader) {
     UI_SPRITE_CFG_INIT_ACTION(UI_SPRITE_CTRL_TURNTABLE_ACTIVE_NAME, ctrl_turntable_active);
 	UI_SPRITE_CFG_INIT_ACTION(UI_SPRITE_CTRL_TRACK_FOLLOW_NAME, ctrl_track_follow);
 	UI_SPRITE_CFG_INIT_ACTION(UI_SPRITE_CTRL_TRACK_MANIP_NAME, ctrl_track_manip);
-	UI_SPRITE_CFG_INIT_ACTION(UI_SPRITE_SPINE_PLAY_ANIM_NAME, spine_play_anim);
 
     return 0;
 }

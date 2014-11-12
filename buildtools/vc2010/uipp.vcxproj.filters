@@ -13,9 +13,6 @@
     <Filter Include="include\sprite">
       <UniqueIdentifier>{6dcdae24-6a24-499d-9a35-2a970d354492}</UniqueIdentifier>
     </Filter>
-    <Filter Include="include\sprite_np">
-      <UniqueIdentifier>{7ce5ff39-abd7-43fa-955b-4d6d41f7b859}</UniqueIdentifier>
-    </Filter>
     <Filter Include="src\sprite">
       <UniqueIdentifier>{2062f3f7-51ab-43fb-9476-946a856cbb25}</UniqueIdentifier>
     </Filter>
@@ -45,21 +42,6 @@
     </Filter>
     <Filter Include="src\sprite_cfg">
       <UniqueIdentifier>{7d0037e9-7db1-437b-86a7-b4d58a6cdd45}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="include\app">
-      <UniqueIdentifier>{bc6e9240-3dfb-4daf-865e-f7b9ac47f5d2}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="include\app\Gen">
-      <UniqueIdentifier>{39d2db28-3e95-4498-9bf0-905b199d74c6}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="src\app">
-      <UniqueIdentifier>{47185deb-0dcb-4615-bf09-6d9f291f1afd}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="src\app\win32">
-      <UniqueIdentifier>{945d0f72-30d3-46b4-8c5b-61bf1ab76205}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="src\sprite_render">
-      <UniqueIdentifier>{f6ade240-632d-4753-8e2b-a2ce97572119}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -92,18 +74,6 @@
     </ClInclude>
     <ClInclude Include="..\..\include\uipp\sprite\WorldResGen.hpp">
       <Filter>include\sprite</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\uipp\sprite_np\Context.hpp">
-      <Filter>include\sprite_np</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\uipp\sprite_np\Layer.hpp">
-      <Filter>include\sprite_np</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\uipp\sprite_np\Module.hpp">
-      <Filter>include\sprite_np</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\uipp\sprite_np\System.hpp">
-      <Filter>include\sprite_np</Filter>
     </ClInclude>
     <ClInclude Include="..\..\include\uipp\sprite_anim\AnimationBackend.hpp">
       <Filter>include\sprite_anim</Filter>
@@ -159,9 +129,6 @@
     <ClInclude Include="..\..\include\uipp\sprite\ComponentWithDataGen.hpp">
       <Filter>include\sprite</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\uipp\sprite_np\NpUtils.hpp">
-      <Filter>include\sprite_np</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\include\uipp\sprite\ComponentSimulate.hpp">
       <Filter>include\sprite</Filter>
     </ClInclude>
@@ -173,57 +140,6 @@
     </ClInclude>
     <ClInclude Include="..\..\include\uipp\sprite\WorldUpdatorGen.hpp">
       <Filter>include\sprite</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\uipp\app\Env.hpp">
-      <Filter>include\app</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\uipp\app\Page.hpp">
-      <Filter>include\app</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\uipp\app\System.hpp">
-      <Filter>include\app</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\uipp\app\UICenter.hpp">
-      <Filter>include\app</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\uipp\app\UIPhase.hpp">
-      <Filter>include\app</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\uipp\app\UIPhaseNode.hpp">
-      <Filter>include\app</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\uipp\app\Gen\PageEvtSch.hpp">
-      <Filter>include\app\Gen</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\uipp\app\Gen\PageGen.hpp">
-      <Filter>include\app\Gen</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\uipp\app\EnvExt.hpp">
-      <Filter>src\app</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\uipp\app\System.hpp">
-      <Filter>src\app</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\uipp\app\UICenterExt.hpp">
-      <Filter>src\app</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\uipp\app\UIPhaseExt.hpp">
-      <Filter>src\app</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\uipp\app\UIPhaseNodeExt.hpp">
-      <Filter>src\app</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\uipp\app\SpritePlugin.hpp">
-      <Filter>src\app</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\uipp\app\UIAction_ShowPage.hpp">
-      <Filter>src\app</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\uipp\app\UIPageProxyExt.hpp">
-      <Filter>src\app</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\uipp\app\UIPageProxy.hpp">
-      <Filter>include\app</Filter>
     </ClInclude>
     <ClInclude Include="..\..\include\uipp\sprite_fsm\ActionGen.hpp">
       <Filter>include\sprite_fsm</Filter>
@@ -240,83 +156,8 @@
     <ClInclude Include="..\..\include\uipp\sprite_fsm\Repository.hpp">
       <Filter>include\sprite_fsm</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\uipp\app\UIAction_PlayAnim.hpp">
-      <Filter>src\app</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\uipp\app\UIOperation.hpp">
-      <Filter>src\app</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\uipp\app\UIPageEventHandler.hpp">
-      <Filter>src\app</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\uipp\app\UIPageBindings.hpp">
-      <Filter>src\app</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\uipp\app\UIPopupPage.hpp">
-      <Filter>src\app</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\uipp\app\UIPopupPageDef.hpp">
-      <Filter>src\app</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\uipp\app\UIAction_AudioBGM.hpp">
-      <Filter>src\app</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\uipp\app\UIAction_AudioSFX.hpp">
-      <Filter>src\app</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\uipp\app\UIAction_ScaleInOut.hpp">
-      <Filter>src\app</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\uipp\app\UIAction_MoveInOut.hpp">
-      <Filter>src\app</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\uipp\app\UIAction_AlphaInOut.hpp">
-      <Filter>src\app</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\uipp\app\UIAction_SwitchPhase.hpp">
-      <Filter>src\app</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\build\vc\protocol\ui\app\ui_app_evt.h">
-      <Filter>src\app</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\include\uipp\sprite_cfg\ActionModuleReg.hpp">
       <Filter>include\sprite_cfg</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\uipp\app\UIAction_SetupControl.hpp">
-      <Filter>src\app</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\uipp\app\StringInfoMgr.hpp">
-      <Filter>src\app</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\uipp\app\DeviceExt.hpp">
-      <Filter>src\app</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\uipp\app\RuningExt.hpp">
-      <Filter>src\app</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\uipp\sprite_render\AnimationFactory.hpp">
-      <Filter>src\sprite_render</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\uipp\sprite_render\ContextExt.hpp">
-      <Filter>src\sprite_render</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\uipp\sprite_render\GroupNode.hpp">
-      <Filter>src\sprite_render</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\uipp\sprite_render\LayerExt.hpp">
-      <Filter>src\sprite_render</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\uipp\sprite_render\ModuleExt.hpp">
-      <Filter>src\sprite_render</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\uipp\sprite_render\RControlNode.hpp">
-      <Filter>src\sprite_render</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\uipp\app\Device.hpp">
-      <Filter>include\app</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\uipp\app\Runing.hpp">
-      <Filter>include\app</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -359,33 +200,6 @@
     <ClCompile Include="..\..\src\uipp\sprite\Group.cpp">
       <Filter>src\sprite</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\uipp\app\EnvExt.cpp">
-      <Filter>src\app</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\uipp\app\Page.cpp">
-      <Filter>src\app</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\uipp\app\PageEvtSch.cpp">
-      <Filter>src\app</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\uipp\app\UICenterExt.cpp">
-      <Filter>src\app</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\uipp\app\UIPhaseExt.cpp">
-      <Filter>src\app</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\uipp\app\UIPhaseNodeExt.cpp">
-      <Filter>src\app</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\uipp\app\SpritePlugin.cpp">
-      <Filter>src\app</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\uipp\app\UIAction_ShowPage.cpp">
-      <Filter>src\app</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\uipp\app\UIPageProxyExt.cpp">
-      <Filter>src\app</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\uipp\sprite_fsm\Action.cpp">
       <Filter>src\sprite_fsm</Filter>
     </ClCompile>
@@ -398,108 +212,10 @@
     <ClCompile Include="..\..\src\uipp\sprite_fsm\State.cpp">
       <Filter>src\sprite_fsm</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\uipp\app\UIAction_PlayAnim.cpp">
-      <Filter>src\app</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\uipp\app\UIOperation.cpp">
-      <Filter>src\app</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\uipp\app\UIPageEventHandler.cpp">
-      <Filter>src\app</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\uipp\app\UIPageBindings.cpp">
-      <Filter>src\app</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\uipp\app\UIPopupPage.cpp">
-      <Filter>src\app</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\uipp\app\UIPopupPageDef.cpp">
-      <Filter>src\app</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\uipp\app\UIAction_AudioBGM.cpp">
-      <Filter>src\app</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\uipp\app\UIAction_AudioSFX.cpp">
-      <Filter>src\app</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\uipp\app\UIAction_ScaleInOut.cpp">
-      <Filter>src\app</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\uipp\app\UIAction_MoveInOut.cpp">
-      <Filter>src\app</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\uipp\app\UIAction_AlphaInOut.cpp">
-      <Filter>src\app</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\uipp\app\UIAction_SwitchPhase.cpp">
-      <Filter>src\app</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\build\vc\protocol\ui\app\app_meta_lib.c">
-      <Filter>src\app</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\build\vc\protocol\ui\app\app_meta_traits.cpp">
-      <Filter>src\app</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\uipp\app\UIUniPage.cpp">
-      <Filter>src\app</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\uipp\app\UIAction_SetupControl.cpp">
-      <Filter>src\app</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\uipp\app\StringInfoMgr.cpp">
-      <Filter>src\app</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\uipp\app\DeviceExt.cpp">
-      <Filter>src\app</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\uipp\app\RuningExt.cpp">
-      <Filter>src\app</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\uipp\app\win32\Env_Path.cpp">
-      <Filter>src\app\win32</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\uipp\app\win32\main.cpp">
-      <Filter>src\app\win32</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\uipp\app\win32\Env_Language.cpp">
-      <Filter>src\app\win32</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\uipp\app\win32\Env_DeviceId.cpp">
-      <Filter>src\app\win32</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\uipp\sprite_render\AnimationFactory.cpp">
-      <Filter>src\sprite_render</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\uipp\sprite_render\ContextExt.cpp">
-      <Filter>src\sprite_render</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\uipp\sprite_render\GroupNode.cpp">
-      <Filter>src\sprite_render</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\uipp\sprite_render\LayerExt.cpp">
-      <Filter>src\sprite_render</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\uipp\sprite_render\ModuleExt.cpp">
-      <Filter>src\sprite_render</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\uipp\sprite_render\NpUtils.cpp">
-      <Filter>src\sprite_render</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\uipp\sprite_render\RControlNode.cpp">
-      <Filter>src\sprite_render</Filter>
-    </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <CustomBuild Include="..\..\src\uipp\app\protocol.def">
-      <Filter>src\app</Filter>
-    </CustomBuild>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\src\uipp\sprite\config.mk">
       <Filter>src\sprite</Filter>
-    </None>
-    <None Include="..\..\src\uipp\sprite_render\protocol.def">
-      <Filter>src\sprite_render</Filter>
     </None>
   </ItemGroup>
 </Project>
