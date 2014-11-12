@@ -94,7 +94,7 @@ void dp_rsp_find_by_string(dp_rsp_it_t it, dp_mgr_t dp, const char * cmd) {
     struct dp_binding_string buf;
     buf.m_head.m_kt = dp_key_string;
     buf.m_value = cmd;
-    buf.m_value_len = strlen(cmd);
+    buf.m_value_len = (uint32_t)strlen(cmd);
 
     it->m_context = (struct dp_binding *)cpe_hash_table_find(&dp->m_cmd_2_rsps, &buf);
     it->m_next_fun = dp_rsp_binding_cmd_next;

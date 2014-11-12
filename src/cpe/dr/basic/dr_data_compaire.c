@@ -228,7 +228,7 @@ int dr_ctype_cmp(const void * l, int l_type, const void * r, int r_type) {
         case CPE_DR_TYPE_STRING: {
             int64_t buf;
             if (dr_ctype_try_read_int64(&buf, r, r_type, 0) == 0) {
-                return __value_cast(int64_t, int32_t, l) - buf;
+                return (int)(__value_cast(int64_t, int32_t, l) - buf);
             }
             else {
                 return l_type - r_type;
@@ -266,7 +266,7 @@ int dr_ctype_cmp(const void * l, int l_type, const void * r, int r_type) {
         case CPE_DR_TYPE_STRING: {
             uint64_t buf;
             if (dr_ctype_try_read_uint64(&buf, r, r_type, 0) == 0) {
-                return __value_cast(uint64_t, uint32_t, l) - buf;
+                return (int)(__value_cast(uint64_t, uint32_t, l) - buf);
             }
             else {
                 return l_type - r_type;
@@ -304,7 +304,7 @@ int dr_ctype_cmp(const void * l, int l_type, const void * r, int r_type) {
         case CPE_DR_TYPE_STRING: {
             int64_t buf;
             if (dr_ctype_try_read_int64(&buf, r, r_type, 0) == 0) {
-                return __value(int64_t, l) - buf;
+                return (int)(__value(int64_t, l) - buf);
             }
             else {
                 return l_type - r_type;
@@ -342,7 +342,7 @@ int dr_ctype_cmp(const void * l, int l_type, const void * r, int r_type) {
         case CPE_DR_TYPE_STRING: {
             uint64_t buf;
             if (dr_ctype_try_read_uint64(&buf, r, r_type, 0) == 0) {
-                return __value(uint64_t, l) - buf;
+                return (int)(__value(uint64_t, l) - buf);
             }
             else {
                 return l_type - r_type;
@@ -586,7 +586,7 @@ int dr_entry_cmp(const void * l, const void * r, LPDRMETAENTRY entry) {
     }
     case CPE_DR_TYPE_STRUCT: {
         LPDRMETA meta;
-        size_t i;
+        int i;
         size_t count;
         int r;
 
