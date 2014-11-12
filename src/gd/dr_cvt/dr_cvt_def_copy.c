@@ -19,7 +19,7 @@ dr_cvt_result_t dr_cvt_fun_copy_encode(
         return dr_cvt_result_not_enough_output;
     }
 
-    size = *input_capacity;
+    size = (int32_t)*input_capacity;
     memcpy(output, &size, sizeof(size));
     memcpy(((char*)output) + sizeof(size), input, *input_capacity);
 
