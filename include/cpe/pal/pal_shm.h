@@ -5,7 +5,7 @@
 extern "C" {
 #endif
 
-#if defined _MSC_VER /*windows*/
+#if defined _WIN32 /*windows*/
 #include <windows.h>
 #include <errno.h>
 

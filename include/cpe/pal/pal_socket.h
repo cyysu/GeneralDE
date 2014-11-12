@@ -5,7 +5,7 @@
 extern "C" {
 #endif
 
-#ifdef _MSC_VER
+#ifdef _WIN32
 
 #include <WinSock.h>
 #include <errno.h>
