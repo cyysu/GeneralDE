@@ -1,6 +1,6 @@
 #include "cpe/utils/service.h"
 
-#if defined _MSC_VER
+#if defined _WIN32
 #elif defined ANDROID
 /*not impl for android!*/
 #else
