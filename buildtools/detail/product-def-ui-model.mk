@@ -5,6 +5,7 @@ product-support-types+=ui-model
 UI_MODEL_TOOL?=$(CPDE_ROOT)/build/tools/bin/$(call $(tools.env).make-executable-name,ui_model_tool)
 
 # }}}
+
 # {{{ 定义Module导入
 
 #$(call install-ui-model-cocos-module,product,module,to-path,pics)

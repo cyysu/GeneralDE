@@ -17,6 +17,7 @@ my @actionFiles;
 my @spineFiles;
 my @bulletsFiles;
 my @emitterFiles;
+my @movingFiles;
 
 my $outputDir = dirname($outputFile);
 if ( not -e $outputDir) {
@@ -54,6 +55,11 @@ sub wanted {
   elsif (/\.bullets$/) {
     $File::Find::name =~ m/^$inputDir\/(.*[\/]+)([^\/]+)$/;
     push @bulletsFiles, { guid => 0, path => $1, file => $2 };
+    return;
+  }
+  elsif (/\.moving$/) {
+    $File::Find::name =~ m/^$inputDir\/(.*[\/]+)([^\/]+)$/;
+    push @movingFiles, { guid => 0, path => $1, file => $2 };
     return;
   }
 
@@ -112,6 +118,11 @@ foreach my $file (@emitterFiles) {
   print $output "        <Meta Guid='$file->{guid}' Path='$file->{path}' File='$file->{file}' />\n";
 }
 print $output "    </Emitter>\n";
+print $output "    <Moving>\n";
+foreach my $file (@movingFiles) {
+  print $output "        <Meta Guid='$file->{guid}' Path='$file->{path}' File='$file->{file}' />\n";
+}
+print $output "    </Moving>\n";
 print $output "</Resources>\n";
 1;
 
