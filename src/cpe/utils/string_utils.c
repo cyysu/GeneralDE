@@ -11,7 +11,7 @@ cpe_str_dup_range(char * buf, size_t capacity, const char * begin, const char * 
 
     if (buf == NULL) return NULL;
 
-    size = end - begin;
+    size = (int)(end - begin);
     if (size < 0 || ((size_t)size) + 1 > capacity) return NULL;
 
     memcpy(buf, begin, size);
@@ -175,6 +175,11 @@ int cpe_str_cmp_part(const char * part_str, size_t part_str_len, const char * fu
     int r = strncmp(part_str, full_str, part_str_len);
     if (r == 0) return full_str[part_str_len] == 0 ? 0 : - (int)part_str_len;
     return r;
+}
+
+uint8_t cpe_str_start_with(const char * full_str, const char * prefix) {
+    size_t len = strlen(prefix);
+    return memcmp(full_str, prefix, len) == 0 ? 1 : 0;
 }
 
 uint64_t cpe_str_parse_byte_size_with_dft(const char * astring, uint64_t dft) {

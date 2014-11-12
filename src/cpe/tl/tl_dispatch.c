@@ -127,7 +127,7 @@ static void tl_manage_check_rate(tl_manage_t tm) {
 }
 
 ptr_int_t tl_manage_tick(tl_manage_t tm, ptr_int_t count) {
-    int leftCount;
+    ptr_int_t leftCount;
 
     if (tm == NULL || count == 0) return CPE_TL_ERROR_BAD_ARG;
     if (tm->m_time_get == NULL) return CPE_TL_ERROR_NO_TIME_SOURCE;
@@ -143,12 +143,12 @@ ptr_int_t tl_manage_tick(tl_manage_t tm, ptr_int_t count) {
         int actionDispatchedCount;
         int eventDispatchedCount;
 
-        actionDispatchedCount = tl_manage_dispatch_action(tm, leftCount);
+        actionDispatchedCount = (int)tl_manage_dispatch_action(tm, leftCount);
         if (actionDispatchedCount < 0) return actionDispatchedCount; /*have error*/
         assert(actionDispatchedCount <= leftCount);
         leftCount -= actionDispatchedCount;
 
-        eventDispatchedCount = tl_manage_dispatch_event(tm, leftCount);
+        eventDispatchedCount = (int)tl_manage_dispatch_event(tm, leftCount);
         if (eventDispatchedCount < 0) return eventDispatchedCount; /*have error*/
         assert(eventDispatchedCount <= leftCount);
         leftCount -= eventDispatchedCount;

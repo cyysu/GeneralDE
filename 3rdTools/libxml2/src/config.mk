@@ -59,5 +59,6 @@ $(product).mac.product.c.libraries:=pthread
 $(product).linux32.product.c.libraries:=pthread
 $(product).linux64.product.c.libraries:=pthread
 $(product).ios.product.c.libraries:=pthread
+$(product).mingw.product.c.libraries:=pthread
 
 $(eval $(call product-def,$(product)))
