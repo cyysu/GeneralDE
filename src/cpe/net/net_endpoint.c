@@ -382,7 +382,7 @@ void net_ep_cb(EV_P_ ev_io *w, int revents) {
     old_events = net_ep_calc_ev_events(ep);
 
     if (!ep->m_deleted && revents & EV_READ) {
-        int recv_size = ep->m_chanel_r->m_type->read_from_net(ep->m_chanel_r, ep->m_fd);
+        ssize_t recv_size = ep->m_chanel_r->m_type->read_from_net(ep->m_chanel_r, ep->m_fd);
         if (recv_size < 0) {
             CPE_ERROR(
                 ep->m_mgr->m_em,

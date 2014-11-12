@@ -64,7 +64,7 @@ int __from ## _to_ ## __to(__to ## _t * result, const void * input,     \
                   #__from, #__to, tmp, (__from ## _t)__max);            \
         r = -1;                                                         \
     }                                                                   \
-    *result = *(const __from ## _t *)input;                             \
+    *result = (__to ## _t)(*(const __from ## _t *)input);               \
     return r;                                                           \
 }
 
@@ -79,7 +79,7 @@ int __from ## _to_ ## __to(__to ## _t * result, const void * input,     \
                   #__from, #__to, tmp, (__from ## _t)__max);            \
         r = -1;                                                         \
     }                                                                   \
-    *result = *(const __from ## _t *)input;                             \
+    *result = (__to ## _t)(*(const __from ## _t *)input);               \
     return r;                                                           \
 }
 

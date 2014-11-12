@@ -88,7 +88,7 @@ static int pom_buffer_mgr_reserve_for_new_buffer(struct pom_buffer_mgr * pgm, er
 
 static void
 pom_buffer_mgr_init_pages(struct pom_buffer_mgr * pgm, void * buf) {
-    int leftSize = pgm->m_buf_size;
+    int leftSize = (int)pgm->m_buf_size;
     char * b = (char *)buf;
 
     while(leftSize >= (int)pgm->m_page_size) {
@@ -179,7 +179,7 @@ static int pom_buffer_mgr_reserve_for_attach_buffer(struct pom_buffer_mgr * pgm,
         return -1;
     }
 
-    if (cpe_urange_mgr_reserve_for_put(&pgm->m_free_pages, (pgm->m_buf_size / pgm->m_page_size) + 1) != 0) {
+    if (cpe_urange_mgr_reserve_for_put(&pgm->m_free_pages, (int)((pgm->m_buf_size / pgm->m_page_size) + 1)) != 0) {
         CPE_ERROR_EX(em, pom_no_memory, "reserve for free pages fail!");
         return -1;
     }
@@ -210,7 +210,7 @@ int pom_buffer_mgr_attach_old_buffer(
     cpe_urange_put_urange(&pgm->m_buffers, (ptr_uint_t)buf, (ptr_uint_t)((char *)buf + pgm->m_buf_size));
     cpe_urange_put_one(&pgm->m_buffer_ids, buf_id);
 
-    for(leftSize = pgm->m_buf_size;
+    for(leftSize = (int)pgm->m_buf_size;
         leftSize >= (int)pgm->m_page_size;
         leftSize -= pgm->m_page_size, buf += pgm->m_page_size)
     {

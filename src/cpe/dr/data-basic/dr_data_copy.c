@@ -310,7 +310,7 @@ int dr_meta_copy_same_entry_part(
         --stackPos;
     }
 
-    return processStack[0].m_des_used_size;
+    return (int)processStack[0].m_des_used_size;
 }
 
 int dr_entry_copy_same_entry(
@@ -327,8 +327,8 @@ int dr_entry_copy_same_entry(
             policy, em);
     }
     else {
-        int des_element_size = dr_entry_element_size(desEntry);
-        int src_element_size = dr_entry_element_size(srcEntry);
+        size_t des_element_size = dr_entry_element_size(desEntry);
+        size_t src_element_size = dr_entry_element_size(srcEntry);
 
         if (des_element_size == 0
             || des_element_size > desCapacity
@@ -339,6 +339,6 @@ int dr_entry_copy_same_entry(
         }
 
         dr_entry_set_from_ctype(desData, srcEntry, srcEntry->m_type, desEntry, 0);
-        return des_element_size;
+        return (int)des_element_size;
     }
 }

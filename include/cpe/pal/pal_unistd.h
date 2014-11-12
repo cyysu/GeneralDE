@@ -1,7 +1,7 @@
 #ifndef CPE_PAL_UNISTD_H
 #define CPE_PAL_UNISTD_H
 
-#if defined _MSC_VER
+#if defined _WIN32
 #include <io.h>
 #include <process.h>
 #include <direct.h>
