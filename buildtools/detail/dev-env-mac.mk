@@ -53,7 +53,7 @@ MAC_PLATFORM_BIN_PATH:=$(MAC_XCODE_ROOT)/Toolchains/XcodeDefault.xctoolchain/usr
 
 MacOSX.compiler ?= $(MAC_PLATFORM_BIN_PATH)/$(if $(filter gcc,$1),clang,$(if $(filter g++,$1),clang++,$1))
 
-#MacOSX.CPPFLAGS ?= 
+MacOSX.CPPFLAGS ?= -D_APPLE -DTARGET_OS_MAC
 
 MacOSX.CFLAGS ?= \
                    -std=c99 \
