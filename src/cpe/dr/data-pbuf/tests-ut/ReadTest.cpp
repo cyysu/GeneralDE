@@ -1,4 +1,5 @@
 #include "ReadTest.hpp"
+#include "cpe/pal/pal_strings.h"
 #include "cpe/dr/dr_metalib_manage.h"
 #include "cpe/dr/dr_metalib_init.h"
 #include "cpe/dr/dr_metalib_xml.h"

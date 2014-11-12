@@ -115,7 +115,7 @@ static void dr_print_print_basic_data(yajl_gen g, LPDRMETAENTRY entry, const voi
     default:
         CPE_ERROR_EX(
             em, CPE_DR_ERROR_UNSUPPORTED_TYPE,
-            "print basic data not supported type "FMT_DR_INT_T"!", entry->m_type);
+            "print basic data not supported type "FMT_INT32_T"!", entry->m_type);
         yajl_gen_null(g);
         break;
     }
