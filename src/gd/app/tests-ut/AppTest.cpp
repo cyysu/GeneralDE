@@ -1,4 +1,4 @@
-#include <dlfcn.h>
+#include "cpe/pal/pal_dlfcn.h"
 #include "AppTest.hpp"
 
 extern "C" {
