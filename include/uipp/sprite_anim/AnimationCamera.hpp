@@ -13,6 +13,13 @@ public:
     P2D::Pair screenSize(void) const { return  ui_sprite_anim_camera_screen_size(*this); }
     void setScreeSize(P2D::Pair const & screenSize) { ui_sprite_anim_camera_set_screen_size(*this, screenSize); }
 
+    /*base camera*/
+    P2D::Pair baseScale(void) const { return ui_sprite_anim_camera_base_scale(*this); }
+    void setBaseScale(P2D::Pair const & scale) { ui_sprite_anim_camera_set_base_scale(*this, &scale); }
+
+    P2D::Pair basePos(void) const { return ui_sprite_anim_camera_base_pos(*this); }
+    void setBasePos(P2D::Pair const & pos) { ui_sprite_anim_camera_set_base_pos(*this, &pos); }
+
     /*control */
     P2D::Pair pos(void) const { return ui_sprite_anim_camera_pos(*this); }
     float scale(void) const { return ui_sprite_anim_camera_scale(*this); }

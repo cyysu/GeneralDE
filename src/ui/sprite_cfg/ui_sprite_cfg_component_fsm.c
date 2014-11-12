@@ -20,6 +20,27 @@ int ui_sprite_cfg_load_component_fsm(void * ctx, ui_sprite_component_t component
     return 0;
 }
 
+int ui_sprite_cfg_load_fsm_from_path(ui_sprite_cfg_loader_t loader, ui_sprite_fsm_ins_t fsm, const char * src_path) {
+    cfg_t cfg = NULL;
+
+    cfg = cfg_find_cfg(loader->m_cfg_root, src_path);
+    if (cfg == NULL) {
+        CPE_ERROR(loader->m_em, "%s: cfg %s not exist!", ui_sprite_cfg_loader_name(loader), src_path);
+        return NULL;
+    }
+
+    return ui_sprite_cfg_load_fsm(loader, fsm, cfg);
+}
+
+int ui_sprite_cfg_load_fsm(ui_sprite_cfg_loader_t loader, ui_sprite_fsm_ins_t fsm, cfg_t cfg) {
+    if (ui_sprite_cfg_do_load_fsm(loader, fsm, cfg) != 0) {
+        CPE_ERROR(loader->m_em, "%s: do load fsm fail!", ui_sprite_cfg_loader_name(loader));
+        return -1;
+    }
+
+    return 0;
+}
+
 ui_sprite_fsm_action_t ui_sprite_cfg_load_action_fsm(void * ctx, ui_sprite_fsm_state_t fsm_state, const char * action_name, cfg_t cfg) {
     ui_sprite_cfg_loader_t loader = ctx;
     ui_sprite_fsm_ins_t fsm = ui_sprite_fsm_action_fsm_create(fsm_state, action_name);

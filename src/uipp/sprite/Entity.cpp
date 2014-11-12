@@ -158,4 +158,8 @@ void Entity::setAttr(const char * attrName, const char * v) {
     }
 }
 
+    
+void Entity::notifyAttrUpdated(const char * attrs) { ui_sprite_entity_notify_attr_updated(*this, attrs);
+}
+
 }}

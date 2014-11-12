@@ -121,7 +121,7 @@ static int ui_sprite_group_entity_it_add_entity(struct ui_sprite_group_entity_it
         || *(uint32_t*)insert_pos != entity_id)
     {
         cpe_sorted_vector_insert_at(&ctx->m_entities, insert_pos, &entity_id);
-        ctx->m_data->m_entity_count = cpe_sorted_vector_size(&ctx->m_entities);
+        ctx->m_data->m_entity_count = (uint32_t)cpe_sorted_vector_size(&ctx->m_entities);
     }
     
     return 0;
