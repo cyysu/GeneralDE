@@ -1,6 +1,10 @@
 #ifndef CPE_PAL_PLATFORM_H
 #define CPE_PAL_PLATFORM_H
 
+#if defined _APPLE
+#    include <ConditionalMacros.h>
+#endif
+
 //TODO
 #if 0
 #define CPE_BIG_ENDIAN
