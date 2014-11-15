@@ -432,6 +432,7 @@
     <ClCompile Include="..\..\src\cpe\fsm\fsm_def_machine.c" />
     <ClCompile Include="..\..\src\cpe\fsm\fsm_def_state.c" />
     <ClCompile Include="..\..\src\cpe\fsm\fsm_ins.c" />
+    <ClCompile Include="..\..\src\cpe\utils\weight_selector.c" />
     <ClCompile Include="..\..\src\cpe\utils_xml\xml_utils.c" />
     <ClCompile Include="..\..\src\cpe\xcalc\xcalc_computer.c" />
     <ClCompile Include="..\..\src\cpe\xcalc\xcalc_computer_calc.c" />
