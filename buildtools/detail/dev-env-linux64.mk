@@ -18,6 +18,9 @@ linux64.CFLAGS+=-ggdb
 linux64.CXXFLAGS+=-ggdb
 endif
 
+linux64.env-inc=linux64
+linux64.regular-path=$1
+
 linux64.LDFLAGS:=-z defs
 linux64.LDFLAGS.share:=--shared -z defs
 
