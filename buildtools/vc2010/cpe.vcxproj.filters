@@ -1208,6 +1208,9 @@
     <ClCompile Include="..\..\src\cpe\pal\win32_dirent.c">
       <Filter>src\pal</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\cpe\utils\weight_selector.c">
+      <Filter>src\utils</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\src\cpe\utils\config.mk">
