@@ -21,6 +21,9 @@ endif
 android.LDFLAGS:=-z defs
 android.LDFLAGS.share:=--shared -z defs 
 
+android.env-inc=android
+android.regular-path=$1
+
 android.default-lib-type:=dynamic
 android.make-static-lib-name=lib$1.a
 android.make-dynamic-lib-name=lib$1.so
