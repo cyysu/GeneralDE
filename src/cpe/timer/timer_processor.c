@@ -59,7 +59,7 @@ int cpe_timer_processor_alloc(cpe_timer_mgr_t mgr, cpe_timer_id_t * id) {
 
     bzero(newPage, sizeof(struct cpe_timer_processor) * mgr->m_timer_count_in_page);
     for(i = 0; i < mgr->m_timer_count_in_page; ++i) {
-        newPage[i].m_id = newStart + i;
+        newPage[i].m_id = (cpe_timer_id_t)(newStart + i);
     }
 
     if (cpe_range_put_range(&mgr->m_ids, newStart, newStart + mgr->m_timer_count_in_page) != 0) {
