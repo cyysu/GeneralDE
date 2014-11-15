@@ -263,7 +263,7 @@ int pom_class_add_new_page(
     head->m_obj_per_page = (uint32_t)theClass->m_object_per_page;
     cpe_ba_set_all(alloc_arry, theClass->m_object_per_page, cpe_ba_false);
 
-    newRangeStart = theClass->m_object_per_page * theClass->m_page_array_size;
+    newRangeStart = (int32_t)(theClass->m_object_per_page * theClass->m_page_array_size);
     cpe_urange_put_urange(&theClass->m_urange_alloc, newRangeStart, newRangeStart + theClass->m_object_per_page);
 
     theClass->m_page_array[theClass->m_page_array_size] = page;
@@ -409,13 +409,13 @@ int32_t pom_class_addr_2_object(struct pom_class *cls, void * page, void * addr)
         || page != cls->m_page_array[head->m_page_idx])
         return -1;
 
-    pos_to_start = (char*)addr - (((char *)page) + cls->m_object_buf_begin_in_page);
+    pos_to_start = (int)((char*)addr - (((char *)page) + cls->m_object_buf_begin_in_page));
 
     if (pos_to_start % cls->m_object_size != 0) return -1;
 
     idx_in_page = pos_to_start / cls->m_object_size;
 
-    return head->m_page_idx * cls->m_object_per_page + idx_in_page;
+    return (int)(head->m_page_idx * cls->m_object_per_page + idx_in_page);
 }
 
 pom_class_id_t pom_class_id(pom_class_t cls) {
