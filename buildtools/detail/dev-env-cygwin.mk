@@ -20,6 +20,9 @@ endif
 
 cygwin.LDFLAGS.share:=--shared -Xlinker --no-undefined
 
+cygwin.env-inc=cygwin
+cygwin.regular-path=$1
+
 cygwin.default-lib-type:=static
 cygwin.make-static-lib-name=lib$1.a
 cygwin.make-dynamic-lib-name=$1.dll

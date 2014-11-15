@@ -4,7 +4,7 @@
 
 namespace Cpe { namespace Utils {
 
- void WeightSelector::addWeightItem(uint32_t weight) {
+void WeightSelector::addWeightItem(uint32_t weight) {
     if (m_weights.empty()) {
         m_weights.push_back(weight);
     }
