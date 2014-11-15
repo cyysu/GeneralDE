@@ -72,9 +72,9 @@ void cpe_hs_init(cpe_hash_string_t target, size_t capacity, const char * source)
     int32_t * len = hash + 1;
     char * data = (char *)(len + 1);
 
-    *len = strlen(source);
+    *len = (int)strlen(source);
     if ((size_t)(*len) > capacity - 9) {
-        *len = capacity - 9;
+        *len = (int)capacity - 9;
     }
 
     memcpy(data, source, *len);
@@ -89,7 +89,7 @@ cpe_hs_create(mem_allocrator_t alloc, const char * data) {
     int32_t * buf;
     if (data == NULL) return NULL;
 
-    dataLen = strlen(data);
+    dataLen = (int32_t)strlen(data);
     buf = (int32_t*)mem_alloc(alloc, 8 + dataLen + 1);
     memcpy(buf + 2, data, dataLen + 1);
     *buf = cpe_hash_str(data, dataLen);
