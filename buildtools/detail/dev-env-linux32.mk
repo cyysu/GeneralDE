@@ -27,7 +27,8 @@ linux32.make-dynamic-lib-name=lib$1.so
 linux32.make-executable-name=$1
 linux32.export-symbols=$(addprefix -u, $1)
 
-linux32.lib.iconv:=
+linux32.env-inc=linux32
+linux32.regular-path=$1
 
 linux32.lib.math?=m
 linux32.lib.dl?=dl
