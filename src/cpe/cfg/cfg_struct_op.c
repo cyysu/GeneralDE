@@ -91,7 +91,7 @@ cfg_t cfg_struct_item_do_create(struct cfg_struct * s, const char * name, int ty
     void * data;
     struct cfg_struct_item * item;
 
-    nameLen = strlen(name) + 1;
+    nameLen = (int)strlen(name) + 1;
     paddingLen = nameLen % sizeof(struct cfg_struct_item);
     if (paddingLen)
     {

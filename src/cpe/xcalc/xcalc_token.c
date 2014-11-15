@@ -157,7 +157,7 @@ int xtoken_cmp(xtoken_t l, xtoken_t r) {
     case XTOKEN_NUM_INT:
         switch(r->m_type) {
         case XTOKEN_NUM_INT:
-            return l->m_data.num._int - r->m_data.num._int;
+            return (int)(l->m_data.num._int - r->m_data.num._int);
         case XTOKEN_NUM_FLOAT:
             return l->m_data.num._int < r->m_data.num._double ? -1 : (l->m_data.num._int == r->m_data.num._double ? 0 : 1);
         case XTOKEN_STRING:
@@ -170,7 +170,7 @@ int xtoken_cmp(xtoken_t l, xtoken_t r) {
                     buf,
                     snprintf(buf, sizeof(buf), FMT_INT64_T, l->m_data.num._int),
                     r->m_data.str._string,
-                    r->m_data.str._end ? (r->m_data.str._end - r->m_data.str._string) : strlen(r->m_data.str._string));
+                    r->m_data.str._end ? (int)(r->m_data.str._end - r->m_data.str._string) : (int)strlen(r->m_data.str._string));
             }
         default:
             assert(0);
