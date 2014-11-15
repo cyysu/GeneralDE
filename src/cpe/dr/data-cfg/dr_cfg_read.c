@@ -167,7 +167,7 @@ int dr_cfg_read_entry(
         }
         else {
             dr_cfg_read_array_set_dft(count, max_count, element_size, meta_buf, meta, entry);
-            count = max_count;
+            count = (int)max_count;
         }
 
         return (int)(count * element_size);

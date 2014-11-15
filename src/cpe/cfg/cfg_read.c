@@ -133,7 +133,7 @@ const char * cfg_get_string_cvt(cfg_t cfg, const char * path, const char * dft, 
 static cfg_t cfg_do_find_cfg_from_struct(cfg_t cfg, const char * path, const char * end) {
     char buf[CPE_CFG_NAME_MAX_LEN + 1];
 
-    int size = end - path;
+    int size = (int)(end - path);
     if (size > CPE_CFG_NAME_MAX_LEN) return NULL;
 
     memcpy(buf, path, size);
