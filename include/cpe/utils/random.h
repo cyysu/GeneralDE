@@ -1,5 +1,5 @@
-#ifndef CPE_RANDOM_H
-#define CPE_RANDOM_H
+#ifndef CPE_UTILS_RANDOM_H
+#define CPE_UTILS_RANDOM_H
 #include "cpe/pal/pal_types.h"
 
 #ifdef __cplusplus
@@ -10,6 +10,8 @@ struct cpe_rand_ctx {
     int32_t m_state_arr[624];
     int m_index;
 };
+
+typedef struct cpe_rand_ctx * cpe_rand_ctx_t;
 
 uint32_t cpe_rand(int32_t seed, uint32_t max);
 
