@@ -20,6 +20,9 @@ ios.make-dynamic-lib-name=lib$1.dylib
 ios.make-executable-name=$1
 ios.export-symbols=$(addprefix -u ,$(foreach m,$1,_$m))
 
+ios.env-inc=ios
+ios.regular-path=$1
+
 ios.lib.iconv?=iconv
 ios.lib.math?=m
 ios.lib.dl?=dl

@@ -14,6 +14,9 @@ vc.CFLAGS+=-ggdb
 vc.CXXFLAGS+=-ggdb
 endif
 
+vc.env-inc=vc
+vc.regular-path=$1
+
 vc.LDFLAGS.share:=--shared
 
 vc.default-lib-type:=dynamic
