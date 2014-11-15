@@ -171,7 +171,7 @@ static int cpe_urange_find_next_pos(cpe_urange_mgr_t ra, ptr_uint_t start) {
     struct cpe_urange * curRange;
     int beginPos, endPos, curPos;
 
-    for(beginPos = 0, endPos = ra->m_urange_count, curPos = (endPos - beginPos - 1) / 2;
+    for(beginPos = 0, endPos = (int)ra->m_urange_count, curPos = (endPos - beginPos - 1) / 2;
         beginPos < endPos;
         curPos = beginPos + (endPos - beginPos - 1) / 2)
     {
@@ -190,7 +190,7 @@ static int cpe_urange_find_next_pos(cpe_urange_mgr_t ra, ptr_uint_t start) {
 
     return ((size_t)curPos < ra->m_urange_count) && (ra->m_uranges[curPos].m_start >= start)
         ? curPos
-        : ra->m_urange_count;
+        : (int)ra->m_urange_count;
 }
 
 int cpe_urange_is_conflict(cpe_urange_mgr_t ra, ptr_uint_t start, ptr_uint_t end) {
@@ -354,7 +354,7 @@ int cpe_urange_is_valid(struct cpe_urange r) {
 
 int cpe_urange_size(struct cpe_urange r) {
     return cpe_urange_is_valid(r)
-        ? (r.m_end - r.m_start)
+        ? (int)(r.m_end - r.m_start)
         : -1;
 }
 
@@ -389,7 +389,7 @@ struct cpe_urange_alloc_info {
 #define CPE_RANGE_DEBUG_STACK_SIZE (10)
 
 uint32_t cpe_urange_alloc_info_hash_fun(const struct cpe_urange_alloc_info * o) {
-    return o->m_value;
+    return (uint32_t)o->m_value;
 }
 
 int cpe_urange_alloc_info_eq_fun(const struct cpe_urange_alloc_info * l, const struct cpe_urange_alloc_info * r) {
