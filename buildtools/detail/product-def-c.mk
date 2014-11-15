@@ -60,23 +60,25 @@ c-generate-depend-ld-flags=$(call $($2.env).export-symbols,$(r.$1.c.export-symbo
                            $(r.$1.c.flags.ld) $(r.$1.$($2.env).c.flags.ld) $(r.$1.$2.c.flags.ld)
 
 # $(call c-generate-depend-cpp-flags,product-name,domain)
-c-generate-depend-cpp-flags=$(addprefix -I$(CPDE_ROOT)/,\
+c-generate-depend-cpp-flags=$(foreach i,\
 								 $(sort $(r.$1.c.includes) $(r.$1.$($2.env).c.includes) $(r.$1.$2.c.includes) \
                                     $(r.$1.product.c.includes) $(r.$1.$($2.env).product.c.includes) $(r.$1.$2.product.c.includes) \
 									$(call product-gen-depend-value-list,$1,$($2.env),product.c.includes)\
 									$(call product-gen-depend-value-list,$1,$($2.env),$($2.env).product.c.includes)\
 									$(call product-gen-depend-value-list,$1,$($2.env),$2.product.c.includes)\
-                                 )) \
+                                 ), \
+                                -I'$(call $($2.env).regular-path,$(CPDE_ROOT))/$i') \
                             $(foreach ei,\
 								 $(sort $(r.$1.c.env-includes) $(r.$1.product.c.env-includes) \
 									$(call product-gen-depend-value-list,$1,$($2.env),product.c.env-includes)), \
                                  $(if $(findstring env,$(subst /, ,$(ei)))\
-                                    ,-I$(CPDE_ROOT)/$(subst /env/,/$($2.env)/,$(ei)) \
-                                    ,$(addprefix -I$(CPDE_ROOT)/,$(addsuffix /$($2.env),$(ei))))) \
+                                    ,-I'$(call $($2.env).regular-path,$(CPDE_ROOT))/$(subst /env/,/$($($2.env).env-inc)/,$(ei))' \
+                                    ,-I'$(call $($2.env).regular-path,$(CPDE_ROOT))/$(ei)/$($2.env)')) \
                             $(foreach oi,\
 								 $(call product-gen-depend-list,$($2.env),$1), \
-                                 $(addprefix -I$(call c-source-dir-to-binary-dir,$(r.$(oi).base),$2)/,$(r.$(oi).product.c.output-includes))) \
-                            $(addprefix -I$(call c-source-dir-to-binary-dir,$(r.$1.base),$2)/,$(r.$1.c.output-includes) $(r.$1.product.c.output-includes)) \
+                                 $(foreach d,$(r.$(oi).product.c.output-includes),-I'$(call $($2.env).regular-path,$(call c-source-dir-to-binary-dir,$(r.$(oi).base),$2))/$d')) \
+                            $(foreach i,$(r.$1.c.output-includes) $(r.$1.product.c.output-includes), \
+                                 -I'$(call $($2.env).regular-path,$(call c-source-dir-to-binary-dir,$(r.$1.base),$2))/$i') \
                             $(addprefix -F,\
 								 $(sort \
                                     $(r.$1.c.frameworks) \
@@ -166,8 +168,8 @@ define product-def-rule-c-compile-rule
 $1: $2
 	$$(call with_message,$(strip $4).$(strip $3) <== compiling $(patsubst $(r.$3.base)/%,%,$2))\
           $(CPDE_C_COMPILE_PREFIX) $$(call product-def-rule-c-compile-cmd$(suffix $2),$3,$4) $$(call c-generate-depend-cpp-flags,$3,$4) \
-          $$(call product-def-gen-dep-cmd,$4,$$(patsubst %.o,%.d,$$@)) \
-          -o $$@ $$<
+          $$(call product-def-gen-dep-cmd,$4,'$$(call $($4.env).regular-path,$$(patsubst %.o,%.d,$$@))') \
+          -o '$$(call $($4.env).regular-path,$$@)' '$$(call $($4.env).regular-path,$$<)'
 
 endef
 
