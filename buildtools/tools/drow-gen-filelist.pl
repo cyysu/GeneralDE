@@ -6,13 +6,16 @@ use File::Path;
 
 my $inputDir;
 my $outputFile;
+my @ignores;
 
 GetOptions("input=s" => \$inputDir
            , "output=s" => \$outputFile
+           , "ignore=s" => \@ignores
            );
 
 my @moduleFiles;
 my @spriteFiles;
+my @particleFiles;
 my @actionFiles;
 my @spineFiles;
 my @bulletsFiles;
@@ -42,9 +45,18 @@ sub readMetaFromFile {
 }
 
 sub wanted {
+  foreach my $ignore (@ignores) {
+    return if ($File::Find::name =~ /^$inputDir\/$ignore/);
+  }
+
   if (/\.spine$/) {
     $File::Find::name =~ m/^$inputDir\/(.*[\/]+)([^\/]+)$/;
     push @spineFiles, { guid => 0, path => $1, file => $2 };
+    return;
+  }
+  elsif (/\.particle$/) {
+    $File::Find::name =~ m/^$inputDir\/(.*[\/]+)([^\/]+)$/;
+    push @particleFiles, { guid => 0, path => $1, file => $2 };
     return;
   }
   elsif (/\.emitter$/) {
@@ -103,6 +115,11 @@ foreach my $file (@actionFiles) {
   print $output "        <Meta Guid='$file->{guid}' Path='$file->{path}' File='$file->{file}' />\n";
 }
 print $output "    </Action>\n";
+print $output "    <Particle>\n";
+foreach my $file (@particleFiles) {
+  print $output "        <Meta Guid='$file->{guid}' Path='$file->{path}' File='$file->{file}' />\n";
+}
+print $output "    </Particle>\n";
 print $output "    <Spine>\n";
 foreach my $file (@spineFiles) {
   print $output "        <Meta Guid='$file->{guid}' Path='$file->{path}' File='$file->{file}' />\n";

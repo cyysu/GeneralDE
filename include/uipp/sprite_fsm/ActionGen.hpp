@@ -34,7 +34,7 @@ public:
     World const & world(void) const { return entity().world(); }
 
     State & state(void) { return m_action.state(); }
-    State const & state(void) const { m_action.state(); }
+    State const & state(void) const { return m_action.state(); }
 
     const char * name(void) const { return m_action.name(); }
     ui_sprite_fsm_action_life_circle_t lifeCircle(void) const { return m_action.lifeCircle(); }

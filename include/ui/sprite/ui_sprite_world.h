@@ -27,6 +27,9 @@ void ui_sprite_world_clear_event_handler_by_ctx(ui_sprite_world_t world, void * 
 float ui_sprite_world_fps(ui_sprite_world_t world);
 void ui_sprite_world_set_fps(ui_sprite_world_t world,  float fps);
 
+float ui_sprite_world_tick_adj(ui_sprite_world_t world);
+void ui_sprite_world_set_tick_adj(ui_sprite_world_t world, float tick_adj);
+
 xcomputer_t ui_sprite_world_computer(ui_sprite_world_t world);
 
 uint8_t ui_sprite_world_is_tick_start(ui_sprite_world_t world);
