@@ -292,6 +292,18 @@ const char * file_name_suffix(const char * input) {
     return input;
 }
 
+int file_name_rename_suffix(char * input, size_t input_capacity, const char * postfix) {
+    size_t postfix_len = strlen(postfix);
+    char * p = strrchr(input, '.');
+    if (p == NULL) return -1;
+
+    if ((p - input) + 1 + postfix_len + 1 > input_capacity) return -1;
+
+    memcpy(p + 1, postfix, postfix_len);
+
+    return 0;
+}
+
 const char * file_name_no_dir(const char * input) {
     int len;
 
