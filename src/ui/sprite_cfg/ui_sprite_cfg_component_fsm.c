@@ -26,7 +26,7 @@ int ui_sprite_cfg_load_fsm_from_path(ui_sprite_cfg_loader_t loader, ui_sprite_fs
     cfg = cfg_find_cfg(loader->m_cfg_root, src_path);
     if (cfg == NULL) {
         CPE_ERROR(loader->m_em, "%s: cfg %s not exist!", ui_sprite_cfg_loader_name(loader), src_path);
-        return NULL;
+        return -1;
     }
 
     return ui_sprite_cfg_load_fsm(loader, fsm, cfg);

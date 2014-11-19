@@ -26,6 +26,9 @@ public:
     float fps(void) const { return ui_sprite_world_fps(*this); }
     void setFps(float fps) { ui_sprite_world_set_fps(*this,  fps); }
 
+	float tickAdj(void) const { return ui_sprite_world_tick_adj(*this); }
+	void setTickAdj(float adj) { ui_sprite_world_set_tick_adj(*this,  adj); }
+
     ::std::auto_ptr<EntityIterator> entities(mem_allocrator_t alloc = NULL);
 
     /*res operations*/
