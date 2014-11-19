@@ -13,6 +13,7 @@ extern "C" {
 typedef struct ui_sprite_world_updator * ui_sprite_world_updator_t;
 
 typedef TAILQ_HEAD(ui_sprite_update_node_list, ui_sprite_update_node) ui_sprite_update_node_list_t;
+typedef TAILQ_HEAD(ui_sprite_world_res_list, ui_sprite_world_res) ui_sprite_world_res_list_t;
 typedef struct ui_sprite_update_node * ui_sprite_update_node_t;
 
 struct ui_sprite_update_node {
@@ -30,6 +31,7 @@ struct ui_sprite_world {
     ui_sprite_repository_t m_repo;
     uint32_t m_max_entity_id;
     uint8_t m_in_tick;
+	float m_tick_adj;
     float m_fps;
     float m_frame_duration;
     struct cpe_hash_table m_entity_by_id;
@@ -38,6 +40,7 @@ struct ui_sprite_world {
     struct cpe_hash_table m_group_by_id;
     struct cpe_hash_table m_group_by_name;
     struct cpe_hash_table m_resources;
+    ui_sprite_world_res_list_t m_resources_by_order;
     struct cpe_hash_table m_event_handlers;
     struct cpe_hash_table m_attr_monitor_bindings;
     ui_sprite_entity_list_t m_wait_destory_entities;

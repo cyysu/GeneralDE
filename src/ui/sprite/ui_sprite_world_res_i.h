@@ -12,6 +12,7 @@ struct ui_sprite_world_res {
     const char * m_name;
     uint16_t m_size;
     struct cpe_hash_entry m_hh_for_world;
+    TAILQ_ENTRY(ui_sprite_world_res) m_next_for_world;
     void * m_free_fun_ctx;
     ui_sprite_world_res_free_fun_t m_free_fun;
 };
