@@ -450,7 +450,9 @@ $(call assert-not-null,$1.output)
 .PHONY: $2.$1-model-export
 $2.$1-model-export: $$(UI_MODEL_TOOL)
 	$(call with_message,generate np filelist $2.$1)$$(CPDE_PERL) $$(CPDE_ROOT)/buildtools/tools/drow-gen-filelist.pl \
-		--input=$$($1.ui-model.root) --output=$$(if $$($1.ui-model.output),$$($1.ui-model.output),$$(CPDE_OUTPUT_ROOT)/$$($2.output)/$$($1.output))/res.db
+		--input=$$($1.ui-model.root) \
+        $(addprefix --ignore=,$$($1.ui-model.ignore-dirs)) \
+        --output=$$(if $$($1.ui-model.output),$$($1.ui-model.output),$$(CPDE_OUTPUT_ROOT)/$$($2.output)/$$($1.output))/res.db
 	$(call with_message,export bin files $2.$1)$$(UI_MODEL_TOOL) \
         convert --model=$$($1.ui-model.root) --format=proj --to=$$(if $$($1.ui-model.output),$$($1.ui-model.output),$$(CPDE_OUTPUT_ROOT)/$$($2.output)/$$($1.output)) --to-format=bin
 endef
