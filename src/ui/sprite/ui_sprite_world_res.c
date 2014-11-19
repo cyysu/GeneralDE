@@ -28,6 +28,8 @@ ui_sprite_world_res_t ui_sprite_world_res_create(ui_sprite_world_t world, const 
         return NULL;
     }
 
+    TAILQ_INSERT_TAIL(&world->m_resources_by_order, world_res, m_next_for_world);
+
     return world_res;
 }
 
@@ -39,6 +41,7 @@ void ui_sprite_world_res_free(ui_sprite_world_res_t world_res) {
         world_res->m_free_fun(world_res, world_res->m_free_fun_ctx);
     }
 
+    TAILQ_REMOVE(&world->m_resources_by_order, world_res, m_next_for_world);
     cpe_hash_table_remove_by_ins(&world->m_resources, world_res);
 
     mem_free(repo->m_alloc, world_res);
@@ -72,16 +75,8 @@ ui_sprite_world_res_t ui_sprite_world_res_from_data(void * data) {
 }
 
 void ui_sprite_world_res_free_all(const ui_sprite_world_t world) {
-    struct cpe_hash_it world_res_it;
-    ui_sprite_world_res_t world_res;
-
-    cpe_hash_it_init(&world_res_it, &world->m_resources);
-
-    world_res = cpe_hash_it_next(&world_res_it);
-    while (world_res) {
-        ui_sprite_world_res_t next = cpe_hash_it_next(&world_res_it);
-        ui_sprite_world_res_free(world_res);
-        world_res = next;
+    while(!TAILQ_EMPTY(&world->m_resources_by_order)) {
+        ui_sprite_world_res_free(TAILQ_LAST(&world->m_resources_by_order, ui_sprite_world_res_list));
     }
 }
 

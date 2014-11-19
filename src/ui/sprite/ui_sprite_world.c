@@ -27,6 +27,8 @@ ui_sprite_world_t ui_sprite_world_create(ui_sprite_repository_t repo) {
     world->m_repo = repo;
     world->m_max_entity_id = 0;
     world->m_in_tick = 0;
+	world->m_tick_adj = 1.0f;
+    TAILQ_INIT(&world->m_resources_by_order);
     TAILQ_INIT(&world->m_wait_destory_entities);
     TAILQ_INIT(&world->m_pending_monitors);
     TAILQ_INIT(&world->m_pending_events);
@@ -135,7 +137,7 @@ ui_sprite_world_t ui_sprite_world_create(ui_sprite_repository_t repo) {
         return NULL;
     }
 
-    if (cpe_hash_table_init(
+	if (cpe_hash_table_init(
             &world->m_attr_monitor_bindings,
             repo->m_alloc,
             (cpe_hash_fun_t) ui_sprite_attr_monitor_binding_hash,
@@ -500,6 +502,7 @@ static ptr_int_t ui_sprite_world_tick(void * ctx, ptr_int_t arg) {
     tl_time_t new_time;
     tl_time_span_t delta;
     float delta_s;
+	float delta_s_adj;
     ptr_int_t processed_count;
     uint8_t i;
 
@@ -520,10 +523,12 @@ static ptr_int_t ui_sprite_world_tick(void * ctx, ptr_int_t arg) {
 
     if (delta_s > world->m_frame_duration) delta_s = world->m_frame_duration;
 
+	delta_s_adj = delta_s * world->m_tick_adj;
+
     for(i = 0; i < world->m_updator_count; ++i) {
         ui_sprite_world_updator_t updator = world->m_updators + i;
         
-        updator->m_fun(world, updator->m_ctx, delta_s);
+        updator->m_fun(world, updator->m_ctx, delta_s_adj);
         ++processed_count;
     }
 
@@ -561,6 +566,14 @@ float ui_sprite_world_fps(ui_sprite_world_t world) {
 void ui_sprite_world_set_fps(ui_sprite_world_t world,  float fps) {
     world->m_fps = fps;
     world->m_frame_duration = 1.0f / fps;
+}
+
+float ui_sprite_world_tick_adj(ui_sprite_world_t world) {
+	return world->m_tick_adj;
+}
+
+void ui_sprite_world_set_tick_adj(ui_sprite_world_t world, float tick_adj) {
+	world->m_tick_adj = tick_adj;
 }
 
 void ui_sprite_component_enqueue(ui_sprite_world_t world, ui_sprite_component_t component, int8_t priority) {
