@@ -63,7 +63,7 @@ public:
     }
 
     template<typename T>
-    void sendEventTo(const char * target, T const & data) {
+    void sendEventTo(const char * target, T const & data = T()) {
         sendEventTo(target, Cpe::Dr::MetaTraits<T>::META, &data, Cpe::Dr::MetaTraits<T>::data_size(data));
     }
 
