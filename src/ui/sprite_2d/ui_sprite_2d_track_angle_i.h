@@ -5,11 +5,22 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-	
+
+struct ui_sprite_2d_track_angle_pos {    
+    UI_SPRITE_2D_PAIR m_pos;
+    float m_distance;
+    float m_delta;
+};
+
 struct ui_sprite_2d_track_angle {
 	ui_sprite_2d_module_t m_module;
+    float m_check_span;
 
-    UI_SPRITE_2D_PAIR m_pre_pos;
+    struct ui_sprite_2d_track_angle_pos m_moving_poses[100];
+    float m_total_time;
+    float m_total_distance;
+    struct ui_sprite_2d_track_angle_pos * m_moving_poses_wp;
+    struct ui_sprite_2d_track_angle_pos * m_moving_poses_rp;
 };
 
 int ui_sprite_2d_track_angle_regist(ui_sprite_2d_module_t module);

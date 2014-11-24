@@ -105,14 +105,14 @@ public:
     void sendEvent(const char * entity, LPDRMETA meta, void const * data, size_t data_size) { ui_sprite_world_send_event_to(*this, entity, meta, data, data_size); }
 
     template<typename T>
-    void sendEvent(T const & data) {
+    void sendEvent(T const & data = T()) {
         ui_sprite_world_send_event(
             *this,
             Cpe::Dr::MetaTraits<T>::META, &data, Cpe::Dr::MetaTraits<T>::data_size(data));
     }
 
     template<typename T>
-    void sendEventTo(const char * targets, T const & data) {
+    void sendEventTo(const char * targets, T const & data = T()) {
         ui_sprite_world_send_event_to(
             *this, targets,
             Cpe::Dr::MetaTraits<T>::META, &data, Cpe::Dr::MetaTraits<T>::data_size(data));
