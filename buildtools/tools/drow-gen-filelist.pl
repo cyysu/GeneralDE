@@ -21,6 +21,7 @@ my @spineFiles;
 my @bulletsFiles;
 my @emitterFiles;
 my @movingFiles;
+my @chipmunkFiles;
 
 my $outputDir = dirname($outputFile);
 if ( not -e $outputDir) {
@@ -72,6 +73,11 @@ sub wanted {
   elsif (/\.moving$/) {
     $File::Find::name =~ m/^$inputDir\/(.*[\/]+)([^\/]+)$/;
     push @movingFiles, { guid => 0, path => $1, file => $2 };
+    return;
+  }
+  elsif (/\.chipmunk$/) {
+    $File::Find::name =~ m/^$inputDir\/(.*[\/]+)([^\/]+)$/;
+    push @chipmunkFiles, { guid => 0, path => $1, file => $2 };
     return;
   }
 
@@ -140,6 +146,11 @@ foreach my $file (@movingFiles) {
   print $output "        <Meta Guid='$file->{guid}' Path='$file->{path}' File='$file->{file}' />\n";
 }
 print $output "    </Moving>\n";
+print $output "    <Chipmunk>\n";
+foreach my $file (@chipmunkFiles) {
+  print $output "        <Meta Guid='$file->{guid}' Path='$file->{path}' File='$file->{file}' />\n";
+}
+print $output "    </Chipmunk>\n";
 print $output "</Resources>\n";
 1;
 

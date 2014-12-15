@@ -16,7 +16,7 @@ struct ui_sprite_anim_runing {
     TAILQ_ENTRY(ui_sprite_anim_runing) m_next_for_sch;
 };
 
-ui_sprite_anim_runing_t ui_sprite_anim_runing_create(ui_sprite_anim_sch_t anim_sch, ui_sprite_anim_group_t group, const char * res);
+ui_sprite_anim_runing_t ui_sprite_anim_runing_create(ui_sprite_anim_sch_t anim_sch, ui_sprite_anim_group_t group, const char * res, uint8_t is_loop);
 void ui_sprite_anim_runing_free(ui_sprite_anim_runing_t anim_runing);
 
 ui_sprite_anim_runing_t ui_sprite_anim_runing_find_by_id(ui_sprite_anim_sch_t anim_sch, int32_t m_anim_id);

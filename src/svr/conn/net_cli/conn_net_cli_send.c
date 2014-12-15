@@ -56,7 +56,7 @@ static int conn_net_cli_send_i(conn_net_cli_t cli, conn_net_cli_svr_stub_t svr_s
     }
 
 RESIZE_AND_TRY_AGAIN:
-    blk = ringbuffer_alloc(cli->m_ringbuf , curent_pkg_size);
+    blk = ringbuffer_alloc(cli->m_ringbuf , (int)curent_pkg_size);
     if (blk == NULL) {
         CPE_ERROR(
             cli->m_em, "%s: send: not enouth ringbuf, curent_pkg_size=%d, data-len=%d!",
@@ -64,7 +64,7 @@ RESIZE_AND_TRY_AGAIN:
     }
 
     buf = NULL;
-    ringbuffer_data(cli->m_ringbuf, blk, curent_pkg_size, 0, &buf);
+    ringbuffer_data(cli->m_ringbuf, blk, (int)curent_pkg_size, 0, &buf);
     assert(buf);
 
     head = buf;
@@ -80,7 +80,7 @@ RESIZE_AND_TRY_AGAIN:
                 curent_pkg_size - sizeof(SVR_CONN_NET_REQ_HEAD),
                 data, data_len, meta, cli->m_em);
         if (encode_size < 0) {
-            blk = ringbuffer_yield(cli->m_ringbuf, blk, curent_pkg_size);
+            blk = ringbuffer_yield(cli->m_ringbuf, blk, (int)curent_pkg_size);
             if (encode_size == dr_code_error_not_enough_output) {
                 if (curent_pkg_size < cli->m_max_pkg_size) {
                     curent_pkg_size *= 2;
