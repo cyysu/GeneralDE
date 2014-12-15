@@ -73,7 +73,7 @@ uint32_t ui_sprite_anim_sch_start_anim(
         res = def->m_anim_res;
     }
 
-    runing = ui_sprite_anim_runing_create(anim_sch, group, res);
+    runing = ui_sprite_anim_runing_create(anim_sch, group, res, is_loop);
     if (runing == NULL) return UI_SPRITE_INVALID_ANIM_ID;
 
     return runing->m_anim_id;
@@ -257,7 +257,7 @@ static int ui_sprite_anim_sch_enter(ui_sprite_component_t component, void * ctx)
     TAILQ_FOREACH(anim_def, &anim_sch->m_defs, m_next_for_sch) {
         if (!anim_def->m_auto_start) continue;
 
-        if (ui_sprite_anim_runing_create(anim_sch, group, anim_def->m_anim_res) == NULL) {
+        if (ui_sprite_anim_runing_create(anim_sch, group, anim_def->m_anim_res, 1) == NULL) {
             CPE_ERROR(
                 module->m_em, "entity %d(%s): auto start anim %s(%s): start fail!",
                 ui_sprite_entity_id(entity), ui_sprite_entity_name(entity),

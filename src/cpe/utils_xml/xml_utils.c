@@ -74,6 +74,42 @@ int cpe_xml_find_attr_uint32(uint32_t * result, const char * attr_name, int nb_a
     return -1;
 }
 
+int cpe_xml_find_attr_int16(int16_t * result, const char * attr_name, int nb_attributes, const void * attributes, error_monitor_t em) {
+    int32_t tmp;
+    if (cpe_xml_find_attr_int32(&tmp, attr_name, nb_attributes, attributes, em) != 0) return -1;
+
+    *result = tmp;
+    
+    return 0;
+}
+
+int cpe_xml_find_attr_uint16(uint16_t * result, const char * attr_name, int nb_attributes, const void * attributes, error_monitor_t em) {
+    uint32_t tmp;
+    if (cpe_xml_find_attr_uint32(&tmp, attr_name, nb_attributes, attributes, em) != 0) return -1;
+
+    *result = tmp;
+    
+    return 0;
+}
+
+int cpe_xml_find_attr_int8(int8_t * result, const char * attr_name, int nb_attributes, const void * attributes, error_monitor_t em) {
+    int32_t tmp;
+    if (cpe_xml_find_attr_int32(&tmp, attr_name, nb_attributes, attributes, em) != 0) return -1;
+
+    *result = tmp;
+    
+    return 0;
+}
+
+int cpe_xml_find_attr_uint8(uint8_t * result, const char * attr_name, int nb_attributes, const void * attributes, error_monitor_t em) {
+    uint32_t tmp;
+    if (cpe_xml_find_attr_uint32(&tmp, attr_name, nb_attributes, attributes, em) != 0) return -1;
+
+    *result = tmp;
+    
+    return 0;
+}
+
 int cpe_xml_find_attr_float(float * result, const char * attr_name, int nb_attributes, const void * attributes, error_monitor_t em) {
     int index, indexAttribute;
 
@@ -179,6 +215,42 @@ int cpe_xml_read_value_uint32(uint32_t * result, const char * data, size_t data_
     if (sscanf(data, FMT_UINT32_T, result) != 1) {
         return -1;
     }
+    return 0;
+}
+
+int cpe_xml_read_value_int16(int16_t * result, const char * data, size_t data_len) {
+	int32_t tmp;
+	if (cpe_xml_read_value_int32(&tmp, data, data_len) != 0) return -1;
+
+	*result = tmp;
+
+	return 0;
+}
+
+int cpe_xml_read_value_uint16(uint16_t * result, const char * data, size_t data_len) {
+	uint32_t tmp;
+	if (cpe_xml_read_value_uint32(&tmp, data, data_len) != 0) return -1;
+
+	*result = tmp;
+
+	return 0;
+}
+
+int cpe_xml_read_value_int8(int8_t * result, const char * data, size_t data_len) {
+    int32_t tmp;
+    if (cpe_xml_read_value_int32(&tmp, data, data_len) != 0) return -1;
+
+    *result = tmp;
+    
+    return 0;
+}
+
+int cpe_xml_read_value_uint8(uint8_t * result, const char * data, size_t data_len) {
+    uint32_t tmp;
+    if (cpe_xml_read_value_uint32(&tmp, data, data_len) != 0) return -1;
+
+    *result = tmp;
+    
     return 0;
 }
 

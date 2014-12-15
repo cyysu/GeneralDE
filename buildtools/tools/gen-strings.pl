@@ -39,31 +39,18 @@ sub is_role_all_empty {
 
 my %language_tables = ();
 
-foreach my $input ( @inputs ) {
-  $input =~ /^(.*)\.([^.]*)$/ or die "input $input format error!";
-
-  my $inputSheet = decode("utf8", $2);
-  my $inputFile = decode("utf8", $1) . ".xls";
-
-  my $parser =  Spreadsheet::ParseExcel->new();
-  my $workbook = $parser->parse($inputFile);
-  if ( ! defined $workbook ) {
-    die $parser->error(), ".\n";
-  }
-
-  my $sheet = $workbook->worksheet($inputSheet);
-  if ( ! defined $sheet ) {
-    die "sheet $inputSheet not exist in $inputFile!";
-  }
+sub parse_sheet {
+  my $inputFile = shift;
+  my $sheet = shift;
 
   my ( $row_min, $row_max ) = $sheet->row_range();
   my ( $col_min, $col_max ) = $sheet->col_range();
 
   if ( $row_max < 0 || $row_min > $row_max ) {
-    die "sheet $inputSheet row range error!";
+    die "sheet " . $sheet->get_name() . " row range error!";
   }
   if ( $col_max < 0 || $col_min >= $col_max ) {
-    die "sheet $inputSheet col range error!";
+    die "sheet " . $sheet->get_name() . " col range error!";
   }
 
   my %tableHead = ();
@@ -74,9 +61,9 @@ foreach my $input ( @inputs ) {
     }
   }
 
-  die "$inputFile -- $inputSheet: id column not exist!" if not exists $tableHead{id};
+  die "$inputFile -- " . $sheet->get_name() . ": id column not exist!" if not exists $tableHead{id};
   foreach my $language ( @languages ) {
-    die "$inputFile -- $inputSheet: $language column not exist!" if (not exists $tableHead{$language});
+    die "$inputFile -- " . $sheet->get_name() . ": $language column not exist!" if (not exists $tableHead{$language});
   }
 
   foreach my $rowPos ( $row_min + $startLine .. $row_max ) {
@@ -88,7 +75,7 @@ foreach my $input ( @inputs ) {
       $msg_id = $cell->value();
     }
 
-    next and print "$inputFile -- $inputSheet: row $rowPos id not config!"
+    next and print "$inputFile -- " . $sheet->get_name() . ": row $rowPos id not config!\n"
       if not defined $msg_id;
 
     foreach my $language ( @languages ) {
@@ -103,11 +90,43 @@ foreach my $input ( @inputs ) {
         $language_tables{$language} = $table;
       }
 
-      print "$inputFile -- $inputSheet: row $rowPos id $msg_id language $language already defined!" and next
+      print "$inputFile -- " . $sheet->get_name() . ": row $rowPos id $msg_id language $language already defined!\n" and next
         if exists $table->{$msg_id};
 
       $table->{$msg_id} = encode("utf-8", $msg);
     }
+  }
+}
+
+foreach my $input ( @inputs ) {
+  my $inputFile;
+  my $inputSheet;
+
+  if ($input =~ /^(.*)\.([^.\/]*)$/) {
+    $inputSheet = decode("utf8", $2);
+    $inputFile = decode("utf8", $1) . ".xls";
+  }
+  else {
+    $inputFile = decode("utf8", $input) . ".xls";
+  }
+
+  my $parser =  Spreadsheet::ParseExcel->new();
+  my $workbook = $parser->parse($inputFile);
+  if ( ! defined $workbook ) {
+    die $parser->error(), ".\n";
+  }
+
+  if ( ! defined $inputSheet) {
+    for my $sheet ( $workbook->worksheets() ) {
+      parse_sheet($inputFile, $sheet);
+    }
+  } else {
+    my $sheet = $workbook->worksheet($inputSheet);
+    if ( ! defined $sheet ) {
+      die "sheet $inputSheet not exist in $inputFile!";
+    }
+
+    parse_sheet($inputFile, $sheet);
   }
 }
 
