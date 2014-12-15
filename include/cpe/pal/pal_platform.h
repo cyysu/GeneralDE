@@ -16,7 +16,7 @@
 #if __SIZEOF_INT__ == 8
 #    define __WORDSIZE (64)
 #else
-#    define __WORDSIZE (64)
+#    define __WORDSIZE (32)
 #endif
 #endif
 
