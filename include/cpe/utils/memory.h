@@ -13,10 +13,12 @@ typedef void (*mem_allocrator_free_t)(void * p, struct mem_allocrator * allocrat
 
 typedef struct mem_allocrator {
     mem_allocrator_alloc_t m_alloc;
+    mem_allocrator_alloc_t m_calloc;
     mem_allocrator_free_t m_free;
 } * mem_allocrator_t;
 
 void * mem_alloc(struct mem_allocrator * alloc, size_t size);
+void * mem_calloc(struct mem_allocrator * alloc, size_t size);
 void mem_free(struct mem_allocrator * alloc, void * p);
 
 struct mem_allocrator * mem_allocrator_null(void);

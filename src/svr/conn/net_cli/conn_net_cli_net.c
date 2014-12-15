@@ -37,16 +37,16 @@ void conn_net_cli_rw_cb(EV_P_ ev_io *w, int revents) {
         assert(buffer);
 
         for(;;) {
-            int bytes = cpe_recv(cli->m_fd, buffer, cli->m_read_block_size, 0);
+            ssize_t bytes = cpe_recv(cli->m_fd, buffer, cli->m_read_block_size, 0);
 
             if (bytes > 0) {
                 if (cli->m_debug >= 2) {
                     CPE_INFO(
                         cli->m_em, "%s: recv %d bytes data!",
-                        conn_net_cli_name(cli), bytes);
+                        conn_net_cli_name(cli), (int)bytes);
                 }
 
-                ringbuffer_shrink(cli->m_ringbuf, blk, bytes);
+                ringbuffer_shrink(cli->m_ringbuf, blk, (int)bytes);
                 conn_net_cli_link_node_r(cli, blk);
                 break;
             }
@@ -93,7 +93,7 @@ void conn_net_cli_rw_cb(EV_P_ ev_io *w, int revents) {
             assert(block_size > 0);
             assert(data);
 
-            bytes = cpe_send(cli->m_fd, data, block_size, 0);
+            bytes = (int)cpe_send(cli->m_fd, data, block_size, 0);
             if (bytes > 0) {
                 if (cli->m_debug >= 2) {
                     CPE_INFO(
@@ -167,7 +167,7 @@ static int conn_net_cli_decode_pkg_buf(conn_net_cli_t cli, LPDRMETA meta, void c
 RESIZE_AND_TRY_AGAIN:
     if (cli->m_tb) ringbuffer_free(cli->m_ringbuf, cli->m_tb);
 
-    cli->m_tb = ringbuffer_alloc(cli->m_ringbuf, curent_pkg_size);
+    cli->m_tb = ringbuffer_alloc(cli->m_ringbuf, (int)curent_pkg_size);
     if (cli->m_tb == NULL) {
         CPE_ERROR(
             cli->m_em, "%s: decode: not enouth ringbuf, to decode pkg, data-len=%d, require-buf-len=%d!",
@@ -177,7 +177,7 @@ RESIZE_AND_TRY_AGAIN:
     cli->m_tb->id = 3;
 
     buf = NULL;
-    ringbuffer_data(cli->m_ringbuf, cli->m_tb, curent_pkg_size, 0, &buf);
+    ringbuffer_data(cli->m_ringbuf, cli->m_tb, (int)curent_pkg_size, 0, &buf);
     assert(buf);
     bzero(buf, curent_pkg_size);
 
@@ -210,7 +210,7 @@ RESIZE_AND_TRY_AGAIN:
         }
     }
 
-    if (curent_pkg_size > cli->m_decode_block_size) cli->m_decode_block_size = curent_pkg_size;
+    if (curent_pkg_size > cli->m_decode_block_size) cli->m_decode_block_size = (uint32_t)curent_pkg_size;
 
     dp_req_set_meta(cli->m_incoming_body, meta);
     dp_req_set_buf(cli->m_incoming_body, buf, curent_pkg_size);
