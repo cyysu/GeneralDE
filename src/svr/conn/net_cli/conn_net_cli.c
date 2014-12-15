@@ -233,7 +233,7 @@ int conn_net_cli_set_ringbuf_size(conn_net_cli_t cli, size_t capacity) {
         cli->m_wb = NULL;
         cli->m_tb = NULL;
     }
-    cli->m_ringbuf = ringbuffer_new(capacity);
+    cli->m_ringbuf = ringbuffer_new((int)capacity);
 
     if (cli->m_ringbuf == NULL) return -1;
 
