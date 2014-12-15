@@ -85,7 +85,7 @@ float cpe_math_radians(float x1, float y1, float x2, float y2) {
     float r;
 
     if (fabs(diff_x) < 0.01f) {
-        if (fabs(diff_y) < 0.01) {
+        if (fabs(diff_x) < 0.01) {
             return (float)- M_PI_2;
         }
         else if (fabs(diff_y) < 0.01) {
