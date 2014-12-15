@@ -82,6 +82,7 @@ endef
 
 # }}}
 # {{{ 定义dir序列帧特效
+
 #                                    $1      $2     $3      $4       $5             $6             $7 
 #$(call install-ui-model-dir-effects,product,module,to-path,src-path,frame-duration,frame-position,frame-order)
 define install-ui-model-dir-effects
@@ -113,16 +114,17 @@ endef
 # }}}
 # {{{ 定义CrazyStorm子弹导入
 
-#                                          $1      $2     $3            $4         $5            $6               ,$7
-#$(call install-ui-model-crazystorm-bullet,product,module,output-module,output-pic,output-bullet,output-crazystorm,src-dir)
+#                                          $1      $2     $3            $4            $5         $6            $7                $8
+#$(call install-ui-model-crazystorm-bullet,product,module,output-module,output-sprite,output-pic,output-bullet,output-crazystorm,src-dir)
 define install-ui-model-crazystorm-bullet
 
 $(strip $1).ui-model.crazystorm-bullet.modules+=$(strip $2)
-$(strip $1).ui-model.crazystorm-bullet.$(strip $2).input:=$(strip $7)
-$(strip $1).ui-model.crazystorm-bullet.$(strip $2).output-pic:=$(strip $4)
+$(strip $1).ui-model.crazystorm-bullet.$(strip $2).input:=$(strip $8)
+$(strip $1).ui-model.crazystorm-bullet.$(strip $2).output-pic:=$(strip $5)
 $(strip $1).ui-model.crazystorm-bullet.$(strip $2).output-module:=$(strip $3)
-$(strip $1).ui-model.crazystorm-bullet.$(strip $2).output-bullet:=$(strip $5)
-$(strip $1).ui-model.crazystorm-bullet.$(strip $2).output-crazystorm:=$(strip $6)
+$(strip $1).ui-model.crazystorm-bullet.$(strip $2).output-sprite:=$(strip $4)
+$(strip $1).ui-model.crazystorm-bullet.$(strip $2).output-bullet:=$(strip $6)
+$(strip $1).ui-model.crazystorm-bullet.$(strip $2).output-crazystorm:=$(strip $7)
 
 endef
 
@@ -137,6 +139,19 @@ $(strip $1).ui-model.crazystorm-barrage.modules+=$(strip $2)
 $(strip $1).ui-model.crazystorm-barrage.$(strip $2).input:=$(strip $4)
 $(strip $1).ui-model.crazystorm-barrage.$(strip $2).output:=$(strip $3)
 $(strip $1).ui-model.crazystorm-barrage.$(strip $2).bullets:=$(strip $5)
+
+endef
+
+# }}}
+# {{{ 定义Chipmunk从Sprite导入
+
+#                                             $1      $2     $3     $4
+#$(call install-ui-model-chipmunk-from-sprite,product,module,output,input)
+define install-ui-model-chipmunk-from-sprite
+
+$(strip $1).ui-model.chipmunk-from-sprite.modules+=$(strip $2)
+$(strip $1).ui-model.chipmunk-from-sprite.$(strip $2).input:=$(strip $4)
+$(strip $1).ui-model.chipmunk-from-sprite.$(strip $2).output:=$(strip $3)
 
 endef
 
@@ -158,17 +173,17 @@ endef
 #$(call def-ui-model-file-effect,project,model)
 define def-ui-model-file-effect-import
 
-$1-model-import: $$($1.ui-model.root)/Action/$$($1.ui-model.file-effect.$2.output)/$2.npAction
+$1-model-import: $$($1.ui-model.root)/$$($1.ui-model.file-effect.$2.output)/$2.act
 
-auto-build-dirs+=$$(dir $$($1.ui-model.root)/Texture/$$($1.ui-model.file-effect.$2.output)) \
-                 $$(dir $$($1.ui-model.root)/Module/$$($1.ui-model.file-effect.$2.output)) \
-                 $$(dir $$($1.ui-model.root)/Action/$$($1.ui-model.file-effect.$2.output))
+auto-build-dirs+=$$(dir $$($1.ui-model.root)/$$($1.ui-model.file-effect.$2.output)) \
+                 $$(dir $$($1.ui-model.root)/$$($1.ui-model.file-effect.$2.output)) \
+                 $$(dir $$($1.ui-model.root)/$$($1.ui-model.file-effect.$2.output))
 
 .PHONY: $$($1.ui-model.file-effect.$2.input)/$2.tps
 $$($1.ui-model.file-effect.$2.input)/$2.tps: $$(patsubst %,$$($1.ui-model.file-effect.$2.input)/%.png,$$($1.ui-model.file-effect.$2.pic-files))
 	$(call with_message,generate tp project $2)$$(CPDE_PERL) $$(CPDE_ROOT)/buildtools/tools/gen-tp-project.pl \
         --output-proj $$@ \
-        --output-pic $$(call build-relative-path,$$($1.ui-model.root)/Texture/$$($1.ui-model.file-effect.$2.output).png,$$($1.ui-model.file-effect.$2.input)/$2.tps) \
+        --output-pic $$(call build-relative-path,$$($1.ui-model.root)/$$($1.ui-model.file-effect.$2.output).png,$$($1.ui-model.file-effect.$2.input)/$2.tps) \
         --output-plist $2.plist \
         $$(addprefix --input , $$(sort $$(notdir $$^)))
 
@@ -178,16 +193,16 @@ $$($1.ui-model.file-effect.$2.input)/$2.plist: $$($1.ui-model.file-effect.$2.inp
 $1.ui-model.file-effect.$2.frame-duration ?= 1
 $1.ui-model.file-effect.$2.frame-position ?= center
 
-$$($1.ui-model.root)/Action/$$($1.ui-model.file-effect.$2.output)/$2.npAction: $$($1.ui-model.file-effect.$2.input)/$2.plist $$(UI_MODEL_TOOL)
+$$($1.ui-model.root)/$$($1.ui-model.file-effect.$2.output)/$2.act: $$($1.ui-model.file-effect.$2.input)/$2.plist $$(UI_MODEL_TOOL)
 	$(call with_message,import file action $2)$$(UI_MODEL_TOOL) cocos-effect-import \
         --model $$($1.ui-model.root) --format proj \
-        --to-effect Action/$$($1.ui-model.file-effect.$2.output) \
-        --to-module Module/$$($1.ui-model.file-effect.$2.output) \
+        --to-effect $$($1.ui-model.file-effect.$2.output) \
+        --to-module $$($1.ui-model.file-effect.$2.output) \
         --frame-duration $$($1.ui-model.file-effect.$2.frame-duration) \
         --frame-position $$($1.ui-model.file-effect.$2.frame-position) \
         --frame-order $$($1.ui-model.file-effect.$2.frame-order) \
         --plist $$($1.ui-model.file-effect.$2.input)/$2.plist \
-        --pic Texture/$$($1.ui-model.file-effect.$2.output).png
+        --pic $$($1.ui-model.file-effect.$2.output).png
 
 endef
 
@@ -197,17 +212,15 @@ endef
 #$(call def-ui-model-dir-effect,project,model)
 define def-ui-model-dir-effect-import
 
-$1-model-import: $$($1.ui-model.root)/Action/$$($1.ui-model.dir-effect.$2.output)/$2.npAction
+$1-model-import: $$($1.ui-model.root)/$$($1.ui-model.dir-effect.$2.output)/$2.act
 
-auto-build-dirs+=$$(dir $$($1.ui-model.root)/Texture/$$($1.ui-model.dir-effect.$2.output)) \
-                 $$(dir $$($1.ui-model.root)/Module/$$($1.ui-model.dir-effect.$2.output)) \
-                 $$(dir $$($1.ui-model.root)/Action/$$($1.ui-model.dir-effect.$2.output))
+auto-build-dirs+=$$(dir $$($1.ui-model.root)/$$($1.ui-model.dir-effect.$2.output))
 
 .PHONY: $$($1.ui-model.dir-effect.$2.input)/$2.tps
 $$($1.ui-model.dir-effect.$2.input)/$2.tps: $$(foreach m,$$(notdir $$(wildcard $$($1.ui-model.dir-effect.$2.input))/*),$$(wildcard $$($1.ui-model.dir-effect.$2.input)/$$m/*.png))
 	$(call with_message,generate tp project $2)$$(CPDE_PERL) $$(CPDE_ROOT)/buildtools/tools/gen-tp-project.pl \
         --output-proj $$@ \
-        --output-pic $$(call build-relative-path,$$($1.ui-model.root)/Texture/$$($1.ui-model.dir-effect.$2.output).png,$$($1.ui-model.dir-effect.$2.input)/$2.tps) \
+        --output-pic $$(call build-relative-path,$$($1.ui-model.root)/$$($1.ui-model.dir-effect.$2.output).png,$$($1.ui-model.dir-effect.$2.input)/$2.tps) \
         --output-plist $2.plist \
         $$(addprefix --input , $$(sort $$(subst $$($1.ui-model.dir-effect.$2.input)/,,$$^)))
 
@@ -217,16 +230,16 @@ $$($1.ui-model.dir-effect.$2.input)/$2.plist: $$($1.ui-model.dir-effect.$2.input
 $1.ui-model.dir-effect.$2.frame-duration ?= 1
 $1.ui-model.dir-effect.$2.frame-position ?= center
 
-$$($1.ui-model.root)/Action/$$($1.ui-model.dir-effect.$2.output)/$2.npAction: $$($1.ui-model.dir-effect.$2.input)/$2.plist $$(UI_MODEL_TOOL)
+$$($1.ui-model.root)/$$($1.ui-model.dir-effect.$2.output)/$2.act: $$($1.ui-model.dir-effect.$2.input)/$2.plist $$(UI_MODEL_TOOL)
 	$(call with_message,import file action $2)$$(UI_MODEL_TOOL) cocos-effect-import \
         --model $$($1.ui-model.root) --format proj \
-        --to-effect Action/$$($1.ui-model.dir-effect.$2.output) \
-        --to-module Module/$$($1.ui-model.dir-effect.$2.output) \
+        --to-effect $$($1.ui-model.dir-effect.$2.output) \
+        --to-module $$($1.ui-model.dir-effect.$2.output) \
         --frame-duration $$($1.ui-model.dir-effect.$2.frame-duration) \
         --frame-position $$($1.ui-model.dir-effect.$2.frame-position) \
         --frame-order $$($1.ui-model.dir-effect.$2.frame-order) \
         --plist $$($1.ui-model.dir-effect.$2.input)/$2.plist \
-        --pic Texture/$$($1.ui-model.dir-effect.$2.output).png
+        --pic $$($1.ui-model.dir-effect.$2.output).png
 
 endef
 
@@ -238,10 +251,10 @@ define def-ui-model-cocos-module-import
 
 $$(call assert-not-null,$1.ui-model.cocos-module.$2.input)
 
-$1-model-import: $$($1.ui-model.root)/$$($1.ui-model.cocos-module.$2.output).npModule
+$1-model-import: $$($1.ui-model.root)/$$($1.ui-model.cocos-module.$2.output).ibk
 
 auto-build-dirs+=$$(dir $$($1.ui-model.root)/$$($1.ui-model.cocos-module.$2.output).png) \
-                 $$(dir $$($1.ui-model.root)/$$($1.ui-model.cocos-module.$2.output).npModule)
+                 $$(dir $$($1.ui-model.root)/$$($1.ui-model.cocos-module.$2.output).ibk)
 
 .PHONY: $$(firstword $$(sort $$(dir $$($1.ui-model.cocos-module.$2.input))))$(strip $2).tps
 $$(firstword $$(sort $$(dir $$($1.ui-model.cocos-module.$2.input))))$(strip $2).tps: $$($1.ui-model.cocos-module.$(strip $2).input)
@@ -254,7 +267,7 @@ $$(firstword $$(sort $$(dir $$($1.ui-model.cocos-module.$2.input))))$(strip $2).
 $$($1.ui-model.root)/$$($1.ui-model.cocos-module.$2.output).plist: $$(firstword $$(sort $$(dir $$($1.ui-model.cocos-module.$2.input))))$(strip $2).tps
 	$$(if $$(TEXTUREPACKER),$(call with_message,texture pack $2)'$$(TEXTUREPACKER)' --force-publish '$$(call cygwin-path-to-win,$$^)',echo "TEXTUREPACKER not set!")
 
-$$($1.ui-model.root)/$$($1.ui-model.cocos-module.$2.output).npModule: $$($1.ui-model.root)/$$($1.ui-model.cocos-module.$2.output).plist $$(UI_MODEL_TOOL)
+$$($1.ui-model.root)/$$($1.ui-model.cocos-module.$2.output).ibk: $$($1.ui-model.root)/$$($1.ui-model.cocos-module.$2.output).plist $$(UI_MODEL_TOOL)
 	$(call with_message,import cocos module $2)$$(UI_MODEL_TOOL) cocos-module-import \
         --model $$($1.ui-model.root) --format proj \
         --to-module $$($1.ui-model.cocos-module.$2.output) \
@@ -269,32 +282,32 @@ endef
 #$(call def-ui-model-cocos-effect,model)
 define def-ui-model-cocos-effect-import
 
-$1-model-import: $$($1.ui-model.root)/Texture/$$($1.ui-model.cocos-effect.$2.output).png \
-                 $$($1.ui-model.root)/Module/$$($1.ui-model.cocos-effect.$2.output).npModule \
-                 $$($1.ui-model.root)/Action/$$($1.ui-model.cocos-effect.$2.output).npAction
+$1-model-import: $$($1.ui-model.root)/$$($1.ui-model.cocos-effect.$2.output).png \
+                 $$($1.ui-model.root)/$$($1.ui-model.cocos-effect.$2.output).ibk \
+                 $$($1.ui-model.root)/$$($1.ui-model.cocos-effect.$2.output).act
 
-auto-build-dirs+=$$(dir $$($1.ui-model.root)/Texture/$$($1.ui-model.cocos-effect.$2.output)) \
-                 $$(dir $$($1.ui-model.root)/Module/$$($1.ui-model.cocos-effect.$2.output)) \
-                 $$(dir $$($1.ui-model.root)/Action/$$($1.ui-model.cocos-effect.$2.output))
+auto-build-dirs+=$$(dir $$($1.ui-model.root)/$$($1.ui-model.cocos-effect.$2.output)) \
+                 $$(dir $$($1.ui-model.root)/$$($1.ui-model.cocos-effect.$2.output)) \
+                 $$(dir $$($1.ui-model.root)/$$($1.ui-model.cocos-effect.$2.output))
 
-$$($1.ui-model.root)/Texture/$$($1.ui-model.cocos-effect.$2.output).png: $$($1.ui-model.root)/$$($1.ui-model.cocos-effect.$2.input).png
+$$($1.ui-model.root)/$$($1.ui-model.cocos-effect.$2.output).png: $$($1.ui-model.root)/$$($1.ui-model.cocos-effect.$2.input).png
 	cp $$< $$@
 
 $1.ui-model.cocos-effect.$2.frame-duration ?= 1
 $1.ui-model.cocos-effect.$2.frame-position ?= center
 $1.ui-model.cocos-effect.$2.frame-order ?= native
 
-.PHONY: $$($1.ui-model.root)/Action/$$($1.ui-model.cocos-effect.$2.output).npAction
-$$($1.ui-model.root)/Module/$$($1.ui-model.cocos-effect.$2.output).npModule $$($1.ui-model.root)/Action/$$($1.ui-model.cocos-effect.$2.output).npAction: $$(wildcard $$($1.ui-model.root)/$$($1.ui-model.cocos-effect.$2.input).plist) $$(UI_MODEL_TOOL)
+.PHONY: $$($1.ui-model.root)/$$($1.ui-model.cocos-effect.$2.output).act
+$$($1.ui-model.root)/$$($1.ui-model.cocos-effect.$2.output).ibk $$($1.ui-model.root)/$$($1.ui-model.cocos-effect.$2.output).act: $$(wildcard $$($1.ui-model.root)/$$($1.ui-model.cocos-effect.$2.input).plist) $$(UI_MODEL_TOOL)
 	$(call with_message,import cocos action $2)$$(UI_MODEL_TOOL) cocos-effect-import \
         --model $$($1.ui-model.root) --format proj \
-        --to-effect Action/$$($1.ui-model.cocos-effect.$2.output) \
-        --to-module Module/$$($1.ui-model.cocos-effect.$2.output) \
+        --to-effect $$($1.ui-model.cocos-effect.$2.output) \
+        --to-module $$($1.ui-model.cocos-effect.$2.output) \
         --frame-duration $$($1.ui-model.cocos-effect.$2.frame-duration) \
         --frame-position $$($1.ui-model.cocos-effect.$2.frame-position) \
         --frame-order $$($1.ui-model.cocos-effect.$2.frame-order) \
         --plist $$($1.ui-model.root)/$$($1.ui-model.cocos-effect.$2.input).plist \
-        --pic Texture/$$($1.ui-model.cocos-effect.$2.output).png
+        --pic $$($1.ui-model.cocos-effect.$2.output).png
 
 endef
 
@@ -304,13 +317,13 @@ endef
 #$(call def-ui-model-cocos-particle,model)
 define def-ui-model-cocos-particle-import
 
-$1-model-import: $$($1.ui-model.root)/Texture/$$($1.ui-model.cocos-particle.$2.output).png \
+$1-model-import: $$($1.ui-model.root)/$$($1.ui-model.cocos-particle.$2.output).png \
                  $$($1.ui-model.root)/Particle/$$($1.ui-model.cocos-particle.$2.output).particle
 
-auto-build-dirs+=$$(dir $$($1.ui-model.root)/Texture/$$($1.ui-model.cocos-particle.$2.output)) \
+auto-build-dirs+=$$(dir $$($1.ui-model.root)/$$($1.ui-model.cocos-particle.$2.output)) \
                  $$(dir $$($1.ui-model.root)/Particle/$$($1.ui-model.cocos-particle.$2.output))
 
-$$($1.ui-model.root)/Texture/$$($1.ui-model.cocos-particle.$2.output).png: $$($1.ui-model.root)/$$($1.ui-model.cocos-particle.$2.input).png
+$$($1.ui-model.root)/$$($1.ui-model.cocos-particle.$2.output).png: $$($1.ui-model.root)/$$($1.ui-model.cocos-particle.$2.input).png
 	cp $$< $$@
 
 .PHONY: $$($1.ui-model.root)/Particle/$$($1.ui-model.cocos-particle.$2.output).particle
@@ -319,7 +332,7 @@ $$($1.ui-model.root)/Particle/$$($1.ui-model.cocos-particle.$2.output).particle:
         --model $$($1.ui-model.root) --format proj \
         --to-particle Particle/$$($1.ui-model.cocos-particle.$2.output) \
         --plist $$($1.ui-model.root)/$$($1.ui-model.cocos-particle.$2.input).plist \
-        --pic Texture/$$($1.ui-model.cocos-particle.$2.output).png
+        --pic $$($1.ui-model.cocos-particle.$2.output).png
 
 endef
 
@@ -358,7 +371,10 @@ endef
 #$(call def-ui-model-crazystorm-barrage,model)
 define def-ui-model-crazystorm-barrage-import
 
-$1-model-import: $$($1.ui-model.root)/$$($1.ui-model.crazystorm-barrage.$2.output)
+.PHONY: $1-model-import.emitter
+$1-model-import: $1-model-import.emitter
+
+$1-model-import.emitter: $$($1.ui-model.root)/$$($1.ui-model.crazystorm-barrage.$2.output)
 
 auto-build-dirs+=$$(dir $$($1.ui-model.root)/$$($1.ui-model.crazystorm-barrage.$2.output)) \
 
@@ -378,9 +394,12 @@ endef
 #$(call def-ui-model-crazystorm-bullet,model)
 define def-ui-model-crazystorm-bullet-import
 
-$1-model-import: $$($1.ui-model.crazystorm-bullet.$2.input)/barrages.tps \
-                 $$(patsubst %.png,%.plist,$$($1.ui-model.root)/$$($1.ui-model.crazystorm-bullet.$2.output-pic)) \
-                 $$($1.ui-model.root)/$$($1.ui-model.crazystorm-bullet.$2.output-module)
+.PHONY: $1-model-import.bullet
+$1-model-import: $1-model-import.bullet
+
+$1-model-import.bullet: $$($1.ui-model.crazystorm-bullet.$2.input)/barrages.tps \
+                         $$(patsubst %.png,%.plist,$$($1.ui-model.root)/$$($1.ui-model.crazystorm-bullet.$2.output-pic)) \
+                         $$($1.ui-model.root)/$$($1.ui-model.crazystorm-bullet.$2.output-module)
 
 auto-build-dirs+=$$(dir $$($1.ui-model.root)/$$($1.ui-model.crazystorm-bullet.$2.output-module)) \
                  $$(dir $$($1.ui-model.root)/$$($1.ui-model.crazystorm-bullet.$2.output-pic)) \
@@ -404,11 +423,38 @@ $$($1.ui-model.root)/$$($1.ui-model.crazystorm-bullet.$2.output-module): \
       $$(UI_MODEL_TOOL) crazystorm-bullet-import \
         --model $$($1.ui-model.root) --format proj \
         --output-module $$($1.ui-model.crazystorm-bullet.$2.output-module) \
+        --output-sprite $$($1.ui-model.crazystorm-bullet.$2.output-sprite) \
         --output-bullet $$($1.ui-model.crazystorm-bullet.$2.output-bullet) \
         --output-crazystorm $$($1.ui-model.crazystorm-bullet.$2.output-crazystorm)/set.txt \
         --input-pic $$($1.ui-model.crazystorm-bullet.$2.output-pic) \
         --input-plist $$(patsubst %.png,%.plist,$$($1.ui-model.root)/$$($1.ui-model.crazystorm-bullet.$2.output-pic)) \
       && cp $$($1.ui-model.root)/$$($1.ui-model.crazystorm-bullet.$2.output-pic) $$($1.ui-model.crazystorm-bullet.$2.output-crazystorm)/barrages.png
+
+endef
+
+# }}}
+# {{{ 实现：Chipmunk从Sprite导入
+
+#$(call def-ui-model-chipmunk-from-sprite,model)
+define def-ui-model-chipmunk-from-sprite
+
+.PHONY: $1-model-import.chipmunk
+
+$1-model-import: $1-model-import.chipmunk
+
+$1-model-import.chipmunk: $$($1.ui-model.root)/$$($1.ui-model.chipmunk-from-sprite.$2.output).chipmunk
+
+auto-build-dirs+=$$(dir $$($1.ui-model.root)/$$($1.ui-model.chipmunk-from-sprite.$2.output))
+
+.PHONY: $$($1.ui-model.root)/$$($1.ui-model.chipmunk-from-sprite.$2.output).chipmunk
+$$($1.ui-model.root)/$$($1.ui-model.chipmunk-from-sprite.$2.output).chipmunk: \
+        $$($1.ui-model.root)/$$($1.ui-model.chipmunk-from-sprite.$2.input).frm \
+        $$(UI_MODEL_TOOL)
+	$(call with_message,import chipmunk $2 from sprite) \
+      $$(UI_MODEL_TOOL) chipmunk-import-from-sprite \
+        --model $$($1.ui-model.root) --format proj \
+        --output $$($1.ui-model.chipmunk-from-sprite.$2.output) \
+        --input $$($1.ui-model.chipmunk-from-sprite.$2.input)
 
 endef
 
@@ -436,6 +482,7 @@ $(foreach module,$($1.ui-model.cocos-particle.modules),$(call def-ui-model-cocos
 $(foreach module,$($1.ui-model.spine-anim.modules),$(call def-ui-model-spine-anim-import,$1,$(module)))
 $(foreach module,$($1.ui-model.crazystorm-barrage.modules),$(call def-ui-model-crazystorm-barrage-import,$1,$(module)))
 $(foreach module,$($1.ui-model.crazystorm-bullet.modules),$(call def-ui-model-crazystorm-bullet-import,$1,$(module)))
+$(foreach module,$($1.ui-model.chipmunk-from-sprite.modules),$(call def-ui-model-chipmunk-from-sprite,$1,$(module)))
 
 endef
 

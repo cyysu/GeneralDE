@@ -112,7 +112,7 @@ int ui_sprite_2d_track_angle_init(ui_sprite_fsm_action_t fsm_action, void * ctx)
 
 	bzero(track_angle, sizeof(*track_angle));
 	track_angle->m_module = ctx;
-    track_angle->m_check_span = 0.5f;
+    track_angle->m_check_span = 0.1f;
 
 	return 0;
 }
