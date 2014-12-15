@@ -1,4 +1,5 @@
 #include <math.h>
+#include "gd/app/app_log.h"
 #include "cpe/utils/math_ex.h"
 #include "cpe/pal/pal_strings.h"
 #include "ui/sprite/ui_sprite_entity.h"
@@ -136,10 +137,10 @@ void ui_sprite_2d_move_follow_update(ui_sprite_fsm_action_t fsm_action, void * c
 
     if (move->m_duration > 0.0f) {
         if (move->m_duration > delta) {
-            float percent = delta / move->m_duration;
-            percent = ui_percent_decorator_decorate(&move->m_decorator, percent);
-            set_to_pos.x = cur_pos.x + (move->m_target_pos.x - cur_pos.x) * percent;
-            set_to_pos.y = cur_pos.y + (move->m_target_pos.y - cur_pos.y) * percent;
+			float percent = delta / move->m_duration;
+			percent = ui_percent_decorator_decorate(&move->m_decorator, percent);
+			set_to_pos.x = cur_pos.x + (move->m_target_pos.x - cur_pos.x) * percent;
+			set_to_pos.y = cur_pos.y + (move->m_target_pos.y - cur_pos.y) * percent;
         }
         else {
             set_to_pos = move->m_target_pos;
@@ -148,8 +149,9 @@ void ui_sprite_2d_move_follow_update(ui_sprite_fsm_action_t fsm_action, void * c
         move->m_duration -= delta;
     }
     else if (move->m_speed > 0.0f) {
-        set_to_pos.x = cur_pos.x + move->m_speed * delta;
-        set_to_pos.y = cur_pos.y + move->m_speed * delta;
+		float radians = cpe_math_radians(cur_pos.x, cur_pos.y, move->m_target_pos.x, move->m_target_pos.y);
+		set_to_pos.x = cur_pos.x + cpe_cos_radians(radians) * move->m_speed * delta;
+		set_to_pos.y = cur_pos.y + cpe_sin_radians(radians) * move->m_speed * delta;
     }
     else {
         set_to_pos = move->m_target_pos;
@@ -158,8 +160,8 @@ void ui_sprite_2d_move_follow_update(ui_sprite_fsm_action_t fsm_action, void * c
     ui_sprite_2d_transform_set_origin_pos(transform, set_to_pos);
 
     if ((move->m_follow_entity_id == 0 && move->m_follow_entity_name[0] == 0)
-        && fabs(set_to_pos.x - move->m_target_pos.x) < 0.01f
-        && fabs(set_to_pos.y-  move->m_target_pos.y) < 0.01f
+        || (fabs(set_to_pos.x - move->m_target_pos.x) < 0.01f
+        && fabs(set_to_pos.y-  move->m_target_pos.y) < 0.01f)
         )
     {
         ui_sprite_fsm_action_sync_update(fsm_action, 0);
