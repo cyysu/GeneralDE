@@ -7,7 +7,7 @@
 #include "ui_sprite_anim_module_i.h"
 
 ui_sprite_anim_runing_t
-ui_sprite_anim_runing_create(ui_sprite_anim_sch_t anim_sch, ui_sprite_anim_group_t group, const char * res) {
+ui_sprite_anim_runing_create(ui_sprite_anim_sch_t anim_sch, ui_sprite_anim_group_t group, const char * res, uint8_t is_loop) {
     ui_sprite_anim_backend_t backend = anim_sch->m_backend;
     ui_sprite_anim_module_t module = backend->m_module;
     ui_sprite_entity_t entity = ui_sprite_component_entity(ui_sprite_component_from_data(anim_sch));
@@ -23,7 +23,7 @@ ui_sprite_anim_runing_create(ui_sprite_anim_sch_t anim_sch, ui_sprite_anim_group
 
     anim_runing->m_anim_id = 
         anim_sch->m_backend->m_def.m_start_fun(
-            anim_sch->m_backend->m_def.m_ctx, group->m_group_id, res, 1, -1, -1);
+            anim_sch->m_backend->m_def.m_ctx, group->m_group_id, res, is_loop, -1, -1);
     if (anim_runing->m_anim_id == UI_SPRITE_INVALID_ANIM_ID) {
         CPE_ERROR(
             module->m_em, "entity %d(%s): start anim %s: start fail!",
